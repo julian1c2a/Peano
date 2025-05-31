@@ -881,6 +881,42 @@ namespace StrictOrder
                 · exact lt_or_eq_then_nltc n m
                 · exact nlt_then_ltc_or_eq n m
 
+  theorem succ_lt_succ_iff_forall :
+        ∀ (n m: ℕ₀), Lt (σ n) (σ m) ↔ Lt n m
+            := by
+                intro n m
+                constructor
+                · intro h_lt_sn_sm
+                  unfold Lt at h_lt_sn_sm
+                  exact h_lt_sn_sm
+                · intro h_lt_nm
+                  unfold Lt
+                  exact h_lt_nm
+
+  theorem lt_then_lt_succ_forall :
+        ∀ (n m: ℕ₀), Lt (σ n) (σ m) → Lt n m
+            := by
+                intro n m h_lt_sn_sm
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_sn_sm
+                        exact False.elim h_lt_sn_sm
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_sn_sm
+                        exact False.elim h_lt_sn_sm
+                    | succ m' =>
+                        unfold Lt at h_lt_sn_sm
+                        exact ih_n' m' h_lt_sn_sm
+                        
+
+
 end StrictOrder
 end Peano
 

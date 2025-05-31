@@ -547,16 +547,19 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
     := by
     constructor
     · -- Dirección →: n ≤ m → Le (Λ n) (Λ m)
-      intro h_n_le_m -- h_n_le_m : n ≤ m
-      rw [Nat.le_iff_lt_or_eq] at h_n_le_m
-      cases h_n_le_m with
+      intro h_nat_le -- h_nat_le : n ≤ m
+      rw [Nat.le_iff_lt_or_eq] at h_nat_le
+      cases h_nat_le with
       | inl h_lt_nm => -- Caso n < m
         apply Or.inl
         exact (
           isomorph_Ψ_lt (Λ n) (Λ m)
         ).mpr (by {
-              rw [ΨΛ, ΨΛ]
-              exact h_lt_nm
+              have h_nat_lt : n < m := h_lt_nm
+              have h_psi_eq_n : Ψ (Λ n) = n := ΨΛ n
+              have h_psi_eq_m : Ψ (Λ m) = m := ΨΛ m
+              rw [h_psi_eq_n, h_psi_eq_m]
+              exact h_nat_lt
             }
           )
       | inr h_eq_nm => -- Caso n = m
@@ -567,11 +570,9 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       cases h_le_Λn_Λm with
       | inl h_lt_Λn_Λm => -- Caso Lt (Λ n) (Λ m)
         have h_psi_lt_psi_m : Ψ (Λ n) < Ψ (Λ m)
-            := (
-                  isomorph_Ψ_lt (Λ n) (Λ m)
-            ).mp h_lt_Λn_Λm
+            := (isomorph_Ψ_lt (Λ n) (Λ m)).mp h_lt_Λn_Λm
         rw [ΨΛ, ΨΛ] at h_psi_lt_psi_m
-        exact h_psi_lt_psi_m
+        exact Nat.le_of_lt h_psi_lt_psi_m
       | inr h_eq_Λn_Λm => -- Caso Λ n = Λ m
         have h_n_eq_m : n = m := by
           have h_psi_eq :
@@ -787,39 +788,22 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       exact Nat.lt_of_le_of_ne h_psi_le_psi_m h_psi_neq_psi_m
 
   theorem isomorph_Λ_lt (n m : Nat) :
-    n < m ↔ Le (Λ n) (Λ m)
+    n < m ↔ Lt (Λ n) (Λ m)
     := by
     constructor
-    · -- Dirección →: n < m → Le (Λ n) (Λ m)
-      intro h_n_lt_m -- h_n_lt_m : n < m
-      rw [Nat.lt_iff_le_and_ne] at h_n_lt_m
-      rcases h_n_lt_m with ⟨h_le_nm, h_neq_nm⟩
-      apply Or.inl
-      exact (
-        isomorph_Ψ_lt (Λ n) (Λ m)
-      ).mpr (by {
-            rw [ΨΛ, ΨΛ]
-            exact Nat.lt_of_le_of_ne h_le_nm h_neq_nm
-          }
-        )
-    · -- Dirección ←: Le (Λ n) (Λ m) → n < m
-      intro h_le_Λn_Λm
-      cases h_le_Λn_Λm with
-      | inl h_lt_Λn_Λm => -- Caso Lt (Λ n) (Λ m)
-        have h_psi_lt_psi_m : Ψ (Λ n) < Ψ (Λ m)
-            := (
-                  isomorph_Ψ_lt (Λ n) (Λ m)
-            ).mp h_lt_Λn_Λm
-        rw [ΨΛ, ΨΛ] at h_psi_lt_psi_m
-        exact h_psi_lt_psi_m
-      | inr h_eq_Λn_Λm => -- Caso Λ n = Λ m
-        have h_n_eq_m : n = m := by
-          have h_psi_eq :
-              Ψ (Λ n) = Ψ (Λ m)
-                  := by rw [h_eq_Λn_Λm]
-          rwa [ΨΛ, ΨΛ] at h_psi_eq
-        rw [h_n_eq_m] -- El objetivo se convierte en m < m.
-        exact lt_irrefl m
+    · -- Dirección →: n < m → Lt (Λ n) (Λ m)
+      intro h_lt_nm -- h_lt_nm : n < m
+      have h_le_nm : n ≤ m := Nat.le_of_lt h_lt_nm
+      have h_neq_nm : n ≠ m := Nat.ne_of_lt h_lt_nm
+      have h_le_Λn_Λm : Le (Λ n) (Λ m) := (isomorph_Λ_le n m).mp h_le_nm
+      exact lt_of_le_neq (Λ n) (Λ m) h_le_Λn_Λm (fun h_eq => h_neq_nm (Λ_inj n m h_eq))
+    · -- Dirección ←: Lt (Λ n) (Λ m) → n < m
+      intro h_lt_Λn_Λm -- h_lt_Λn_Λm : Lt (Λ n) (Λ m)
+      have h_le_Λn_Λm : Le (Λ n) (Λ m) := lt_imp_le (Λ n) (Λ m) h_lt_Λn_Λm
+      have h_neq_Λn_Λm : Λ n ≠ Λ m := lt_then_neq (Λ n) (Λ m) h_lt_Λn_Λm
+      have h_le_nm : n ≤ m := (isomorph_Λ_le n m).mpr h_le_Λn_Λm
+      have h_neq_nm : n ≠ m := fun h_eq => h_neq_Λn_Λm (h_eq ▸ rfl)
+      exact Nat.lt_of_le_of_ne h_le_nm h_neq_nm
 
   instance : LE ℕ₀ := ⟨Le⟩
 
@@ -846,7 +830,7 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
               rw [h_eq_ba] at h_lt
               exact lt_irrefl a h_lt
         · intro ⟨h_le_ab, h_not_le_ba⟩
-          exact lt_of_le_neq' a b h_le_ab (fun h_eq =>
+          exact lt_of_le_neq a b h_le_ab (fun h_eq =>
             h_not_le_ba (h_eq ▸ le_refl b))
 
   theorem lt_succ_iff_lt_or_eq_alt' (a b : ℕ₀) :
@@ -1011,25 +995,8 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           | inr h_eq_0_sn =>
             exfalso
             exact succ_neq_zero n h_eq_0_sn.symm
-        · intro h_lt_0_succ_n -- Lt 𝟘 (σ n). Queremos Le 𝟘 (σ n).
-          revert n h_lt_0_succ_n
-          induction n with
-          | zero => -- n = 𝟘.
-            intro h_lt_0_succ_n_case
-            cases h_lt_0_succ_n_case with
-            | inl h_lt_0_0 =>
-              exact (nlt_n_0 𝟘 h_lt_0_0).elim
-            | inr h_eq_0 =>
-              exact rfl
-          | succ n' ih_n' => -- n = σ n'.
-            intro h_lt_0_succ_n_case
-            unfold Lt at h_lt_0_succ_n_case
-            cases h_lt_0_succ_n_case with
-            | inl h_lt_σn'_n' =>
-              exact zero_le (σ n')
-            | inr h_eq_σn'_n' =>
-              rw [h_eq_σn'_n']
-              exact zero_le (σ n')
+        · intro h_lt_0_succ_n
+          exact lt_imp_le 𝟘 (σ n) h_lt_0_succ_n
 
   theorem le_0_succ_eq_lt_0_succ (n : ℕ₀) :
     Le 𝟘 (σ n) ↔ Lt 𝟘 (σ n)
@@ -1043,22 +1010,9 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
             exfalso
             exact succ_neq_zero n h_eq_0_sn.symm
         · intro h_lt_0_succ_n -- Lt 𝟘 (σ n). Queremos Le 𝟘 (σ n).
-          have h_neq_0_succ_n : 𝟘 ≠ σ n := by
-            intro h_eq_0_succ_n
-            exact (succ_neq_zero n h_eq_0_succ_n.symm).elim
-          calc
-            Lt 𝟘 (σ n) ∧ 𝟘 ≠ (σ n) ↔
-              (Le 𝟘 (σ n) ∧ 𝟘 ≠ (σ n)) ∧  (𝟘 ≠ (σ n)) :=
-                by rw [or_and_right]
-            _ ↔ Le 𝟘 (σ n) ∧ 𝟘 ≠ (σ n) :=
-                by sorry
-            _ ↔ Le 𝟘 (σ n) := by
-              constructor
-              · intro h_le_0_succ_n_and_neq
-                exact h_le_0_succ_n_and_neq.left
-              · intro h_le_0_succ_n
-                exact ⟨h_le_0_succ_n, h_neq_0_succ_n⟩
-          exact ⟨ h_neq_0_succ_n , h_lt_0_succ_n ⟩
+          -- Usando la definición de Le como Lt ∨ =
+          unfold Le
+          exact Or.inl h_lt_0_succ_n
 
 end Order
 end Peano

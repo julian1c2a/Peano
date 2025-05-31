@@ -694,6 +694,11 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         rw [nle_iff_gt] at h_nle_m
         exact h_nle_m
 
+  theorem nle_then_gt_wp {n m : ℕ₀} (h_nle : ¬(Le n m)) :
+    Lt m n
+      := by
+        exact nle_then_gt n m h_nle
+
   theorem gt_then_nle (n m : ℕ₀) :
     Lt n m → ¬(Le m n)
       := by
@@ -786,4 +791,5 @@ export Peano.Order (
   le_n_m_then_m_neq_0
   le_n_m_n_neq_0_then_m_neq_0
   m_neq_0_proved_lt_1_m
+  nle_then_gt_wp
 )

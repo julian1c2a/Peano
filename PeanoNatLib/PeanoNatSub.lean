@@ -42,12 +42,12 @@ namespace Peano
     induction n with
     | zero =>
       calc
-        subₕₖ 𝟘 𝟘 (zero_le 𝟘) = 𝟘 := by rw [subₕₖ]
+        subₕₖ 𝟘 𝟘 (zero_le 𝟘) = 𝟘 := by simp [subₕₖ]
         _ = 𝟘 := rfl
     | succ n' ih =>
       calc
         subₕₖ (σ n') 𝟘 (zero_le (σ n')) = σ n'
-            := by rw [subₕₖ]
+            := by simp [subₕₖ]
         _ = σ n' := rfl
 
   theorem zero_subₕₖ (n : ℕ₀) (h : Le n 𝟘) :
@@ -56,7 +56,7 @@ namespace Peano
     cases n with
     | zero =>
       calc
-        subₕₖ 𝟘 𝟘 (zero_le 𝟘) = 𝟘 := by rw [subₕₖ]
+        subₕₖ 𝟘 𝟘 (zero_le 𝟘) = 𝟘 := by simp [subₕₖ]
         _ = 𝟘 := rfl
     | succ n' =>
       exfalso
@@ -70,7 +70,7 @@ namespace Peano
     | zero =>
       calc
         sub 𝟘 𝟘 = subₕₖ 𝟘 𝟘 (zero_le 𝟘) := by rfl
-        _ = 𝟘 := by rw [subₕₖ]
+        _ = 𝟘 := by simp [subₕₖ]
     | succ n' =>
       calc
         sub (σ n') 𝟘 = subₕₖ (σ n') 𝟘 (zero_le (σ n'))
@@ -84,7 +84,7 @@ namespace Peano
     | zero =>
       calc
         sub 𝟘 𝟘 = subₕₖ 𝟘 𝟘 (zero_le 𝟘) := by rfl
-        _ = 𝟘 := by rw [subₕₖ]
+        _ = 𝟘 := by simp [subₕₖ]
     | succ n' =>
       calc
         sub 𝟘 (σ n') = 𝟘
@@ -134,13 +134,7 @@ namespace Peano
         exact lt_imp_le n m h_lt
 
   theorem subₕₖ_one (n : ℕ₀) (h: Le 𝟙 n):
-    subₕₖ n 𝟙 h = ρ n (
-        match h with
-        | Or.inl h_lt_one_n =>
-          lt_1_m_then_m_neq_0 n h_lt_one_n
-        | Or.inr h_eq_one_n => -- Caso 2: 𝟙 = n
-          show n ≠ 𝟘 by { rw [←h_eq_one_n]; exact succ_neq_zero 𝟘 }
-    )
+    subₕₖ n 𝟙 h = ρ n ( m_neq_0_proved_lt_1_m h )
     := by
       induction n with
       | zero =>
@@ -150,15 +144,22 @@ namespace Peano
       | succ n' => -- Caso n = σ n'
         calc
           subₕₖ (σ n') 𝟙 h = subₕₖ n' 𝟘 (succ_le_succ_then h)
-                := by sorry
-          _ = n' := by rw [subₕₖ_zero n']
-          _ = ρ (σ n') (succ_neq_zero n') := by simp [ρ]
-
+              := by simp only [subₕₖ, one]
+          _ = n'
+              := by rw [subₕₖ_zero n']
+          _ = ρ (σ n') (m_neq_0_proved_lt_1_m h)
+              := by simp [ρ]
 
   theorem sub_one (n : ℕ₀) :
     sub n 𝟙 = τ n
-      := by sorry
-
+      := by
+    by_cases h : Le 𝟙 n
+    · -- Caso: 𝟙 ≤ n
+      rw [sub_one n]
+    · -- Caso: ¬(𝟙 ≤ n)
+      have h_lt : Lt n 𝟙 := nle_then_gt h
+      rw [subₕₖ_eq_zero n 𝟙 h_lt]
+      exact le_refl 𝟙
 
 --  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
 --    subₕₖ 𝟙 m h = ρ m h

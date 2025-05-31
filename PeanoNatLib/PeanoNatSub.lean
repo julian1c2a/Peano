@@ -120,11 +120,18 @@ namespace Peano
       sub n m = 𝟘 → Le n m
           := by
       intro h_eq
-      match h_eq_nm : n = m with
-      | True =>
-        exact le_refl n
-      | False =>
-        exact not_le_zero m h_eq_nm
+      by_cases h : Le m n
+      · -- Caso: m ≤ n
+        have h_sub_eq : sub n m = subₕₖ n m h := by simp [sub, h]
+        rw [h_sub_eq] at h_eq
+        have h_n_eq_m : n = m := subₕₖ_eq_zero n m h h_eq
+        rw [h_n_eq_m]
+        exact le_refl m
+      · -- Caso: ¬(m ≤ n)
+        have h_sub_eq : sub n m = 𝟘 := by simp [sub, h]
+        -- Si ¬(m ≤ n), entonces n < m, lo cual implica n ≤ m
+        have h_lt : Lt n m := nle_then_gt m n h
+        exact lt_imp_le n m h_lt
 
     theorem subₕₖ_one (n : ℕ₀) (h: Le 𝟙 n):
       subₕₖ n 𝟙 h = ρ n h
@@ -133,47 +140,51 @@ namespace Peano
       | zero =>
         simp [subₕₖ, ρ]
       | succ n' =>
-        simp [subₕₖ, ρ]
         exact succ_le_succ h
+        simp [subₕₖ, ρ]
+        exact succ_le_succ h(n : ℕ₀) (h: Le 𝟙 n):
 
-  theorem sub_one (n : ℕ₀) :
-    sub n 𝟙 = τ n
-      := by
-    cases n with
-    | zero =>
-      calc
-        sub 𝟘 𝟙 = subₕₖ 𝟘 𝟙 (zero_le 𝟘) := by rfl
-        _ = 𝟘 := by rw [subₕₖ_one]
-    | succ n' =>
-      calc
+--  theorem sub_one (n : ℕ₀) :
+--    sub n 𝟙 = τ n
+--      := by
+--    cases n with
+--    | zero =>ro_le 𝟘) := by rfl
+--      calc= by rw [subₕₖ_one]
+--        sub 𝟘 𝟙 = subₕₖ 𝟘 𝟙 (zero_le 𝟘) := by rfl n' =>
+--        _ = 𝟘 := by rw [subₕₖ_one]
+--    | succ n' => = subₕₖ (σ n') 𝟙 (zero_le (σ n'))
+--      calc
         sub (σ n') 𝟙 = subₕₖ (σ n') 𝟙 (zero_le (σ n'))
             := by rfl
-        _ = ρ (σ n') := by rw [subₕₖ_one]
+        _ = ρ (σ n') := by rw [subₕₖ_one] ℕ₀) (h: Le m 𝟙)
+            := by sorry
 
---    theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):
+--    theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
 --      subₕₖ 𝟙 m h = ρ m h
---        := by
-
+--        := by:
+ n) k = σ (sub n k)
 --  theorem sub_succ (n k : ℕ₀) :
---     sub (σ n) k = σ (sub n k)
---      := by
+--     sub (σ n) k = σ (sub n k)with
+--      := by>
 --       match k with
---        | 𝟘 =>
---          calc
---            sub (σ n) 𝟘 = σ n := by rw [sub_zero]
+--        | 𝟘 =>y rw [sub_zero]
+--          calc (sub n 𝟘) := rfl
+--            sub (σ n) 𝟘 = σ n := by rw [sub_zero] =>
 --            _ = σ (sub n 𝟘) := rfl
---        | σ k' =>
---          calc
---            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]
+--        | σ k' => := by rw [sub_succ]
+--          calcσ k')) := rfl
+--            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]        termination_by n k
 --            _ = σ (sub n (σ k')) := rfl
---        termination_by n k
---
+--        termination_by n k  k ≤ n → σ n - k = n + 1 - k
+----
 --  k ≤ n → σ n - k = n + 1 - k
---
-
+-- substract_k_add_k (n: ℕ₀): ∀ (k : ℕ₀) (h_le : k <= n), add (substract n k h_le) k = n := by
+--    sorry
 --  theorem substract_k_add_k (n: ℕ₀): ∀ (k : ℕ₀) (h_le : k <= n), add (substract n k h_le) k = n := by
 --    sorry
 
 
 end Sub
+
+
 end Peano

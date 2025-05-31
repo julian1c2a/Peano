@@ -185,6 +185,7 @@ namespace Peano
                 Le (σ 𝟘) (σ (σ n'')) ↔ Lt (σ 𝟘) (σ (σ n'')) := by rw []
               have h_le_refl : Le (σ 𝟘) (σ (σ n'')) := by
                 apply succ_le_succ
+                exact zero_le (σ n'')
               exact h_le_refl
           exact h h_one_le_succ
       rw [h_n_eq_zero]

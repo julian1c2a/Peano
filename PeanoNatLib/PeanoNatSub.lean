@@ -133,36 +133,37 @@ namespace Peano
         have h_lt : Lt n m := nle_then_gt m n h
         exact lt_imp_le n m h_lt
 
-    theorem subₕₖ_one (n : ℕ₀) (h: Le 𝟙 n):
-      subₕₖ n 𝟙 h = ρ n h
-        := by
+  theorem subₕₖ_one (n : ℕ₀) (h: Le 𝟙 n):
+    subₕₖ n 𝟙 h = ρ n (
+        match h with
+        | Or.inl h_lt_one_n =>
+          lt_1_m_then_m_neq_0 n h_lt_one_n
+        | Or.inr h_eq_one_n => -- Caso 2: 𝟙 = n
+          show n ≠ 𝟘 by { rw [←h_eq_one_n]; exact succ_neq_zero 𝟘 }
+    )
+    := by
       induction n with
       | zero =>
-        simp [subₕₖ, ρ]
-      | succ n' =>
-        exact succ_le_succ h
-        simp [subₕₖ, ρ]
-        exact succ_le_succ h(n : ℕ₀) (h: Le 𝟙 n):
+        -- Caso imposible: 𝟙 ≤ 𝟘 es falso
+        exfalso
+        exact not_succ_le_zero 𝟘 h
+      | succ n' => -- Caso n = σ n'
+        calc
+          subₕₖ (σ n') 𝟙 h = subₕₖ n' 𝟘 (succ_le_succ_then h)
+                := by sorry
+          _ = n' := by rw [subₕₖ_zero n']
+          _ = ρ (σ n') (succ_neq_zero n') := by simp [ρ]
 
---  theorem sub_one (n : ℕ₀) :
---    sub n 𝟙 = τ n
---      := by
---    cases n with
---    | zero =>ro_le 𝟘) := by rfl
---      calc= by rw [subₕₖ_one]
---        sub 𝟘 𝟙 = subₕₖ 𝟘 𝟙 (zero_le 𝟘) := by rfl n' =>
---        _ = 𝟘 := by rw [subₕₖ_one]
---    | succ n' => = subₕₖ (σ n') 𝟙 (zero_le (σ n'))
---      calc
-        sub (σ n') 𝟙 = subₕₖ (σ n') 𝟙 (zero_le (σ n'))
-            := by rfl
-        _ = ρ (σ n') := by rw [subₕₖ_one] ℕ₀) (h: Le m 𝟙)
-            := by sorry
 
---    theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
---      subₕₖ 𝟙 m h = ρ m h
---        := by:
- n) k = σ (sub n k)
+  theorem sub_one (n : ℕ₀) :
+    sub n 𝟙 = τ n
+      := by sorry
+
+
+--  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
+--    subₕₖ 𝟙 m h = ρ m h
+--      := by sorry
+
 --  theorem sub_succ (n k : ℕ₀) :
 --     sub (σ n) k = σ (sub n k)with
 --      := by>
@@ -173,15 +174,21 @@ namespace Peano
 --            _ = σ (sub n 𝟘) := rfl
 --        | σ k' => := by rw [sub_succ]
 --          calcσ k')) := rfl
---            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]        termination_by n k
+--            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]
 --            _ = σ (sub n (σ k')) := rfl
 --        termination_by n k  k ≤ n → σ n - k = n + 1 - k
-----
+
+
 --  k ≤ n → σ n - k = n + 1 - k
--- substract_k_add_k (n: ℕ₀): ∀ (k : ℕ₀) (h_le : k <= n), add (substract n k h_le) k = n := by
---    sorry
---  theorem substract_k_add_k (n: ℕ₀): ∀ (k : ℕ₀) (h_le : k <= n), add (substract n k h_le) k = n := by
---    sorry
+-- substract_k_add_k (n: ℕ₀):
+--     ∀ (k : ℕ₀) (h_le : k <= n),
+--        add (substract n k h_le) k = n
+--     := by sorry
+
+--  theorem substract_k_add_k (n: ℕ₀):
+--    ∀ (k : ℕ₀) (h_le : k <= n),
+--        add (substract n k h_le) k = n
+--       := by sorry
 
 
 end Sub

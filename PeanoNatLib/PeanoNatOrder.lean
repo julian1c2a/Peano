@@ -701,18 +701,28 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         rw [← nle_iff_gt m n] at h_lt_m
         exact h_lt_m
 
-  theorem lt_1_m_then_m_neq_0 (m : ℕ₀) :
-    Lt 𝟙 m → m ≠ 𝟘
+  theorem le_1_m_then_m_neq_0 (m : ℕ₀) :
+    Le 𝟙 m → m ≠ 𝟘
       := by
-        intro h_lt_1_m
-        unfold Lt at h_lt_1_m
+        intro h_le_1_m
+        unfold Le at h_le_1_m
         cases m with
         | zero =>
-          exact (nlt_n_0 𝟙 h_lt_1_m).elim
+          rcases h_le_1_m with h_lt_1_0 | h_eq_1_0
+          · exact (nlt_n_0 𝟙 h_lt_1_0).elim
+          · exact (succ_neq_zero 𝟘 h_eq_1_0).elim
         | succ m' =>
           exact succ_neq_zero m'
 
-  theorem lt_n_m_then_m_neq_0 (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
+  theorem m_neq_0_proved_lt_1_m {m : ℕ₀} (h : Le 𝟙 m) :
+    m ≠ 𝟘
+    := by
+        intro h_m_eq_0
+        rw [h_m_eq_0] at h
+        have h_one_eq_zero : 𝟙 = 𝟘 := le_zero_eq 𝟙 h
+        exact absurd h_one_eq_zero (succ_neq_zero 𝟘)
+
+  theorem le_n_m_then_m_neq_0 (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
     (Le n m) → (m ≠ 𝟘)
       := by
         intro h_le_n_m
@@ -732,12 +742,13 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         · -- Caso n = m
           exact (h_eq_nm.symm ▸ h_n_neq_0)
 
-  theorem lt_n_m_n_neq_0_then_m_neq_0 (n m : ℕ₀) :
+  theorem le_n_m_n_neq_0_then_m_neq_0 (n m : ℕ₀) :
     (Le n m)∧(n ≠ 𝟘) → (m ≠ 𝟘)
       := by
         intro h_le_n_m_and_n_neq_0
         rcases h_le_n_m_and_n_neq_0 with ⟨h_le_n_m, h_n_neq_0⟩
-        exact lt_n_m_then_m_neq_0 n m h_n_neq_0 h_le_n_m
+        exact le_n_m_then_m_neq_0 n m h_n_neq_0 h_le_n_m
+
 
 end Order
 end Peano
@@ -771,7 +782,8 @@ export Peano.Order (
   nle_iff_gt
   nle_then_gt
   gt_then_nle
-  lt_1_m_then_m_neq_0
-  lt_n_m_then_m_neq_0
-  lt_n_m_n_neq_0_then_m_neq_0
+  le_1_m_then_m_neq_0
+  le_n_m_then_m_neq_0
+  le_n_m_n_neq_0_then_m_neq_0
+  m_neq_0_proved_lt_1_m
 )

@@ -155,11 +155,40 @@ namespace Peano
       := by
     by_cases h : Le 𝟙 n
     · -- Caso: 𝟙 ≤ n
-      rw [sub_one n]
+      have h_sub_eq : sub n 𝟙 = subₕₖ n 𝟙 h := by simp [sub, h]
+      rw [h_sub_eq]
+      rw [subₕₖ_one n h]
+      -- Mostrar que ρ n (m_neq_0_proved_lt_1_m h) = τ n
+      cases n with
+      | zero =>
+        exfalso
+        exact not_succ_le_zero 𝟘 h
+      | succ n' =>
+        simp [ρ, τ]
     · -- Caso: ¬(𝟙 ≤ n)
-      have h_lt : Lt n 𝟙 := nle_then_gt h
-      rw [subₕₖ_eq_zero n 𝟙 h_lt]
-      exact le_refl 𝟙
+      have h_lt : Lt n 𝟙 := nle_then_gt_wp h
+      have h_sub_eq : sub n 𝟙 = 𝟘 := by simp [sub, h]
+      rw [h_sub_eq]
+      -- Para n < 𝟙, tenemos n = 𝟘, entonces τ n = τ 𝟘 = 𝟘
+      have h_n_eq_zero : n = 𝟘 := by
+        cases n with
+        | zero => rfl
+        | succ n' =>
+          exfalso
+          -- ¬Le 𝟙 (σ n') es imposible porque σ n' ≥ 𝟙 siempre
+          have h_one_le_succ : Le 𝟙 (σ n') := by
+            cases n' with
+            | zero => simp [one, Le]
+            | succ n'' =>
+              calc
+                Le 𝟘 (σ n'') ↔ Lt 𝟘 (σ n'') := by rw [succ_neq_zero (σ n'')]
+                Le (σ 𝟘) (σ (σ n'')) ↔ Lt (σ 𝟘) (σ (σ n'')) := by rw []
+              have h_le_refl : Le (σ 𝟘) (σ (σ n'')) := by
+                apply succ_le_succ
+              exact h_le_refl
+          exact h h_one_le_succ
+      rw [h_n_eq_zero]
+      simp [τ]
 
 --  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
 --    subₕₖ 𝟙 m h = ρ m h

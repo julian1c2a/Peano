@@ -1,20 +1,22 @@
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
+import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
-import PeanoNatLib.PeanoNatAdd
 
 namespace Peano
     open Peano
-    open Peano.Axioms
-    open Peano.StrictOrder
-    open Peano.Order hiding lt_then_neq
-    open Peano.Add
-    open Peano.MaxMin
+
+
 
     namespace Sub
         open Peano.Sub
+        open Peano.Axioms
+        open Peano.StrictOrder
+        open Peano.Order
+        open Peano.MaxMin
+        open Peano.Add
 
   def subₕₖ (n m : ℕ₀) (h : Le m n) : ℕ₀ :=
     match n, m with
@@ -222,7 +224,7 @@ namespace Peano
 --       := by sorry
 
 
-end Sub
+    end Sub
 
 
 end Peano

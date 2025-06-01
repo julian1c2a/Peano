@@ -762,43 +762,6 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         rcases h_le_n_m_and_n_neq_0 with ⟨h_le_n_m, h_n_neq_0⟩
         exact le_n_m_then_m_neq_0 n m h_n_neq_0 h_le_n_m
 
-  theorem isomorph_Ψ_lt (n m : ℕ₀) :
-    Ψ n < Ψ m ↔ n < m
-    := by
-    constructor
-    · -- Dirección →: Ψ n < Ψ m → n < m
-      intro h_psi_lt_psi_m -- h_psi_lt_psi_m : Ψ n < Ψ m
-      rw [Nat.lt_iff_le_and_ne] at h_psi_lt_psi_m
-      rcases h_psi_lt_psi_m with ⟨h_psi_le_psi_m, h_psi_neq_psi_m⟩
-      have h_le_nm : Le n m := (isomorph_Ψ_le n m).mp h_psi_le_psi_m
-      have h_neq_nm : n ≠ m := fun h_eq => h_psi_neq_psi_m (h_eq ▸ rfl)
-      exact lt_of_le_neq n m h_le_nm h_neq_nm
-    · -- Dirección ←: n < m → Ψ n < Ψ m
-      intro h_lt_nm -- h_lt_nm : n < m
-      have h_le_nm : Le n m := lt_imp_le n m h_lt_nm
-      have h_neq_nm : n ≠ m := lt_then_neq n m h_lt_nm
-      have h_psi_le_psi_m : Ψ n ≤ Ψ m := (isomorph_Ψ_le n m).mpr h_le_nm
-      have h_psi_neq_psi_m : Ψ n ≠ Ψ m := fun h_eq => h_neq_nm (Ψ_inj n m h_eq)
-      exact Nat.lt_of_le_of_ne h_psi_le_psi_m h_psi_neq_psi_m
-
-  theorem isomorph_Λ_lt (n m : Nat) :
-    n < m ↔ Lt (Λ n) (Λ m)
-    := by
-    constructor
-    · -- Dirección →: n < m → Lt (Λ n) (Λ m)
-      intro h_lt_nm -- h_lt_nm : n < m
-      have h_le_nm : n ≤ m := Nat.le_of_lt h_lt_nm
-      have h_neq_nm : n ≠ m := Nat.ne_of_lt h_lt_nm
-      have h_le_Λn_Λm : Le (Λ n) (Λ m) := (isomorph_Λ_le n m).mp h_le_nm
-      exact lt_of_le_neq (Λ n) (Λ m) h_le_Λn_Λm (fun h_eq => h_neq_nm (Λ_inj n m h_eq))
-    · -- Dirección ←: Lt (Λ n) (Λ m) → n < m
-      intro h_lt_Λn_Λm -- h_lt_Λn_Λm : Lt (Λ n) (Λ m)
-      have h_le_Λn_Λm : Le (Λ n) (Λ m) := lt_imp_le (Λ n) (Λ m) h_lt_Λn_Λm
-      have h_neq_Λn_Λm : Λ n ≠ Λ m := lt_then_neq (Λ n) (Λ m) h_lt_Λn_Λm
-      have h_le_nm : n ≤ m := (isomorph_Λ_le n m).mpr h_le_Λn_Λm
-      have h_neq_nm : n ≠ m := fun h_eq => h_neq_Λn_Λm (h_eq ▸ rfl)
-      exact Nat.lt_of_le_of_ne h_le_nm h_neq_nm
-
   theorem m_neq_0_proved_lt_1_m_wp {m : ℕ₀} (h : Le 𝟙 m) :
     m ≠ 𝟘
     := by

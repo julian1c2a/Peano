@@ -614,6 +614,13 @@ namespace StrictOrder
               simp [BLt, Lt]
               exact ih_n' m'
 
+    theorem BLt_then_Lt_wp {n m : ℕ₀} (h : BLt n m = true) :
+        Lt n m
+        := by
+          have h_iff := BLt_iff_Lt n m
+          rw [h_iff] at h
+          exact h
+
     theorem BGt_iff_Gt (n m : ℕ₀) :
         BGt n m = true ↔ Gt n m
         := by
@@ -997,4 +1004,5 @@ export Peano.StrictOrder (
     lt_then_lt_succ_forall
     lt_succ_then_lt_forall
     nlt_n_0_false
+    BLt_then_Lt_wp
 )

@@ -1017,10 +1017,11 @@ theorem nexists_max_abs:
               -- Necesitamos mostrar que BLt a' b' = false
               have h_not_lt_a'_b' : ¬(Lt a' b') := by
                 exact lt_asymm b' a' h_lt
-              have h_blt_false : BLt a' b' = false := by
+              have h_blt_a'_b'_false : BLt a' b' = false := by
                 rw [← Bool.not_eq_true, BLt_iff_Lt]
                 exact h_not_lt_a'_b'
-              rw [h_blt_false]
+              -- Ahora simplificamos la expresión condicional
+              simp only [if_neg h_eq, h_blt_a'_b'_false]
               simp
             | inr h_eq_contra =>
               exact False.elim (h_eq h_eq_contra)
@@ -1032,21 +1033,18 @@ theorem nexists_max_abs:
       | zero =>
         cases b with
         | zero =>
-          calc
-            min 𝟘 𝟘 = 𝟘 := by rw[ Le 𝟘 𝟘, min]
+          simp [min]
         | succ b' =>
-          -- Caso imposible: 𝟘 ≤ σ b'
-          exfalso
-          cases h with
-          | inl h_lt =>
-              exfalso
-              let h_nlt : Prop := ¬(Lt 𝟘 (σ b'))
-              intro h_nlt
-              ⟨ h_nlt , nlt_n_0_false (σ b') ⟩
-          | inr h_eq => exact succ_neq_zero b' h_eq.symm
+          simp [min]
       | succ a' =>
         cases b with
-        | zero => simp [min]
+        | zero =>
+          -- Caso imposible: σ a' ≤ 𝟘
+          cases h with
+          | inl h_lt =>
+            exact False.elim (nlt_n_0 (σ a') h_lt)
+          | inr h_eq =>
+            exact False.elim (succ_neq_zero a' h_eq)
         | succ b' =>
           have h_a'_le_b' : Le a' b' := by
             exact succ_le_succ_then h
@@ -1060,16 +1058,84 @@ theorem nexists_max_abs:
               have h_blt_true : BLt a' b' = true := by
                 rw [BLt_iff_Lt]
                 exact h_lt
-              -- Necesitamos mostrar que BLt b' a' = false
-              have h_not_lt_b'_a' : ¬(Lt b' a') := by
-                exact lt_asymm a' b' h_lt
-              have h_blt_false : BLt b' a' = false := by
-                rw [← Bool.not_eq_true, BLt_iff_Lt]
-                exact h_not_lt_b'_a'
-              rw [h_blt_false]
+              rw [h_blt_true]
               simp
             | inr h_eq_contra =>
               exact False.elim (h_eq h_eq_contra)
+
+  theorem max_eq_right {a b : ℕ₀} (h : a ≤ b) :
+      max a b = b
+    := by
+      cases a with
+      | zero =>
+        cases b with
+        | zero =>
+          simp [max]
+        | succ b' =>
+          simp [max]
+      | succ a' =>
+        cases b with
+        | zero =>
+          -- Caso imposible: σ a' ≤ 𝟘
+          cases h with
+          | inl h_lt =>
+            exact False.elim (nlt_n_0 (σ a') h_lt)
+          | inr h_eq =>
+            exact False.elim (succ_neq_zero a' h_eq)
+        | succ b' =>
+          have h_a'_le_b' : Le a' b' := by
+            exact succ_le_succ_then h
+          by_cases h_eq : a' = b'
+          · -- Caso a' = b'
+            simp [max, h_eq]
+          · -- Caso a' ≠ b'
+            simp [max, if_neg h_eq]
+            cases h_a'_le_b' with
+            | inl h_lt =>
+              have h_blt_true : BLt a' b' = true := by
+                rw [BLt_iff_Lt]
+                exact h_lt
+              rw [h_blt_true]
+              simp
+            | inr h_eq_contra =>
+              exact False.elim (h_eq h_eq_contra)
+
+    theorem max_eq_left {a b : ℕ₀} (h : b ≤ a) :
+      max a b = a
+    := by
+      cases a with
+      | zero =>
+        cases b with
+        | zero =>
+          simp [max]
+        | succ b' =>
+          -- Caso imposible: σ b' ≤ 𝟘
+          cases h with
+          | inl h_lt =>
+            exact False.elim (nlt_n_0 (σ b') h_lt)
+          | inr h_eq =>
+            exact False.elim (succ_neq_zero b' h_eq)
+      | succ a' =>
+        cases b with
+        | zero =>
+          simp [max]
+        | succ b' =>
+          have h_b'_le_a' : Le b' a' := by
+            exact succ_le_succ_then h
+          by_cases h_eq : b' = a'
+          · -- Caso b' = a'
+            simp [max, h_eq]
+          · -- Caso b' ≠ a'
+            simp [max, if_neg h_eq]
+            cases h_b'_le_a' with
+            | inl h_lt =>
+              have h_succ_blt_true : BLt (σ b') (σ a') = true := by
+                rw [BLt_iff_Lt]
+                exact h_lt
+              rw [(BLt_iff_Lt h_succ_blt_true).mpr h_lt]
+            | inr h_eq_contra =>
+              exact False.elim (h_eq h_eq_contra)
+
 
 theorem max_distrib_min(n m k : ℕ₀) :
     max n (min m k) = min (max n m) (max n k)

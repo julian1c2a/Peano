@@ -99,6 +99,17 @@ namespace StrictOrder
             unfold Lt
             trivial
 
+    theorem nlt_n_0_false(n : ℕ₀) :
+        Lt n 𝟘 → False
+            := by
+            induction n with
+            | zero =>
+                unfold Lt
+                trivial
+            | succ n' ih_n' =>
+                unfold Lt
+                trivial
+
     theorem lt_0_n(n : ℕ₀):
         n ≠ 𝟘 → Lt 𝟘 n
           := by
@@ -985,4 +996,5 @@ export Peano.StrictOrder (
     succ_lt_succ_iff_forall
     lt_then_lt_succ_forall
     lt_succ_then_lt_forall
+    nlt_n_0_false
 )

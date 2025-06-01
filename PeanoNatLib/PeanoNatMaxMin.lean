@@ -417,8 +417,8 @@ theorem min_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
         | zero =>
           simp [min]
         | succ b' =>
-          have h_lt_b'_a' : Lt b' a'
-              := (lt_iff_lt_σ_σ b' a').mp h_gt
+          have h_lt_b'_a' : Lt b' a' := by
+              simp [Lt] at h_gt; exact h_gt
           have h_b'_ne_a' : b' ≠ a' :=
               lt_then_neq b' a' h_lt_b'_a'
           have h_not_lt_a'_b' :
@@ -442,10 +442,10 @@ theorem max_eq_of_lt {a b : ℕ₀} (h_lt : Lt a b) :
           exfalso
           exact nlt_n_0 (σ a') h_lt
         | succ b' => -- a = σ a', b = σ b'
-          have h_lt_preds : Lt a' b'
-              := (lt_iff_lt_σ_σ a' b').mp h_lt
-          have h_a'_ne_b' : a' ≠ b'
-              := lt_then_neq a' b' h_lt_preds
+          have h_lt_preds : Lt a' b' := by
+              simp [Lt] at h_lt; exact h_lt
+          have h_a'_ne_b' : a' ≠ b' :=
+              lt_then_neq a' b' h_lt_preds
           simp [max, if_neg h_a'_ne_b']
           have h_blt_a'_b'_is_true :
               BLt a' b' = true
@@ -985,6 +985,88 @@ theorem nexists_max_abs:
             exact (neq_succ k) (Eq.symm h_eq_val_k)
           exact ⟨h_max_eq_nval, h_neq_nval_k⟩
 
+  theorem min_eq_right {a b : ℕ₀} (h : b ≤ a) :
+      min a b = b
+    := by
+      cases a with
+      | zero =>
+        cases b with
+        | zero => simp [min]
+        | succ b' =>
+          -- Caso imposible: σ b' ≤ 𝟘
+          exfalso
+          cases h with
+          | inl h_lt => exfalso; exact nlt_n_0 (σ b') h_lt
+          | inr h_eq => exact succ_neq_zero b' h_eq
+      | succ a' =>
+        cases b with
+        | zero => simp [min]
+        | succ b' =>
+          have h_b'_le_a' : Le b' a' := by
+            exact succ_le_succ_then h
+          by_cases h_eq : b' = a'
+          · -- Caso b' = a'
+            simp [min, h_eq]
+          · -- Caso b' ≠ a'
+            simp [min, if_neg h_eq]
+            cases h_b'_le_a' with
+            | inl h_lt =>
+              have h_blt_true : BLt b' a' = true := by
+                rw [BLt_iff_Lt]
+                exact h_lt
+              -- Necesitamos mostrar que BLt a' b' = false
+              have h_not_lt_a'_b' : ¬(Lt a' b') := by
+                exact lt_asymm b' a' h_lt
+              have h_blt_false : BLt a' b' = false := by
+                rw [← Bool.not_eq_true, BLt_iff_Lt]
+                exact h_not_lt_a'_b'
+              rw [h_blt_false]
+              simp
+            | inr h_eq_contra =>
+              exact False.elim (h_eq h_eq_contra)
+
+  theorem min_eq_left {a b : ℕ₀} (h : a ≤ b) :
+      min a b = a
+    := by
+      cases a with
+      | zero =>
+        cases b with
+        | zero => simp [min]
+        | succ b' =>
+          -- Caso imposible: 𝟘 ≤ σ b'
+          exfalso
+          cases h with
+          | inl h_lt =>
+              exfalso
+              exact nlt_n_0_false (σ b')
+          | inr h_eq => exact succ_neq_zero b' h_eq.symm
+      | succ a' =>
+        cases b with
+        | zero => simp [min]
+        | succ b' =>
+          have h_a'_le_b' : Le a' b' := by
+            exact succ_le_succ_then h
+          by_cases h_eq : a' = b'
+          · -- Caso a' = b'
+            simp [min, h_eq]
+          · -- Caso a' ≠ b'
+            simp [min, if_neg h_eq]
+            cases h_a'_le_b' with
+            | inl h_lt =>
+              have h_blt_true : BLt a' b' = true := by
+                rw [BLt_iff_Lt]
+                exact h_lt
+              -- Necesitamos mostrar que BLt b' a' = false
+              have h_not_lt_b'_a' : ¬(Lt b' a') := by
+                exact lt_asymm a' b' h_lt
+              have h_blt_false : BLt b' a' = false := by
+                rw [← Bool.not_eq_true, BLt_iff_Lt]
+                exact h_not_lt_b'_a'
+              rw [h_blt_false]
+              simp
+            | inr h_eq_contra =>
+              exact False.elim (h_eq h_eq_contra)
+
 theorem max_distrib_min(n m k : ℕ₀) :
     max n (min m k) = min (max n m) (max n k)
     := by
@@ -1012,7 +1094,7 @@ theorem max_distrib_min(n m k : ℕ₀) :
         exact le_max_left n m
       · -- Subobjetivo 2: Le k (max n m)
         exact le_trans k m (max n m) h_k_le_m (le_max_right n m)
-    rw [le_then_min_eq_left (max n k) (max n m) h_le_max_nk_max_nm]
+    rw [min_eq_right h_le_max_nk_max_nm]
 
 
 theorem min_distrib_max(n m k : ℕ₀) :
@@ -1074,7 +1156,7 @@ theorem min_distrib_max(n m k : ℕ₀) :
       have h_k_lt_n : Lt k n
           := Lt_of_not_le h_n_le_k
       have h_min_nk_eq_k : min n k = k
-          := min_eq_of_gt h_k_lt_n
+          := min_eq_right h_k_lt_n
         rw [h_min_nm_eq_m, h_min_nk_eq_k]
         rw [min_mk_eq_k]
 

@@ -8,7 +8,7 @@ namespace Peano
   -- notation "σ" n:max => ℕ₀.succ n
   -- notation "𝟘" => ℕ₀.zero
   namespace Axioms
-
+      open Axioms
 
   def is_zero : ℕ₀ -> Prop :=
     fun n =>
@@ -628,8 +628,28 @@ namespace Peano
                               τ_σ_eq_self
                             ]
 
-  theorem isomorph_zero_Λ : Λ 0 = 𝟘 := rfl
-  theorem isomorph_zero_Ψ : Ψ 𝟘 = 0 := rfl
+  theorem isomorph_0_Λ : Λ 0 = 𝟘 := rfl
+  theorem isomorph_0_Ψ : Ψ 𝟘 = 0 := rfl
+
+  theorem isomorph_σ_Λ (n : Nat) :
+    Λ (Nat.succ n) = σ (Λ n)
+    := by
+      rw [Λ_σ_eq_σ_Ψ n]
+
+  theorem isomorph_σ_Ψ (n : ℕ₀) :
+    Ψ (σ n) = Nat.succ (Ψ n)
+    := by
+      rw [Ψ_σ_eq_σ_Λ n]
+
+  theorem isomorph_τ_Λ (n : Nat) :
+    Λ (Nat.pred n) = τ (Λ n)
+    := by
+      rw [Λ_τ_eq_τ_Ψ n]
+
+  theorem isomorph_τ_Ψ (n : ℕ₀) :
+    Ψ (τ n) = Nat.pred (Ψ n)
+    := by
+      rw [Ψ_τ_eq_τ_Λ n]
 
   -- Lemas auxiliares para la preservación de ρ
   theorem Λ_eq_zero_iff_eq_zero (n : Nat) : Λ n = 𝟘 ↔ n = 0 := by
@@ -678,7 +698,7 @@ namespace Peano
     rw [← Λ_τ_eq_τ_Ψ n]
 
 
-end Axioms
+    end Axioms
 end Peano
 
 export Peano.Axioms (
@@ -714,4 +734,12 @@ export Peano.Axioms (
   Λ_σ_eq_σ_Ψ
   Ψ_τ_eq_τ_Λ
   Λ_τ_eq_τ_Ψ
+  isomorph_0_Λ
+  isomorph_0_Ψ
+  isomorph_σ_Λ
+  isomorph_σ_Ψ
+  isomorph_τ_Λ
+  isomorph_τ_Ψ
+  isomorph_ρ_Ψ
+  isomorph_Λ_ρ
 )

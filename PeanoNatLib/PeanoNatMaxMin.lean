@@ -403,7 +403,7 @@ theorem min_then_le (a b : ℕ₀) :
                 exact False.elim (h_eq_preds h_b'_eq_a'.symm)
             have h_lt_a'_b' : Lt a' b' :=
                 (BLt_iff_Lt a' b').mp h_blt_a'_b'
-            rw [succ_le_succ_iff]
+            rw [Peano.Order.succ_le_succ_iff]
             exact lt_imp_le a' b' h_lt_a'_b'
 
 theorem min_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :

@@ -210,11 +210,6 @@ namespace Peano
 --        add (substract n k h_le) k = n
 --     := by sorry
 
---  theorem substract_k_add_k (n: ℕ₀):
---    ∀ (k : ℕ₀) (h_le : k <= n),
---        add (substract n k h_le) k = n
---       := by sorry
-
 
     end Sub
 

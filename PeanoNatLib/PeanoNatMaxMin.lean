@@ -7,11 +7,12 @@ import Init.Prelude
 
 namespace Peano
     open Peano
-    open Peano.Axioms
-    open Peano.StrictOrder
-    open Peano.Order
-namespace MaxMin
-    open Peano.MaxMin
+
+    namespace MaxMin
+        open Peano.MaxMin
+        open Peano.Axioms
+        open Peano.StrictOrder
+        open Peano.Order
 
     /--! def Λ(n : Nat) : ℕ₀  de_Nat_a_Pea
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
@@ -1054,38 +1055,14 @@ theorem min_distrib_max(n m k : ℕ₀) :
             := Lt_of_not_le h_n_le_k
         have h_min_nk_eq_k : min n k = k
             := min_eq_of_gt h_k_lt_n
-        rw [h_min_nm_eq_m, h_min_nk_eq_k]
-        rw [le_then_max_eq_right m k h_m_le_k]
-        -- RHS becomes max m k = k
-  | inr h_k_le_m => -- Caso: k ≤ m
-    have max_mk_eq_m : max m k = m
-        := le_then_max_eq_left m k h_k_le_m
-    rw [max_mk_eq_m] -- LHS se convierte en min n m
-    by_cases h_n_le_k : Le n k
-    · -- Si n ≤ k
-      have h_min_nk_eq_n : min n k = n
-          := le_then_min_eq_left n k h_n_le_k
-      have h_n_le_m : Le n m
-          := Order.le_trans n k m h_n_le_k h_k_le_m
-      have h_min_nm_eq_n : min n m = n
-          := le_then_min_eq_left n m h_n_le_m
-      rw [h_min_nk_eq_n, h_min_nm_eq_n]
-      rw [max_idem n]
-    · -- Si ¬(n ≤ k), entonces k < n
-      have h_k_lt_n : Lt k n
-          := Lt_of_not_le h_n_le_k
-      have h_min_nk_eq_k : min n k = k
-          := min_eq_of_gt h_k_lt_n
-      rw [h_min_nk_eq_k]
-      by_cases h_n_le_m : Le n m
-      · -- Caso: n ≤ m
+        rw [h_min_nk_eq_k]
+      by_cases h_m_le_n : Le m n
+      · -- Caso: m ≤ n
         have h_min_nm_eq_n : min n m = n
-            := le_then_min_eq_left n m h_n_le_m
+            := le_then_min_eq_left n m h_m_le_n
         rw [h_min_nm_eq_n] -- Goal: n = max n k
         rw [max_eq_of_gt h_k_lt_n] -- As k < n, max n k = n. Goal: n = n
-      · -- Caso: ¬(n ≤ m), entonces m < n
-        have h_m_lt_n : Lt m n
-            := Lt_of_not_le h_n_le_m
+      · -- Caso: ¬(m ≤ n), entonces m < n
         have h_min_nm_eq_m : min n m = m
             := min_eq_of_gt h_m_lt_n
         rw [h_min_nm_eq_m] -- Goal: m = max m k
@@ -1110,7 +1087,7 @@ theorem isomorph_Λ_max(n m : Nat) :
     · -- Subcaso 1.2: n < m
       have h_Λn_lt_Λm :
           Lt (Λ n) (Λ m) :=
-          (isomorph_Λ_lt n m).mp h_n_lt_m
+          (StrictOrder.isomorph_Λ_lt n m).mp h_n_lt_m
       rw [max_eq_of_lt h_Λn_lt_Λm]
   · -- Caso 2: m ≤ n (para Nat)
     have h_nat_max_simpl : Nat.max n m = n := by
@@ -1147,7 +1124,7 @@ theorem isomorph_Λ_min(n m : Nat) :
       have h_Λn_lt_Λm :
           Lt (Λ n) (Λ m) :=
               (
-                  isomorph_Λ_lt n m
+                  StrictOrder.isomorph_Λ_lt n m
               ).mp h_n_lt_m
       rw [lt_then_min (Λ n) (Λ m) h_Λn_lt_Λm]
   · -- Caso 2: m ≤ n (en Nat)
@@ -1163,7 +1140,7 @@ theorem isomorph_Λ_min(n m : Nat) :
       have h_Λm_lt_Λn :
           Lt (Λ m) (Λ n) :=
               (
-                  isomorph_Λ_lt m n
+                  StrictOrder.isomorph_Λ_lt m n
               ).mp h_m_lt_n
       rw [min_eq_of_gt h_Λm_lt_Λn]
 
@@ -1238,7 +1215,7 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
               Nat.le_of_lt h_psi_m_lt_psi_n
       exact Nat.min_eq_right h_le_of_lt
 
-end MaxMin
+    end MaxMin
 
 end Peano
 

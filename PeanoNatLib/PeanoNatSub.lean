@@ -167,31 +167,23 @@ namespace Peano
         exact not_succ_le_zero 𝟘 h
       | succ n' =>
         simp [ρ, τ]
-    · -- Caso: ¬(𝟙 ≤ n)
-      have h_lt : Lt n 𝟙 := nle_then_gt_wp h
-      have h_sub_eq : sub n 𝟙 = 𝟘 := by simp [sub, h]
-      rw [h_sub_eq]
-      -- Para n < 𝟙, tenemos n = 𝟘, entonces τ n = τ 𝟘 = 𝟘
+    · -- Caso: ¬Le 𝟙 n
+      -- Si ¬Le 𝟙 n, entonces n = 𝟘
       have h_n_eq_zero : n = 𝟘 := by
         cases n with
         | zero => rfl
         | succ n' =>
           exfalso
-          -- ¬Le 𝟙 (σ n') es imposible porque σ n' ≥ 𝟙 siempre
           have h_one_le_succ : Le 𝟙 (σ n') := by
             cases n' with
             | zero => simp [one, Le]
             | succ n'' =>
-              calc
-                Le 𝟘 (σ n'') ↔ Lt 𝟘 (σ n'') := by rw [succ_neq_zero (σ n'')]
-                Le (σ 𝟘) (σ (σ n'')) ↔ Lt (σ 𝟘) (σ (σ n'')) := by rw []
-              have h_le_refl : Le (σ 𝟘) (σ (σ n'')) := by
-                apply succ_le_succ
-                exact zero_le (σ n'')
-              exact h_le_refl
+              simp [one, Le]
+              exact (le_then_lt_succ (zero_le n''))
           exact h h_one_le_succ
       rw [h_n_eq_zero]
-      simp [τ]
+      simp [sub, τ, h]
+
 
 --  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
 --    subₕₖ 𝟙 m h = ρ m h

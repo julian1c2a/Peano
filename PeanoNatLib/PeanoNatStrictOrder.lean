@@ -955,7 +955,59 @@ namespace StrictOrder
                         unfold Lt at h_lt_nm
                         exact ih_n' m' h_lt_nm
 
-end StrictOrder
+    theorem lt_then_lt_succ (n m : ℕ₀) :
+        Lt n m → Lt (σ n) (σ m)
+            := by
+                intro h_lt_n_sm
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_n_sm
+                        exact False.elim h_lt_n_sm
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_n_sm
+                        exact False.elim h_lt_n_sm
+                    | succ m' =>
+                        unfold Lt at h_lt_n_sm
+                        exact ih_n' m' h_lt_n_sm
+
+    theorem succ_le_succ_then (n m : ℕ₀) :
+        Lt (σ n) (σ m) → Lt n m
+            := by
+                intro h_lt_sn_sm
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_sn_sm
+                        exact False.elim h_lt_sn_sm
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_sn_sm
+                        exact False.elim h_lt_sn_sm
+                    | succ m' =>
+                        unfold Lt at h_lt_sn_sm
+                        exact ih_n' m' h_lt_sn_sm
+
+    theorem succ_le_succ_iff (n m : ℕ₀) :
+        Lt (σ n) (σ m) ↔ Lt n m
+            := by
+                constructor
+                · exact succ_le_succ_then n m
+                · exact lt_then_lt_succ n m
+
+
+    end StrictOrder
 end Peano
 
 export Peano.StrictOrder (
@@ -1005,4 +1057,7 @@ export Peano.StrictOrder (
     lt_succ_then_lt_forall
     nlt_n_0_false
     BLt_then_Lt_wp
+    lt_then_lt_succ
+    succ_le_succ_then
+    succ_le_succ_iff
 )

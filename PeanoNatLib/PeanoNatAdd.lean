@@ -7,13 +7,14 @@ import PeanoNatLib.PeanoNatMaxMin
 
 namespace Peano
   open Peano
-  open Peano.Axioms
-  open Peano.StrictOrder
-  open Peano.Order
-  open Peano.MaxMin
+
 
   namespace Add
       open Add
+      open Axioms
+      open StrictOrder
+      open Order
+      open MaxMin
 
   def add (n m : ℕ₀) : ℕ₀ :=
     match m with
@@ -620,7 +621,10 @@ theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
             Lt (add a k) (add b k) ↔ Lt (add k a) (add k b) := by rw [add_comm a k, add_comm b k]
             _ ↔ Lt a b := by rw [add_lt_add_left_iff]
 
-end Add
+  notation a "+" b => Peano.Add.add a b
+  notation a "+l" b => Peano.Add.add_l a b
+
+    end Add
 
 end Peano
 

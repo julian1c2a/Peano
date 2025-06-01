@@ -1021,7 +1021,7 @@ theorem nexists_max_abs:
                 rw [← Bool.not_eq_true, BLt_iff_Lt]
                 exact h_not_lt_a'_b'
               -- Ahora simplificamos la expresión condicional
-              simp only [if_neg h_eq.symm, h_blt_a'_b'_false]
+              simp only [if_neg h_eq, h_blt_a'_b'_false]
               simp
             | inr h_eq_contra =>
               exact False.elim (h_eq h_eq_contra)

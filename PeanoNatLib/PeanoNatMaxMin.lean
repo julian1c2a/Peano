@@ -1132,7 +1132,7 @@ theorem nexists_max_abs:
               have h_succ_blt_true : BLt (σ b') (σ a') = true := by
                 rw [BLt_iff_Lt]
                 exact h_lt
-              rw [(BLt_iff_Lt h_succ_blt_true).mpr h_lt]
+              rw [Peano.StricOrder.BLt_then_Lt_wp h_succ_blt_true h_lt]
             | inr h_eq_contra =>
               exact False.elim (h_eq h_eq_contra)
 

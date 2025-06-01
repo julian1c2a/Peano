@@ -1031,14 +1031,18 @@ theorem nexists_max_abs:
       cases a with
       | zero =>
         cases b with
-        | zero => simp [min]
+        | zero =>
+          calc
+            min 𝟘 𝟘 = 𝟘 := by rw[ Le 𝟘 𝟘, min]
         | succ b' =>
           -- Caso imposible: 𝟘 ≤ σ b'
           exfalso
           cases h with
           | inl h_lt =>
               exfalso
-              exact nlt_n_0_false (σ b')
+              let h_nlt : Prop := ¬(Lt 𝟘 (σ b'))
+              intro h_nlt
+              ⟨ h_nlt , nlt_n_0_false (σ b') ⟩
           | inr h_eq => exact succ_neq_zero b' h_eq.symm
       | succ a' =>
         cases b with

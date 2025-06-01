@@ -221,6 +221,20 @@ namespace Peano
         rw [h_eq]
         exact Or.inr rfl
 
+  theorem le_self_of_eq_self (n : ℕ₀) :
+    n = n → Le n n
+      := by
+        intro h_eq
+        rw [h_eq]
+        exact Or.inr rfl
+
+  theorem le_0_of_eq_0 :
+    𝟘 = 𝟘 → Le 𝟘 𝟘
+    := by
+    intro h_eq
+    rw [h_eq]
+    exact Or.inr rfl
+
 theorem BGe_iff_Ge (n m : ℕ₀) :
     BGe n m = true ↔ Ge n m
     := by
@@ -881,4 +895,6 @@ export Peano.Order (
   le_0_succ_iff_lt_0_succ
   lt_0_succ_then_le_0_succ
   le_0_succ_then_lt_0_succ
+  le_self_of_eq_self
+  le_0_of_eq_0
 )

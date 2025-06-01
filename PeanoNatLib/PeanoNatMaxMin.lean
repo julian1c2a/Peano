@@ -1006,18 +1006,14 @@ theorem max_distrib_min(n m k : ℕ₀) :
         := le_then_min_eq_right m k h_k_le_m
     rw [min_mk_eq_k] -- LHS se convierte en: max n k
     have h_le_max_nk_max_nm : Le (max n k) (max n m)
-        := by
+      := by
       apply max_le
       · -- Subobjetivo 1: Le n (max n m)
         exact le_max_left n m
       · -- Subobjetivo 2: Le k (max n m)
         exact le_trans k m (max n m) h_k_le_m (le_max_right n m)
-    rw [
-      le_then_min_eq_right
-          (max n m)
-          (max n k)
-          h_le_max_nk_max_nm
-    ]
+    rw [le_then_min_eq_left (max n k) (max n m) h_le_max_nk_max_nm]
+
 
 theorem min_distrib_max(n m k : ℕ₀) :
     min n (max m k) = max (min n m) (min n k)
@@ -1055,19 +1051,32 @@ theorem min_distrib_max(n m k : ℕ₀) :
             := Lt_of_not_le h_n_le_k
         have h_min_nk_eq_k : min n k = k
             := min_eq_of_gt h_k_lt_n
-        rw [h_min_nk_eq_k]
-      by_cases h_m_le_n : Le m n
-      · -- Caso: m ≤ n
-        have h_min_nm_eq_n : min n m = n
-            := le_then_min_eq_left n m h_m_le_n
-        rw [h_min_nm_eq_n] -- Goal: n = max n k
-        rw [max_eq_of_gt h_k_lt_n] -- As k < n, max n k = n. Goal: n = n
-      · -- Caso: ¬(m ≤ n), entonces m < n
-        have h_min_nm_eq_m : min n m = m
-            := min_eq_of_gt h_m_lt_n
-        rw [h_min_nm_eq_m] -- Goal: m = max m k
-        rw [le_then_max_eq_left m k h_k_le_m]
-        -- As k <= m, max m k = m. Goal: m = m
+        rw [h_min_nm_eq_m, h_min_nk_eq_k]
+        -- Goal: k = max m k
+        rw [le_then_max_eq_right m k h_m_le_k]
+  | inr h_k_le_m => -- Caso 2: Le k m (k ≤ m)
+    have max_mk_eq_m : max m k = m
+        := le_then_max_eq_left m k h_k_le_m
+    rw [max_mk_eq_m] -- LHS se convierte en: min n m
+    have min_mk_eq_k : min m k = k
+        := le_then_min_eq_right m k h_k_le_m
+    by_cases h_n_le_k : Le n k
+    · -- Si n ≤ k
+      have h_n_le_m : Le n m
+          := le_trans n k m h_n_le_k h_k_le_m
+      have h_min_nm_eq_n : min n m = n
+          := le_then_min_eq_left n m h_n_le_m
+      have h_min_nk_eq_n : min n k = n
+          := le_then_min_eq_left n k h_n_le_k
+      rw [h_min_nm_eq_n, h_min_nk_eq_n]
+      rw [max_idem n]
+    · -- Si ¬(n ≤ k), entonces k < n
+      have h_k_lt_n : Lt k n
+          := Lt_of_not_le h_n_le_k
+      have h_min_nk_eq_k : min n k = k
+          := min_eq_of_gt h_k_lt_n
+        rw [h_min_nm_eq_m, h_min_nk_eq_k]
+        rw [min_mk_eq_k]
 
 theorem isomorph_Λ_max(n m : Nat) :
     max (Λ n) (Λ m) = Λ (Nat.max n m)

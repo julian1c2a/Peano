@@ -8,8 +8,6 @@ import PeanoNatLib.PeanoNatMaxMin
 namespace Peano
     open Peano
 
-
-
     namespace Sub
         open Peano.Sub
         open Peano.Axioms

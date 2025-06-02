@@ -204,12 +204,39 @@ namespace Peano
         simp [sub, h_not_le]
       · -- Caso 2: h_1_eq_m : 𝟙 = m
         left
-        rw [h_1_eq_m]
-        simp [sub, le_refl]
+        rw [← h_1_eq_m]
+        calc
+          sub 𝟙 𝟙 = subₕₖ 𝟙 𝟙 (le_refl 𝟙) := by rfl
+          _ = subₕₖ 𝟘 𝟘 (succ_le_succ_then (le_refl 𝟙)) := by simp [subₕₖ, one]
+          _ = 𝟘 := by simp [subₕₖ]
       · -- Caso 3: h_m_lt_1 : m < 𝟙
         right
-        have h_m_is_zero : m = 𝟘 := Peano.Order.le_zero_eq (Peano.StrictOrder.le_of_lt_succ h_m_lt_1)
-        rw [h_m_is_zero, sub_zero]
+        -- Si m < 𝟙, entonces m = 𝟘
+        have h_m_eq_zero : m = 𝟘 := by
+          cases m with
+          | zero => rfl
+          | succ m' =>
+            exfalso
+            -- Since m < 𝟙 and m = σ m', we have σ m' < σ 𝟘, which is impossible
+            have h_lt_one : σ m' < 𝟙 := h_m_lt_1
+            have h_le_zero : Le (σ m') 𝟘 := by
+                    have h_lt_zero : Lt (σ m') 𝟘 := by
+                      rw [one] at h_lt_one
+                      -- Now h_lt_one has type σ m' < σ 𝟘, which is Lt (σ m') (σ 𝟘)
+                      -- We need Lt (σ m') 𝟘, but this is impossible since σ m' cannot be less than 𝟘
+                      -- Let's use the fact that no successor is less than zero
+                      exfalso
+                      -- h_lt_one has type σ m' < σ 𝟘 (from rw [one] at h_lt_one earlier)
+                      -- This implies m' < 𝟘 by succ_lt_succ_then
+                      have h_m_prime_lt_zero : m' < 𝟘 := succ_lt_succ_then h_lt_one
+                      -- This contradicts that m' (a natural number) cannot be less than 𝟘
+                      exact lt_zero m' h_m_prime_lt_zero
+                    exact lt_imp_le (σ m') 𝟘 h_lt_zero
+
+            exact not_succ_le_zero m' h_le_zero
+        rw [h_m_eq_zero]
+        calc
+          sub 𝟙 𝟘 = 𝟙 := by rw [sub_zero]
 
 
 

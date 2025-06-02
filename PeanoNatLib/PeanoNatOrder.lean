@@ -25,7 +25,6 @@ namespace Peano
       | σ _  ,   𝟘  =>  False
       | σ n' , σ m' =>  Le' n' m'
 
-    /-- El teorema zero_le se mueve aquí porque se usa en Le'_iff_Le. -/
     theorem zero_le (n : ℕ₀) :
       Le 𝟘 n
       :=
@@ -55,6 +54,20 @@ namespace Peano
         · -- n = m => σ n = σ m => Le (σ n) (σ m)
           apply Or.inr
           exact h_eq ▸ rfl
+
+    theorem succ_le_succ_iff_wp
+           {n m : ℕ₀} (h_le_succ : Le (σ n) (σ m)) :
+      Le n m
+      := by
+      -- Prueba de Le (σ n) (σ m) → Le n m
+      unfold Le at *
+      rcases h_le_succ with h_lt_succ | h_eq_succ
+      · -- Lt (σ n) (σ m) => Lt n m => Le n m
+        apply Or.inl
+        exact (lt_iff_lt_σ_σ n m).mpr h_lt_succ
+      · -- σ n = σ m => n = m => Le n m
+        apply Or.inr
+        exact ℕ₀.succ.inj h_eq_succ
 
     theorem succ_le_succ_then {n m : ℕ₀} :
       Le (σ n) (σ m) → Le n m
@@ -879,4 +892,5 @@ export Peano.Order (
   le_0_of_eq_0
   le_then_lt_succ
   le_then_lt_succ_wp
+  succ_le_succ_iff_wp
 )

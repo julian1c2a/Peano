@@ -177,7 +177,7 @@ namespace Peano
             | zero => simp [one, Le]
             | succ n'' =>
               simp [one, Le]
-              exact (le_then_lt_succ (zero_le n''))
+              exact succ_le_succ_then (zero_le n'')
           exact h h_one_le_succ
       rw [h_n_eq_zero]
       simp [sub, τ, h]

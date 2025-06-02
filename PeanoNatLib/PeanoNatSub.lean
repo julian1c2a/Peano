@@ -186,30 +186,49 @@ namespace Peano
       exact not_succ_le_zero 𝟘 h'
 
 
-  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
-    subₕₖ 𝟙 m h = ρ m  ( h)
-      := by
-    induction m with
-    | zero =>
-      -- Caso: m = 𝟘
-      calc
-        subₕₖ 𝟙 𝟘 (zero_le 𝟘) = 𝟙 := by simp [subₕₖ]
-        _ = ρ 𝟘 (m_neq_0_proved_lt_1_m (zero_le 𝟘))
-            := by simp [ρ]
+  -- theorem one_subₕₖ {m : ℕ₀} (h: Eq 𝟙 m):
+  --  subₕₖ 𝟙 m h = ρ m (h_neq_0: ¬ Eq 𝟘 m)
+  -- Este teorema no tiene sentido poque m solo puede ser 𝟘 o 𝟙
+  -- Y aún en este caso, m = 𝟘 no puede ser porque no le puede sustraer 𝟙
+  -- ya que 𝟘 < 𝟙. m tiene que ser 𝟙.
 
---  theorem sub_succ (n k : ℕ₀) :
---     sub (σ n) k = σ (sub n k)with
---      := by>
---       match k with
---        | 𝟘 =>y rw [sub_zero]
---          calc (sub n 𝟘) := rfl
---            sub (σ n) 𝟘 = σ n := by rw [sub_zero] =>
---            _ = σ (sub n 𝟘) := rfl
---        | σ k' => := by rw [sub_succ]
---          calcσ k')) := rfl
---            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]
---            _ = σ (sub n (σ k')) := rfl
---        termination_by n k  k ≤ n → σ n - k = n + 1 - k
+    theorem one_sub (m : ℕ₀) :
+        sub 𝟙 m = 𝟘 ∨ sub 𝟙 m = 𝟙
+            := by
+      let h_trichotomy := Peano.StrictOrder.trichotomy 𝟙 m -- Esto da (𝟙 < m) ∨ (𝟙 = m) ∨ (m < 𝟙)
+      --intro h_trichotomy
+      rcases h_trichotomy with h_1_lt_m | h_1_eq_m | h_m_lt_1
+      · -- Caso 1: h_1_lt_m : 𝟙 < m
+        left
+        have h_not_le : ¬Le m 𝟙 := gt_then_nle_wp h_1_lt_m
+        simp [sub, h_not_le]
+      · -- Caso 2: h_1_eq_m : 𝟙 = m
+        left
+        rw [h_1_eq_m]
+        simp [sub, le_refl]
+      · -- Caso 3: h_m_lt_1 : m < 𝟙
+        right
+        have h_m_is_zero : m = 𝟘 := Peano.Order.le_zero_eq (Peano.StrictOrder.le_of_lt_succ h_m_lt_1)
+        rw [h_m_is_zero, sub_zero]
+
+
+
+
+
+
+    --  theorem sub_succ (n k : ℕ₀) :
+    --     sub (σ n) k = σ (sub n k)with
+    --      := by>
+    --       match k with
+    --        | 𝟘 =>y rw [sub_zero]
+    --          calc (sub n 𝟘) := rfl
+    --            sub (σ n) 𝟘 = σ n := by rw [sub_zero] =>
+    --            _ = σ (sub n 𝟘) := rfl
+    --        | σ k' => := by rw [sub_succ]
+    --          calcσ k')) := rfl
+    --            sub (σ n) k' = σ (sub n k') := by rw [sub_succ]
+    --            _ = σ (sub n (σ k')) := rfl
+    --        termination_by n k  k ≤ n → σ n - k = n + 1 - k
 
 
 --  k ≤ n → σ n - k = n + 1 - k

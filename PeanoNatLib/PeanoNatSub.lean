@@ -237,37 +237,25 @@ namespace Peano
         calc
           sub 𝟙 𝟘 = 𝟙 := by rw [sub_zero]
 
-    theorem subₕₖ_succ (n k : ℕ₀) (h_k_le_n : Le (σ k) n) :
-        subₕₖ n (σ k) h_k_le_n = σ (subₕₖ n k (le_trans (succ_le_succ_then (σ n) (σ k)) h_k_le_n))
-          := by
-        induction n with
-        | zero =>
-          exfalso
-          have h_succ_le_zero : σ k <= 𝟘 := h_k_le_n
-          exact not_succ_le_zero k h_succ_le_zero
-        | succ n' ih =>
-          calc
-            subₕₖ (σ n') (σ k) (succ_le_succ_then h_k_le_n)
-              = subₕₖ n' k (succ_le_succ_then h_k_le_n)
-                := by simp [subₕₖ, succ]
-            _ = σ (subₕₖ n' k (succ_le_succ_then h_k_le_n))
-                := by rw [ih]
-            _ = σ (subₕₖ (σ n') k h_k_le_n)
-       sub (σ n) k = σ (sub n k)
-        := by
-        induction k with
-          | zero =>
-            calc
-              sub (σ n) 𝟘 = σ n := by rw [sub_zero]
-              _ = σ (sub n 𝟘) := by rw [sub_zero]
-          | succ k' ih =>
-            calc
-              sub (σ n) (σ k') = sub n k'
-                := by simp [sub, subₕₖ, succ_le_succ_iff]
-              _ = σ (sub n (σ k'))
-                := by rw [ih]
-              _ = σ (sub (σ n) k')
-          -- termination_by n k  k ≤ n → σ n - k = n + 1 - k
+    -- theorem subₕₖ_succ (n k : ℕ₀) (h_k_le_n : Le (σ k) n) :
+    --     subₕₖ n (σ k) h_k_le_n = σ (subₕₖ n k (le_succ_k_n_then_le_k_n h_k_le_n))
+    --       := by
+    --     induction n with
+    --     | zero =>
+    --       exfalso
+    --       have h_succ_le_zero : σ k <= 𝟘 := h_k_le_n
+    --       exact not_succ_le_zero k h_succ_le_zero
+    --     | succ n' ih =>
+    --       have h_k_le_n' : Le k n' := succ_le_succ_then h_k_le_n
+    --       have h_succ_k_le_n' : Le (σ k) n' := le_trans (σ k) (σ n') n' (le_succ_k_n_then_le_k_n h_k_le_n) (pred_le n')
+    --       calc
+    --         subₕₖ (σ n') (σ k) h_k_le_n
+    --           = subₕₖ n' k h_k_le_n'
+    --             := by simp [subₕₖ]
+    --         _ = σ (subₕₖ n' k (le_succ_k_n_then_le_k_n (le_succ (σ k) n' h_succ_k_le_n')))
+    --             := by rw [ih h_succ_k_le_n']
+    --         _ = σ (subₕₖ (σ n') k (le_succ_k_n_then_le_k_n h_k_le_n))
+    --             := by rfl
 
 
 --  k ≤ n → σ n - k = n + 1 - k

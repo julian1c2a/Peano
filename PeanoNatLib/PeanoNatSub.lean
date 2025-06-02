@@ -187,7 +187,7 @@ namespace Peano
 
 
   theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
-    subₕₖ 𝟙 m h = ρ m  (m_neq_0_proved_lt_1_m h)
+    subₕₖ 𝟙 m h = ρ m  ( h)
       := by
     induction m with
     | zero =>

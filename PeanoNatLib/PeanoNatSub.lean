@@ -237,7 +237,22 @@ namespace Peano
         calc
           sub 𝟙 𝟘 = 𝟙 := by rw [sub_zero]
 
-    theorem sub_succ (n k : ℕ₀) :
+    theorem subₕₖ_succ (n k : ℕ₀) (h_k_le_n : Le (σ k) n) :
+        subₕₖ n (σ k) h_k_le_n = σ (subₕₖ n k (le_trans (succ_le_succ_then (σ n) (σ k)) h_k_le_n))
+          := by
+        induction n with
+        | zero =>
+          exfalso
+          have h_succ_le_zero : σ k <= 𝟘 := h_k_le_n
+          exact not_succ_le_zero k h_succ_le_zero
+        | succ n' ih =>
+          calc
+            subₕₖ (σ n') (σ k) (succ_le_succ_then h_k_le_n)
+              = subₕₖ n' k (succ_le_succ_then h_k_le_n)
+                := by simp [subₕₖ, succ]
+            _ = σ (subₕₖ n' k (succ_le_succ_then h_k_le_n))
+                := by rw [ih]
+            _ = σ (subₕₖ (σ n') k h_k_le_n)
        sub (σ n) k = σ (sub n k)
         := by
         induction k with
@@ -249,8 +264,9 @@ namespace Peano
             calc
               sub (σ n) (σ k') = sub n k'
                 := by simp [sub, subₕₖ, succ_le_succ_iff]
-              _ = τ (sub (σ n) k') := by rw [ih]; rfl
-              _ = σ (sub n (σ k')) := by simp [sub, subₕₖ, τ, ρ, Axioms.σ] -- Attempt to simplify, but the underlying mathematical statement is likely false without additional hypotheses.
+              _ = σ (sub n (σ k'))
+                := by rw [ih]
+              _ = σ (sub (σ n) k')
           -- termination_by n k  k ≤ n → σ n - k = n + 1 - k
 
 

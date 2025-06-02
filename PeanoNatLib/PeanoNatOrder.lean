@@ -910,6 +910,33 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact le_or_eq_then_le_succ n m h_le_or_eq_succ
 
+  theorem le_succ_k_n_then_le_k_n {n k : ℕ₀} :
+    Le (σ k) n → Le k n
+      := by
+        intro h_le_ssn
+        unfold Le at h_le_ssn
+        rcases h_le_ssn with h_lt_ssn | h_eq_ssn
+        · -- Caso Lt (σ k) n
+          apply Or.inl
+          -- h_lt_ssn : Lt (σ k) n
+          -- Goal: Lt k n
+          cases n with
+          | zero => exfalso; exact (nlt_n_0 (σ k) h_lt_ssn).elim
+          | succ m => -- n = σ m. h_lt_ssn becomes Lt (σ k) (σ m)
+            -- Goal: Lt k (σ m)
+            have h_lt_k_m : Lt k m := (lt_iff_lt_σ_σ k m).mpr h_lt_ssn
+            exact lt_trans k m (σ m) h_lt_k_m (lt_self_σ_self m)
+        · -- Caso σ k = n. Here h_eq_ssn : σ k = n.
+          -- The goal is Le k n.
+          -- Substituting n with σ k (from h_eq_ssn), the goal becomes Le k (σ k).
+          -- Le k (σ k) is defined as (Lt k (σ k)) ∨ (k = σ k).
+          -- We prove the left disjunct: Lt k (σ k).
+          apply Or.inl
+          -- The goal is now Lt k n.
+          -- Substitute n with σ k (from h_eq_ssn): the goal becomes Lt k (σ k).
+          rw [← h_eq_ssn]
+          -- Lt k (σ k) is true by lt_self_σ_self k.
+          exact lt_self_σ_self k
 
   end Order
 end Peano
@@ -967,4 +994,5 @@ export Peano.Order (
   le_or_eq_then_le_succ
   le_succ_then_le_or_eq_wp
   le_or_eq_then_le_succ_wp
+  le_succ_k_n_then_le_k_n
 )

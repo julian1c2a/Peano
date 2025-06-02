@@ -177,15 +177,25 @@ namespace Peano
             | zero => simp [one, Le]
             | succ n'' =>
               simp [one, Le]
-              exact succ_le_succ_then (zero_le n'')
+              exact zero_lt_succ (σ n'')
           exact h h_one_le_succ
       rw [h_n_eq_zero]
       simp [sub, τ, h]
+      intro h'
+      exfalso
+      exact not_succ_le_zero 𝟘 h'
 
 
---  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
---    subₕₖ 𝟙 m h = ρ m h
---      := by sorry
+  theorem one_subₕₖ (m : ℕ₀) (h: Le m 𝟙):--        := by
+    subₕₖ 𝟙 m h = ρ m  (m_neq_0_proved_lt_1_m h)
+      := by
+    induction m with
+    | zero =>
+      -- Caso: m = 𝟘
+      calc
+        subₕₖ 𝟙 𝟘 (zero_le 𝟘) = 𝟙 := by simp [subₕₖ]
+        _ = ρ 𝟘 (m_neq_0_proved_lt_1_m (zero_le 𝟘))
+            := by simp [ρ]
 
 --  theorem sub_succ (n k : ℕ₀) :
 --     sub (σ n) k = σ (sub n k)with

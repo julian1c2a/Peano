@@ -471,7 +471,7 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           induction b with
           | zero =>
             have equiv_calc : Le a (σ 𝟘) ↔ (a = 𝟘 ∨ a = 𝟙) := calc
-              Le a (σ 𝟘) ↔ Le a 𝟙 := by simp [Peano.one]
+              Le a (σ 𝟘) ↔ Le a 𝟙 := by simp [one]
               _ ↔ Lt a 𝟙 ∨ a = 𝟙 := by rfl
               _ ↔ (a = 𝟘 ∨ a = 𝟙) := by
                 constructor
@@ -531,6 +531,36 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           | inr h_a_eq_succ_b =>
             rw [h_a_eq_succ_b]
             exact (le_refl (σ b))
+
+  theorem le_succ_then_le_or_eq (a b : ℕ₀) :
+    Le a (σ b) → Le a b ∨ a = σ b
+      := by
+      intro h_le_succ
+      unfold Le at h_le_succ
+      rcases h_le_succ with h_lt_succ | h_eq_succ
+      · -- Caso Lt a (σ b).
+        apply Or.inl
+        exact (le_iff_lt_succ a b).mpr h_lt_succ
+      · -- Caso a = σ b.
+        apply Or.inr
+        exact h_eq_succ ▸ rfl
+
+  theorem le_or_eq_then_le_succ (a b : ℕ₀) :
+    Le a b ∨ a = σ b → Le a (σ b)
+      := by
+      intro h_le_or_eq
+      unfold Le at h_le_or_eq
+      rcases h_le_or_eq with h_lt_or_eq | h_eq_or_eq
+      · -- Caso Lt a b ∨ a = b.
+        apply Or.inl
+        cases h_lt_or_eq with
+        | inl h_lt_ab => exact lt_trans a b (σ b) h_lt_ab (lt_self_σ_self b)
+        | inr h_eq_ab => rw [h_eq_ab]; exact lt_self_σ_self b
+      . -- Caso a = b.
+        apply Or.inr
+        exact h_eq_or_eq ▸ rfl
+
+
 
   theorem isomorph_Ψ_le (n m : ℕ₀) :
     Ψ n ≤ Ψ m ↔ Le n m
@@ -748,6 +778,26 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         have h_one_eq_zero : 𝟙 = 𝟘 := le_zero_eq 𝟙 h
         exact absurd h_one_eq_zero (succ_neq_zero 𝟘)
 
+  theorem le_m_1_then_m_eq_0or1_wp {m : ℕ₀} (h : Le m 𝟙) :
+    m = 𝟘 ∨ m = 𝟙
+      := by
+        unfold Le at h
+        cases m with
+        | zero =>
+          exact Or.inl rfl
+        | succ m' =>
+          -- Le (σ m') 𝟙 implies σ m' = 𝟙 which means m' = 𝟘
+          rcases h with h_lt | h_eq
+          · -- Case Lt (σ m') 𝟙
+            -- Since 𝟙 = σ 𝟘, we have Lt (σ m') (σ 𝟘)
+            -- This implies Lt m' 𝟘, which is impossible
+            have h_lt_m_zero : Lt m' 𝟘 := (lt_iff_lt_σ_σ m' 𝟘).mpr h_lt
+            exact (nlt_n_0 m' h_lt_m_zero).elim
+          · -- Case σ m' = 𝟙
+            -- Since 𝟙 = σ 𝟘, we have σ m' = σ 𝟘, so m' = 𝟘
+            have h_m_eq_zero : m' = 𝟘 := ℕ₀.succ.inj h_eq
+            exact Or.inr (h_m_eq_zero ▸ rfl)
+
   theorem le_n_m_then_m_neq_0 (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
     (Le n m) → (m ≠ 𝟘)
       := by
@@ -843,6 +893,19 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact le_then_lt_succ n m h_le
 
+
+  theorem le_succ_then_le_or_eq_wp {n m : ℕ₀} (h_le : Le n (σ m)) :
+    Le n m ∨ n = σ m
+      := by
+        exact le_succ_then_le_or_eq n m h_le
+
+  theorem le_or_eq_then_le_succ_wp {n m : ℕ₀}
+      (h_le_or_eq_succ : Le n m ∨ n = σ m) :
+    Le n (σ m)
+      := by
+        exact le_or_eq_then_le_succ n m h_le_or_eq_succ
+
+
   end Order
 end Peano
 
@@ -893,4 +956,8 @@ export Peano.Order (
   le_then_lt_succ
   le_then_lt_succ_wp
   succ_le_succ_iff_wp
+  le_succ_then_le_or_eq
+  le_or_eq_then_le_succ
+  le_succ_then_le_or_eq_wp
+  le_or_eq_then_le_succ_wp
 )

@@ -824,6 +824,12 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         · -- Caso n = m
           rw [h_eq_nm]
           exact lt_self_σ_self m
+
+  theorem le_then_lt_succ_wp {n m : ℕ₀} (h_le : Le n m) :
+    Lt n (σ m)
+      := by
+        exact le_then_lt_succ n m h_le
+
   end Order
 end Peano
 
@@ -872,4 +878,5 @@ export Peano.Order (
   le_self_of_eq_self
   le_0_of_eq_0
   le_then_lt_succ
+  le_then_lt_succ_wp
 )

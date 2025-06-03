@@ -95,19 +95,6 @@ namespace Peano
         apply Or.inr
         exact ℕ₀.succ.inj h_eq_succ
 
-    -- theorem le_n_m_then_le_n_sm {n m : ℕ₀} :
-    --   Le n m → Le n (σ m)
-    --   := by
-    --   intro h_le_n_m
-    --   unfold Le at *
-    --   rcases h_le_n_m with h_lt_n | h_eq_n
-    --   · -- Lt n m => Lt n (σ  m) => Le n (σ m)
-    --     apply Or.inl
-    --     exact (lt_iff_lt_σ_σ n m).mp h_lt_n
-    --   · -- n = m => σ n = σ m => Le n (σ m)
-    --     apply Or.inr
-    --     exact h_eq_n ▸ rfl
-
     theorem succ_le_succ'_then_wp {n m : ℕ₀} (h_le_succ : Le (σ n) (σ m)) :
       Le n (σ m)
       := by
@@ -1006,6 +993,26 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact le_succ k n h_le_k_n
 
+  theorem le_n_m_then_le_n_sm (n m : ℕ₀) :
+    Le n m → Le n (σ m)
+      := by
+        intro h_le_nm
+        unfold Le at h_le_nm
+        rcases h_le_nm with h_lt_nm | h_eq_nm
+        · -- Caso Lt n m
+          apply Or.inl
+          have h_lt_n_m : Lt n m := (lt_iff_lt_σ_σ n m).mpr h_lt_nm
+          exact lt_trans n m (σ m) h_lt_n_m (lt_self_σ_self m)
+        · -- Caso n = m
+          apply Or.inl
+          rw [h_eq_nm]
+          exact lt_self_σ_self m
+
+  theorem le_n_m_then_le_n_sm_wp  {n m : ℕ₀} (h_le_nm : Le n m) :
+    Le n (σ m)
+      := by
+        exact le_n_m_then_le_n_sm n m h_le_nm
+
   end Order
 end Peano
 
@@ -1068,4 +1075,6 @@ export Peano.Order (
   le_k_n_then_le_k_sn_wp
   succ_le_succ_then_wp
   succ_le_succ'_then_wp
+  le_n_m_then_le_n_sm
+  le_n_m_then_le_n_sm_wp
 )

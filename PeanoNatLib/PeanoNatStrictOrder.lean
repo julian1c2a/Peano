@@ -983,7 +983,7 @@ namespace StrictOrder
                         unfold Lt at h_lt_nm
                         exact ih_n' m' h_lt_nm
 
-    theorem lt_then_lt_succ (n m : ℕ₀) :
+    theorem lt_then_lt_succs (n m : ℕ₀) :
         Lt n m → Lt (σ n) (σ m)
             := by
                 intro h_lt_n_sm
@@ -1082,4 +1082,5 @@ export Peano.StrictOrder (
     succ_lt_succ_then
     lt_then_lt_succ
     lt_then_lt_succ_wp
+    lt_then_lt_succs
 )

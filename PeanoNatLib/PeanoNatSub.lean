@@ -269,8 +269,73 @@ namespace Peano
   -- Caso k < s(n) <=> Le k n => s(n) - k = s(n - k)
   -- Caso k > s(n) => s(n) - k = 0; s(n - k) = s0 = 1 !!!
   theorem sub_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
-        sub (σ n) k h_k_le_n = σ (sub n k h_k_le_n)
+        sub (σ n) k (le_n_m_then_le_n_sm_wp h_k_le_n) = σ (sub n k h_k_le_n)
           := by
+    have h_k_le_n' : Le k (σ n) := le_k_n_then_le_k_sn_wp h_k_le_n
+    have h_subₕₖ_eq : sub (σ n) k = subₕₖ (σ n) k h_k_le_n' := by simp [sub, h_k_le_n']
+    rw [h_subₕₖ_eq]
+    rw [subₕₖ_succ n k h_k_le_n']
+  -- substract_k_add_k (n: ℕ₀):
+  --     ∀ (k : ℕ₀) (h_le : k <= n),
+  --        add (substract n k h_le) k = n
+  --     := by
+  --     intro k h_le
+  --     induction n with
+  --     | zero =>
+  --       -- Caso n = truck 𝟘
+  --       have h_k_le_zero : k <= 𝟘 := h_le
+  --       have h_k_eq_zero : k = 𝟘 := by
+  --         have h_k_lt_zero : k < 𝟘 := le_then_lt k 𝟘 h_k_le_zero
+  --         exact not_succ_le_zero k h_k_lt_zero
+  --       rw [h_k_eq_zero]
+  --       calc
+  --         add (substract 𝟘 𝟘 (zero_le 𝟘)) 𝟘 = add 𝟘 𝟘 := by simp [substract]
+  --         _ = 𝟘 := by simp [add]
+  --     | succ n' ih =>
+  --       -- Caso n = σ n'
+  --       have h_k_le_n' : k <= n' := succ_le_succ_then h_le
+  --       have h_sub_eq : substract (σ n') k h_k_le_n' = subₕₖ (σ n') k h_k_le_n' := by simp [substract, h_k_le_n']
+  --       rw [h_sub_eq]
+  --       calc
+  --         add (subₕₖ (σ n') k h_k_le_n') k = add (σ (subₕₖ n' k h_k_le_n')) k
+  --           := by rw [subₕₖ_succ n' k h_k_le_n']
+  --         _ = σ (subₕₖ n' k h_k_le_n') + k := by simp [add]
+  --         _ = σ (substract n' k h_k_le_n') + k := by rw [ih n' h_k_le_n']
+  --       -- Ahora tenemos que demostrar que σ (substract n' k h_k_le_n') + k = σ n'
+  --       -- Esto es cierto porque:
+--         -- σ (substract n' k h_k_le_n') + k = σ n' si k < n'
+--         -- σ (substract n' k h_k_le_n') + k = σ n' si k = n'
+--         -- σ (substract n' k h_k_le_n') + k = σ n' si k > n'
+--       -- En resumen, tenemos que demostrar que:
+--         -- add (substract n' k h_k_le_n') k = n'
+  -- substract_k_add_k (n: ℕ₀):
+  --     ∀ (k : ℕ₀) (h_le : k <= n),
+  --        add (substract n k h_le) k = n
+  --     := by
+  --     intro k h_le
+  --     induction n with
+  --     | zero =>
+  --       -- Caso n = truck 𝟘
+  --       have h_k_le_zero : k <= 𝟘 := h_le
+  --       have h_k_eq_zero : k = 𝟘 := by
+  --         have h_k_lt_zero : k < 𝟘 := le_then_lt k 𝟘 h_k_le_zero
+  --         exact not_succ_le_zero k h_k_lt_zero
+  --       rw [h_k_eq_zero]
+  --       calc
+  --         add (substract 𝟘 𝟘 (zero_le 𝟘)) 𝟘 = add 𝟘 𝟘 := by simp [substract]
+  --         _ = 𝟘 := by simp [add]
+  --     | succ n' ih =>
+  --       -- Caso n = σ n'
+  --       have h_k_le_n' : k <= n' := succ_le_succ_then h_le
+  --       have h_sub_eq : substract (σ n') k h_k_le_n' = subₕₖ (σ n') k h_k_le_n' := by simp [substract, h_k_le_n']
+  --       rw [h_sub_eq]
+  --       calc
+  --         add (subₕₖ (σ n') k h_k_le_n') k = add (σ (subₕₖ n' k h_k_le_n')) k
+  --           := by rw [subₕₖ_succ n' k h_k_le_n']
+  --         _ = σ (subₕₖ n' k h_k_le_n') + k := by simp [add]
+  --         _ = σ (substract n' k h_k_le_n') + k := by rw [ih n' h_k_le_n']
+        -- Ahora tenemos que demostrar que σ (substract n' k h_k_le_n') + k = σ n'
+  --       -- Esto es cierto porque:
 
 --  k ≤ n → σ n - k = n + 1 - k
 -- substract_k_add_k (n: ℕ₀):

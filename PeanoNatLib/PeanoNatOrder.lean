@@ -918,8 +918,6 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         rcases h_le_ssn with h_lt_ssn | h_eq_ssn
         · -- Caso Lt (σ k) n
           apply Or.inl
-          -- h_lt_ssn : Lt (σ k) n
-          -- Goal: Lt k n
           cases n with
           | zero => exfalso; exact (nlt_n_0 (σ k) h_lt_ssn).elim
           | succ m => -- n = σ m. h_lt_ssn becomes Lt (σ k) (σ m)
@@ -927,16 +925,44 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
             have h_lt_k_m : Lt k m := (lt_iff_lt_σ_σ k m).mpr h_lt_ssn
             exact lt_trans k m (σ m) h_lt_k_m (lt_self_σ_self m)
         · -- Caso σ k = n. Here h_eq_ssn : σ k = n.
-          -- The goal is Le k n.
-          -- Substituting n with σ k (from h_eq_ssn), the goal becomes Le k (σ k).
-          -- Le k (σ k) is defined as (Lt k (σ k)) ∨ (k = σ k).
-          -- We prove the left disjunct: Lt k (σ k).
           apply Or.inl
-          -- The goal is now Lt k n.
-          -- Substitute n with σ k (from h_eq_ssn): the goal becomes Lt k (σ k).
           rw [← h_eq_ssn]
-          -- Lt k (σ k) is true by lt_self_σ_self k.
           exact lt_self_σ_self k
+
+  theorem lt_k_succ_n_then_le_k_n {n k : ℕ₀} :
+    Lt k (σ n) → Le k n
+      := by
+        intro h_lt_k_sn
+        unfold Lt at h_lt_k_sn
+        cases k with
+        | zero =>
+          cases n with
+          | zero => exact le_refl 𝟘
+          | succ n' => exact zero_le (σ n')
+        | succ k' =>
+          cases n with
+          | zero =>
+            simp [Lt] at h_lt_k_sn
+          | succ n' =>
+            have h_lt_k'_sn' : Lt k' (σ n') := h_lt_k_sn
+            have h_le_k'_n' : Le k' n' := (le_iff_lt_succ k' n').mpr h_lt_k'_sn'
+            rcases h_le_k'_n' with h_lt_k'_n' | h_eq_k'_n'
+            · -- Caso Lt k' n'
+              apply Or.inl
+              exact (lt_iff_lt_σ_σ k' n').mpr h_lt_k'_n'
+            · -- Caso k' = n'. Entonces σ k' = σ n'.
+              apply Or.inr
+              rw [h_eq_k'_n']
+
+  theorem lt_k_succ_n_then_le_k_n_wp {n k : ℕ₀} (h_lt_k_sn : Lt k (σ n)):
+    Le k n
+      := by
+        exact lt_k_succ_n_then_le_k_n h_lt_k_sn
+
+  theorem le_k_n_then_le_k_sn_wp {n k : ℕ₀} (h_le_k_n : Le k n):
+    Le k (σ n)
+      := by
+        exact le_succ k n h_le_k_n
 
   end Order
 end Peano
@@ -995,4 +1021,7 @@ export Peano.Order (
   le_succ_then_le_or_eq_wp
   le_or_eq_then_le_succ_wp
   le_succ_k_n_then_le_k_n
+  lt_k_succ_n_then_le_k_n
+  lt_k_succ_n_then_le_k_n_wp
+  le_k_n_then_le_k_sn_wp
 )

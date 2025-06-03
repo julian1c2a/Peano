@@ -240,39 +240,37 @@ namespace Peano
     theorem subₕₖ_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
         subₕₖ (σ n) k (le_k_n_then_le_k_sn_wp h_k_le_n) = σ (subₕₖ n k h_k_le_n)
           := by
-      induction n with
+      induction k generalizing n with
       | zero =>
-        -- Caso n = 𝟘
-        cases k with
+        -- Caso k = 𝟘
+        calc
+          subₕₖ (σ n) 𝟘 (le_k_n_then_le_k_sn_wp h_k_le_n) = σ n := by simp [subₕₖ]
+          _ = σ (subₕₖ n 𝟘 (zero_le n)) := by simp [subₕₖ_zero]
+      | succ k' ih =>
+        -- Caso k = σ k'
+        cases n with
         | zero =>
-          calc
-            subₕₖ (σ 𝟘) 𝟘 (le_k_n_then_le_k_sn_wp h_k_le_n) = σ 𝟘 := by simp [subₕₖ]
-            _ = σ (subₕₖ 𝟘 𝟘 h_k_le_n) := by simp [subₕₖ]
-        | succ k' =>
-          -- Caso k = σ k', pero σ k' ≤ 𝟘 es imposible
+          -- Caso n = 𝟘, pero σ k' ≤ 𝟘 es imposible
           exfalso
-          -- σ k' ≤ 𝟘 es imposible para cualquier k'
           have h_succ_le_zero : Le (σ k') 𝟘 := h_k_le_n
           exact not_succ_le_zero k' h_succ_le_zero
-      | succ n' ih =>
-        -- Caso n = σ n'
-        cases k with
-        | zero =>
-          -- Caso k = 𝟘
-          calc
-            subₕₖ (σ (σ n')) 𝟘 (zero_le (σ (σ n'))) = σ (σ n') := by simp [subₕₖ]
-            _ = σ (subₕₖ (σ n') 𝟘 (zero_le (σ n'))) := by simp [subₕₖ]
-        | succ k' =>
-          -- Caso k = σ k'
+        | succ n' =>
           -- Caso n = σ n' y k = σ k'
-          -- σ n - σ k' = σ σ n' - σ k' = σ n' - k' = σ ( n' - k' )
           have h_k'_le_n' : Le k' n' := succ_le_succ_then h_k_le_n
           calc
-            subₕₖ (σ (σ n')) (σ k') (le_k_n_then_le_k_sn_wp h_k_le_n) = subₕₖ (σ n') k' (succ_le_succ_then h_k'_le_n') := by simp [subₕₖ]
-            _ = σ (subₕₖ n' k' h_k'_le_n') := ih h_k'_le_n'
+            subₕₖ (σ (σ n')) (σ k') (le_k_n_then_le_k_sn_wp h_k_le_n)
+                = subₕₖ (σ n') k' (succ_le_succ_then (le_k_n_then_le_k_sn_wp h_k_le_n))
+                    := by simp [subₕₖ]
+            _ = σ (subₕₖ n' k' h_k'_le_n') := by rw [ih n' h_k'_le_n']
+          simp [subₕₖ, subₕₖ_zero]
 
-  -- succ(n) - k = succ(n - k)
-
+  -- s(n) - k = s(n - k)
+  -- Caso k = s(n) => 0 = s(n - k) = s(n - p(n)) = s0 = 1 !!!
+  -- Caso k < s(n) <=> Le k n => s(n) - k = s(n - k)
+  -- Caso k > s(n) => s(n) - k = 0; s(n - k) = s0 = 1 !!!
+  theorem sub_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
+        sub (σ n) k h_k_le_n = σ (sub n k h_k_le_n)
+          := by
 
 --  k ≤ n → σ n - k = n + 1 - k
 -- substract_k_add_k (n: ℕ₀):

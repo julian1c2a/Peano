@@ -18,6 +18,34 @@ namespace StrictOrder
         | ℕ₀.zero , σ _        => True
         | σ n'    , σ m'       => Lt n' m'
 
+    theorem lt_then_lt_succ (n m : ℕ₀) :
+        Lt n m → Lt n (σ m)
+            := by
+                intro h_n_lt_m
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_n_lt_m
+                        exact False.elim h_n_lt_m
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_n_lt_m
+                        exact False.elim h_n_lt_m
+                    | succ m' =>
+                        unfold Lt at h_n_lt_m
+                        exact ih_n' m' h_n_lt_m
+
+    theorem lt_then_lt_succ_wp {n m : ℕ₀} (h_lt : Lt n m):
+        Lt n (σ m)
+        := by
+        exact lt_then_lt_succ n m h_lt
+
+
     def BLt (n m : ℕ₀) : Bool :=
         match n, m with
         | _        , ℕ₀.zero   => false
@@ -1052,4 +1080,6 @@ export Peano.StrictOrder (
     BLt_then_Lt_wp
     lt_then_lt_succ
     succ_lt_succ_then
+    lt_then_lt_succ
+    lt_then_lt_succ_wp
 )

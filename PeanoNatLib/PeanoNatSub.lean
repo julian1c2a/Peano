@@ -264,9 +264,11 @@ namespace Peano
             _ = σ (subₕₖ (σ n') 𝟘 (zero_le (σ n'))) := by simp [subₕₖ]
         | succ k' =>
           -- Caso k = σ k'
+          -- Caso n = σ n' y k = σ k'
+          -- σ n - σ k' = σ σ n' - σ k' = σ n' - k' = σ ( n' - k' )
           have h_k'_le_n' : Le k' n' := succ_le_succ_then h_k_le_n
           calc
-            subₕₖ (σ (σ n')) (σ k') (le_k_n_then_le_k_sn_wp h_k_le_n) = subₕₖ (σ n') k' h_k'_le_n' := by simp [subₕₖ]
+            subₕₖ (σ (σ n')) (σ k') (le_k_n_then_le_k_sn_wp h_k_le_n) = subₕₖ (σ n') k' (succ_le_succ_then h_k'_le_n') := by simp [subₕₖ]
             _ = σ (subₕₖ n' k' h_k'_le_n') := ih h_k'_le_n'
 
   -- succ(n) - k = succ(n - k)

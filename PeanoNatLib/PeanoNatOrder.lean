@@ -82,6 +82,19 @@ namespace Peano
         apply Or.inr
         exact ℕ₀.succ.inj h_eq_succ
 
+    theorem succ_le_succ_then_wp {n m : ℕ₀} (h_le_succ : Le (σ n) (σ m)) :
+      Le n m
+      := by
+      -- Prueba de Le (σ n) (σ m) → Le n m
+      unfold Le at *
+      rcases h_le_succ with h_lt_succ | h_eq_succ
+      · -- Lt (σ n) (σ m) => Lt n m => Le n m
+        apply Or.inl
+        exact (lt_iff_lt_σ_σ n m).mpr h_lt_succ
+      · -- σ n = σ m => n = m => Le n m
+        apply Or.inr
+        exact ℕ₀.succ.inj h_eq_succ
+
     theorem le_then_le_succ {n m : ℕ₀} :
       Le n m → Le (σ n) (σ m)
       := by
@@ -1024,4 +1037,5 @@ export Peano.Order (
   lt_k_succ_n_then_le_k_n
   lt_k_succ_n_then_le_k_n_wp
   le_k_n_then_le_k_sn_wp
+  succ_le_succ_then_wp
 )

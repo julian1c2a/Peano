@@ -1013,6 +1013,30 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact le_n_m_then_le_n_sm n m h_le_nm
 
+  theorem le_sn_m_then_le_n_m_or_succ (n m : ℕ₀) :
+    Le (σ n) m → Le n m
+      := by
+        intro h_le_sn_m
+        unfold Le at h_le_sn_m
+        rcases h_le_sn_m with h_lt_sn_m | h_eq_sn_m
+        · -- Caso Lt (σ n) m
+          apply Or.inl
+          cases m with
+          | zero => exfalso; exact (nlt_n_0 (σ n) h_lt_sn_m).elim
+          | succ m' =>
+            have h_lt_n_m' : Lt n m' := (lt_iff_lt_σ_σ n m').mpr h_lt_sn_m
+            exact lt_trans n m' (σ m') h_lt_n_m' (lt_self_σ_self m')
+        · -- Caso σ n = m
+          apply Or.inl
+          rw [← h_eq_sn_m]
+          exact lt_self_σ_self n
+
+  theorem le_sn_m_then_le_n_m_or_succ_wp {n m : ℕ₀} (h_le_sn_m : Le (σ n) m) :
+    Le n m
+      := by
+        exact le_sn_m_then_le_n_m_or_succ n m h_le_sn_m
+
+
   end Order
 end Peano
 
@@ -1077,4 +1101,6 @@ export Peano.Order (
   succ_le_succ'_then_wp
   le_n_m_then_le_n_sm
   le_n_m_then_le_n_sm_wp
+  le_sn_m_then_le_n_m_or_succ
+  le_sn_m_then_le_n_m_or_succ_wp
 )

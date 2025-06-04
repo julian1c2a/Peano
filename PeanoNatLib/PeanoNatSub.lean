@@ -129,7 +129,6 @@ namespace Peano
         exact le_refl m
       · -- Caso: ¬(m ≤ n)
         have h_sub_eq : sub n m = 𝟘 := by simp [sub, h]
-        -- Si ¬(m ≤ n), entonces n < m, lo cual implica n ≤ m
         have h_lt : Lt n m := nle_then_gt m n h
         exact lt_imp_le n m h_lt
 
@@ -138,7 +137,6 @@ namespace Peano
     := by
       induction n with
       | zero =>
-        -- Caso imposible: 𝟙 ≤ 𝟘 es falso
         exfalso
         exact not_succ_le_zero 𝟘 h
       | succ n' => -- Caso n = σ n'
@@ -158,7 +156,6 @@ namespace Peano
       have h_sub_eq : sub n 𝟙 = subₕₖ n 𝟙 h := by simp [sub, h]
       rw [h_sub_eq]
       rw [subₕₖ_one n h]
-      -- Mostrar que ρ n (m_neq_0_proved_lt_1_m h) = τ n
       cases n with
       | zero =>
         exfalso
@@ -166,7 +163,6 @@ namespace Peano
       | succ n' =>
         simp [ρ, τ]
     · -- Caso: ¬Le 𝟙 n
-      -- Si ¬Le 𝟙 n, entonces n = 𝟘
       have h_n_eq_zero : n = 𝟘 := by
         cases n with
         | zero => rfl
@@ -185,77 +181,57 @@ namespace Peano
       exfalso
       exact not_succ_le_zero 𝟘 h'
 
-
-  -- theorem one_subₕₖ {m : ℕ₀} (h: Eq 𝟙 m):
-  --  subₕₖ 𝟙 m h = ρ m (h_neq_0: ¬ Eq 𝟘 m)
-  -- Este teorema no tiene sentido poque m solo puede ser 𝟘 o 𝟙
-  -- Y aún en este caso, m = 𝟘 no puede ser porque no le puede sustraer 𝟙
-  -- ya que 𝟘 < 𝟙. m tiene que ser 𝟙.
-
-    theorem one_sub (m : ℕ₀) :
-        sub 𝟙 m = 𝟘 ∨ sub 𝟙 m = 𝟙
-            := by
-      let h_trichotomy := Peano.StrictOrder.trichotomy 𝟙 m -- Esto da (𝟙 < m) ∨ (𝟙 = m) ∨ (m < 𝟙)
-      --intro h_trichotomy
-      rcases h_trichotomy with h_1_lt_m | h_1_eq_m | h_m_lt_1
-      · -- Caso 1: h_1_lt_m : 𝟙 < m
-        left
-        have h_not_le : ¬Le m 𝟙 := gt_then_nle_wp h_1_lt_m
-        simp [sub, h_not_le]
-      · -- Caso 2: h_1_eq_m : 𝟙 = m
-        left
-        rw [← h_1_eq_m]
-        calc
-          sub 𝟙 𝟙 = subₕₖ 𝟙 𝟙 (le_refl 𝟙) := by rfl
-          _ = subₕₖ 𝟘 𝟘 (succ_le_succ_then (le_refl 𝟙)) := by simp [subₕₖ, one]
-          _ = 𝟘 := by simp [subₕₖ]
-      · -- Caso 3: h_m_lt_1 : m < 𝟙
-        right
-        -- Si m < 𝟙, entonces m = 𝟘
-        have h_m_eq_zero : m = 𝟘 := by
-          cases m with
-          | zero => rfl
-          | succ m' =>
-            exfalso
-            -- Since m < 𝟙 and m = σ m', we have σ m' < σ 𝟘, which is impossible
-            have h_lt_one : σ m' < 𝟙 := h_m_lt_1
-            have h_le_zero : Le (σ m') 𝟘 := by
-                    have h_lt_zero : Lt (σ m') 𝟘 := by
-                      rw [one] at h_lt_one
-                      -- Now h_lt_one has type σ m' < σ 𝟘, which is Lt (σ m') (σ 𝟘)
-                      -- We need Lt (σ m') 𝟘, but this is impossible since σ m' cannot be less than 𝟘
-                      -- Let's use the fact that no successor is less than zero
-                      exfalso
-                      -- h_lt_one has type σ m' < σ 𝟘 (from rw [one] at h_lt_one earlier)
-                      -- This implies m' < 𝟘 by succ_lt_succ_then
-                      have h_m_prime_lt_zero : m' < 𝟘 := succ_lt_succ_then m' 𝟘 h_lt_one
-                      -- This contradicts that m' (a natural number) cannot be less than 𝟘
-                      exact lt_zero m' h_m_prime_lt_zero
-                    exact lt_imp_le (σ m') 𝟘 h_lt_zero
-            exact not_succ_le_zero m' h_le_zero
-        rw [h_m_eq_zero]
-        calc
-          sub 𝟙 𝟘 = 𝟙 := by rw [sub_zero]
+  theorem one_sub (m : ℕ₀) :
+      sub 𝟙 m = 𝟘 ∨ sub 𝟙 m = 𝟙
+          := by
+    let h_trichotomy := Peano.StrictOrder.trichotomy 𝟙 m
+    rcases h_trichotomy with h_1_lt_m | h_1_eq_m | h_m_lt_1
+    · -- Caso 1: h_1_lt_m : 𝟙 < m
+      left
+      have h_not_le : ¬Le m 𝟙 := gt_then_nle_wp h_1_lt_m
+      simp [sub, h_not_le]
+    · -- Caso 2: h_1_eq_m : 𝟙 = m
+      left
+      rw [← h_1_eq_m]
+      calc
+        sub 𝟙 𝟙 = subₕₖ 𝟙 𝟙 (le_refl 𝟙) := by rfl
+        _ = subₕₖ 𝟘 𝟘 (succ_le_succ_then (le_refl 𝟙)) := by simp [subₕₖ, one]
+        _ = 𝟘 := by simp [subₕₖ]
+    · -- Caso 3: h_m_lt_1 : m < 𝟙
+      right
+      have h_m_eq_zero : m = 𝟘 := by
+        cases m with
+        | zero => rfl
+        | succ m' =>
+          exfalso
+          have h_lt_one : σ m' < 𝟙 := h_m_lt_1
+          have h_le_zero : Le (σ m') 𝟘 := by
+                  have h_lt_zero : Lt (σ m') 𝟘 := by
+                    rw [one] at h_lt_one
+                    exfalso
+                    have h_m_prime_lt_zero : m' < 𝟘 := succ_lt_succ_then m' 𝟘 h_lt_one
+                    exact lt_zero m' h_m_prime_lt_zero
+                  exact lt_imp_le (σ m') 𝟘 h_lt_zero
+          exact not_succ_le_zero m' h_le_zero
+      rw [h_m_eq_zero]
+      calc
+        sub 𝟙 𝟘 = 𝟙 := by rw [sub_zero]
 
     theorem subₕₖ_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
         subₕₖ (σ n) k (le_k_n_then_le_k_sn_wp h_k_le_n) = σ (subₕₖ n k h_k_le_n)
           := by
       induction k generalizing n with
       | zero =>
-        -- Caso k = 𝟘
         calc
           subₕₖ (σ n) 𝟘 (le_k_n_then_le_k_sn_wp h_k_le_n) = σ n := by simp [subₕₖ]
           _ = σ (subₕₖ n 𝟘 (zero_le n)) := by simp [subₕₖ_zero]
       | succ k' ih =>
-        -- Caso k = σ k'
         cases n with
         | zero =>
-          -- Caso n = 𝟘, pero σ k' ≤ 𝟘 es imposible
           exfalso
           have h_succ_le_zero : Le (σ k') 𝟘 := h_k_le_n
           exact not_succ_le_zero k' h_succ_le_zero
         | succ n' =>
-          -- Caso n = σ n' y k = σ k'
           have h_k'_le_n' : Le k' n' := succ_le_succ_then h_k_le_n
           calc
             subₕₖ (σ (σ n')) (σ k') (le_k_n_then_le_k_sn_wp h_k_le_n)
@@ -264,10 +240,6 @@ namespace Peano
             _ = σ (subₕₖ n' k' h_k'_le_n') := by rw [ih n' h_k'_le_n']
           simp [subₕₖ, subₕₖ_zero]
 
-  -- s(n) - k = s(n - k)
-  -- Caso k = s(n) => 0 = s(n - k) = s(n - p(n)) = s0 = 1 !!!
-  -- Caso k < s(n) <=> Le k n => s(n) - k = s(n - k)
-  -- Caso k > s(n) => s(n) - k = 0; s(n - k) = s0 = 1 !!!
   theorem sub_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
         sub (σ n) k = σ (sub n k)
           := by
@@ -282,7 +254,6 @@ namespace Peano
       := by
       induction n generalizing k with
       | zero =>
-        -- Caso n = 𝟘
         have h_k_le_zero : Le k 𝟘 := h_le
         have h_k_eq_zero : k = 𝟘 := by
           cases k with
@@ -295,7 +266,6 @@ namespace Peano
           add (subₕₖ 𝟘 𝟘 h_le) 𝟘 = add 𝟘 𝟘 := by simp [subₕₖ]
           _ = 𝟘 := by simp [add]
       | succ n' ih =>
-        -- Caso n = σ n'
         cases k with
         | zero =>
           calc
@@ -321,7 +291,6 @@ namespace Peano
       := by
     induction n with
     | zero =>
-      -- Caso n = 𝟘
       calc
         subₕₖ (add k 𝟘) k (le_self_add k 𝟘) = subₕₖ k k (le_refl k) := by simp [add]
         _ = 𝟘 := by
@@ -336,7 +305,6 @@ namespace Peano
                 _ = 𝟘 := ih
           exact h_eq
     | succ n' ih =>
-      -- Caso n = σ n'
       have h_k_le_add : k <= add k n' := le_self_add k n'
       calc
         subₕₖ (add k (σ n')) k (Peano.Add.le_self_add k (σ n')) =
@@ -346,78 +314,50 @@ namespace Peano
               := by rw [subₕₖ_succ (add k n') k h_k_le_add]
         _ = σ n' := by rw [ih]
 
-  -- theorem add_k_sub_k (n k : ℕ₀) :
-  --     sub (add k n) k = n
-  --     := by
-  --   have h_k_le_add : k <= add k n := le_self_add k n
-  --   have h_sub_eq : sub (add k n) k = subₕₖ (add k n) k h_k_le_add
-  --       := by
-  --         simp only [sub, dif_pos h_k_le_add]
-  --   rw [h_sub_eq]
-  --   exact add_k_subₕₖ_k n k
+  theorem add_k_sub_k (n k : ℕ₀) :
+      sub (add k n) k = n
+          := by
+    have h_k_le_add : Le k (add k n) := le_self_add k n
+    have h_sub_eq : sub (add k n) k = subₕₖ (add k n) k h_k_le_add
+        := by
+          simp only [sub, dif_pos h_k_le_add]
+    rw [h_sub_eq]
+    exact add_k_subₕₖ_k n k
 
+  theorem add_k_sub_k_forall (n : ℕ₀) :
+      ∀(k : ℕ₀), sub (add k n) k = n
+          := by
+      intro k
+      exact add_k_sub_k n k
 
+  theorem aux_ge_1 (n m : ℕ₀) (h_le : Le (σ m) n) :
+    Le 𝟙 (subₕₖ n (σ m) h_le)
+      := by
+    induction n generalizing m with
+    | zero =>
+      exfalso
+      have h_succ_le_zero : Le (σ m) 𝟘 := h_le
+      exact not_succ_le_zero m h_succ_le_zero
+    | succ n' ih =>
+      cases m with
+      | zero =>
+        have h_sub_eq : subₕₖ (σ n') (σ 𝟘) h_le = subₕₖ n' 𝟘 (succ_le_succ_then h_le) := by simp [subₕₖ, one]
+        rw [h_sub_eq]
+        rw [subₕₖ_zero n']
+        simp [one, Le]
+        left
+        exact zero_lt_succ n'
+      | succ m' =>
+        have h_le' : Le m' n' := succ_le_succ_then h_le
+        have h_subₕₖ : subₕₖ (σ n') (σ m') h_le' = subₕₖ n' m' h_le' := by simp [subₕₖ]
+        rw [h_subₕₖ]
+        exact ih n' m' h_le'
 
-        -- Ahora tenemos que demostrar que σ n' = n'
-        -- Esto es cierto porque:
-        -- σ n' = n' si n' = 𝟘
+  theorem succ_subₕₖ (n m : ℕ₀) (h_le : Le (σ m) n) :
+      subₕₖ n (σ m) h_le = τ (subₕₖ n m (le_sn_m_then_le_n_m_or_succ_wp h_le))
+          := by sorry
 
-
-        -- Ahora tenemos que demostrar que σ (sub n' k) + k = σ n'
-        -- Esto es cierto porque:
-        -- σ (sub n' k) + k = σ n' si k < n'
-        -- σ (sub n' k) + k = σ n' si k = n'
-        -- σ (sub n' k) + k = σ n' si k > n'
-
-
-
-        -- Ahora tenemos que demostrar que σ (subₕₖ n' k h_k_le_n') + k = σ n'
-        -- Esto es cierto porque:
-        -- σ (subₕₖ n' k h_k_le_n') + k = σ n' si k < n'
-        -- σ (subₕₖ n' k h_k_le_n') + k = σ n' si k = n'
-        -- σ (subₕₖ n' k h_k_le_n') + k = σ n' si k > n'
-      -- En resumen, tenemos que demostrar que:
-        -- add (subₕₖ n' k h_k_le_n') k = n'
-  -- substract_k_add_k (n: ℕ₀):
-
-
-  -- substract_k_add_k (n: ℕ₀):
-  --     ∀ (k : ℕ₀) (h_le : k <= n),
-  --        add (substract n k h_le) k = n
-  --     := by
-  --     intro k h_le
-  --     induction n with
-  --     | zero =>
-  --       -- Caso n = truck 𝟘
-  --       have h_k_le_zero : k <= 𝟘 := h_le
-  --       have h_k_eq_zero : k = 𝟘 := by
-  --         have h_k_lt_zero : k < 𝟘 := le_then_lt k 𝟘 h_k_le_zero
-  --         exact not_succ_le_zero k h_k_lt_zero
-  --       rw [h_k_eq_zero]
-  --       calc
-  --         add (substract 𝟘 𝟘 (zero_le 𝟘)) 𝟘 = add 𝟘 𝟘 := by simp [substract]
-  --         _ = 𝟘 := by simp [add]
-  --     | succ n' ih =>
-  --       -- Caso n = σ n'
-  --       have h_k_le_n' : k <= n' := succ_le_succ_then h_le
-  --       have h_sub_eq : substract (σ n') k h_k_le_n' = subₕₖ (σ n') k h_k_le_n' := by simp [substract, h_k_le_n']
-  --       rw [h_sub_eq]
-  --       calc
-  --         add (subₕₖ (σ n') k h_k_le_n') k = add (σ (subₕₖ n' k h_k_le_n')) k
-  --           := by rw [subₕₖ_succ n' k h_k_le_n']
-  --         _ = σ (subₕₖ n' k h_k_le_n') + k := by simp [add]
-  --         _ = σ (substract n' k h_k_le_n') + k := by rw [ih n' h_k_le_n']
-        -- Ahora tenemos que demostrar que σ (substract n' k h_k_le_n') + k = σ n'
-  --       -- Esto es cierto porque:
-
---  k ≤ n → σ n - k = n + 1 - k
--- substract_k_add_k (n: ℕ₀):
---     ∀ (k : ℕ₀) (h_le : k <= n),
---        add (substract n k h_le) k = n
---     := by sorry
-
-
-    end Sub
+  end Sub
 
 
 end Peano

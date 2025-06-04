@@ -1027,8 +1027,46 @@ namespace StrictOrder
                         unfold Lt at h_lt_sn_sm
                         exact ih_n' m' h_lt_sn_sm
 
+  theorem lt_n_sm_then_lt_n_m_or_eq (n m : ℕ₀) :
+    Lt n (σ m) → Lt n m ∨ n = m
+      := by
+        intro h_lt_n_sm
+        exact (lt_succ_iff_lt_or_eq n m).mp h_lt_n_sm
 
-    end StrictOrder
+  theorem lt_n_sm_then_lt_n_m_or_eq_wp {n m : ℕ₀} (h_lt : Lt n (σ m)):
+    Lt n m ∨ n = m
+      := by
+        exact lt_n_sm_then_lt_n_m_or_eq n m h_lt
+
+  theorem lt_sn_m_then_lt_n_m (n m : ℕ₀) :
+    Lt (σ n) m → Lt n m
+      := by
+        intro h_lt_sn_m
+        induction n generalizing m with
+        | zero =>
+            cases m with
+            | zero =>
+                unfold Lt at h_lt_sn_m
+                exact False.elim h_lt_sn_m
+            | succ m' =>
+                unfold Lt
+                trivial
+        | succ n' ih_n' =>
+            cases m with
+            | zero =>
+                unfold Lt at h_lt_sn_m
+                exact False.elim h_lt_sn_m
+            | succ m' =>
+                unfold Lt at h_lt_sn_m
+                exact ih_n' m' h_lt_sn_m
+
+  theorem lt_sn_m_then_lt_n_m_wp {n m : ℕ₀} (h_lt : Lt (σ n) m):
+    Lt n m
+      := by
+        exact lt_sn_m_then_lt_n_m n m h_lt
+
+
+  end StrictOrder
 end Peano
 
 export Peano.StrictOrder (
@@ -1083,4 +1121,8 @@ export Peano.StrictOrder (
     lt_then_lt_succ
     lt_then_lt_succ_wp
     lt_then_lt_succs
+    lt_n_sm_then_lt_n_m_or_eq
+    lt_n_sm_then_lt_n_m_or_eq_wp
+    lt_sn_m_then_lt_n_m
+    lt_sn_m_then_lt_n_m_wp
 )

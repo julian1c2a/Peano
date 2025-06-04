@@ -330,28 +330,28 @@ namespace Peano
       intro k
       exact add_k_sub_k n k
 
-  theorem aux_ge_1 (n m : ℕ₀) (h_le : Le (σ m) n) :
-    Le 𝟙 (subₕₖ n (σ m) h_le)
-      := by
-    induction n generalizing m with
-    | zero =>
-      exfalso
-      have h_succ_le_zero : Le (σ m) 𝟘 := h_le
-      exact not_succ_le_zero m h_succ_le_zero
-    | succ n' ih =>
-      cases m with
-      | zero =>
-        have h_sub_eq : subₕₖ (σ n') (σ 𝟘) h_le = subₕₖ n' 𝟘 (succ_le_succ_then h_le) := by simp [subₕₖ, one]
-        rw [h_sub_eq]
-        rw [subₕₖ_zero n']
-        simp [one, Le]
-        left
-        exact zero_lt_succ n'
-      | succ m' =>
-        have h_le' : Le m' n' := succ_le_succ_then h_le
-        have h_subₕₖ : subₕₖ (σ n') (σ m') h_le' = subₕₖ n' m' h_le' := by simp [subₕₖ]
-        rw [h_subₕₖ]
-        exact ih n' m' h_le'
+  -- theorem aux_ge_1 (n m : ℕ₀) (h_le : Le (σ m) n) :
+  --   Le 𝟙 (subₕₖ n (σ m) h_le)
+  --     := by
+  --   induction n generalizing m with
+  --   | zero =>
+  --     exfalso
+  --     have h_succ_le_zero : Le (σ m) 𝟘 := h_le
+  --     exact not_succ_le_zero m h_succ_le_zero
+  --   | succ n' ih =>
+  --     cases m with
+  --     | zero =>
+  --       have h_sub_eq : subₕₖ (σ n') (σ 𝟘) h_le = subₕₖ n' 𝟘 (succ_le_succ_then h_le) := by simp [subₕₖ, one]
+  --       rw [h_sub_eq]
+  --       rw [subₕₖ_zero n']
+  --       simp [one, Le]
+  --       left
+  --       exact zero_lt_succ n'
+  --     | succ m' =>
+  --       have h_le' : Le m' n' := succ_le_succ_then h_le
+  --       have h_subₕₖ : subₕₖ (σ n') (σ m') h_le' = subₕₖ n' m' h_le' := by simp [subₕₖ]
+  --       rw [h_subₕₖ]
+  --       exact ih n' m' h_le'
 
   theorem succ_subₕₖ (n m : ℕ₀) (h_le : Le (σ m) n) :
       subₕₖ n (σ m) h_le = τ (subₕₖ n m (le_sn_m_then_le_n_m_or_succ_wp h_le))

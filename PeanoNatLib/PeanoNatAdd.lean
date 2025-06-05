@@ -621,6 +621,22 @@ theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
             Lt (add a k) (add b k) ↔ Lt (add k a) (add k b) := by rw [add_comm a k, add_comm b k]
             _ ↔ Lt a b := by rw [add_lt_add_left_iff]
 
+  theorem lt_iff_add_lt :
+      ∃ (m : ℕ₀), ∀ (x y : ℕ₀), add m x = add m y → x = y
+          := by
+      exists 𝟘
+      intro x y h_eq
+      induction x with
+      | zero =>
+        rw [zero_add] at h_eq
+        rw [zero_add] at h_eq
+        exact h_eq
+      | succ x' ih =>
+        rw [succ_add] at h_eq
+        rw [succ_add] at h_eq
+        exact ih h_eq
+
+
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
 
@@ -675,4 +691,5 @@ export Peano.Add(
   le_then_le_add_zero
   le_then_le_add_one
   add_lt_add_left_iff
+  lt_iff_add_lt
 )

@@ -714,14 +714,64 @@ namespace Peano
           _ = sub (σ (add n' m)) (σ k') := by rw [sub_succ_succ_eq (add n' m) k']
           _ = sub (add (σ n') m) (σ k') := by simp only [succ_add]
 
+  theorem add_le_add_left (a b c : ℕ₀) (h : Le a b) :
+    Le (add c a) (add c b)
+      := by
+    induction c with
+    | zero =>
+      calc
+        add 𝟘 a = a := by rw [zero_add]
+        _ ≤ b := h
+        _ = add 𝟘 b := by rw [zero_add]
+    | succ c' ih =>
+      calc
+        add (σ c') a = σ (add c' a) := by simp [succ_add]
+        _ ≤ σ (add c' b) := (succ_le_succ_iff (add c' a) (add c' b)).mpr ih
+        _ = add (σ c') b := by simp [succ_add]
+
+  theorem le_sub_iff_add_le_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) :
+    Le k (sub n m) ↔ Le (add m k) n
+      := by
+    constructor
+    · intro h_k_le_sub
+      have h_sub_eq : sub n m = subₕₖ n m h_m_le_n := by simp [sub, h_m_le_n]
+      rw [h_sub_eq] at h_k_le_sub
+      have h_add_eq : add m (subₕₖ n m h_m_le_n) = n := by
+        rw [add_comm]
+        exact subₕₖ_k_add_k n m h_m_le_n
+      have h_add_le : add m k ≤ add m (subₕₖ n m h_m_le_n) := by
+        exact add_le_add_left k (subₕₖ n m h_m_le_n) m h_k_le_sub
+      rw [h_add_eq] at h_add_le
+      exact h_add_le
+    · intro h_add_le_n
+      have h_sub_eq : sub n m = subₕₖ n m h_m_le_n := by simp [sub, h_m_le_n]
+      rw [h_sub_eq]
+      have h_add_eq : add m (subₕₖ n m h_m_le_n) = n := by
+        rw [add_comm]
+        exact subₕₖ_k_add_k n m h_m_le_n
+      have h_add_unique : ∀ x y, add m x = add m y → x = y
+        := by lt_iff_add_lt
+      have h_le : k ≤ subₕₖ n m h_m_le_n := by
+        apply h_add_unique k (subₕₖ n m h_m_le_n)
+        exact le_antisymm (add m k) n h_add_le_n (le_refl n)
+      exact h_le
+
   theorem sub_sub (n m k : ℕ₀) (h_m_le_n : Le m n) (h_k_le_sub_nm : Le k (sub n m)) :
       sub (sub n m) k = sub n (add m k)
           := by
-    have h_sub_n_m_eq : sub n m = subₕₖ n m h_m_le_n
-        := by simp [sub, h_m_le_n]
-    have h_sub_n_m_k_eq : sub (sub n m) k = subₕₖ (sub n m) k h_k_le_sub_nm
-        := by simp [sub, h_k_le_sub_nm]
-    have h_subₕₖ_n_m_k_eq : subₕₖ (sub n m) k h_k_le_sub_nm = subₕₖ n (add m
+    have h_add_mk_le_n : Le (add m k) n := by
+      rw [← le_sub_iff_add_le_of_le n m k h_m_le_n]
+      exact h_k_le_sub_nm
+    calc
+      sub (sub n m) k = sub (subₕₖ n m h_m_le_n) k
+          := by simp [sub, h_m_le_n]
+      _ = subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_sub_nm
+          := by simp [sub, h_k_le_sub_nm]
+      _ = subₕₖ n (add m k) h_add_mk_le_n
+          := by rw [subₕₖ_add n m k h_m_le_n h_add_mk_le_n]
+      _ = sub n (add m k)
+          := by simp [sub, h_add_mk_le_n]
+
 
 
   -- le_sub_iff_add_le_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) : Le k (sub n m) ↔ Le (add m k) n

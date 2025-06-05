@@ -632,9 +632,14 @@ theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
         rw [zero_add] at h_eq
         exact h_eq
       | succ x' ih =>
-        rw [succ_add] at h_eq
-        rw [succ_add] at h_eq
-        exact ih h_eq
+        rw [zero_add, zero_add] at h_eq
+        cases y with
+        | zero =>
+          have h_contra := succ_neq_zero x'
+          contradiction
+        | succ y' =>
+          injection h_eq with h_x_eq_y
+          rw [h_x_eq_y]
 
 
   notation a "+" b => Peano.Add.add a b

@@ -697,8 +697,15 @@ namespace Peano
     rw [ρ_eq_τ (Λ n) ((Λ_neq_zero_iff_neq_zero n).mpr h_n_neq_0)]
     rw [← Λ_τ_eq_τ_Ψ n]
 
+  theorem tau_eq_rho_if_ne_zero (k : ℕ₀) (hk_ne_zero : k ≠ 𝟘) :
+    τ k = ρ k hk_ne_zero
+      := by
+      cases k with
+      | zero => exfalso; exact hk_ne_zero rfl
+      | succ k' => simp [τ, ρ]
 
-    end Axioms
+
+  end Axioms
 end Peano
 
 export Peano.Axioms (
@@ -742,4 +749,5 @@ export Peano.Axioms (
   isomorph_τ_Ψ
   isomorph_ρ_Ψ
   isomorph_Λ_ρ
+  tau_eq_rho_if_ne_zero
 )

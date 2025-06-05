@@ -1392,7 +1392,100 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
               Nat.le_of_lt h_psi_m_lt_psi_n
       exact Nat.min_eq_right h_le_of_lt
 
-    end MaxMin
+  theorem le_a_le_b_then_le_min_a_b_left (a b c : ℕ₀):
+    Le c a → Le c b → Le c (min a b)
+      := by
+    intro h_c_le_a h_c_le_b
+    have h_min_le_a : Le (min a b) a := min_le_left a b
+    have h_min_le_b : Le (min a b) b := min_le_right a b
+    have h_c_le_min : Le c (min a b) := by
+      by_cases h : Le a b
+      · -- Case: a ≤ b, so min(a,b) = a
+        have h_min_eq_a : min a b = a := min_eq_left h
+        rw [h_min_eq_a]
+        exact h_c_le_a
+      · -- Case: b < a, so min(a,b) = b
+        have h_b_lt_a : Lt b a := nle_then_gt a b h
+        have h_min_eq_b : min a b = b := min_eq_right (lt_imp_le b a h_b_lt_a)
+        rw [h_min_eq_b]
+        exact h_c_le_b
+    exact h_c_le_min
+
+  theorem le_min_a_b_then_le_a_le_b_left (a b c : ℕ₀):
+    Le c (min a b) → Le c a ∧ Le c b
+      := by
+    intro h_c_le_min
+    have h_min_le_a : Le (min a b) a := min_le_left a b
+    have h_min_le_b : Le (min a b) b := min_le_right a b
+    have h_c_le_a : Le c a := le_trans c (min a b) a h_c_le_min h_min_le_a
+    have h_c_le_b : Le c b := le_trans c (min a b) b h_c_le_min h_min_le_b
+    exact ⟨h_c_le_a, h_c_le_b⟩
+
+  theorem le_a_le_b_then_le_min_a_b_right (a b c : ℕ₀):
+    Le a c → Le b c → Le (min a b) c
+      := by
+    intro h_a_le_c h_b_le_c
+    by_cases h : Le a b
+    · -- Case: a ≤ b, so min(a,b) = a
+      have h_min_eq_a : min a b = a := min_eq_left h
+      rw [h_min_eq_a]
+      exact h_a_le_c
+    · -- Case: b < a, so min(a,b) = b
+      have h_b_lt_a : Lt b a := nle_then_gt a b h
+      have h_min_eq_b : min a b = b := min_eq_right (lt_imp_le b a h_b_lt_a)
+      rw [h_min_eq_b]
+      exact h_b_le_c
+
+  theorem le_a_le_b_then_le_max_a_b_right (a b c : ℕ₀):
+    Le a c → Le b c → Le (max a b) c
+      := by
+    intro h_a_le_c h_b_le_c
+    by_cases h : Le a b
+    · -- Case: a ≤ b, so max(a,b) = b
+      have h_max_eq_b : max a b = b := max_eq_right h
+      rw [h_max_eq_b]
+      exact h_b_le_c
+    · -- Case: b < a, so max(a,b) = a
+      have h_b_lt_a : Lt b a := nle_then_gt a b h
+      have h_max_eq_a : max a b = a := max_eq_left (lt_imp_le b a h_b_lt_a)
+      rw [h_max_eq_a]
+      exact h_a_le_c
+
+  theorem le_max_a_b_then_le_a_le_b_right (a b c : ℕ₀):
+    Le (max a b) c → Le a c ∧ Le b c
+      := by
+    intro h_max_le_c
+    by_cases h_le_a_b : Le a b
+    · -- Case: a ≤ b
+      have h_max_eq_b : max a b = b := max_eq_right h_le_a_b
+      rw [h_max_eq_b] at h_max_le_c
+      exact ⟨le_trans a b c h_le_a_b h_max_le_c, h_max_le_c⟩
+    · -- Case: b < a
+      have h_b_lt_a : Lt b a := nle_then_gt a b h_le_a_b
+      have h_max_eq_a : max a b = a := max_eq_of_gt h_b_lt_a
+      rw [h_max_eq_a] at h_max_le_c
+      exact ⟨h_max_le_c, le_trans b a c (lt_imp_le b a h_b_lt_a) h_max_le_c⟩
+
+  theorem le_a_le_b_then_le_max_a_b_left (a b c : ℕ₀):
+    Le c a → Le c b → Le c (max a b)
+      := by
+    intro h_c_le_a h_c_le_b
+    have h_max_le_a : Le a (max a b) := le_max_left a b
+    have h_max_le_b : Le b (max a b) := le_max_right a b
+    have h_c_le_max : Le c (max a b) := by
+      by_cases h : Le a b
+      · -- Case: a ≤ b, so max(a,b) = b
+        have h_max_eq_b : max a b = b := max_eq_right h
+        rw [h_max_eq_b]
+        exact h_c_le_b
+      · -- Case: b < a, so max(a,b) = a
+        have h_b_lt_a : Lt b a := nle_then_gt a b h
+        have h_max_eq_a : max a b = a := max_eq_of_gt h_b_lt_a
+        rw [h_max_eq_a]
+        exact h_c_le_a
+    exact h_c_le_max
+
+  end MaxMin
 
 end Peano
 
@@ -1446,4 +1539,10 @@ export Peano.MaxMin (
   max_eq_right
   min_eq_left
   min_eq_right
+  le_a_le_b_then_le_min_a_b_left
+  le_min_a_b_then_le_a_le_b_left
+  le_a_le_b_then_le_min_a_b_right
+  le_a_le_b_then_le_max_a_b_right
+  le_max_a_b_then_le_a_le_b_right
+  le_a_le_b_then_le_max_a_b_left
 )

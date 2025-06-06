@@ -734,32 +734,11 @@ namespace Peano
           := by
       simp [sub, dif_pos h]
 
-  -- theorem add_sub_assoc_2 (n m k : ℕ₀) (h_k_le_n : Le k n) :
-  --   add (sub n k) m = sub (add n m) k
-  --     := by
-  --   induction n generalizing m k with
-  --   | zero =>
-  --     have h_k_eq_zero : k = 𝟘 := le_zero_eq k h_k_le_n
-  --     simp [h_k_eq_zero, add_zero_left, add_zero_right, sub_self]
-  --   | succ n' ih =>
-  --     cases k with
-  --     | zero => simp [sub_zero_eq_self, add_zero_left]
-  --     | succ k' =>
-  --       have h_k'_le_n' : Le k' n' := (succ_le_succ_iff k' n').mp h_k_le_n
-  --       calc
-  --         add (sub (σ n') (σ k')) m
-  --             = add (sub n' k') m := by rw [sub_succ_succ_eq n' k']
-  --         _   = sub (add n' m) k' := by rw [ih m k' h_k'_le_n']
-  --         _   = sub (σ (add n' m)) (σ k') := by rw [sub_succ_succ_eq (add n' m) k']
-  --         _   = sub (add (σ n') m) (σ k') := by rw [add_succ_left n' m]
-
-
   theorem le_sub_iff_add_le_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) :
     Le k (sub n m) ↔ Le (add m k) n
       := by
     constructor
     · intro h_k_le_sub_nm -- Le k (sub n m)
-    -- Queremos: Le (add m k) n
       induction n generalizing m with
       | zero => -- n = 𝟘
         have h_m_eq_zero : m = 𝟘 := le_zero_eq m h_m_le_n
@@ -769,10 +748,6 @@ namespace Peano
         simp [h_m_eq_zero, h_k_eq_zero, add_zero] -- Le 𝟘 𝟘
         exact le_refl 𝟘
       | succ n' ih_n =>
-        -- ih_n: ∀ m k (h₁: Le m n') (h₂: Le k (sub n' m)), Le (add m k) n'
-        -- Tenemos h_m_le_n : Le m (σ n')
-        -- Tenemos h_k_le_sub_nm : Le k (sub (σ n') m)
-        -- Objetivo: Le (add m k) (σ n')
         cases m with
         | zero => -- m = 𝟘
           simp [sub_zero] at h_k_le_sub_nm -- Le k (σ n')
@@ -781,55 +756,143 @@ namespace Peano
         | succ m' => -- m = σ m'
           have h_m'_le_n' : Le m' n' := (succ_le_succ_iff m' n').mp h_m_le_n
           rw [← sub_succ_succ_eq n' m'] at h_k_le_sub_nm -- h_k_le_sub_nm : Le k (sub n' m')
-          -- Objetivo: Le (add (σ m') k) (σ n')
           rw [succ_add m' k] -- Objetivo: Le (σ (add m' k)) (σ n')
           apply (succ_le_succ_iff (add m' k) n').mpr
-          exact ih_n m' h_m'_le_n' k h_add_m'k_le_n'
+          exact ih_n m' h_m'_le_n' h_k_le_sub_nm
     · intro h_add_mk_le_n -- Le (add m k) n
-    -- Queremos: Le k (sub n m)
       induction n generalizing m with
       | zero => -- n = 𝟘
         have h_m_eq_zero : m = 𝟘 := le_zero_eq m h_m_le_n
-        rw [h_m_le_n, add_zero_left] at h_add_mk_le_n -- Le k 𝟘
-        rw [le_zero_eq] at h_add_mk_le_n -- k = 𝟘
-        simp [h_m_le_n, h_add_mk_le_n, sub_self] -- Le 𝟘 𝟘
+        rw [h_m_eq_zero, zero_add] at h_add_mk_le_n -- Le k 𝟘
+        have h_k_eq_zero : k = 𝟘 := le_zero_eq k h_add_mk_le_n
+        simp [h_m_eq_zero, h_k_eq_zero, sub_self] -- Le 𝟘 𝟘
+        exact le_refl 𝟘
       | succ n' ih_n =>
-        -- ih_n: ∀ m k (h₁: Le m n') (h₂: Le (add m k) n'), Le k (sub n' m)
         cases m with
         | zero => -- m = 𝟘
-          simp [add_zero_left] at h_add_mk_le_n -- Le k (σ n')
-          simp [sub_zero_eq_self] -- Objetivo: Le k (σ n')
+          simp [zero_add] at h_add_mk_le_n -- Le k (σ n')
+          simp [sub_zero] -- Objetivo: Le k (σ n')
           exact h_add_mk_le_n
         | succ m' => -- m = σ m'
           have h_m'_le_n' : Le m' n' := (succ_le_succ_iff m' n').mp h_m_le_n
           have h_add_m'k_le_n' : Le (add m' k) n' := by
-            rw [←succ_add m' k] at h_add_mk_le_n -- Le (σ (add m' k)) (σ n')
+            have h_eq : add (σ m') k = σ (add m' k) := by simp [succ_add]
+            rw [h_eq] at h_add_mk_le_n -- Le (σ (m' + k)) (σ n')
             exact (succ_le_succ_iff (add m' k) n').mp h_add_mk_le_n
-          -- Objetivo: Le k (sub (σ n') (σ m'))
-          rw [sub_succ_succ_eq n' m'] -- Objetivo: Le k (sub n' m')
-          exact ih_n m' k h_m'_le_n' h_add_m'k_le_n'
+          rw [← sub_succ_succ_eq n' m'] -- Objetivo: Le k (sub n' m')
+          exact ih_n m' h_m'_le_n' h_add_m'k_le_n'
 
-  -- theorem sub_sub (n m k : ℕ₀) (h_m_le_n : Le m n) (h_k_le_sub_nm : Le k (sub n m)) :
-  --     sub (sub n m) k = sub n (add m k)
-  --         := by
-  --   have h_add_mk_le_n : Le (add m k) n := by
-  --     rw [← le_sub_iff_add_le_of_le n m k h_m_le_n]
-  --     exact h_k_le_sub_nm
-  --   calc
-  --     sub (sub n m) k = sub (subₕₖ n m h_m_le_n) k
-  --         := by simp [sub, h_m_le_n]
-  --     _ = subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_sub_nm
-  --         := by simp [sub, h_k_le_sub_nm]
-  --     _ = subₕₖ n (add m k) h_add_mk_le_n
-  --         := by rw [subₕₖ_add n m k h_m_le_n h_add_mk_le_n]
-  --     _ = sub n (add m k)
-  --         := by simp [sub, h_add_mk_le_n]
+  theorem sub_sub (n m k : ℕ₀) (h_m_le_n : Le m n) (h_k_le_sub_nm : Le k (sub n m)) :
+      sub (sub n m) k = sub n (add m k)
+          := by
+    have h_add_mk_le_n : Le (add m k) n := by
+      rw [← le_sub_iff_add_le_of_le n m k h_m_le_n]
+      exact h_k_le_sub_nm
+    have h_k_le_subₕₖ : Le k (subₕₖ n m h_m_le_n) := by
+      rw [← sub_eq_of_le h_m_le_n]
+      exact h_k_le_sub_nm
+    calc
+      sub (sub n m) k = sub (subₕₖ n m h_m_le_n) k
+          := by simp [sub, h_m_le_n]
+      _ = subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ
+          := by simp [sub, h_k_le_subₕₖ]
+      _ = subₕₖ n (add m k) h_add_mk_le_n
+          := by
+            have h_eq : add (subₕₖ n m h_m_le_n) m = n := subₕₖ_k_add_k n m h_m_le_n
+            have h_eq2 : subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ = subₕₖ n (add m k) h_add_mk_le_n := by
+              rw [eq_comm]
+              apply (subₕₖ_eq_iff_eq_add_of_le n (add m k) (subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ) h_add_mk_le_n).mpr
+              calc
+                n = add (subₕₖ n m h_m_le_n) m := by exact (subₕₖ_k_add_k n m h_m_le_n).symm
+                _ = add (add (subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ) k) m := by simp [subₕₖ_k_add_k]
+                _ = add (subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ) (add k m) := by rw [add_assoc]
+                _ = add (subₕₖ (subₕₖ n m h_m_le_n) k h_k_le_subₕₖ) (add m k) := by rw [add_comm k m]
+            exact h_eq2
+      _ = sub n (add m k)
+          := by simp [sub, h_add_mk_le_n]
+
+  theorem sub_lt_iff_lt_add_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) :
+      Lt (sub n m) k ↔ Lt n (add k m)
+          := by
+    constructor
+    · intro h_sub_lt_k -- Lt (sub n m) k
+      induction n generalizing m with
+      | zero => -- n = 𝟘
+        have h_m_eq_zero : m = 𝟘 := le_zero_eq m h_m_le_n
+        rw [h_m_eq_zero] at h_sub_lt_k -- Lt (sub 𝟘 𝟘) k
+        simp [sub_self] at h_sub_lt_k -- Lt 𝟘 k
+        rw [h_m_eq_zero, add_comm, zero_add] -- Objetivo: Lt 𝟘 k
+        exact h_sub_lt_k
+      | succ n' ih_n =>
+        cases m with
+        | zero => -- m = 𝟘
+          simp [sub_zero] at h_sub_lt_k -- Lt (σ n') k
+          rw [add_comm k 𝟘, zero_add] -- Objetivo: Lt (σ n') k
+          exact h_sub_lt_k
+        | succ m' => -- m = σ m'
+          have h_m'_le_n' : Le m' n' := (succ_le_succ_iff m' n').mp h_m_le_n
+          rw [← sub_succ_succ_eq n' m'] at h_sub_lt_k -- h_sub_lt_k : Lt (sub n' m') k
+          rw [add_succ k m'] -- Objetivo: Lt (σ n') (σ (add k m'))
+          apply (succ_lt_succ_iff n' (add k m')).mpr
+          exact ih_n m' h_m'_le_n' h_sub_lt_k
+    · intro h_n_lt_km -- Lt n (add k m)
+      induction n generalizing m with
+      | zero => -- n = 𝟘
+        have h_m_eq_zero : m = 𝟘 := le_zero_eq m h_m_le_n
+        rw [h_m_eq_zero] at h_n_lt_km -- Lt 𝟘 (add k 𝟘)
+        rw [add_zero] at h_n_lt_km -- Lt 𝟘 k
+        rw [h_m_eq_zero, sub_self] -- Objetivo: Lt 𝟘 k
+        exact h_n_lt_km
+      | succ n' ih_n =>
+        cases m with
+        | zero => -- m = 𝟘
+          rw [add_zero] at h_n_lt_km -- Lt (σ n') k
+          simp [sub_zero] -- Objetivo: Lt (σ n') k
+          exact h_n_lt_km
+        | succ m' => -- m = σ m'
+          have h_m'_le_n' : Le m' n' := (succ_le_succ_iff m' n').mp h_m_le_n
+          rw [add_succ k m'] at h_n_lt_km -- Lt (σ n') (σ (add k m'))
+          have h_n'_lt_km' : Lt n' (add k m') := (succ_lt_succ_iff n' (add k m')).mp h_n_lt_km
+          rw [← sub_succ_succ_eq n' m'] -- Objetivo: Lt (sub n' m') k
+          exact ih_n m' h_m'_le_n' h_n'_lt_km'
 
 
-
-  -- le_sub_iff_add_le_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) : Le k (sub n m) ↔ Le (add m k) n
-  -- sub_lt_iff_lt_add_of_le (n m k : ℕ₀) (h_m_le_n : Le m n) : Lt (sub n m) k ↔ Lt n (add k m)
-  -- sub_pos_iff_lt (n m : ℕ₀) : Le 𝟙 (sub n m) ↔ Lt m n
+  theorem sub_pos_iff_lt (n m : ℕ₀) :
+      Le 𝟙 (sub n m) ↔ Lt m n
+          := by
+    constructor
+    · intro h_le_sub_nm -- Le 𝟙 (sub n m)
+      induction n generalizing m with
+      | zero => -- n = 𝟘
+        simp [zero_sub] at h_le_sub_nm -- Le 𝟙 𝟘
+        exfalso
+        exact nle_one_zero h_le_sub_nm
+      | succ n' ih_n =>
+        cases m with
+        | zero => -- m = 𝟘
+          simp [sub_zero] at h_le_sub_nm -- Le 𝟙 (σ n')
+          exact zero_lt_succ n'
+        | succ m' => -- m = σ m'
+          rw [← sub_succ_succ_eq n' m'] at h_le_sub_nm -- Le 𝟙 (sub n' m')
+          have h_m'_lt_n' : Lt m' n' := ih_n m' h_le_sub_nm
+          exact (succ_lt_succ_iff m' n').mpr h_m'_lt_n'
+    · intro h_lt_mn -- Lt m n
+      induction n generalizing m with
+      | zero => -- n = 𝟘
+        have h_m_eq_zero : m = 𝟘 := le_zero_eq m (lt_imp_le m 𝟘 h_lt_mn)
+        rw [h_m_eq_zero] at h_lt_mn -- h_lt_mn becomes Lt 𝟘 𝟘
+        exfalso
+        exact lt_irrefl 𝟘 h_lt_mn
+      | succ n' ih_n =>
+        cases m with
+        | zero => -- m = 𝟘
+          simp [sub_zero] -- Goal becomes Le 𝟙 (σ n').
+          change Le (σ 𝟘) (σ n')
+          exact ((succ_le_succ_iff 𝟘 n').mpr (zero_le n'))
+        | succ m' => -- m = σ m'
+          rw [← sub_succ_succ_eq n' m'] -- Goal becomes Le 𝟙 (sub n' m').
+          apply ih_n m'
+          exact (succ_lt_succ_iff m' n').mp h_lt_mn
 
   end Sub
 

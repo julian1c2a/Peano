@@ -898,3 +898,31 @@ namespace Peano
 
 
 end Peano
+
+export Peano.Sub (
+  subₕₖ
+  subₕₖ_zero
+  subₕₖ_succ
+  subₕₖ_k_add_k
+  aux_ge_1
+  aux_neq_0
+  succ_subₕₖ
+  succ_sub
+  sub_succ_succ_eq
+  isomorph_Λ_sub
+  isomorph_Ψ_sub
+  subₕₖ_self
+  sub_self
+  subₕₖ_le_self
+  sub_le_self
+  subₕₖ_eq_iff_eq_add_of_le
+  subₕₖ_le_subₕₖ_right
+  subₕₖ_le_subₕₖ_left
+  add_sub_assoc
+  add_le_add_left
+  sub_eq_of_le
+  le_sub_iff_add_le_of_le
+  sub_sub
+  sub_lt_iff_lt_add_of_le
+  sub_pos_iff_lt
+)

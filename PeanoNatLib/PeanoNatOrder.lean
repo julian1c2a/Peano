@@ -1036,6 +1036,11 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact le_sn_m_then_le_n_m_or_succ n m h_le_sn_m
 
+  theorem le_then_lt_or_eq (n m : ℕ₀) :
+    n ≤ m → (Lt n m) ∨ (n = m)
+      := by
+        intro h_le_nm
+        exact h_le_nm
 
   end Order
 end Peano
@@ -1103,4 +1108,5 @@ export Peano.Order (
   le_n_m_then_le_n_sm_wp
   le_sn_m_then_le_n_m_or_succ
   le_sn_m_then_le_n_m_or_succ_wp
+  le_then_lt_or_eq
 )

@@ -1065,7 +1065,6 @@ namespace StrictOrder
       := by
         exact lt_sn_m_then_lt_n_m n m h_lt
 
-
   end StrictOrder
 end Peano
 

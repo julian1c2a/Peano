@@ -12,4 +12,6 @@ echo
 lake build PeanoNatLib.PeanoNatAdd
 echo
 lake build PeanoNatLib.PeanoNatSub
+echo
+lake build PeanoNatLib.PeanoNatMul
 echo "Hecho"

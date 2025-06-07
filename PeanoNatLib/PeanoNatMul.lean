@@ -301,3 +301,27 @@ namespace Peano
   end Mul
 
 end Peano
+
+export Peano.Mul(
+  mul
+  mul_zero
+  zero_mul
+  succ_mul
+  mul_succ
+  mul_one
+  one_mul
+  mul_two
+  two_mul
+  mul_comm
+  mul_ldistr
+  mul_rdistr
+  mul_cancelation_left
+  mul_cancelation_right
+  mul_assoc
+  mul_eq_zero
+  mul_eq_zero_wp
+  mul_le_right
+  mul_le_left
+  mul_le_full_right
+  mul_le_full_left
+)

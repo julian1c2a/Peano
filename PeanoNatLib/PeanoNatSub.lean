@@ -280,11 +280,25 @@ namespace Peano
             _ = add n' (σ 𝟘) := by rw [ih k' h_k'_le_n']
             _ = σ n' := by simp [add, one]
 
+  theorem sub_k_add_k (n k : ℕ₀):
+      Le k n → add (sub n k) k = n
+      := by
+      intro h_le
+      have h_subₕₖ_eq : sub n k = subₕₖ n k h_le := by simp [sub, h_le]
+      rw [h_subₕₖ_eq]
+      exact subₕₖ_k_add_k n k h_le
+
   theorem subₕₖ_k_add_k_forall (n: ℕ₀):
       ∀ (k : ℕ₀) (h_le : k <= n), add (subₕₖ n k h_le) k = n
           := by
-      intro k h_le
-      exact subₕₖ_k_add_k n k h_le
+    intro k h_le
+    exact subₕₖ_k_add_k n k h_le
+
+  theorem sub_k_add_k_forall (n : ℕ₀):
+      ∀ (k : ℕ₀), Le k n → add (sub n k) k = n
+      := by
+    intro k h_le
+    exact sub_k_add_k n k h_le
 
   theorem add_k_subₕₖ_k (n k : ℕ₀) :
       subₕₖ (add k n) k (le_self_add k n) = n
@@ -904,6 +918,11 @@ export Peano.Sub (
   subₕₖ_zero
   subₕₖ_succ
   subₕₖ_k_add_k
+  subₕₖ_k_add_k_forall
+  sub_k_add_k
+  sub_k_add_k_forall
+  add_k_sub_k
+  add_k_sub_k_forall
   aux_ge_1
   aux_neq_0
   succ_subₕₖ

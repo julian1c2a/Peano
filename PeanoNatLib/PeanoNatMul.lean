@@ -216,47 +216,87 @@ namespace Peano
 /--!
   Los siguientes lemas relacionan la multiplicación con el predecesor: ρ (chequeado) y τ (isomorfo)
 !--/
-  theorem obvio (n : ℕ₀) :
+  theorem obvio_1 (n : ℕ₀) :
     Le n (mul n 𝟙)
       := by
     rw [mul_one n]
     exact le_refl n
 
-  theorem mul_pred (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) (h_m_neq_0 : m ≠ 𝟘):
-    mul n (ρ m h_m_neq_0) = sub (mul n m) n
+  theorem obvio_2 (n m : ℕ₀):
+    Le n (mul n (σ m))
+      := by
+    induction m generalizing n with
+    | zero =>
+      rw [mul_succ n 𝟘]
+      rw [mul_zero n]
+      rw [zero_add n]
+      exact le_refl n
+    | succ m' ih =>
+      have h_le : Le n (mul n (σ m')) := ih n
+      rw [mul_succ n (σ m')]
+      exact add_le n (mul n (σ m')) n h_le
+
+
+  theorem mul_le_right (n m : ℕ₀) (h_neq_0 : m ≠ 𝟘) :
+    Le n (mul n m)
       := by
     induction m with
     | zero =>
-      exact False.elim (h_m_neq_0 rfl)
+      exact False.elim (h_neq_0 rfl)
     | succ m' ih =>
-      cases m' with
-      | zero =>
-        calc
-          mul n (ρ (σ 𝟘) h_m_neq_0)
-            = mul n 𝟘 := by rfl
-          _ = 𝟘 := by rw [mul_zero]
-          _ = subₕₖ n n (le_refl n) := by rw [subₕₖ_self n]
-          _ = subₕₖ (mul n 𝟙) n (obvio n) := by simp [mul_one]
-          _ = subₕₖ (mul n (σ 𝟘)) n (obvio n) := by rfl
-          _ = sub (mul n (σ 𝟘)) n := by
-            simp [sub]
-            have h_le : Le n (mul n 𝟙) := by
-              rw [mul_one]
-              exact le_refl n
-            have h_le_succ : Le n (mul n (σ 𝟘)) := by
-              rw [←mul_one n]
-              rw [←mul_one n] at h_le
-              exact h_le
-            simp [h_le_succ]
-      | succ m'' =>
-        have h_succ_m''_neq_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
-        rw [ρ_succ, mul_succ]
-        rw [ih h_succ_m''_neq_0]
-        rw [mul_succ, add_assoc]
-      rw [add_succ n (mul n m')]
-      rw [add_assoc (mul n m') n (σ n)]
-      apply congrArg (add (mul n m'))
-      rw [add_succ m' n, add_succ n m']
+      exact obvio_2 n m'
+
+  theorem mul_le_left (n m : ℕ₀) (h_neq_0 : m ≠ 𝟘) :
+    Le n (mul m n)
+      := by
+    have mul_le_left_reverse : Le n (mul n m)
+      := mul_le_right n m h_neq_0
+    rw [mul_comm n m] at mul_le_left_reverse
+    exact mul_le_left_reverse
+
+  theorem mul_le_full_right (k n m : ℕ₀):
+    Le (mul k n) (mul k (add n m))
+      := by
+    induction m with
+    | zero =>
+      rw [add_zero]
+      exact le_refl (mul k n)
+    | succ m' ih =>
+      rw [add_succ, mul_succ]
+      exact le_trans (mul k n) (mul k (add n m')) (mul k (add n (σ m'))) ih (add_le (mul k (add n m')) (mul k (add n m')) k (le_refl (mul k (add n m'))))
+
+  theorem mul_le_full_left (k n m : ℕ₀):
+    Le (mul n k) (mul (add n m) k)
+      := by
+    induction m with
+    | zero =>
+      rw [add_zero]
+      exact le_refl (mul n k)
+    | succ m' ih =>
+      rw [add_succ, succ_mul]
+      exact le_trans (mul n k) (mul (add n m') k) (add (mul (add n m') k) k) ih (add_le (mul (add n m') k) (mul (add n m') k) k (le_refl (mul (add n m') k)))
+
+  -- theorem mul_pred (n m : ℕ₀):
+  --   mul n (τ m) = sub (mul n m) n
+  --     := by
+  --   induction m with
+  --   | zero =>
+  --     rw [τ_zero, mul_zero, sub_zero]
+  --   | succ m' ih =>
+  --     rw [τ_succ]
+  --     rw [mul_succ n m']
+  --     rw [ih]
+  --     rw [add_sub_cancel (mul n m') n]
+  --     rw [add_comm (mul n m') n]
+  --     rw [add_assoc (mul n m') n (σ n)]
+  --     rw [add_assoc (mul n m') (σ n) n]
+  --     rw [add_comm (σ n) n]
+  --     rw [add_assoc]
+  --     rw [add_assoc (mul n m') n (σ n)]
+  --     rw [add_comm (σ n) n]
+  --     rw [add_assoc (mul n m') (σ n) n]
+  --     rw [add_comm (σ n) n]
+  --     rw [add_assoc (mul n m') n (σ n)]
 
   end Mul
 

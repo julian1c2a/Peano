@@ -219,6 +219,15 @@ namespace Peano
           le_trans a (add b c') (add b (σ c'))
                    ih (le_succ_self (add b c'))
 
+  theorem add_le_r (a b c : ℕ₀) :
+    Le a b → Le a (add c b)
+      := by
+      intro h_le
+      have h_le_add : Le a (add b c) :=
+        (add_le a b c) h_le
+      rw [add_comm b c] at h_le_add
+      exact h_le_add
+
   theorem add_lt (n m k : ℕ₀) :
     Lt n m → Lt n (add m k)
       := by
@@ -377,7 +386,7 @@ theorem le_add_one_then_le (a b : ℕ₀) :
         rw [add_one, add_one] at h_le
         exact (succ_le_succ_iff a b).mp h_le
 
-theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
+theorem le_add_r_add_r_then_le (a b n: ℕ₀) :
     Le (add a n) (add b n) → (Le a b)
       := by
         intro h_le_add_implies_succ
@@ -391,6 +400,67 @@ theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
                 := (succ_le_succ_iff _ _).mp
                       h_le_add_implies_succ
             exact ih h_base_le
+
+  theorem le_add_l_add_l_then_le (a b n: ℕ₀) :
+    Le (add n a) (add n b) → (Le a b)
+      := by
+        intro h_le_add_implies_succ
+        induction n with
+        | zero =>
+            rw [zero_add, zero_add] at h_le_add_implies_succ
+            exact h_le_add_implies_succ
+        | succ n' ih =>
+            rw [succ_add, succ_add] at h_le_add_implies_succ
+            have h_base_le : Le (add n' a) (add n' b)
+                := (succ_le_succ_iff _ _).mp
+                      h_le_add_implies_succ
+            exact ih h_base_le
+
+  theorem le_then_le_add_r_add_r_then_le (a b n: ℕ₀) :
+    Le a b → Le (add a n) (add b n)
+      := by
+        intro h_le
+        induction n with
+        | zero =>
+            rw [add_zero, add_zero]
+            exact h_le
+        | succ n' ih =>
+            rw [add_succ, add_succ]
+            apply (succ_le_succ_iff _ _).mpr
+            exact ih
+
+  theorem le_then_le_add_l_add_l_then_le (a b n: ℕ₀) :
+      Le a b → Le (add n a) (add n b)
+          := by
+        intro h_le
+        induction n with
+        | zero =>
+            rw [zero_add, zero_add]
+            exact h_le
+        | succ n' ih =>
+            rw [succ_add, succ_add]
+            apply (succ_le_succ_iff _ _).mpr
+            exact ih
+
+  theorem le_iff_le_add_r_add_r_forall (a b: ℕ₀) :
+    ∀ (n : ℕ₀), Le a b ↔ Le (add a n) (add b n)
+      := by
+        intro n
+        constructor
+        · intro h_le
+          exact le_then_le_add_r_add_r_then_le a b n h_le
+        · intro h_le_add
+          exact le_add_r_add_r_then_le a b n h_le_add
+
+  theorem le_iff_le_add_l_add_l_forall (a b: ℕ₀) :
+    ∀ (n : ℕ₀), Le a b ↔ Le (add n a) (add n b)
+      := by
+        intro n
+        constructor
+        · intro h_le
+          exact le_then_le_add_l_add_l_then_le a b n h_le
+        · intro h_le_add
+          exact le_add_l_add_l_then_le a b n h_le_add
 
   theorem le_add_then_le (a b c: ℕ₀) :
     Le (add a c) (add b c) → Le a b
@@ -642,10 +712,11 @@ theorem le_add_then_le_add_succ_then_le (a b n: ℕ₀) :
           rw [h_x_eq_y]
 
 
+
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
 
-    end Add
+  end Add
 
 end Peano
 
@@ -672,6 +743,7 @@ export Peano.Add(
   add_comm
   add_assoc
   add_le
+  add_le_r
   add_lt
   add_cancelation
   cancelation_add
@@ -697,4 +769,10 @@ export Peano.Add(
   le_then_le_add_one
   add_lt_add_left_iff
   lt_iff_add_lt
+  le_add_r_add_r_then_le
+  le_add_l_add_l_then_le
+  le_then_le_add_r_add_r_then_le
+  le_then_le_add_l_add_l_then_le
+  le_iff_le_add_r_add_r_forall
+  le_iff_le_add_l_add_l_forall
 )

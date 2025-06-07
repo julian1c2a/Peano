@@ -276,6 +276,31 @@ namespace Peano
       rw [add_succ, succ_mul]
       exact le_trans (mul n k) (mul (add n m') k) (add (mul (add n m') k) k) ih (add_le (mul (add n m') k) (mul (add n m') k) k (le_refl (mul (add n m') k)))
 
+  theorem mul_lt_1_then_lt (n m : ℕ₀) (h_neq_0 : n ≠ 𝟘) (h_lt_1 : Lt 𝟙 m):
+    Lt n (mul n m)
+      := by
+    induction m with
+    | zero =>
+      have h_not_lt : ¬Lt 𝟙 𝟘 := by simp [Lt]
+      exact False.elim (h_not_lt h_lt_1)
+    | succ m' ih =>
+      cases m' with
+      | zero =>
+        -- m = σ 𝟘 = 𝟙, so h_lt_1 : Lt 𝟙 𝟙 which is false
+        have h_sigma_zero_eq_one : σ 𝟘 = 𝟙 := by rfl
+        rw [←h_sigma_zero_eq_one] at h_lt_1
+        have h_not_lt_self : ¬Lt 𝟙 𝟙 := lt_irrefl 𝟙
+        exact False.elim (h_not_lt_self h_lt_1)
+      | succ m'' =>
+        have h_m'_neq_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
+        have h_lt_1_sigma_m'' : Lt 𝟙 (σ (σ m'')) := by
+          rw [Lt.eq_def]
+          exact le_succ 𝟘
+        have h_mul_lt_base : Lt n (mul n (σ m'')) := ih h_lt_1_sigma_m''
+        have h_mul_lt : Lt n (add (mul n (σ m'')) n) := add_lt n (mul n (σ m'')) n h_mul_lt_base (obvio_1 n)
+        rw [mul_succ] at h_mul_lt
+        exact h_mul_lt
+
   -- theorem mul_pred (n m : ℕ₀):
   --   mul n (τ m) = sub (mul n m) n
   --     := by

@@ -475,6 +475,11 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           rw [h_eq_nm]
           exact lt_self_σ_self m
 
+  theorem le_1_succ (n : ℕ₀) :
+    Le 𝟙 (σ n)
+      := by
+      exact le_then_le_succ (zero_le n)
+
   theorem le_zero_eq_zero (n : ℕ₀) :
     Le n 𝟘 ↔ n = 𝟘
       := by
@@ -491,6 +496,32 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       intro h_eq_n_zero -- h_eq_n_zero : n = 𝟘
       rw [h_eq_n_zero]
       exact zero_le 𝟘
+
+  theorem le_succ_zero_zero (n : ℕ₀) :
+    Le (σ n) 𝟘 → False
+      := by
+      intro h_le_succ_n_zero -- h_le_succ_n_zero : Le (σ n) 𝟘
+      unfold Le at h_le_succ_n_zero
+      rcases h_le_succ_n_zero with h_lt_succ_n_zero | h_eq_succ_n_zero
+      · -- Caso Lt (σ n) 𝟘.
+          exact (nlt_n_0 (σ n) h_lt_succ_n_zero).elim
+      · -- Caso σ n = 𝟘.
+          exact (succ_neq_zero n h_eq_succ_n_zero).elim
+
+  theorem  le_succ_0_then_false (n : ℕ₀) :
+    Le (σ n) 𝟘 → False
+      := by
+      intro h_le_succ_n_zero -- h_le_succ_n_zero : Le (σ n) 𝟘
+      unfold Le at h_le_succ_n_zero
+      rcases h_le_succ_n_zero with h_lt_succ_n_zero | h_eq_succ_n_zero
+      · -- Caso Lt (σ n) 𝟘.
+          exact (nlt_n_0 (σ n) h_lt_succ_n_zero).elim
+      · -- Caso σ n = 𝟘.
+          exact (succ_neq_zero n h_eq_succ_n_zero).elim
+
+  theorem le_1_0_then_false :
+    Le 𝟙 𝟘 → False
+      := by exact le_succ_0_then_false 𝟘
 
   theorem le_succ_iff_le_or_eq (a b : ℕ₀) :
     Le a (σ b) ↔ Le a b ∨ a = σ b
@@ -1109,4 +1140,9 @@ export Peano.Order (
   le_sn_m_then_le_n_m_or_succ
   le_sn_m_then_le_n_m_or_succ_wp
   le_then_lt_or_eq
+  le_zero_eq_zero
+  le_succ_zero_zero
+  le_succ_0_then_false
+  le_1_0_then_false
+  le_1_succ
 )

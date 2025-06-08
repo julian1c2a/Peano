@@ -869,6 +869,28 @@ namespace StrictOrder
       | inr h_one_lt_n =>
         exact h_one_lt_n
 
+    theorem lt_0_succ (n : ℕ₀) :
+      Lt 𝟘 (σ n)
+        := by
+      induction n with
+      | zero =>
+        unfold Lt
+        trivial
+      | succ n' ih_n' =>
+        unfold Lt
+        trivial
+
+    theorem lt_1_succ_succ (n : ℕ₀):
+      Lt 𝟙 (σ(σ n))
+        := by
+      induction n with
+      | zero =>
+        unfold Lt
+        trivial
+      | succ n' ih_n' =>
+        unfold Lt
+        trivial
+
     theorem nlt_then_ltc_or_eq (n m : ℕ₀) :
         ¬(Lt n m) → (Lt m n ∨ n = m)
             := by
@@ -1124,4 +1146,6 @@ export Peano.StrictOrder (
     lt_n_sm_then_lt_n_m_or_eq_wp
     lt_sn_m_then_lt_n_m
     lt_sn_m_then_lt_n_m_wp
+    lt_0_succ
+    lt_1_succ_succ
 )

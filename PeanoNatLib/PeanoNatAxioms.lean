@@ -508,6 +508,16 @@ namespace Peano
               case succ k =>
                 rfl
 
+  theorem σ_τ_eq_id_pos_forall {n : ℕ₀} (h : n ≠ 𝟘) :
+      σ (ρ n h) = n
+          := by
+              unfold ρ
+              cases n
+              case zero =>
+                contradiction
+              case succ k =>
+                rfl
+
   theorem ΨΛ (n: Nat) :
       Ψ (Λ n) = n
           := by

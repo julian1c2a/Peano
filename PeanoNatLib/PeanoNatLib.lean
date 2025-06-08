@@ -206,6 +206,34 @@ namespace Peano
       False.elim (h_n_neq_0 rfl)
     | ℕ₀.succ k => k
 
+  theorem neq_1_0 : 𝟘 ≠ 𝟙 := by
+    intro h
+    cases h
+    -- Si 𝟘 = 𝟙, entonces 𝟘 = ℕ₀.succ ℕ₀.zero, lo cual es una contradicción.
+
+  theorem neq_2_0 : 𝟘 ≠ 𝟚 := by
+    intro h
+    cases h
+    -- Si 𝟘 = 𝟚, entonces 𝟘 = ℕ₀.succ ℕ₀.succ ℕ₀.zero, lo cual es una contradicción.
+
+  theorem neq_2_1 : 𝟙 ≠ 𝟚 := by
+    intro h
+    cases h
+    -- Si 𝟙 = 𝟚, entonces 𝟙 = ℕ₀.succ 𝟘 = ℕ₀.succ ℕ₀.succ 𝟘 = 𝟚, lo cual
+    -- nos lleva a 𝟘 = ℕ₀.succ 𝟘 = 𝟙 que es uns contradicción por neq_1_0
+
+  theorem neq_3_0 : 𝟘 ≠ 𝟛 := by
+    intro h
+    cases h
+
+  theorem neq_3_1 : 𝟙 ≠ 𝟛 := by
+    intro h
+    cases h
+
+  theorem neq_3_2 : 𝟚 ≠ 𝟛 := by
+    intro h
+    cases h
+
 end Peano
 
 export Peano (
@@ -233,6 +261,7 @@ export Peano (
   sixty_one sixty_two
   sixty_three sixty_four
   Λ Ψ τ ρ
+  neq_1_0 neq_2_0 neq_2_1 neq_3_0 neq_3_1 neq_3_2
 )
 -- La definiciones de ℕ₀, ℕ₁ y ℕ₂ son globales y no necesitan
 -- ser exportadas explícitamente si el archivo es importado.

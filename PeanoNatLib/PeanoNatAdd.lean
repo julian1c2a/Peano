@@ -522,6 +522,81 @@ theorem le_add_r_add_r_then_le (a b n: ℕ₀) :
       apply le_succ
       exact ih
 
+theorem τ_σ (n : ℕ₀) : τ (σ n) = n
+  := by
+    induction n with
+    | zero => rfl
+    | succ n' ih =>
+      calc
+        τ (σ (σ n')) = σ (τ (σ n')) := by rfl
+        _ = σ n' := by rw [ih]
+
+theorem add_σn_m_eq_add_n_σm (n m : ℕ₀):
+  add n (σ m) = σ (add n m)
+    := by
+    induction n with
+    | zero =>
+      rw [zero_add]
+      rw [zero_add]
+    | succ n' ih_n' =>
+      rw [succ_add]
+      rw [ih_n']
+      rw [← succ_add]
+
+theorem add_σn_m_eq_σadd_n_m (n m : ℕ₀):
+  add (σ n) m = σ (add n m)
+    := by
+    induction m with
+    | zero =>
+      rw [add_zero]
+      rw [add_zero]
+    | succ m' ih_m' =>
+      rw [add_succ]
+      rw [ih_m']
+      rw [← add_succ]
+
+theorem σadd_n_m_eq_add_n_σm (n m : ℕ₀):
+    σ (add n m) = add (σ n) m
+      := by
+  calc
+    σ (add n m) = σ (add m n ) := by rw [add_comm]
+    _ = add m (σ n) := by rw [add_σn_m_eq_add_n_σm]
+    _ = add (σ n) m := by rw [add_comm]
+
+
+theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
+  τ (add n m) = add (τ n) m
+    := by
+  induction n with
+  | zero =>
+    exfalso
+    exact h_n_neq_0 rfl
+  | succ n' ih_n' =>
+    calc
+      τ (add (σ n') m) = τ (σ (add n' m)) := by rw [add_σn_m_eq_σadd_n_m]
+      _ = add n' m := by rw [τ_σ]
+      _ = add (τ (σ n')) m := by rw [τ_σ]
+
+  theorem τadd_n_m_eq_add_n_τm (n m : ℕ₀) (h_m_neq_0 : m ≠ 𝟘) :
+    τ (add n m) = add n (τ m)
+      := by
+    induction m with
+    | zero =>
+      exfalso
+      exact h_m_neq_0 rfl
+    | succ m' ih_m' =>
+      calc
+        τ (add n (σ m')) = τ (σ (add n m')) := by rw [add_σn_m_eq_add_n_σm]
+        _ = add n m' := by rw [τ_σ]
+        _ = add n (τ (σ m')) := by rw [τ_σ]
+
+  theorem add_τn_m_eq_add_n_τm (n m : ℕ₀)  (h_n_neq_0 : n ≠ 𝟘) (h_m_neq_0 : m ≠ 𝟘) :
+    add (τ n) m = add n (τ m)
+      := by
+    calc
+      add (τ n) m = τ (add n m) := by rw [← τadd_n_m_eq_add_τn_m n m h_n_neq_0]
+      _ = add n (τ m) := by rw [τadd_n_m_eq_add_n_τm n m h_m_neq_0]
+
   theorem le_self_add_forall (a : ℕ₀) :
     ∀ (p : ℕ₀), Le a (add a p)
       := by
@@ -711,7 +786,35 @@ theorem le_add_r_add_r_then_le (a b n: ℕ₀) :
           injection h_eq with h_x_eq_y
           rw [h_x_eq_y]
 
+  theorem τadd_n_σm_eq_add_n_m (n m : ℕ₀) :
+     τ (add n (σ m)) = add n m
+       := by
+    induction n with
+    | zero =>
+      rw [zero_add]
+      rw [τ_σ]
+      rw [zero_add]
+    | succ n' ih_n' =>
+      calc
+        τ (add (σ n') (σ m)) = τ (σ (add n' (σ m))) := by rw [succ_add]
+        _ = add n' (σ m) := by rw [τ_σ]
+        _ = σ (add n' m) := by rw [add_succ]
+        _ = add (σ n') m := by rw [succ_add]
 
+  theorem τadd_σn_m_eq_add_n_m (n m : ℕ₀) :
+    τ (add (σ n) m) = add n m
+       := by
+    induction m with
+    | zero =>
+      rw [add_zero]
+      rw [τ_σ]
+      rw [add_zero]
+    | succ m' ih_m' =>
+      calc
+        τ (add (σ n) (σ m')) = τ (σ (add (σ n) m')) := by rw [add_succ]
+        _ = add (σ n) m' := by rw [τ_σ]
+        _ = σ (add n m') := by rw [succ_add]
+        _ = add n (σ m') := by rw [add_succ]
 
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
@@ -775,4 +878,12 @@ export Peano.Add(
   le_then_le_add_l_add_l_then_le
   le_iff_le_add_r_add_r_forall
   le_iff_le_add_l_add_l_forall
+  add_σn_m_eq_add_n_σm
+  add_σn_m_eq_σadd_n_m
+  σadd_n_m_eq_add_n_σm
+  τadd_n_m_eq_add_τn_m
+  τadd_n_m_eq_add_n_τm
+  add_τn_m_eq_add_n_τm
+  τadd_n_σm_eq_add_n_m
+  τadd_σn_m_eq_add_n_m
 )

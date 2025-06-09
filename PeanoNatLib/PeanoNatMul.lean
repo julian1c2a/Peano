@@ -429,19 +429,10 @@ namespace Peano
     induction m with
     | zero =>
       rw [add_zero] -- Goal is now `Lt (mul k n) (mul k n)`
-      -- The hypothesis `h_le_1_m` becomes `Le 𝟙 𝟘` in this case.
-      -- `Le 𝟙 𝟘` (i.e. `Le (σ 𝟘) 𝟘`) is false.
       have h_one_not_le_zero : ¬ (Le 𝟙 𝟘) := le_succ_0_then_false 𝟘
       exact False.elim (h_one_not_le_zero h_le_1_m)
     | succ m' ih => -- m = σ m'
       rw [add_succ n m', mul_succ] -- Goal: Lt (mul k n) (add (mul k (add n m')) k)
-      -- Let A = mul k n
-      -- Let B = mul k (add n m')
-      -- Let C = add B k = add (mul k (add n m')) k
-      -- We want to prove Lt A C.
-
-      -- First, establish B < C: Lt (mul k (add n m')) (add (mul k (add n m')) k)
-      -- This holds because k ≥ 1 (from h_le_1_k), so k is a successor.
       have h_lt_b_c : Lt (mul k (add n m')) (add (mul k (add n m')) k) := by
         have h_k_ne_zero : k ≠ 𝟘 := by {
           intro h_k_eq_zero;
@@ -452,37 +443,31 @@ namespace Peano
           rhs;
           arg 2; -- Focus on the second `k` in `add _ k`
           rw [(σ_τ_eq_id_pos_forall h_k_ne_zero).symm];
-          -- RHS is now `add (mul k (add n m')) (σ (τ k))`
-          -- which is definitionally `σ (add (mul k (add n m')) (τ k))`
         apply lt_add_succ; -- Goal is `Lt X (σ (X + τ k))`, matches `lt_add_succ X (τ k)`
-
-      -- Next, establish A < B or A = B, by cases on m'
       cases m' with
       | zero => -- m' = 𝟘. So m = σ 𝟘 = 𝟙.
         rw [add_zero] -- Goal becomes Lt (mul k n) (add (mul k n) k)
-        -- This is Lt A (add A k), which is h_lt_b_c with m' = 0.
-        -- h_lt_b_c is Lt (mul k 𝟘) (add (mul k 𝟘) k)
-        -- (mul k n) (add (mul k n) k)
         exact h_lt_b_c
       | succ m'' => -- m' = σ m''. So m = σ (σ m'').
-        -- The induction hypothesis ih is: (h_le_1_m_prime : Le 𝟙 m') → Lt (mul k n) (mul k (add n m'))
-        -- We need a proof for `Le 𝟙 m'`, where m' = σ m''.
-        -- `Le 𝟙 (σ m'')` is equivalent to `Lt 𝟘 (σ m'')` (since 𝟙 = σ 𝟘).
-        -- `Lt 𝟘 (σ m'')` is true because σ m'' is a successor.
         have h_le_1_m_prime_proof : Le 𝟙 (σ m'') := by
           exact le_1_succ m'' -- Use le_succ_all to show 1 ≤ σ m''
-
-        -- Use ih to get A < B: Lt (mul k n) (mul k (add n m'))
         have h_lt_a_b_from_ih : Lt (mul k n) (mul k (add n (σ m''))) := ih h_le_1_m_prime_proof
-
-        -- Combine A < B and B < C using lt_trans
         exact lt_trans (mul k n) (mul k (add n (σ m''))) (add (mul k (add n (σ m''))) k) h_lt_a_b_from_ih h_lt_b_c
 
-  theorem τ_0_eq_0 :
+  theorem τ0_eq_0 :
     τ 𝟘 = 𝟘
       := by rfl
 
-  theorem τ_succ (n : ℕ₀) :
+  theorem τn_eq_m {n : ℕ₀} (h_n_neq_zero : Le n 𝟘) :
+    τ n = 𝟘
+      := by
+    induction n with
+    | zero => rfl
+    | succ n' ih =>
+      exfalso
+      exact le_succ_0_then_false n' h_n_neq_zero
+
+  theorem τ_σ (n : ℕ₀) :
     τ (σ n) = n
       := by
     induction n with
@@ -492,41 +477,59 @@ namespace Peano
         τ (σ (σ n')) = σ n' := by rfl
         _ = add n' 𝟙 := by rfl
 
-  -- theorem τ_add_n_σm_eq_add_n_m (n m : ℕ₀) :
-  --   τ (add n (σ m)) = add n m
-  --     := by
-  --   induction m with
-  --   | zero =>
-  --     have h_m_eq_1 : σ 𝟘 = 𝟙 := by rfl
-  --     have h_add_n_1_eq_σ_n : add n 𝟙 = σ n := by rfl
-  --     have h_τ_add_n_1_eq_τ_σ_n : τ (add n 𝟙) = τ (σ n) := by rfl
-  --     have h_τ_add_n_1_eq_n : τ (add n 𝟙) = n := by
-  --       rw [h_add_n_1_eq_σ_n]
-  --       exact τ_succ n
-  --   | succ m' ih =>
-  --     by sorry
+  theorem σ_τ (n : ℕ₀):
+    σ (τ (σ n)) = σ n ∨ σ (τ 𝟘) = 𝟙
+      := by
+    induction n with
+    | zero =>
+      have h_τ_0_eq_0 : τ 𝟘 = 𝟘 := by rfl
+      have h_sigma_τ_0_eq_one : σ (τ 𝟘) = σ 𝟘 := by rfl
+      exact Or.inr h_sigma_τ_0_eq_one
+    | succ n' ih =>
+      have h_τ_σ_σ_n'_eq_σ_n' : τ (σ (σ n')) = σ n' := by rfl
+      have h_σ_τ_σ_σ_n'_eq_σ_σ_n' : σ (τ (σ (σ n'))) = σ (σ n') := by rw [h_τ_σ_σ_n'_eq_σ_n']
+      exact Or.inl h_σ_τ_σ_σ_n'_eq_σ_σ_n'
 
-  -- theorem mul_pred (n m : ℕ₀):
-  --   mul n (τ m) = sub (mul n m) n
-  --     := by
-  --   induction m with
-  --   | zero =>
-  --     have h_mul_n_tau_0_eq_0 : mul n (τ 𝟘) = 𝟘 := by
-  --       calc
-  --         mul n (τ 𝟘) = mul n 𝟘 := by rfl
-  --         _ = 𝟘 := by rw [mul_zero n]
-  --     have h_suv_mul_n_0_sub_n_eq_0 : sub (mul n 𝟘) n = 𝟘 := by
-  --       calc
-  --         sub (mul n 𝟘) n = sub 𝟘 n := by rw [mul_zero n]
-  --         _ = 𝟘 := by exact zero_sub n
-  --     rw [h_mul_n_tau_0_eq_0, h_suv_mul_n_0_sub_n_eq_0]
-  --   | succ m' ih =>
-  --     calc
-  --       mul n (τ (σ m')) = mul n (τ (add m' 𝟙)):= by rfl
-  --       _ = sub (mul n (σ m')) n := by
-  --         rw [succ_mul]
-  --         rw [sub_add_cancel (mul n m') n]
-  --     by sorry
+  theorem σ_τ_0 :
+    σ (τ 𝟘) = 𝟙
+      := by
+    have h_τ_0_eq_0 : τ 𝟘 = 𝟘 := by rfl
+    have h_sigma_τ_0_eq_one : σ (τ 𝟘) = σ 𝟘 := by rfl
+    exact h_sigma_τ_0_eq_one
+
+  theorem σ_τ_eq_id_pos_forall (n : ℕ₀) (h_neq_0 : n ≠ 𝟘) :
+    σ (τ n) = n
+      := by
+    cases n with
+    | zero => exact False.elim (h_neq_0 rfl)
+    | succ n' =>
+      rw [τ_σ]
+
+  theorem mul_n_τm (n m : ℕ₀) (h_m_neq_0 : m ≠ 𝟘) :
+    mul n (τ m) = sub (mul n m) n
+      := by
+    have h_sigma_τ_eq_id_pos : σ (τ m) = m := σ_τ_eq_id_pos_forall m h_m_neq_0
+    have h_mul_succ : mul n (σ (τ m)) = add (mul n (τ m)) n := mul_succ n (τ m)
+    have h_mul_n_m : mul n m = add (mul n (τ m)) n := by
+      rw [←h_sigma_τ_eq_id_pos]
+      exact h_mul_succ
+    have h_sub_add : sub (add (mul n (τ m)) n) n = mul n (τ m) := by
+      rw [add_comm (mul n (τ m)) n, add_k_sub_k_forall]
+    rw [←h_mul_n_m] at h_sub_add
+    exact h_sub_add.symm
+
+  theorem mul_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
+    mul (τ n) m = sub (mul n m) m
+      := by
+    have h_sigma_τ_eq_id_pos : σ (τ n) = n := σ_τ_eq_id_pos_forall n h_n_neq_0
+    have h_mul_succ : mul (σ (τ n)) m = add (mul (τ n) m) m := succ_mul (τ n) m
+    have h_mul_n_m : mul n m = add (mul (τ n) m) m := by
+      rw [←h_sigma_τ_eq_id_pos]
+      exact h_mul_succ
+    have h_sub_add : sub (add (mul (τ n) m) m) m = mul (τ n) m := by
+      rw [add_comm (mul (τ n) m) m, add_k_sub_k_forall]
+    rw [←h_mul_n_m] at h_sub_add
+    exact h_sub_add.symm
 
   end Mul
 
@@ -556,4 +559,6 @@ export Peano.Mul(
   mul_le_left
   mul_le_full_right
   mul_le_full_left
+  mul_n_τm
+  mul_τn_m
 )

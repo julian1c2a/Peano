@@ -247,7 +247,7 @@ namespace Peano
     rw [mul_one n]
     exact le_refl n
 
-  theorem obvio_2 (n m : ℕ₀):
+  theorem le_n_mul_n_σn (n m : ℕ₀):
     Le n (mul n (σ m))
       := by
     induction m generalizing n with
@@ -454,6 +454,13 @@ namespace Peano
         have h_lt_a_b_from_ih : Lt (mul k n) (mul k (add n (σ m''))) := ih h_le_1_m_prime_proof
         exact lt_trans (mul k n) (mul k (add n (σ m''))) (add (mul k (add n (σ m''))) k) h_lt_a_b_from_ih h_lt_b_c
 
+  theorem lt_σn_mul_σn_σσm (n m : ℕ₀):
+    Lt (σ n) (mul (σ n) (σ (σ m)))
+      := by
+    have h_neq_0 : σ n ≠ 𝟘 := succ_neq_zero n
+    have h_lt_1 : Lt 𝟙 (σ (σ m)) := lt_1_succ_succ m
+    exact mul_lt_left (σ n) (σ (σ m)) h_neq_0 h_lt_1
+
   theorem τ0_eq_0 :
     τ 𝟘 = 𝟘
       := by rfl
@@ -561,4 +568,6 @@ export Peano.Mul(
   mul_le_full_left
   mul_n_τm
   mul_τn_m
+  le_n_mul_n_σn
+  lt_σn_mul_σn_σσm
 )

@@ -238,9 +238,6 @@ namespace Peano
       (fun h_n_zero => h_n_neq_0 h_n_zero)
       (fun h_m_zero => h_m_neq_0 h_m_zero)
 
-/--!
-  Los siguientes lemas relacionan la multiplicación con el predecesor: ρ (chequeado) y τ (isomorfo)
-!--/
   theorem obvio_1 (n : ℕ₀) :
     Le n (mul n 𝟙)
       := by

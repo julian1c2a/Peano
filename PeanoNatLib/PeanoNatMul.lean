@@ -265,7 +265,7 @@ namespace Peano
     | zero =>
       exact False.elim (h_neq_0 rfl)
     | succ m' ih =>
-      exact obvio_2 n m'
+      exact le_n_mul_n_σn n m'
 
   theorem mul_le_left (n m : ℕ₀) (h_neq_0 : m ≠ 𝟘) :
     Le n (mul m n)

@@ -547,6 +547,55 @@ namespace Peano
         simp only [subₕₖ]
         exact le_trans (subₕₖ n' m' h_m'_le_n') n' (σ n') h_subₕₖ_le_n' (le_succ_self n')
 
+  theorem subₕₖ_lt_self (n m : ℕ₀) (h_le : Le m n) (h_m_neq_0 : m ≠ 𝟘) :
+    Lt (subₕₖ n m h_le) n
+      := by
+    induction n generalizing m with
+    | zero =>
+      cases m with
+      | zero =>
+        contradiction
+      | succ m' =>
+        exfalso
+        have h_succ_le_zero : Le (σ m') 𝟘 := h_le
+        exact not_succ_le_zero m' h_succ_le_zero
+    | succ n' ih =>
+      cases m with
+      | zero =>
+        contradiction
+      | succ m' =>
+        have h_m'_le_n' : Le m' n' := succ_le_succ_then h_le
+        by_cases h_m'_zero : m' = 𝟘
+        · -- Case: m' = 𝟘
+          subst h_m'_zero
+          simp only [subₕₖ]
+          exact lt_succ_self n'
+        · -- Case: m' ≠ 𝟘
+          -- ih : ∀ (m' ≠ 𝟘 : ℕ₀) (h_le : Le m' n'), Lt (n' -( h_le ) m') n'
+          have h_σm'_le_σn' : Le (σ m') (σ n') := h_le
+          have h_lt_n_σn : Lt n' (σ n') := lt_succ_self n'
+          have h_subₕₖ_lt_n' : Lt (subₕₖ n' m' h_m'_le_n') n' :=
+              ih m' h_m'_le_n' h_m'_zero
+          have h_cuasi_finish : Lt (subₕₖ n' m' h_m'_le_n') n' ↔ Lt (subₕₖ (σ n') (σ m') h_le) n'
+                  := by simp only [subₕₖ]
+          have h_subₕₖ_lt_n' : Lt (subₕₖ (σ n') (σ m') h_σm'_le_σn') n'
+                  := by
+              rw [h_cuasi_finish] at h_subₕₖ_lt_n'
+              exact h_subₕₖ_lt_n'
+          have h_finish : Lt (subₕₖ (σ n') (σ m') h_σm'_le_σn') (σ n')
+              :=
+              lt_trans (subₕₖ (σ n') (σ m') h_σm'_le_σn') n' (σ n') h_subₕₖ_lt_n' (lt_succ_self n')
+          exact h_finish
+
+    theorem sub_lt_self (n m : ℕ₀) (h_le : Le m n) (h_m_neq_0 : m ≠ 𝟘) :
+        Lt (sub n m) n
+            := by
+      have h_m_le_n : Le m n := h_le
+      have h_subₕₖ_eq : sub n m = subₕₖ n m h_m_le_n := by simp [sub, h_m_le_n]
+      rw [h_subₕₖ_eq]
+      exact subₕₖ_lt_self n m h_m_le_n h_m_neq_0
+
+
   theorem sub_le_self (n m : ℕ₀) :
     sub n m ≤ n
       := by
@@ -870,7 +919,6 @@ namespace Peano
           rw [← sub_succ_succ_eq n' m'] -- Objetivo: Lt (sub n' m') k
           exact ih_n m' h_m'_le_n' h_n'_lt_km'
 
-
   theorem sub_pos_iff_lt (n m : ℕ₀) :
       Le 𝟙 (sub n m) ↔ Lt m n
           := by
@@ -944,4 +992,6 @@ export Peano.Sub (
   sub_sub
   sub_lt_iff_lt_add_of_le
   sub_pos_iff_lt
+  subₕₖ_lt_self
+  sub_lt_self
 )

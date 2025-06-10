@@ -21,21 +21,35 @@ namespace Peano
       open Mul
 
   -- Definition of Euclidean division for Peano natural numbers
+  /--!
+  Performs Euclidean division of `a` by `b`.
+  Returns a pair `(quotient, remainder)` such that `a = quotient * b + remainder`
+  and `remainder < b` (if `b ≠ 𝟘`).
+  If `b = 𝟘`, returns `(𝟘, 𝟘)`.
+  !--/
   def div (a b : ℕ₀) : ℕ₀ × ℕ₀ :=
-    if b = 0 then
-      (0, 0)
+    if b = 𝟘 then
+      (𝟘, 𝟘)
     else if b = 𝟙 then
-      (a, 0)
+      (a, 𝟘)
     else if a = b then
-      (𝟙, 0)
-    else if a < b then
-      (0, a)
+      (𝟙, 𝟘)
+    else if Lt a b then
+      (𝟘, a)
     else
+      have h_lt : Lt (sub a b) a := by
+        -- Since ¬Lt a b and a ≠ b, we have b ≤ a and a ≠ b, so b < a
+        -- Therefore sub a b < a
+        sorry -- This needs to be proven using your ordering lemmas
       let (q, r) := div (sub a b) b
-      (q + 𝟙, r)
-  end div
+      (σ q, r)
+    termination_by div a b => a
+    decreasing_by
+      simp_wf
+      -- Prove that sub a b < a when b > 0 and a ≥ b
+      sorry -- This needs to be proven using your subtraction and ordering lemmas
 
-  
+
 
 
   end Div

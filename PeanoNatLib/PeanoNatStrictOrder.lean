@@ -469,6 +469,39 @@ namespace StrictOrder
                             . exact h_lt_nm
                             . exact h_lt_mk
 
+    theorem lt_trans_wp {n m k : ℕ₀} (h_lt_nm : Lt n m) (h_lt_mk : Lt m k) :
+          Lt n k
+              := by
+        induction n generalizing m k with
+        | zero =>
+          cases m with
+          | zero =>
+            unfold Lt at h_lt_nm
+            exact False.elim h_lt_nm
+          | succ m' =>
+            cases k with
+            | zero =>
+              unfold Lt at h_lt_mk
+              exact False.elim h_lt_mk
+            | succ k' =>
+              unfold Lt
+              trivial
+        | succ n' ih_n' =>
+          cases m with
+          | zero =>
+            unfold Lt at h_lt_nm
+            exact False.elim h_lt_nm
+          | succ m' =>
+            cases k with
+            | zero =>
+              unfold Lt
+              exact h_lt_mk
+            | succ k' =>
+              dsimp only [Lt] at *
+              apply ih_n'
+              . exact h_lt_nm
+              . exact h_lt_mk
+
     theorem lt_equiv_exists_σ (n m : ℕ₀) :
         Lt n m ↔ (m = σ n) ∨ (∃ k : ℕ₀, Lt n k ∧ Lt k m)
         := by
@@ -1082,10 +1115,28 @@ namespace StrictOrder
                 unfold Lt at h_lt_sn_m
                 exact ih_n' m' h_lt_sn_m
 
+  theorem lt_0_1 :
+    Lt 𝟘 𝟙
+      := by
+        unfold Lt
+        trivial
+
+  theorem lt_1_b_then_b_neq_1 {b : ℕ₀} (h_lt_1_b : 𝟙 < b) :
+    b ≠ 𝟙
+      := by
+        exact Ne.symm (lt_then_neq 𝟙 b h_lt_1_b)
+
   theorem lt_sn_m_then_lt_n_m_wp {n m : ℕ₀} (h_lt : Lt (σ n) m):
     Lt n m
       := by
         exact lt_sn_m_then_lt_n_m n m h_lt
+
+  theorem lt_1_b_then_b_neq_0 {b : ℕ₀} (h_lt_1_b : 𝟙 < b) :
+        b ≠ 𝟘
+        := by
+            have h_lt_0_b : Lt 𝟘 b := by exact lt_trans_wp lt_0_1 h_lt_1_b
+            exact Ne.symm (lt_then_neq 𝟘 b h_lt_0_b)
+
 
   end StrictOrder
 end Peano
@@ -1148,4 +1199,8 @@ export Peano.StrictOrder (
     lt_sn_m_then_lt_n_m_wp
     lt_0_succ
     lt_1_succ_succ
+    lt_1_b_then_b_neq_1
+    lt_1_b_then_b_neq_0
+    lt_0_1
+    lt_trans_wp
 )

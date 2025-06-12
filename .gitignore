@@ -25,3 +25,5 @@ wdIn.txt
 lean-toolchain
 /.lake-leanpkg
 .lake-leanpkg
+nppBackup
+/.nppBackup

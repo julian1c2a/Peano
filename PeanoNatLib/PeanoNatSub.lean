@@ -595,6 +595,13 @@ namespace Peano
       rw [h_subₕₖ_eq]
       exact subₕₖ_lt_self n m h_m_le_n h_m_neq_0
 
+    theorem sub_lt_self_wp {n m : ℕ₀} (h_le : Le m n) (h_m_neq_0 : m ≠ 𝟘) :
+        Lt (sub n m) n
+            := by
+      have h_m_le_n : Le m n := h_le
+      have h_subₕₖ_eq : sub n m = subₕₖ n m h_m_le_n := by simp [sub, h_m_le_n]
+      rw [h_subₕₖ_eq]
+      exact subₕₖ_lt_self n m h_m_le_n h_m_neq_0
 
   theorem sub_le_self (n m : ℕ₀) :
     sub n m ≤ n
@@ -956,6 +963,46 @@ namespace Peano
           apply ih_n m'
           exact (succ_lt_succ_iff m' n').mp h_lt_mn
 
+  theorem lt_b_a_then_sub_a_b_neq_0 (a b : ℕ₀) (h_lt : Lt b a) :
+    sub a b ≠ 𝟘
+      := by
+    by_cases h_b_le_a : Le b a
+    · -- Caso Le b a
+      have h_sub_eq : sub a b = subₕₖ a b h_b_le_a := by simp [sub, h_b_le_a]
+      rw [h_sub_eq]
+      intro h_eq_zero
+      have h_a_eq_b : a = b := subₕₖ_eq_zero a b h_b_le_a h_eq_zero
+      rw [h_a_eq_b] at h_lt
+      exact lt_irrefl b h_lt
+    · -- Caso ¬(Le b a)
+      exfalso
+      exact h_b_le_a (lt_imp_le b a h_lt)
+
+  theorem sub_pos_of_lt {a b : ℕ₀} (h_lt : Lt a b) :
+      Lt 𝟘 (sub b a)
+          := by
+    have h_le : Le a b := lt_imp_le a b h_lt
+    have h_neq : a ≠ b := lt_then_neq a b h_lt
+    rw [sub]
+    simp only [dif_pos h_le]
+    induction b generalizing a with
+    | zero =>
+      exfalso
+      exact nlt_n_0 a h_lt
+    | succ b' ih =>
+      cases a with
+      | zero =>
+        simp only [subₕₖ]
+        exact zero_lt_succ b'
+      | succ a' =>
+        have h_lt_a'_b' : Lt a' b' := (lt_of_succ_lt_succ a' b').mp h_lt
+        have h_le_a'_b' : Le a' b' := lt_imp_le a' b' h_lt_a'_b'
+        have h_neq_a'_b' : a' ≠ b' := lt_then_neq a' b' h_lt_a'_b'
+        have h_sub_eq : subₕₖ (σ b') (σ a') h_le = subₕₖ b' a' h_le_a'_b' := by
+          simp only [subₕₖ]
+        rw [h_sub_eq]
+        exact ih h_lt_a'_b' h_le_a'_b' h_neq_a'_b'
+
   end Sub
 
 
@@ -994,4 +1041,7 @@ export Peano.Sub (
   sub_pos_iff_lt
   subₕₖ_lt_self
   sub_lt_self
+  lt_b_a_then_sub_a_b_neq_0
+  sub_pos_of_lt
+  sub_lt_self_wp
 )

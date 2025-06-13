@@ -454,6 +454,18 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           exfalso
           exact h_neq h_eq
 
+  theorem lt_of_le_neq_wp {a b : ℕ₀} (h_le_a_b : Le a b) (h_neq_a_b : a ≠ b) :
+    Lt a b
+      := by
+      -- Prueba de Le a b → a ≠ b → Lt a b
+      unfold Le at h_le_a_b
+      rcases h_le_a_b with h_lt_a_b | h_eq_a_b
+      · -- Caso Lt a b
+        exact h_lt_a_b
+      · -- Caso a = b
+        exfalso
+        exact h_neq_a_b h_eq_a_b
+
   theorem le_succ_self (n : ℕ₀) :
     Le n (σ n)
     := by
@@ -1073,6 +1085,13 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         intro h_le_nm
         exact h_le_nm
 
+  theorem le_not_lt {a b : ℕ₀} (h_le : Le a b) :
+    ¬(Lt b a)
+    := by
+      intro h_lt_ba
+      have h_not_le_ab : ¬Le a b := gt_then_nle b a h_lt_ba
+      exact h_not_le_ab h_le
+
   end Order
 end Peano
 
@@ -1093,6 +1112,7 @@ export Peano.Order (
   le_iff_lt_succ
   not_succ_le_zero
   lt_of_le_neq
+  lt_of_le_neq_wp
   le_zero_eq
   isomorph_Ψ_le
   isomorph_Λ_le
@@ -1104,6 +1124,7 @@ export Peano.Order (
   lt_succ_iff_lt_or_eq_alt
   nle_iff_gt
   nle_then_gt
+  le_not_lt
   gt_then_nle
   le_1_m_then_m_neq_0
   le_n_m_then_m_neq_0

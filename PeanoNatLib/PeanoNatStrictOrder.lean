@@ -279,13 +279,13 @@ namespace StrictOrder
             unfold Lt
             trivial
         | succ n' ih_n' =>
-          cases m with
-          | zero =>
-            unfold Lt at h_lt_nm
-            exact False.elim h_lt_nm
-          | succ m' =>
-            unfold Lt at h_lt_nm
-            exact ih_n' m' h_lt_nm
+            cases m with
+            | zero =>
+                unfold Lt at h_lt_nm
+                exact False.elim h_lt_nm
+            | succ m' =>
+                unfold Lt at h_lt_nm
+                exact ih_n' m' h_lt_nm
       · intro h_lt_n_m
         induction n generalizing m with
         | zero =>
@@ -389,6 +389,27 @@ namespace StrictOrder
                     | succ m' =>
                         unfold Lt at h_lt_nm
                         exact ih_n' m' h_lt_nm
+
+    theorem lt_asymm_wp {n m : ℕ₀} (h_lt_nm : Lt n m) :
+        ¬(Lt m n)
+            := by
+        induction n generalizing m with
+        | zero =>
+            cases m with
+            | zero =>
+                unfold Lt at h_lt_nm
+                exact False.elim h_lt_nm
+            | succ m' =>
+                unfold Lt
+                simp
+        | succ n' ih_n' =>
+            cases m with
+            | zero =>
+                unfold Lt at h_lt_nm
+                exact False.elim h_lt_nm
+            | succ m' =>
+                unfold Lt at h_lt_nm
+                exact ih_n' h_lt_nm
 
     theorem strong_trichotomy (n m : ℕ₀) :
           ((Lt n m)∧¬(Lt m n)∧(n ≠ m))
@@ -1137,6 +1158,14 @@ namespace StrictOrder
             have h_lt_0_b : Lt 𝟘 b := by exact lt_trans_wp lt_0_1 h_lt_1_b
             exact Ne.symm (lt_then_neq 𝟘 b h_lt_0_b)
 
+  theorem lt_b_1_then_b_eq_0 {b : ℕ₀} (h_lt_b_1 : b < 𝟙) :
+        b = 𝟘
+            := by
+                cases b with
+                | zero =>
+                    rfl
+                | succ b' =>
+                    exact False.elim (lt_zero b' h_lt_b_1)
 
   end StrictOrder
 end Peano
@@ -1203,4 +1232,6 @@ export Peano.StrictOrder (
     lt_1_b_then_b_neq_0
     lt_0_1
     lt_trans_wp
+    lt_asymm_wp
+    lt_b_1_then_b_eq_0
 )

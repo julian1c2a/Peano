@@ -816,6 +816,119 @@ theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
         _ = σ (add n m') := by rw [succ_add]
         _ = add n (σ m') := by rw [add_succ]
 
+
+  theorem lt_n_add_n_σm (n m : ℕ₀) :
+    Lt n (add n (σ m))
+      := by
+    induction m with
+    | zero =>
+      rw [add_succ, add_zero]
+      exact lt_succ_self n
+    | succ m' ih_m' =>
+      rw [add_succ]
+      exact lt_trans n (add n (σ m')) (σ (add n (σ m'))) (ih_m') (lt_succ_self (add n (σ m')))
+
+  theorem lt_add_of_pos_right {a b : ℕ₀} (h_b_pos : Lt 𝟘 b)
+      : Lt a (add a b)
+          := by
+    induction b with
+    | zero =>
+      exfalso
+      exact nlt_self 𝟘 h_b_pos
+    | succ b'=>
+      exact lt_n_add_n_σm a b'
+
+  theorem le_add_compat (a b c d: ℕ₀) :
+    Le a b → Le c d → Le (add a c) (add b d)
+      := by
+    intro h_ab h_cd
+    have h₁ : Le (add a c) (add b c) := le_then_le_add a b c h_ab
+    have h₂ : Le (add b c) (add b d) := le_then_le_add_l_add_l_then_le c d b h_cd
+    exact le_trans (add a c) (add b c) (add b d) h₁ h₂
+
+  theorem le_add_compat_wp {a b c d: ℕ₀} (h_le_ab: Le a b) (h_le_cd : Le c d) :
+    Le (add a c) (add b d)
+      := by
+    exact le_add_compat a b c d h_le_ab h_le_cd
+
+  theorem lt_le_then_lt_add_compat (a b c d: ℕ₀) :
+    Lt a b → Le c d → Lt (add a c) (add b d)
+      := by
+    intro h_lt_ab h_le_cd
+    rcases (Le.eq_def c d).mp h_le_cd with h_lt_cd | h_c_eq_d
+    -- Case 1: Lt c d
+    · have h1 : Lt (add a c) (add b c) := by
+        exact (lt_iff_add_cancel a b c).mpr h_lt_ab
+      have h2 : Lt (add b c) (add b d) :=
+        (add_lt_add_left_iff b c d).mpr h_lt_cd
+      exact lt_trans (add a c) (add b c) (add b d) h1 h2
+    -- Case 2: c = d
+    · rw [←h_c_eq_d]
+      rw [add_comm a c, add_comm b c] -- Lt (c+a) (c+b)
+      exact (add_lt_add_left_iff c a b).mpr h_lt_ab
+
+  theorem lt_le_then_add_add_compat_wp {a b c d: ℕ₀} (h_lt_ab: Lt a b) (h_le_cd : Le c d) :
+    Lt (add a c) (add b d)
+      := by
+    exact lt_le_then_lt_add_compat a b c d h_lt_ab h_le_cd
+
+  theorem le_lt_then_lt_add_compat (a b c d: ℕ₀) :
+    Le a b → Lt c d → Lt (add a c) (add b d)
+      := by
+    intro h_le_ab h_lt_cd
+    rcases (Le.eq_def a b).mp h_le_ab with h_a_lt_b_case | h_a_eq_b_case
+    -- Case 1: Lt a b (h_a_lt_b_case)
+    · have h1 : Lt (add a c) (add a d) := by
+        exact (add_lt_add_left_iff a c d).mpr h_lt_cd
+      have h2 : Lt (add a d) (add b d) := by
+        exact (lt_iff_add_cancel a b d).mpr h_a_lt_b_case
+      exact lt_trans (add a c) (add a d) (add b d) h1 h2
+    -- Case 2: a = b (h_a_eq_b_case)
+    · rw [←h_a_eq_b_case]
+      exact (add_lt_add_left_iff a c d).mpr h_lt_cd
+
+  theorem le_lt_then_lt_add_compat_wp {a b c d: ℕ₀} (h_le_ab: Le a b) (h_lt_cd : Lt c d) :
+    Lt (add a c) (add b d)
+      := by
+    exact le_lt_then_lt_add_compat a b c d h_le_ab h_lt_cd
+
+  theorem lt_lt_then_lt_add_compat (a b c d: ℕ₀) :
+    Lt a b → Lt c d → Lt (add a c) (add b d)
+      := by
+    intro h_lt_ab h_lt_cd
+    have h1 : Lt (add a c) (add b c) := by
+      exact (lt_iff_add_cancel a b c).mpr h_lt_ab
+    have h2 : Lt (add b c) (add b d) := by
+      exact (add_lt_add_left_iff b c d).mpr h_lt_cd
+    exact lt_trans (add a c) (add b c) (add b d) h1 h2
+
+  theorem lt_lt_then_lt_add_compat_wp {a b c d: ℕ₀} (h_lt_ab: Lt a b) (h_lt_cd : Lt c d) :
+    Lt (add a c) (add b d)
+      := by
+    exact lt_lt_then_lt_add_compat  a b c d h_lt_ab h_lt_cd
+
+  theorem le_a_b_then_le_2a_2b (a b : ℕ₀) :
+    Le a b → Le (add a a) (add b b)
+      := by
+    intro h_le
+    exact le_add_compat a b a b h_le h_le
+
+  theorem le_a_b_then_le_2a_2b_wp {a b : ℕ₀} (h_le: Le a b) :
+    Le (add a a) (add b b)
+      := by
+    exact le_add_compat a b a b h_le h_le
+
+  theorem lt_a_b_then_lt_2a_2b (a b : ℕ₀) :
+    Lt a b → Lt (add a a) (add b b)
+      := by
+    intro h_lt
+    exact lt_lt_then_lt_add_compat a b a b h_lt h_lt
+
+  theorem lt_a_b_then_lt_2a_2b_wp {a b : ℕ₀} (h_lt: Lt a b) :
+    Lt (add a a) (add b b)
+      := by
+    exact lt_lt_then_lt_add_compat a b a b h_lt h_lt
+
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
 
@@ -886,4 +999,18 @@ export Peano.Add(
   add_τn_m_eq_add_n_τm
   τadd_n_σm_eq_add_n_m
   τadd_σn_m_eq_add_n_m
+  lt_n_add_n_σm
+  lt_add_of_pos_right
+  le_add_compat
+  le_add_compat_wp
+  lt_le_then_lt_add_compat
+  lt_le_then_add_add_compat_wp
+  le_lt_then_lt_add_compat
+  le_lt_then_lt_add_compat_wp
+  lt_lt_then_lt_add_compat
+  lt_lt_then_lt_add_compat_wp
+  le_a_b_then_le_2a_2b
+  le_a_b_then_le_2a_2b_wp
+  lt_a_b_then_lt_2a_2b
+  lt_a_b_then_lt_2a_2b_wp
 )

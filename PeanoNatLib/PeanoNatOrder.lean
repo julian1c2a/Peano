@@ -191,6 +191,15 @@ namespace Peano
       · -- n = 𝟘
         exact h_eq_n_zero
 
+    theorem le_zero_eq_wp {n : ℕ₀} (h_le_n_zero : Le n 𝟘) :
+      n = 𝟘
+      := by
+      unfold Le at h_le_n_zero
+      rcases h_le_n_zero with h_lt_n_zero | h_eq_n_zero
+      · -- Lt n 𝟘. Esto solo es posible si n no es sucesor,
+        exact (nlt_n_0 n h_lt_n_zero).elim
+      · -- n = 𝟘
+        exact h_eq_n_zero
 
     theorem not_succ_le_zero (n : ℕ₀) :
       ¬Le (σ n) 𝟘
@@ -260,6 +269,12 @@ namespace Peano
     n = m → Le n m
       := by
         intro h_eq
+        rw [h_eq]
+        exact Or.inr rfl
+
+  theorem le_of_eq_wp {n m : ℕ₀} (h_eq : n = m) :
+    Le n m
+      := by
         rw [h_eq]
         exact Or.inr rfl
 
@@ -1092,6 +1107,23 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       have h_not_le_ab : ¬Le a b := gt_then_nle b a h_lt_ba
       exact h_not_le_ab h_le
 
+
+  theorem nle_σn_n (n : ℕ₀) :
+    ¬(Le (σ n) n)
+      := by
+      intro h_le_sn_n
+      unfold Le at h_le_sn_n
+      rcases h_le_sn_n with h_lt_sn_n | h_eq_sn_n
+      · exact (lt_asymm n (σ n) (lt_self_σ_self n) h_lt_sn_n)
+      · exact (lt_irrefl n (cast (congrArg (Lt n) h_eq_sn_n) (lt_self_σ_self n)))
+
+  theorem le_σn_n_then_false (n : ℕ₀) :
+    Le (σ n) n → False
+      := by
+      intro h_le_sn_n
+      have h_nle_sn_n : ¬(Le (σ n) n) := nle_σn_n n
+      exact h_nle_sn_n h_le_sn_n
+
   end Order
 end Peano
 
@@ -1166,4 +1198,8 @@ export Peano.Order (
   le_succ_0_then_false
   le_1_0_then_false
   le_1_succ
+  le_of_eq_wp
+  le_zero_eq_wp
+  nle_σn_n
+  le_σn_n_then_false
 )

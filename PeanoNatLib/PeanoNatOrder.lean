@@ -95,6 +95,32 @@ namespace Peano
         apply Or.inr
         exact ℕ₀.succ.inj h_eq_succ
 
+    theorem succ_le_succ_if {n m : ℕ₀} :
+      Le n m → Le (σ n) (σ m)
+        := by
+      intro h_le
+      unfold Le at *
+      rcases h_le with h_lt | h_eq
+      · -- Lt n m => Lt (σ n) (σ m) => Le (σ n) (σ m)
+        apply Or.inl
+        exact (lt_iff_lt_σ_σ n m).mpr h_lt
+      · -- n = m => σ n = σ m => Le (σ n) (σ m)
+        apply Or.inr
+        exact h_eq ▸ rfl
+
+    theorem succ_le_succ_if_wp {n m : ℕ₀} (h_le_nm : Le n m) :
+      Le (σ n) (σ m)
+        := by
+      -- Prueba de Le n m → Le (σ n) (σ m)
+      unfold Le at *
+      rcases h_le_nm with h_lt | h_eq
+      · -- Lt n m => Lt (σ n) (σ m) => Le (σ n) (σ m)
+        apply Or.inl
+        exact (lt_iff_lt_σ_σ n m).mpr h_lt
+      · -- n = m => σ n = σ m => Le (σ n) (σ m)
+        apply Or.inr
+        exact h_eq ▸ rfl
+
     theorem succ_le_succ'_then_wp {n m : ℕ₀} (h_le_succ : Le (σ n) (σ m)) :
       Le n (σ m)
       := by
@@ -374,6 +400,11 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       Lt n m → Le n m
       :=
       fun h_lt => Or.inl h_lt
+
+    theorem lt_imp_le_wp {n m : ℕ₀} (h_lt : Lt n m) :
+      Le n m
+        := by exact Or.inl h_lt
+
 
     theorem le_trans (n m k : ℕ₀) :
       Le n m → Le m k → Le n k
@@ -1046,6 +1077,52 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact lt_k_succ_n_then_le_k_n h_lt_k_sn
 
+  theorem le_succ_k_n_then_lt_k_n {n k : ℕ₀} :
+    Le (σ k) n → Lt k n
+      := by
+        intro h_le_ssn
+        unfold Le at h_le_ssn
+        rcases h_le_ssn with h_lt_ssn | h_eq_ssn
+        · -- Caso Lt (σ k) n
+          cases n with
+          | zero => exfalso; exact (nlt_n_0 (σ k) h_lt_ssn).elim
+          | succ m => -- n = σ m. h_lt_ssn becomes Lt (σ k) (σ m)
+            -- Goal: Lt k (σ m)
+            have h_lt_k_m : Lt k m := (lt_iff_lt_σ_σ k m).mpr h_lt_ssn
+            exact lt_trans k m (σ m) h_lt_k_m (lt_self_σ_self m)
+        · -- Caso σ k = n. Here h_eq_ssn : σ k = n.
+          rw [← h_eq_ssn]
+          exact lt_self_σ_self k
+
+  theorem le_succ_k_n_then_lt_k_n_wp {n k : ℕ₀} (h_le_sk_n: Le (σ k) n):
+    Lt k n
+      := by
+        exact le_succ_k_n_then_lt_k_n h_le_sk_n
+
+  theorem le_succ_then_le {n k : ℕ₀} :
+    Le (σ k) n → Le k n
+      := by
+        intro h_le_ssn
+        unfold Le at h_le_ssn
+        rcases h_le_ssn with h_lt_ssn | h_eq_ssn
+        · -- Caso Lt (σ k) n
+          apply Or.inl
+          cases n with
+          | zero => exfalso; exact (nlt_n_0 (σ k) h_lt_ssn).elim
+          | succ m => -- n = σ m. h_lt_ssn becomes Lt (σ k) (σ m)
+            -- Goal: Lt k (σ m)
+            have h_lt_k_m : Lt k m := (lt_iff_lt_σ_σ k m).mpr h_lt_ssn
+            exact lt_trans k m (σ m) h_lt_k_m (lt_self_σ_self m)
+        · -- Caso σ k = n. Here h_eq_ssn : σ k = n.
+          apply Or.inl
+          rw [← h_eq_ssn]
+          exact lt_self_σ_self k
+
+  theorem le_succ_then_le_wp {n k : ℕ₀} (le_sk_n: Le (σ k) n) :
+    Le k n
+      := by
+    exact le_succ_then_le le_sk_n
+
   theorem le_k_n_then_le_k_sn_wp {n k : ℕ₀} (h_le_k_n : Le k n):
     Le k (σ n)
       := by
@@ -1202,4 +1279,11 @@ export Peano.Order (
   le_zero_eq_wp
   nle_σn_n
   le_σn_n_then_false
+  succ_le_succ_if
+  succ_le_succ_if_wp
+  le_succ_k_n_then_lt_k_n
+  le_succ_k_n_then_lt_k_n_wp
+  lt_imp_le_wp
+  le_succ_then_le
+  le_succ_then_le_wp
 )

@@ -535,6 +535,35 @@ namespace Peano
     rw [←h_mul_n_m] at h_sub_add
     exact h_sub_add.symm
 
+  -- theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_le_k_l : Le k l) :
+  --   Le (mul n k) (mul m l)
+  --     := by
+  --   induction l with
+  --   | zero =>
+  --     rw [mul_zero]
+  --     have h_k_eq_zero : k = 𝟘 := by
+  --       cases k with
+  --       | zero => rfl
+  --       | succ k' =>
+  --         have h_succ_le_zero : Le (σ k') 𝟘 := h_le_k_l
+  --         exact False.elim (le_succ_0_then_false k' h_succ_le_zero)
+  --     rw [h_k_eq_zero, mul_zero]
+  --     exact le_refl 𝟘
+  --   | succ l' ih =>
+  --     rw [mul_succ]
+  --     have h_le_k_l' : Le k l' := by
+  --       cases k with
+  --       | zero => exact zero_le l'
+  --       | succ k' =>
+  --         have h_succ_le_succ : Le (σ k') (σ l') := h_le_k_l
+  --         have h_lt_or_eq : Lt k' l' ∨ k' = l' := succ_le_succ_iff_wp h_succ_le_succ
+  --         cases h_lt_or_eq with
+  --         | inl h_lt =>
+  --           exact lt_succ_then_le h_lt
+  --         | inr h_eq => rw [h_eq]; exact le_refl l'
+  --     have h_le_mul : Le (mul n k) (mul m l') := ih h_le_k_l'
+  --     exact le_trans (mul n k) (mul m l') (add (mul m l') m) h_le_mul (add_le (mul m l') (mul m l') m (le_refl (mul m l')))
+
   end Mul
 
 end Peano

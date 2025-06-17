@@ -451,6 +451,13 @@ namespace Peano
         have h_lt_a_b_from_ih : Lt (mul k n) (mul k (add n (σ m''))) := ih h_le_1_m_prime_proof
         exact lt_trans (mul k n) (mul k (add n (σ m''))) (add (mul k (add n (σ m''))) k) h_lt_a_b_from_ih h_lt_b_c
 
+  theorem mul_le_mono_right (k : ℕ₀) {n m : ℕ₀} (h_le : Le n m) :
+    Le (mul n k) (mul m k)
+      := by
+    cases (le_iff_exists_add n m).mp h_le with | intro d hd =>
+    rw [hd, mul_rdistr]
+    exact add_le (mul n k) (mul n k) (mul d k) (le_refl (mul n k))
+
   theorem lt_σn_mul_σn_σσm (n m : ℕ₀):
     Lt (σ n) (mul (σ n) (σ (σ m)))
       := by
@@ -561,10 +568,10 @@ namespace Peano
     exact lt_of_lt_of_le (lt_self_σ_self m) h_mul_ge_self
 
   theorem exists_unique_mul_le_and_lt_succ_mul (n m : ℕ₀) (h_n_pos : Lt 𝟘 n) :
-    ∃¹ (k : ℕ₀), Le (mul k n) m ∧ Lt m (mul (σ k) n)
-      := by
-    -- La propiedad que debe cumplir nuestro k.
-    let P (k : ℕ₀) := Le (mul k n) m ∧ Lt m (mul (σ k) n)
+    -- Consideramos el conjunto de múltiplos de n que son mayores que m.
+    let S := { j : ℕ₀ // Lt m (mul j n) }
+
+    -- 1. Este conjunto S no es vacío, por la propiedad de Arquímedes.
 
     -- ======= PARTE 1: EXISTENCIA ========
     -- Usaremos el principio del buen orden.
@@ -573,12 +580,11 @@ namespace Peano
 
     -- 1. Este conjunto S no es vacío, por la propiedad de Arquímedes.
     have h_S_nonempty : ∃ j, j ∈ S := by
-      exact archimedean_property m n h_n_pos
-
-    -- 2. Por el principio del buen orden, S tiene un elemento mínimo.
-    let j := Nat.find h_S_nonempty
-    have h_j_is_in_S : j ∈ S := Nat.find_spec h_S_nonempty
-    have h_j_is_minimal : ∀ j' < j, j' ∉ S := Nat.find_min h_S_nonempty
+      -- Desplegamos la definición de S para h_j_is_in_S
+      -- h_j_is_in_S : Lt m (mul j n)
+      let j := Nat.find h_S_nonempty
+      have h_j_is_in_S : j ∈ S := Nat.find_spec h_S_nonempty
+      have h_j_is_minimal : ∀ j' < j, j' ∉ S := Nat.find_min h_S_nonempty
 
     -- Desplegamos la definición de S para h_j_is_in_S
     unfold S at h_j_is_in_S
@@ -604,9 +610,8 @@ namespace Peano
     exists k
 
     -- Debemos probar P(k), es decir, las dos partes del ∧.
-    constructor
-
-    -- Primera parte de P(k): Le (mul k n) m
+      -- Si k ∉ S, entonces ¬(Lt m (mul k n)).
+      -- Por tricotomía, si no es 'menor que', tiene que ser 'menor o igual que'.
     · -- Como k < j y j es el elemento MÍNIMO de S, k no puede estar en S.
       have h_k_lt_j : Lt k j := by rw [h_j_eq_succ_k]; exact lt_self_σ_self k
       have h_k_not_in_S : k ∉ S := h_j_is_minimal k h_k_lt_j
@@ -639,9 +644,8 @@ namespace Peano
         -- De P(k₂), sabemos que m < mul (σ k₂) n
         have h_m_lt_succ : Lt m (mul (σ k₂) n) := h_P_k₂.right
 
-        -- De h_k2_lt_k1 (k₂ < k₁), sabemos que σ k₂ ≤ k₁.
-        have h_succ_k2_le_k1 : Le (σ k₂) k₁ := (lt_succ_iff_lt_or_eq_alt k₂ k₁).mp h_k2_lt_k1
-
+        have h_mul_le : Le (mul (σ k₂) n) (mul k₁ n) :=
+            mul_le_mono_right n h_succ_k2_le_k1
         -- Como la multiplicación por n > 0 preserva el orden (necesitarás este lema):
         -- σ k₂ ≤ k₁  =>  (σ k₂) * n ≤ k₁ * n
         have h_mul_le : Le (mul (σ k₂) n) (mul k₁ n) := by
@@ -662,7 +666,7 @@ namespace Peano
       -- Sub-objetivo 2: Probar Le k₂ k₁
       · -- La prueba es simétrica a la anterior.
         by_contradiction h_not_le
-        have h_k1_lt_k2 : Lt k₁ k₂ := nle_then_gt k₂ k₁ h_not_le
+        have h_mul_le : Le (mul (σ k₁) n) (mul k₂ n) := mul_le_mono_right n h_succ_k1_le_k2
 
         have h_m_lt_succ : Lt m (mul (σ k₁) n) := h_P_k₁.right
         have h_succ_k1_le_k2 : Le (σ k₁) k₂ := (lt_succ_iff_lt_or_eq_alt k₁ k₂).mp h_k1_lt_k2

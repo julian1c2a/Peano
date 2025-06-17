@@ -1201,6 +1201,46 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       have h_nle_sn_n : ¬(Le (σ n) n) := nle_σn_n n
       exact h_nle_sn_n h_le_sn_n
 
+  theorem lt_0n_then_le_1n (n : ℕ₀) :
+    Lt 𝟘 n → Le 𝟙 n
+      := by
+        intro h_lt_0n
+        unfold Lt at h_lt_0n
+        cases n with
+        | zero =>
+          exact (nlt_n_0 𝟘 h_lt_0n).elim
+        | succ n' =>
+          rw [one]
+          exact (succ_le_succ_iff 𝟘 n').mpr (zero_le n')
+
+  theorem lt_0n_then_le_1n_wp {n : ℕ₀} (h_lt_0n : Lt 𝟘 n):
+    Le 𝟙 n
+      := by
+        exact lt_0n_then_le_1n n h_lt_0n
+
+  theorem lt_nm_then_le_nm (n m: ℕ₀):
+    Lt n m → Le (σ n) m
+      := by
+        intro h_lt_nm
+        unfold Lt at h_lt_nm
+        cases n with
+        | zero =>
+          cases m with
+          | zero => exact (nlt_n_0 𝟘 h_lt_nm).elim
+          | succ m' => exact succ_le_succ_if (zero_le m')
+        | succ n' =>
+          cases m with
+          | zero => exact (nlt_n_0 (σ n') h_lt_nm).elim
+          | succ m' =>
+            have h_le_sn'_m' : Le (σ n') m' := (lt_succ_iff_lt_or_eq_alt (σ n') m').mp h_lt_nm
+            exact succ_le_succ_if h_le_sn'_m'
+
+  theorem lt_nm_then_le_nm_wp {n m: ℕ₀} (h_lt_nm : Lt n m) :
+    Le (σ n) m
+      := by
+        exact lt_nm_then_le_nm n m h_lt_nm
+
+
   end Order
 end Peano
 
@@ -1284,4 +1324,8 @@ export Peano.Order (
   lt_imp_le_wp
   le_succ_then_le
   le_succ_then_le_wp
+  lt_0n_then_le_1n
+  lt_0n_then_le_1n_wp
+  lt_nm_then_le_nm
+  lt_nm_then_le_nm_wp
 )

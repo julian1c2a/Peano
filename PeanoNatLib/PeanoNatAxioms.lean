@@ -144,6 +144,12 @@ namespace Peano
 
   def succ_inj(n m : ℕ₀) := AXIOM_succ_inj n m
 
+  theorem succ_inj_wp {n m : ℕ₀} (h_neq: ¬ n = m) :
+      σ n ≠ σ m
+          := by
+      intro h_eq
+      exact absurd (succ_inj n m h_eq) h_neq
+
   theorem succ_inj_neg :
       ∀ n m : ℕ₀, σ n ≠ σ m → n ≠ m :=
           fun n m h_neq_succ h_eq =>
@@ -760,4 +766,5 @@ export Peano.Axioms (
   isomorph_ρ_Ψ
   isomorph_Λ_ρ
   tau_eq_rho_if_ne_zero
+  succ_inj_wp
 )

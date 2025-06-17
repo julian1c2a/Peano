@@ -27,3 +27,14 @@ lean-toolchain
 .lake-leanpkg
 nppBackup
 /.nppBackup
+txtcopies
+/txtcopies
+txtcopies/PeanoNatAdd.lean.txt
+txtcopies/PeanoNatAxioms.lean.txt
+txtcopies/PeanoNatDiv.lean.txt
+txtcopies/PeanoNatLib.lean.txt
+txtcopies/PeanoNatMaxMin.lean.txt
+txtcopies/PeanoNatMul.lean.txt
+txtcopies/PeanoNatOrder.lean.txt
+txtcopies/PeanoNatStrictOrder.lean.txt
+txtcopies/PeanoNatSub.lean.txt

@@ -1243,8 +1243,6 @@ export Peano.Order (
   nle_then_gt_wp
   gt_then_nle_wp
   le_then_le_succ
-  succ_le_succ_iff
-  succ_le_succ_then
   le_0_succ_then_lt_0_succ_wp
   lt_0_succ_then_le_0_succ_wp
   le_0_succ_iff_lt_0_succ

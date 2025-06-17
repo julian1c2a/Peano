@@ -96,8 +96,9 @@ namespace Peano
           simp [add_l, one, add_zero]
       | succ n' ih =>
           calc
-            add_l 𝟙 (σ n') = σ (add_l 𝟙 n') := by simp [add_l, one, zero_add]
-            _ = σ (σ n') := by rw [ih]
+            add_l 𝟙 (σ n') = σ (add 𝟘 (σ n')) := by simp [add_l, one]
+            _ = σ (σ (add 𝟘 n')) := by rfl
+            _ = σ (σ n') := by simp [zero_add]
 
   theorem add_one_eq_add_l_one (n : ℕ₀) :
     add n 𝟙 = add_l n 𝟙
@@ -623,6 +624,39 @@ theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
         · exact ih
         · exact lt_succ_self (σ (add a p'))
 
+  theorem le_then_exists_add (a b : ℕ₀) :
+    Le a b → ∃ (p : ℕ₀), b = add a p := by
+      intro h_le
+      induction b generalizing a with
+      | zero =>
+        have h_a_eq_zero: a = 𝟘
+          := le_zero_eq_wp h_le
+        exists 𝟘
+        rw [h_a_eq_zero]
+        rw [add_zero]
+      | succ b' ih =>
+        have h_cases :
+            Le a b' ∨ a = σ b'
+                := le_succ_then_le_or_eq a b' h_le
+        cases h_cases with
+        | inl h_a_lt_b' =>
+          obtain ⟨p_val, h_b_prime_eq_add⟩ :
+              ∃ p, b' = add a p
+                  := ih a h_a_lt_b'
+          exists (σ p_val)
+          rw [h_b_prime_eq_add]
+          rw [← add_succ a p_val]
+        | inr h_a_eq_b' =>        -- Case 2: a = b'
+          exists 𝟘
+          rw [h_a_eq_b']
+          rw [add_zero]
+
+  theorem le_then_exists_add_wp {a b : ℕ₀} (h_le_ab: Le a b) :
+    ∃ (p : ℕ₀), b = add a p := by
+      have h_exists_add := le_then_exists_add a b h_le_ab
+      exact h_exists_add
+
+
   theorem lt_then_exists_add_succ (a b : ℕ₀) :
     Lt a b → ∃ (p : ℕ₀), b = add a (σ p) := by
       intro h_lt
@@ -929,6 +963,85 @@ theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
       := by
     exact lt_lt_then_lt_add_compat a b a b h_lt h_lt
 
+  theorem linear_equation_right (a b : ℕ₀) (h_le_ab: Le a b):
+    ∃ (c: ℕ₀), add a c = b ∧ ∀ (c': ℕ₀), add a c' = b → c' = c
+      := by
+    have h_exists_add := le_then_exists_add a b h_le_ab
+    obtain ⟨c, h_eq⟩ := h_exists_add
+    exists c
+    constructor
+    · exact h_eq.symm
+    · intro c' h_eq'
+      have h_add_eq : add a c = add a c' := by
+        rw [← h_eq, h_eq']
+      exact (add_cancelation a c c' h_add_eq).symm
+
+  theorem linear_inequation_left (a b : ℕ₀) (h_le_ab: Le a b):
+    ∃ (c: ℕ₀), Le (add a c) b ∧ ∀ (c': ℕ₀), Le (add a c') b → Le c' c
+      := by
+    have h_exists_add := le_then_exists_add a b h_le_ab
+    obtain ⟨c, h_eq⟩ := h_exists_add
+    exists c
+    constructor
+    · rw [h_eq]
+      exact le_refl (add a c)
+    · intro c' h_le_add_c'_b
+      rw [h_eq] at h_le_add_c'_b
+      have h_comm_c' : Le (add c' a) (add c a) := by
+        rw [add_comm c' a, add_comm c a]
+        exact h_le_add_c'_b
+      exact le_add_r_add_r_then_le c' c a h_comm_c'
+
+  theorem linear_equation_left (a b : ℕ₀) (h_le_ab: Le a b):
+    ∃ (c: ℕ₀), add c a = b ∧ ∀ (c': ℕ₀), add c' a = b → c' = c
+      := by
+    have h_exists_add := le_then_exists_add a b h_le_ab
+    obtain ⟨c, h_eq⟩ := h_exists_add
+    exists c
+    constructor
+    · rw [add_comm c a]
+      exact h_eq.symm
+    · intro c' h_eq'
+      have h_add_eq : add c' a = add c a := by
+        rw [h_eq', h_eq, add_comm c a]
+      exact cancelation_add a c' c h_add_eq
+
+    theorem linear_inequation_right (a b : ℕ₀) (h : Le a b) :
+      ∃ c, Le a (add b c) ∧ ∀ c', Le a (add b c') → Le c c'
+        := by
+      induction b generalizing a with
+      | zero =>
+        have h_a_zero : a = 𝟘 := (le_zero_eq_zero a).mp h
+        exists 𝟘
+        constructor
+        · rw [h_a_zero, add_zero]
+          exact le_refl 𝟘
+        · intro c' h_c'
+          rw [h_a_zero, zero_add] at h_c'
+          exact h_c'
+      | succ b' ih =>
+        cases a with
+        | zero =>
+          exists 𝟘
+          constructor
+          · rw [add_zero]
+            exact zero_le (σ b')
+          · intro c' h_c'
+            exact zero_le c'
+        | succ a' =>
+          have h_le' : Le a' b' := succ_le_succ_then h
+          obtain ⟨c, h_c_eq, h_c_unique⟩ := ih a' h_le'
+          exists c
+          constructor
+          · rw [succ_add]
+            apply (succ_le_succ_iff a' (add b' c)).mpr
+            exact h_c_eq
+          · intro c' h_c'
+            have h_le_a'_add : Le a' (add b' c') := by
+              rw [succ_add] at h_c'
+              exact (succ_le_succ_iff a' (add b' c')).mp h_c'
+            exact h_c_unique c' h_le_a'_add
+
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
 
@@ -1013,4 +1126,10 @@ export Peano.Add(
   le_a_b_then_le_2a_2b_wp
   lt_a_b_then_lt_2a_2b
   lt_a_b_then_lt_2a_2b_wp
+  le_then_exists_add
+  le_then_exists_add_wp
+  linear_equation_right
+  linear_inequation_left
+  linear_equation_left
+  linear_inequation_right
 )

@@ -1,6 +1,20 @@
 -- PeanoNatLib.lean
 -- Este archivo contendrá la definición de ℕ₀ y otras definiciones fundamentales.
 
+def ExistsUnique {α : Type} (p : α → Prop) : Prop :=
+  ∃ x, (p x ∧ (∀ y, (p y → y = x)))
+
+syntax "∃¹ " ident ", " term : term
+syntax "∃¹ " "(" ident ")" ", " term : term
+syntax "∃¹ " "(" ident " : " term ")" ", " term : term
+syntax "∃¹ " ident " : " term ", " term : term
+
+macro_rules
+  | `(∃¹ $x:ident, $p:term) => `(ExistsUnique (fun $x => $p))
+  | `(∃¹ ($x:ident), $p:term) => `(ExistsUnique (fun $x => $p))
+  | `(∃¹ ($x:ident : $t:term), $p:term) => `(ExistsUnique (fun ($x : $t) => $p))
+  | `(∃¹ $x:ident : $t:term, $p:term) => `(ExistsUnique (fun ($x : $t) => $p))
+
 inductive ℕ₀ : Type
   where
   | zero : ℕ₀

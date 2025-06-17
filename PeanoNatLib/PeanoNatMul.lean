@@ -535,10 +535,47 @@ namespace Peano
     rw [←h_mul_n_m] at h_sub_add
     exact h_sub_add.symm
 
+  theorem mul_le_then_exists_max_factor {n m : ℕ₀} (h_le : Le n m) (h_neq_0 : n ≠ 𝟘):
+    ∃ (k : ℕ₀), Le (mul k n) m ∧ ∀ (k' : ℕ₀), Le (mul k' n) m → Le k' k
+      := by
+    induction m with
+    | zero =>
+      have h_n_neq_zero : n ≠ 𝟘 := h_neq_0
+      have h_n_eq_zero : n = 𝟘 := le_zero_eq_wp h_le
+      exact False.elim (h_n_neq_zero h_n_eq_zero)
+    | succ m' ih =>
+      cases n with
+      | zero =>
+        have h_n_neq_zero : 𝟘 ≠ 𝟘 := h_neq_0
+        exact False.elim (h_n_neq_zero rfl)
+      | succ n' =>
+        -- n = σ n', m = σ m'
+        -- n' ≤ m' by h_le
+        -- ih : Le n m' → ∃ k, Le (k*n) m' ∧ ∀ (k' : ℕ₀), Le (k'*n) m' → Le k' k
+        -- ih : Le σn' m' → ∃ k, Le (k*σn') m' ∧ ∀ (k' : ℕ₀), Le (k'*σn') m' → Le k' k
+        -- go : Le σn' σm' → ∃ k, Le (k*σn') σm' ∧ ∀ (k' : ℕ₀), Le (k'*σn') σm' → Le k' k
+        have h_le_n_m' : Le (σ n') m' := by
+          cases h_le with
+          | inl h_lt =>
+            -- h_lt : Lt (σ n') (σ m'), so n' < m'
+            have h_lt_n_m' : Lt n' m' := succ_lt_succ_inv h_lt
+            exact lt_imp_le h_lt_n_m'
+          | inr h_eq => exact Or.inr h_lt
+        have ⟨k, h_le_k_n, h_max⟩ := ih h_le_n_m' (succ_neq_zero n')
+        exact
+          ⟨   k,
+              le_refl (mul k.val n'), fun k' h_le_k'_n =>
+              have h_le_k'_n' : Le (mul k'.val n) m' := by
+                rw [mul_comm k'.val n]
+                exact h_le_k'_n
+              have h_k'_le_k : Le k'.val k.val := h_max k' h_le_k'_n'
+              h_k'_le_k
+          ⟩
+
   -- theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_le_k_l : Le k l) :
   --   Le (mul n k) (mul m l)
   --     := by
-  --   induction l with
+  --   induction l generalizing k with
   --   | zero =>
   --     rw [mul_zero]
   --     have h_k_eq_zero : k = 𝟘 := by
@@ -556,11 +593,16 @@ namespace Peano
   --       | zero => exact zero_le l'
   --       | succ k' =>
   --         have h_succ_le_succ : Le (σ k') (σ l') := h_le_k_l
-  --         have h_lt_or_eq : Lt k' l' ∨ k' = l' := succ_le_succ_iff_wp h_succ_le_succ
-  --         cases h_lt_or_eq with
-  --         | inl h_lt =>
-  --           exact lt_succ_then_le h_lt
-  --         | inr h_eq => rw [h_eq]; exact le_refl l'
+  --         have h_le_k'_l' : Le k' l' := by
+  --           cases h_succ_le_succ with
+  --           | inl h_eq =>
+  --             have h_k'_eq_l' : k' = l' := succ_inj h_eq
+  --             rw [h_k'_eq_l']
+  --             exact le_refl l'
+  --           | inr h_lt =>
+  --             have h_lt_k'_l' : Lt k' l' := succ_lt_succ_inv h_lt
+  --             exact lt_imp_le h_lt_k'_l'
+  --         exact le_succ_trans h_le_k'_l'
   --     have h_le_mul : Le (mul n k) (mul m l') := ih h_le_k_l'
   --     exact le_trans (mul n k) (mul m l') (add (mul m l') m) h_le_mul (add_le (mul m l') (mul m l') m (le_refl (mul m l')))
 

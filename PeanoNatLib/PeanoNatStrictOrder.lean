@@ -1167,6 +1167,68 @@ namespace StrictOrder
                 | succ b' =>
                     exact False.elim (lt_zero b' h_lt_b_1)
 
+  theorem neq_0_then_lt_0 {n : ℕ₀} (h_neq : n ≠ 𝟘) :
+        Lt 𝟘 n
+            := by
+                cases n with
+                | zero =>
+                    exact False.elim (h_neq rfl)
+                | succ _ =>
+                    unfold Lt
+                    trivial
+
+  theorem lt_0_then_neq_0 {n : ℕ₀} (h_lt : Lt 𝟘 n) :
+        n ≠ 𝟘
+            := by
+                cases n with
+                | zero =>
+                    exact False.elim h_lt
+                | succ _ =>
+                    intro h_eq
+                    cases h_eq
+
+  theorem lt_then_lt_σ_σ_wp {n m : ℕ₀} (h_lt_nm : Lt n m) :
+        Lt (σ n) (σ m)
+            := by
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_nm
+                        exact False.elim h_lt_nm
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_nm
+                        exact False.elim h_lt_nm
+                    | succ m' =>
+                        unfold Lt at h_lt_nm
+                        exact ih_n' h_lt_nm
+
+  theorem lt_σ_σ_then_lt_wp {n m : ℕ₀} (h_lt_nm : Lt (σ n) (σ m)) :
+        Lt n m
+            := by
+                induction n generalizing m with
+                | zero =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_nm
+                        exact False.elim h_lt_nm
+                    | succ m' =>
+                        unfold Lt
+                        trivial
+                | succ n' ih_n' =>
+                    cases m with
+                    | zero =>
+                        unfold Lt at h_lt_nm
+                        exact False.elim h_lt_nm
+                    | succ m' =>
+                        unfold Lt at h_lt_nm
+                        exact ih_n' h_lt_nm
+
   end StrictOrder
 end Peano
 
@@ -1234,4 +1296,8 @@ export Peano.StrictOrder (
     lt_trans_wp
     lt_asymm_wp
     lt_b_1_then_b_eq_0
+    neq_0_then_lt_0
+    lt_0_then_neq_0
+    lt_then_lt_σ_σ_wp
+    lt_σ_σ_then_lt_wp
 )

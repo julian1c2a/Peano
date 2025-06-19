@@ -1255,9 +1255,8 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
   theorem ngt_then_le (n m : ℕ₀) :
     ¬ Le n m → Lt m n
       := by
-      intro h_ngt_nm
-      rw [nle_iff_gt] at h_ngt_nm
-      exact h_ngt_nm
+      intro h_nle_nm
+      exact nle_then_gt n m h_nle_nm
 
   theorem ngt_then_le_wp {n m : ℕ₀} (h_ngt_nm : ¬(Le n m)) :
     Lt m n
@@ -1319,6 +1318,76 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
           | succ m' =>
             have h_le_n'_m' : Le n' m' := (le_iff_lt_succ n' m').mpr h_lt_nm
             exact (succ_le_succ_iff n' m').mpr h_le_n'_m'
+
+
+  theorem well_ordering_principle {P : ℕ₀ → Prop} (h_nonempty : ∃ n, P n) :
+    ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m :=
+  by
+    let Q := fun (n : ℕ₀) => (∃ k, Le k n ∧ P k) → (∃ k, P k ∧ ∀ m, Lt m k → ¬ P m)
+    have h_Q_n : ∀ n, Q n := by
+      intro n
+      induction n with
+      | zero =>
+        intro h_exists_le_zero
+        cases h_exists_le_zero with | intro k hk =>
+        have h_k_eq_zero : k = 𝟘 := le_zero_eq_wp hk.left
+        exists 𝟘
+        constructor
+        · rw [←h_k_eq_zero]; exact hk.right
+        · intro m hm_lt_zero
+          exfalso
+          exact lt_zero m hm_lt_zero
+      | succ n' ih =>
+        intro h_exists_le_succ
+        cases h_exists_le_succ with
+        | intro k hk =>
+          cases hk.left with
+          | inl h_k_lt_succ_n' =>
+            have h_k_le_n' : Le k n' := lt_then_le_succ_wp h_k_lt_succ_n'
+            apply ih
+            exists k; exact ⟨h_k_le_n', hk.right⟩
+          | inr h_k_eq_succ_n' =>
+            by_cases h_exists_le_n' : (∃ k', Le k' n' ∧ P k')
+            · exact ih h_exists_le_n'
+            · exists (σ n')
+              constructor
+              · rw [←h_k_eq_succ_n']; exact hk.right
+              · intro m hm_lt_succ_n'
+                have h_m_le_n' : Le m n' := lt_then_le_succ_wp hm_lt_succ_n'
+                intro h_P_m
+                exact h_exists_le_n' ⟨m, ⟨h_m_le_n', h_P_m⟩⟩
+    cases h_nonempty with
+    | intro j h_P_j =>
+      have h_exists_le_j : ∃ k, Le k j ∧ P k := by
+        exists j; exact ⟨le_refl j, h_P_j⟩
+      exact (h_Q_n j) h_exists_le_j
+
+
+  theorem ngt_iff_le {n m : ℕ₀} :
+    ¬(Lt n m) ↔ Le m n
+      := by
+        constructor
+        · intro h_nlt_nm
+          -- We use trichotomy: either n < m, n = m, or m < n
+          cases trichotomy n m with
+          | inl h_lt_nm =>
+              contradiction
+          | inr h_cases =>
+              cases h_cases with
+              | inl h_eq_nm =>
+                  rw [h_eq_nm]
+                  exact le_refl m
+              | inr h_lt_mn =>
+                  exact Or.inl h_lt_mn
+        · intro h_le_mn
+          intro h_lt_nm
+          have h_not_le_mn := gt_then_nle n m h_lt_nm
+          contradiction
+
+  theorem ngt_iff_le_wp {n m : ℕ₀} (h_ngt : ¬(Lt n m)) :
+    Le m n
+      := by
+        exact ngt_iff_le.mp h_ngt
 
 
   end Order
@@ -1416,4 +1485,7 @@ export Peano.Order (
   le_succ_then_lt_wp
   lt_then_le_succ
   lt_then_le_succ_wp
+  well_ordering_principle
+  ngt_iff_le
+  ngt_iff_le_wp
 )

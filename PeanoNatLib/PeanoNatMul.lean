@@ -622,8 +622,6 @@ namespace Peano
           exact h_j_is_minimal (σ k') h_sk'_lt_j h_P_sk'
       exact le_antisymm k' k h_le_k'_k h_le_k_k'
 
-
-
   theorem mul_le_then_exists_max_factor {n m : ℕ₀} (h_neq_0 : n ≠ 𝟘):
     ∃ (k : ℕ₀), Le (mul k n) m ∧ ∀ (k' : ℕ₀), Le (mul k' n) m → Le k' k
       := by

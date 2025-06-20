@@ -15,6 +15,32 @@ macro_rules
   | `(∃¹ ($x:ident : $t:term), $p:term) => `(ExistsUnique (fun ($x : $t) => $p))
   | `(∃¹ $x:ident : $t:term, $p:term) => `(ExistsUnique (fun ($x : $t) => $p))
 
+/--
+  Expresses that there exists an element `x` satisfying predicate `P`,
+  and for any element `y` also satisfying `P`, `y` is related to `x` by `R y x`.
+
+  This can be interpreted as `x` being a "right-maximal" or "R-sink"
+  element among those satisfying `P`. If `R` is equality, this definition
+  becomes equivalent to the standard `ExistsUnique P`.
+
+  The proposition is: `∃ x, (P x ∧ (∀ y, P y → R y x))`.
+--/
+def ExistsUniqueRel {α : Type} {y z : α} (R : α → α → α → α → Prop) (P : α → α → α → Prop) :
+    Prop :=
+      ∃ x, ((P x y z) ∧ (∀ x', (P x' y z) → (R x x' y z)))
+
+-- Notation for ExistsUniqueRel: ∃¹ [R] x, p (where [R] is a dependence for the cuantifier ∃¹)
+syntax "∃¹" "[" term "]" ident ", " term : term
+syntax "∃¹" "[" term "]" "(" ident ")" ", " term : term
+syntax "∃¹" "[" term "]" "(" ident " : " term ")" ", " term : term
+syntax "∃¹" "[" term "]" ident " : " term ", " term : term
+
+macro_rules
+  | `(∃¹ [$R_spec] $x:ident, $p:term) => `(ExistsUniqueRel $R_spec (fun $x => $p))
+  | `(∃¹ [$R_spec] ($x:ident), $p:term) => `(ExistsUniqueRel $R_spec (fun $x => $p))
+  | `(∃¹ [$R_spec] ($x:ident : $t:term), $p:term) => `(ExistsUniqueRel $R_spec (fun ($x : $t) => $p))
+  | `(∃¹ [$R_spec] $x:ident : $t:term, $p:term) => `(ExistsUniqueRel $R_spec (fun ($x : $t) => $p))
+
 inductive ℕ₀ : Type
   where
   | zero : ℕ₀

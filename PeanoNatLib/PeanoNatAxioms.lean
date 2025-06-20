@@ -157,6 +157,11 @@ namespace Peano
                   := congrArg ℕ₀.succ h_eq
               absurd h_succ_eq h_neq_succ
 
+  theorem succ_inj_pos_wp {n m : ℕ₀} (h_succeq: σ n = σ m) :
+      n = m
+          := by
+      exact AXIOM_succ_inj n m h_succeq
+
   /--!
       AXIOMA DE PEANO:
           0 NO ES SUCESOR DE NINGÚN NÚMERO NATURAL.
@@ -767,4 +772,5 @@ export Peano.Axioms (
   isomorph_Λ_ρ
   tau_eq_rho_if_ne_zero
   succ_inj_wp
+  succ_inj_pos_wp
 )

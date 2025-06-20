@@ -570,59 +570,37 @@ namespace Peano
   theorem exists_unique_mul_le_and_lt_succ_mul (n m : ℕ₀) (h_n_pos : Lt 𝟘 n) :
     ∃¹ k : ℕ₀, Le (mul k n) m ∧ Lt m (mul (σ k) n)
       := by
-    -- This proof relies on the well-ordering of ℕ₀, which states that any non-empty
-    -- set of natural numbers has a least element.
-    -- Let P(j) be the property that m < j * n.
     let P := fun (j : ℕ₀) => Lt m (mul j n)
-    -- By the Archimedean property, the set of numbers satisfying P is non-empty.
     have h_P_nonempty : ∃ j, P j := archimedean_property m h_n_pos
-
-    -- By well-ordering, there is a smallest j satisfying P.
-    -- We assume a theorem `well_ordering_principle` is available from imports.
     obtain ⟨j, h_j_is_P, h_j_is_minimal⟩ : ∃ j, P j ∧ ∀ i, Lt i j → ¬ P i :=
       well_ordering_principle h_P_nonempty
-
-    -- This minimal j cannot be 0, because m < 0 * n = 0 is impossible.
     have h_j_neq_zero : j ≠ 𝟘 := by
       intro h_j_zero
       rw [h_j_zero] at h_j_is_P
       simp [zero_mul, P] at h_j_is_P
       exact lt_zero m h_j_is_P
-
-    -- Let k be the predecessor of j.
     let k := τ j
     have h_j_eq_succ_k : j = σ k := (σ_τ_eq_id_pos_forall j h_j_neq_zero).symm
-
-    -- We claim this k is the unique value we are looking for.
     exists k
     constructor
     · -- Existence: Show (k * n ≤ m) ∧ (m < (σ k) * n)
       constructor
       · -- Show k * n ≤ m
-        -- Since k < j and j is minimal, P(k) must be false.
         have h_k_lt_j : Lt k j := by rw [h_j_eq_succ_k]; exact lt_succ_self k
         have h_not_Pk : ¬ P k := h_j_is_minimal k h_k_lt_j
-        -- ¬ P(k) is ¬(m < k * n), which means k * n ≤ m.
-        -- Convert ¬(m < k * n) to k * n ≤ m
         have h_not_lt_impl_le : ¬(Lt m (mul k n)) → Le (mul k n) m := by
           intro h
           have ngt_le : ¬Lt m (mul k n) ↔ Le (mul k n) m := ngt_iff_le
           exact ngt_le.mp h
         exact h_not_lt_impl_le h_not_Pk
       · -- Show m < (σ k) * n
-        -- This is exactly P(j), since j = σ k.
         rw [← h_j_eq_succ_k]
         exact h_j_is_P
     · -- Uniqueness: Show that if k' also works, then k' = k.
       intro k' h_k'_property
-      -- h_k'_property : Le (k'*n) m ∧ Lt m (σ k'*n)
       have h_k'_le : Le (mul k' n) m := h_k'_property.left
       have h_m_lt : Lt m (mul (σ k') n) := h_k'_property.right
-
-      -- Show k' = k by proving both k' ≤ k and k ≤ k'
       have h_le_k'_k : Le k' k := by
-        -- Suppose k < k', then σ k ≤ k', so (σ k) * n ≤ k' * n ≤ m
-        -- But we have m < (σ k) * n, contradiction
         by_cases h : Le k' k
         · exact h
         · exfalso
@@ -632,10 +610,7 @@ namespace Peano
           have h_lt_sk : Lt m (mul (σ k) n) := by rw [← h_j_eq_succ_k]; exact h_j_is_P
           have h_m_lt_m : Lt m m := lt_of_lt_of_le h_lt_sk (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_k'_le)
           exact lt_irrefl m h_m_lt_m
-
       have h_le_k_k' : Le k k' := by
-        -- Suppose k' < k, then σ k' < σ k = j
-        -- But we have P(σ k') which contradicts minimality of j
         by_cases h : Le k k'
         · exact h
         · exfalso
@@ -645,8 +620,9 @@ namespace Peano
             exact lt_then_lt_σ_σ_wp h_k'_lt_k
           have h_P_sk' : P (σ k') := h_m_lt
           exact h_j_is_minimal (σ k') h_sk'_lt_j h_P_sk'
-
       exact le_antisymm k' k h_le_k'_k h_le_k_k'
+
+
 
   theorem mul_le_then_exists_max_factor {n m : ℕ₀} (h_neq_0 : n ≠ 𝟘):
     ∃ (k : ℕ₀), Le (mul k n) m ∧ ∀ (k' : ℕ₀), Le (mul k' n) m → Le k' k
@@ -676,39 +652,33 @@ namespace Peano
         have h_m_lt_m : Lt m m := lt_of_lt_of_le h_lt_m_mul_sk_n (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_le_mul_k'_m)
         exact False.elim (lt_irrefl m h_m_lt_m)
 
-  -- theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_le_k_l : Le k l) :
-  --   Le (mul n k) (mul m l)
+  theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_le_k_l : Le k l):
+    Le (mul n k) (mul m l)
+      := by
+    have h_le_nk_mk : Le (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
+    have h_le_mk_ml : Le (mul m k) (mul m l) := by
+      rw [mul_comm m k, mul_comm m l]
+      exact mul_le_mono_right m h_le_k_l
+    exact le_trans (mul n k) (mul m k) (mul m l) h_le_nk_mk h_le_mk_ml
+
+  -- theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘):
+  --   Lt (mul n k) (mul m l)
   --     := by
-  --   induction l generalizing k with
-  --   | zero =>
-  --     rw [mul_zero]
-  --     have h_k_eq_zero : k = 𝟘 := by
-  --       cases k with
-  --       | zero => rfl
-  --       | succ k' =>
-  --         have h_succ_le_zero : Le (σ k') 𝟘 := h_le_k_l
-  --         exact False.elim (le_succ_0_then_false k' h_succ_le_zero)
-  --     rw [h_k_eq_zero, mul_zero]
-  --     exact le_refl 𝟘
-  --   | succ l' ih =>
-  --     rw [mul_succ]
-  --     have h_le_k_l' : Le k l' := by
-  --       cases k with
-  --       | zero => exact zero_le l'
-  --       | succ k' =>
-  --         have h_succ_le_succ : Le (σ k') (σ l') := h_le_k_l
-  --         have h_le_k'_l' : Le k' l' := by
-  --           cases h_succ_le_succ with
-  --           | inl h_eq =>
-  --             have h_k'_eq_l' : k' = l' := succ_inj h_eq
-  --             rw [h_k'_eq_l']
-  --             exact le_refl l'
-  --           | inr h_lt =>
-  --             have h_lt_k'_l' : Lt k' l' := succ_lt_succ_inv h_lt
-  --             exact lt_imp_le h_lt_k'_l'
-  --         exact le_succ_trans h_le_k'_l'
-  --     have h_le_mul : Le (mul n k) (mul m l') := ih h_le_k_l'
-  --     exact le_trans (mul n k) (mul m l') (add (mul m l') m) h_le_mul (add_le (mul m l') (mul m l') m (le_refl (mul m l')))
+  --   have h_le_n_m : Le n m := lt_imp_le_wp h_lt_n_m
+  --   have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
+  --   have h_le_mul_nk_mk : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
+  --   have h_lt_nk_mk : Lt (mul n k) (mul m k) := by
+  --     -- Use the fact that Lt is defined in terms of Le with strict inequality
+  --     -- Since n < m, there exists d such that m = n + σ d
+  --     have h_exists_d : ∃ d, m = add n (σ d) := lt_then_exists_add_succ_wp h_lt_n_m
+  --     obtain ⟨d, hd⟩ := h_exists_d
+  --     rw [hd, mul_rdistr]
+  --     -- We need Lt (mul n k) (add (mul n k) (mul (σ d) k))
+  --     -- Since k ≠ 0 and σ d ≠ 0, we have mul (σ d) k ≠ 0
+  --     have h_mul_sd_k_neq_0 : mul (σ d) k ≠ 𝟘 := by
+  --       apply mul_eq_zero_wp (succ_neq_zero d) h_k_neq_0
+  --     exact lt_add_pos (mul n k) (mul (σ d) k) h_mul_sd_k_neq_0
+  --   exact lt_of_lt_of_le h_lt_nk_mk h_le_mk_ml
 
   end Mul
 
@@ -745,5 +715,4 @@ export Peano.Mul(
   archimedean_property
   exists_unique_mul_le_and_lt_succ_mul
   mul_le_then_exists_max_factor
-
 )

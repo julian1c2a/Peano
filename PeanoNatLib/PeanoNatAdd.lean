@@ -684,6 +684,11 @@ theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
           rw [add_succ b' 𝟘]
           rw [add_zero b']
 
+  theorem lt_then_exists_add_succ_wp {a b : ℕ₀} (h_lt_ab: Lt a b) :
+    ∃ (p : ℕ₀), b = add a (σ p) := by
+      have h_exists_add := lt_then_exists_add_succ a b h_lt_ab
+      exact h_exists_add
+
   theorem le_iff_exists_add (a b: ℕ₀) :
       (Le a b) ↔ (∃ (p : ℕ₀), b = add a p)
       := by
@@ -1042,6 +1047,15 @@ theorem τadd_n_m_eq_add_τn_m (n m : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) :
               exact (succ_le_succ_iff a' (add b' c')).mp h_c'
             exact h_c_unique c' h_le_a'_add
 
+  theorem lt_add_pos {a b : ℕ₀} (h_b_pos : b ≠ 𝟘) :
+      Lt a (add a b)
+          := by
+      cases b with
+      | zero => exact False.elim (h_b_pos rfl)
+      | succ b' =>
+        rw [add_succ]
+        exact lt_n_add_n_σm a b'
+
   notation a "+" b => Peano.Add.add a b
   notation a "+l" b => Peano.Add.add_l a b
 
@@ -1132,4 +1146,6 @@ export Peano.Add(
   linear_inequation_left
   linear_equation_left
   linear_inequation_right
+  lt_then_exists_add_succ_wp
+  lt_add_pos
 )

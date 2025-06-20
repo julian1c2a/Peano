@@ -893,6 +893,11 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
         | succ m' =>
           exact succ_neq_zero m'
 
+  theorem le_1_m_then_m_neq_0_wp {m : ℕ₀} (h_le_1: Le 𝟙 m) :
+      m ≠ 𝟘
+          := by
+      exact le_1_m_then_m_neq_0 m h_le_1
+
   theorem m_neq_0_proved_lt_1_m {m : ℕ₀} (h : Le 𝟙 m) :
     m ≠ 𝟘
     := by
@@ -1389,6 +1394,17 @@ theorem BGe_iff_Ge (n m : ℕ₀) :
       := by
         exact ngt_iff_le.mp h_ngt
 
+  theorem le_succ_trans {k l' : ℕ₀} (h : Le k l') :
+      Le (σ k) (σ l')
+          := by
+    cases h with
+    | inl h_lt =>
+      -- Si k < l', entonces σ k < σ l'
+      exact lt_imp_le (σ k) (σ l') ((lt_iff_lt_σ_σ k l').mp h_lt)
+    | inr h_eq =>
+      -- Si k = l', entonces σ k = σ l'
+      rw [h_eq]
+      exact le_refl (σ l')
 
   end Order
 end Peano
@@ -1488,4 +1504,6 @@ export Peano.Order (
   well_ordering_principle
   ngt_iff_le
   ngt_iff_le_wp
+  le_succ_trans
+  le_1_m_then_m_neq_0_wp
 )

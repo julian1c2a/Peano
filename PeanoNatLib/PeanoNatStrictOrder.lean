@@ -9,7 +9,7 @@ namespace Peano
       open Peano
       open Peano.Axioms
 
-namespace StrictOrder
+  namespace StrictOrder
     open StrictOrder
 
     def Lt (n m : ℕ₀) : Prop :=
@@ -24,21 +24,21 @@ namespace StrictOrder
                 intro h_n_lt_m
                 induction n generalizing m with
                 | zero =>
-                    cases m with
-                    | zero =>
-                        unfold Lt at h_n_lt_m
-                        exact False.elim h_n_lt_m
-                    | succ m' =>
-                        unfold Lt
-                        trivial
+                  cases m with
+                  | zero =>
+                      unfold Lt at h_n_lt_m
+                      exact False.elim h_n_lt_m
+                  | succ m' =>
+                      unfold Lt
+                      trivial
                 | succ n' ih_n' =>
-                    cases m with
-                    | zero =>
-                        unfold Lt at h_n_lt_m
-                        exact False.elim h_n_lt_m
-                    | succ m' =>
-                        unfold Lt at h_n_lt_m
-                        exact ih_n' m' h_n_lt_m
+                  cases m with
+                  | zero =>
+                      unfold Lt at h_n_lt_m
+                      exact False.elim h_n_lt_m
+                  | succ m' =>
+                      unfold Lt at h_n_lt_m
+                      exact ih_n' m' h_n_lt_m
 
     theorem lt_then_lt_succ_wp {n m : ℕ₀} (h_lt : Lt n m):
         Lt n (σ m)
@@ -263,6 +263,34 @@ namespace StrictOrder
           | succ m' =>
             simp [Lt] at *
             exact ih_n' m' h_n_lt_m
+
+    theorem lt_succ_then_lt (n m : ℕ₀) :
+      Lt (σ n) m → Lt n m
+        := by
+      intro h_lt_σn_m
+      induction n generalizing m with
+      | zero =>
+        cases m with
+        | zero =>
+          -- h_lt_σn_m : Lt (σ 𝟘) 𝟘, but Lt (σ 𝟘) 𝟘 = False
+          unfold Lt at h_lt_σn_m
+          exact False.elim h_lt_σn_m
+        | succ m' =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+        cases m with
+        | zero =>
+            unfold Lt at h_lt_σn_m
+            exact False.elim h_lt_σn_m
+        | succ m' =>
+            unfold Lt at h_lt_σn_m
+            exact ih_n' m' h_lt_σn_m
+
+    theorem lt_succ_then_lt_wp {n m : ℕ₀} (h_lt_σn_m : Lt (σ n) m) :
+      Lt n m
+        := by
+      exact lt_succ_then_lt n m h_lt_σn_m
 
     theorem succ_lt_succ_iff (n m : ℕ₀) :
       Lt (σ n) (σ m) ↔ Lt n m
@@ -1300,4 +1328,6 @@ export Peano.StrictOrder (
     lt_0_then_neq_0
     lt_then_lt_σ_σ_wp
     lt_σ_σ_then_lt_wp
+    lt_succ_then_lt
+    lt_succ_then_lt_wp
 )

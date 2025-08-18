@@ -659,6 +659,56 @@ namespace Peano
         exact mul_le_mono_right m h_le_k_l
       exact le_trans (mul n k) (mul m k) (mul m l) h_le_nk_mk h_le_mk_ml
 
+        theorem mul_pos {n m : ℕ₀} (h_n_pos : Lt 𝟘 n) (h_m_pos : Lt 𝟘 m) : Lt 𝟘 (mul n m) := by
+      have h_n_neq_0 : n ≠ 𝟘 := lt_0_then_neq_0 h_n_pos
+      have h_m_neq_0 : m ≠ 𝟘 := lt_0_then_neq_0 h_m_pos
+      exact neq_0_then_lt_0 (mul_eq_zero_wp h_n_neq_0 h_m_neq_0)
+
+    theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
+      Lt (mul n k) (mul m l)
+        := by
+      have h_m_neq_0 : m ≠ 𝟘 := lt_0_then_neq_0 (lt_trans n 𝟘 m (neq_0_then_lt_0 h_n_neq_0) h_lt_n_m)
+      have h_l_neq_0 : l ≠ 𝟘 := lt_0_then_neq_0 (lt_trans k 𝟘 l (neq_0_then_lt_0 h_k_neq_0) h_lt_k_l)
+
+      have h_nk_lt_mk : Lt (mul n k) (mul m k) := by
+        cases (lt_iff_exists_add_succ n m).mp h_lt_n_m with | intro d hd =>
+        rw [hd, mul_rdistr]
+        apply lt_add_of_pos_right
+        have h_k_pos : Lt 𝟘 k := neq_0_then_lt_0 h_k_neq_0
+        have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+        exact mul_pos h_d_pos h_k_pos
+
+      have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
+        cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
+        rw [hd, mul_ldistr]
+        apply lt_add_of_pos_right
+        have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
+        have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+        exact mul_pos h_m_pos h_d_pos
+
+      exact lt_trans (mul n k) (mul m k) (mul m l) h_nk_lt_mk h_mk_lt_ml
+
+    theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
+      Lt (mul n k) (mul m l)
+        := by
+      have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
+      have h_le_mul_compat : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
+      have h_l_neq_0 : l ≠ 𝟘 := lt_0_then_neq_0 (lt_trans k 𝟘 l (neq_0_then_lt_0 h_k_neq_0) h_lt_k_l)
+      have h_m_neq_0 : m ≠ 𝟘 := le_n_m_then_m_neq_0 n m h_n_neq_0 h_le_n_m
+      have h_neq : mul n k ≠ mul m l := by
+        intro h_eq
+        have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
+          cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
+          rw [hd, mul_ldistr]
+          apply lt_add_of_pos_right
+          have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
+          have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+          exact mul_pos h_m_pos h_d_pos
+        have h_nk_le_mk : Le (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
+        have h_lt : Lt (mul n k) (mul m l) := lt_of_lt_of_le h_nk_le_mk h_mk_lt_ml
+        exact (lt_then_neq (mul n k) (mul m l) h_lt) h_eq
+      exact lt_of_le_of_ne h_le_mul_compat h_neq
+
     theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
       Lt (mul n k) (mul m l)
         := by
@@ -667,59 +717,28 @@ namespace Peano
       have h_l_neq_0 : l ≠ 𝟘 := by
         intro h_l_zero
         rw [h_l_zero] at h_lt_k_l
-        have h_k_lt_zero : Lt k 𝟘 := h_lt_k_l
-        exact lt_zero k h_k_lt_zero
+        exact lt_zero k h_lt_k_l
       have h_m_neq_0 : m ≠ 𝟘 := by
         intro h_m_zero
         rw [h_m_zero] at h_le_n_m
-        have h_n_is_zero : n = 𝟘 := le_zero_then_eq_zero_wp h_le_n_m
-        exact h_n_neq_0 h_n_is_zero
+        cases h_le_n_m with
+        | inl h_lt => exact lt_zero n h_lt
+        | inr h_eq => exact h_n_neq_0 h_eq
       have h_neq : mul n k ≠ mul m l := by
         intro h_eq
-        cases (le_iff_lt_or_eq n m).mp h_le_n_m with
-        | inl h_n_lt_m =>
-          have h_nk_le_nl : Le (mul n k) (mul n l) := mul_le_mono_right n h_le_k_l
-          have h_nl_lt_ml : Lt (mul n l) (mul m l) := mul_lt_mono_left l h_n_lt_m (neq_0_then_lt_0 h_l_neq_0)
-          have h_lt : Lt (mul n k) (mul m l) := lt_of_le_of_lt h_nk_le_nl h_nl_lt_ml
-          exact ne_of_lt h_lt h_eq
-        | inr h_n_eq_m =>
-          rw [h_n_eq_m] at h_eq
-          have h_k_eq_l : k = l := mul_cancelation_left m k l h_m_neq_0 h_eq
-          exact ne_of_lt h_lt_k_l h_k_eq_l
+        -- If mul n k = mul m l, then since k < l and l ≠ 0, mul m k < mul m l by monotonicity
+        have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
+          induction m with
+          | zero => exfalso; exact h_m_neq_0 rfl
+          | succ m' ih =>
+            rw [succ_mul, succ_mul]
+            exact StrictOrder.lt_add_of_lt_of_le (ih) h_lt_k_l
+        -- Since n ≤ m, mul n k ≤ mul m k
+        have h_nk_le_mk : Le (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
+        -- So mul n k ≤ mul m k < mul m l, but mul n k = mul m l, contradiction
+        have h_lt : Lt (mul n k) (mul m l) := le_lt_trans (mul n k) (mul m k) (mul m l) h_nk_le_mk h_mk_lt_ml
+        exact ne_of_lt h_lt h_eq
       exact lt_of_le_and_ne h_le_mul_compat h_neq
-
-    theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
-      Lt (mul n k) (mul m l)
-        := by
-      have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
-      have h_le_mul_compat : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
-      have h_lt_0_l : l ≠ 𝟘 := by
-        intro h_l_zero
-        rw [h_l_zero] at h_lt_k_l
-        exact lt_zero k h_lt_k_l
-      have h_lt_0_m : m ≠ 𝟘 := by
-        intro h_m_zero
-        rw [h_m_zero] at h_le_n_m
-        sorry
-      have h_neq : mul n k ≠ mul m l := by sorry -- This needs a proof, possibly using the uniqueness of multiplication.
-      sorry -- The final step would be to use the above to conclude that the multiplication is strictly less.
-
-    theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
-      Lt (mul n k) (mul m l)
-        := by
-      have h_le_n_m : Le n m := lt_imp_le_wp h_lt_n_m
-      have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
-      have h_le_mul_compat : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
-      have h_lt_0_l : l ≠ 𝟘 := by
-        intro h_l_zero
-        rw [h_l_zero] at h_lt_k_l
-        exact lt_zero k h_lt_k_l
-      have h_lt_0_m : m ≠ 𝟘 := by
-        intro h_m_zero
-        rw [h_m_zero] at h_lt_n_m
-        exact lt_zero n h_lt_n_m
-      have h_neq : mul n k ≠ mul m l := by sorry
-      sorry
 
 
   end Mul

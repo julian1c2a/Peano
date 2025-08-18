@@ -1,3 +1,5 @@
+import Init.Classical
+
 -- PeanoNatLib.lean
 -- Este archivo contendrá la definición de ℕ₀ y otras definiciones fundamentales.
 
@@ -40,6 +42,69 @@ macro_rules
   | `(∃¹ [$R_spec] ($x:ident), $p:term) => `(ExistsUniqueRel $R_spec (fun $x => $p))
   | `(∃¹ [$R_spec] ($x:ident : $t:term), $p:term) => `(ExistsUniqueRel $R_spec (fun ($x : $t) => $p))
   | `(∃¹ [$R_spec] $x:ident : $t:term, $p:term) => `(ExistsUniqueRel $R_spec (fun ($x : $t) => $p))
+
+-- PeanoNatLib/PeanoNatLib.lean
+--
+-- Este fichero contiene axiomas y definiciones no constructivas,
+-- como el axioma de elección y la función `choose`.
+-- Esto permite trabajar con existencia no constructiva de una manera
+-- controlada, sin necesidad de importar la librería `Classical` de Lean.
+--
+
+-- El axioma de elección, formulado para devolver un elemento de un subtipo.
+-- Dado un predicado `p` y una prueba de que el conjunto de elementos
+-- que cumplen `p` no es vacío, este axioma nos da un término de tipo `α`
+-- que cumple `p`, junto con la prueba de que lo cumple.
+/--
+  A partir de una prueba de existencia `h: ∃ x, p x`, `choose h` devuelve
+  un elemento `x` que cumple `p`.
+-/
+noncomputable def choose {α : Type} {p : α → Prop} (h : ∃ x, p x) : α :=
+  (Classical.indefiniteDescription p h).val
+
+/--
+  El teorema de especificación para `choose`.
+  Garantiza que el elemento devuelto por `choose` realmente cumple la propiedad.
+-/
+theorem choose_spec {α : Type} {p : α → Prop} (h : ∃ x, p x) : p (choose h) :=
+  (Classical.indefiniteDescription p h).property
+
+def ExistsUnique.exists {α : Type} {p : α → Prop} (h : ExistsUnique p) : (∃ x, p x) := by
+  cases h with
+  | intro x hx =>
+    exact ⟨x, hx.left⟩
+
+-- Utilidades para `ExistsUnique` basadas en `choose` y `choose_spec`.
+
+  /--
+    A partir de una prueba de existencia única `h: ∃¹ x, p x`, `h.choose`
+    devuelve el único elemento `x` que cumple `p`.
+  -/
+  noncomputable def choose_unique {α : Type} {p : α → Prop} (h : ExistsUnique p) : α :=
+    choose (ExistsUnique.exists h)
+
+  /--
+    El teorema de especificación para `ExistsUnique.choose`.
+    Garantiza que el elemento devuelto cumple la propiedad.
+  -/
+  theorem choose_spec_unique {α : Type} {p : α → Prop} (h : ExistsUnique p) : p (choose_unique h) :=
+    by
+      unfold choose_unique
+      exact choose_spec (ExistsUnique.exists h)
+
+  /--
+    El teorema de unicidad para `choose_unique`.
+    Garantiza que cualquier otro elemento `y` que cumpla la propiedad es igual
+    al elemento devuelto por `h.choose_unique`.
+  -/
+  theorem choose_uniq {α : Type} {p : α → Prop} (h : ExistsUnique p) {y : α} (hy : p y) :
+    y = choose_unique h
+      :=
+    let ⟨x, ⟨_, uniq⟩⟩ := h
+    have hcu : p (choose_unique h) := choose_spec_unique h
+    have y_eq_x : y = x := uniq y hy
+    have cu_eq_x : choose_unique h = x := uniq (choose_unique h) hcu
+    y_eq_x.trans cu_eq_x.symm
 
 inductive ℕ₀ : Type
   where

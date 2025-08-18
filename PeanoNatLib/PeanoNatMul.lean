@@ -659,21 +659,34 @@ namespace Peano
         exact mul_le_mono_right m h_le_k_l
       exact le_trans (mul n k) (mul m k) (mul m l) h_le_nk_mk h_le_mk_ml
 
-    theorem lt_le_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_le_k_l : Le k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
+    theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
       Lt (mul n k) (mul m l)
         := by
-      have h_le_n_m : Le n m := lt_imp_le_wp h_lt_n_m
+      have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
       have h_le_mul_compat : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
-      have h_lt_0_l : l ≠ 𝟘 := by
+      have h_l_neq_0 : l ≠ 𝟘 := by
         intro h_l_zero
-        rw [h_l_zero] at h_le_k_l
-        sorry
-      have h_lt_0_m : m ≠ 𝟘 := by
+        rw [h_l_zero] at h_lt_k_l
+        have h_k_lt_zero : Lt k 𝟘 := h_lt_k_l
+        exact lt_zero k h_k_lt_zero
+      have h_m_neq_0 : m ≠ 𝟘 := by
         intro h_m_zero
         rw [h_m_zero] at h_le_n_m
-        sorry
-      have h_neq : mul n k ≠ mul m l := by sorry -- This needs a proof, possibly using the uniqueness of multiplication.
-      sorry -- The final step would be to use the above to conclude that the multiplication is strictly less.
+        have h_n_is_zero : n = 𝟘 := le_zero_then_eq_zero_wp h_le_n_m
+        exact h_n_neq_0 h_n_is_zero
+      have h_neq : mul n k ≠ mul m l := by
+        intro h_eq
+        cases (le_iff_lt_or_eq n m).mp h_le_n_m with
+        | inl h_n_lt_m =>
+          have h_nk_le_nl : Le (mul n k) (mul n l) := mul_le_mono_right n h_le_k_l
+          have h_nl_lt_ml : Lt (mul n l) (mul m l) := mul_lt_mono_left l h_n_lt_m (neq_0_then_lt_0 h_l_neq_0)
+          have h_lt : Lt (mul n k) (mul m l) := lt_of_le_of_lt h_nk_le_nl h_nl_lt_ml
+          exact ne_of_lt h_lt h_eq
+        | inr h_n_eq_m =>
+          rw [h_n_eq_m] at h_eq
+          have h_k_eq_l : k = l := mul_cancelation_left m k l h_m_neq_0 h_eq
+          exact ne_of_lt h_lt_k_l h_k_eq_l
+      exact lt_of_le_and_ne h_le_mul_compat h_neq
 
     theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
       Lt (mul n k) (mul m l)

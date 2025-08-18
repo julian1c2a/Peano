@@ -51,7 +51,7 @@ namespace Peano
         rcases h_le with h_lt | h_eq
         · -- Lt n m => Lt (σ n) (σ m) => Le (σ n) (σ m)
           apply Or.inl
-          exact (lt_iff_lt_σ_σ n m).mp h_lt
+          exact (lt_iff_lt_σ_σ n m).mpr h_lt
         · -- n = m => σ n = σ m => Le (σ n) (σ m)
           apply Or.inr
           exact h_eq ▸ rfl
@@ -820,9 +820,9 @@ namespace Peano
             cases h_or with
             | inl h_le_nm =>
               exact le_succ n m h_le_nm
-            | inr h_eq_nsm =>
-              rw [h_eq_nsm]
-              exact le_refl (σ m)
+            | inr h_a_eq_succ_b =>
+              rw [h_a_eq_succ_b]
+              exact (le_refl (σ m))
 
     theorem le_of_succ_le_succ (n m : ℕ₀) :
       Le (σ n) (σ m) → Le n m
@@ -1326,9 +1326,10 @@ namespace Peano
               exact (succ_le_succ_iff n' m').mpr h_le_n'_m'
 
 
-    theorem well_ordering_principle {P : ℕ₀ → Prop} (h_nonempty : ∃ n, P n) :
-      ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m :=
-    by
+    theorem well_ordering_principle {P : ℕ₀ → Prop}
+      (h_nonempty : ∃ n, P n) :
+        ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m
+          := by
       let Q := fun (n : ℕ₀) => (∃ k, Le k n ∧ P k) → (∃ k, P k ∧ ∀ m, Lt m k → ¬ P m)
       have h_Q_n : ∀ n, Q n := by
         intro n
@@ -1414,6 +1415,10 @@ namespace Peano
     theorem lt_pred_of_lt_succ {a b : ℕ₀} (h : Lt a (σ b)) : (Le a b) := by
       exact (le_iff_lt_succ a b).mpr h
 
+    theorem lt_succ_iff_le (n m : ℕ₀) :
+      Lt n (σ m) ↔ Le n m
+      := by
+        exact (le_iff_lt_succ n m).symm
 
   end Order
 end Peano
@@ -1517,4 +1522,5 @@ export Peano.Order (
   le_1_m_then_m_neq_0_wp
   le_iff_lt_or_eq
   lt_pred_of_lt_succ
+  lt_succ_iff_le
 )

@@ -69,7 +69,7 @@ namespace Peano
         induction n with
         | zero => rfl
         | succ n' ih =>
-          simp [add, add_l, add_zero, add_zero_l]
+          simp [add, add_l]
 
   theorem add_one (n : ℕ₀) : add n 𝟙 = σ n
     := by

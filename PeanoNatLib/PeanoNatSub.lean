@@ -7,6 +7,7 @@ import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
 import PeanoNatLib.PeanoNatWellFounded
+import PeanoNatLib.PeanoNatAdd
 
 namespace Peano
     open Peano
@@ -30,6 +31,9 @@ namespace Peano
     | σ n', σ m' =>
       subₕₖ n' m' (succ_le_succ_then h)
   termination_by n
+  decreasing_by
+    simp_wf
+    apply Nat.lt_succ_self
 
   def sub (n m : ℕ₀) : ℕ₀ :=
     if h: Le m n then
@@ -104,7 +108,7 @@ namespace Peano
           calc
             n = subₕₖ n 𝟘 (zero_le n) := by rw [subₕₖ_zero]
             _ = 𝟘 := h_eq
-        simp [ h_n_eq_0 , h_eq ]
+        simp [ h_n_eq_0 ]
       | succ m' ih =>
         intro h_eq
         cases n with
@@ -180,7 +184,7 @@ namespace Peano
               exact zero_lt_succ (σ n'')
           exact h h_one_le_succ
       rw [h_n_eq_zero]
-      simp [sub, τ, h]
+      simp [sub, τ]
       intro h'
       exfalso
       exact not_succ_le_zero 𝟘 h'
@@ -242,7 +246,7 @@ namespace Peano
                 = subₕₖ (σ n') k' (succ_le_succ_then (le_k_n_then_le_k_sn_wp h_k_le_n))
                     := by simp [subₕₖ]
             _ = σ (subₕₖ n' k' h_k'_le_n') := by rw [ih n' h_k'_le_n']
-          simp [subₕₖ, subₕₖ_zero]
+          simp [subₕₖ]
 
   theorem sub_succ (n k : ℕ₀) (h_k_le_n : Le k n) :
         sub (σ n) k = σ (sub n k)
@@ -282,7 +286,7 @@ namespace Peano
               := by simp [subₕₖ]
             _ = add (add (subₕₖ n' k' h_k'_le_n') k') (σ 𝟘) := by simp [add]
             _ = add n' (σ 𝟘) := by rw [ih k' h_k'_le_n']
-            _ = σ n' := by simp [add, one]
+            _ = σ n' := by simp [add]
 
   theorem sub_k_add_k (n k : ℕ₀):
       Le k n → add (sub n k) k = n
@@ -404,7 +408,7 @@ namespace Peano
       | zero =>
         calc
           subₕₖ (σ n') (σ 𝟘) h_le = subₕₖ n' 𝟘 (succ_le_succ_then h_le)
-              := by simp [subₕₖ, one]
+              := by simp [subₕₖ]
           _ = n' := by rw [subₕₖ_zero n']
           _ = ρ (σ n') (succ_neq_zero n') := by rfl
           _ = ρ (subₕₖ (σ n') 𝟘 (le_sn_m_then_le_n_m_or_succ_wp h_le)) (aux_neq_0 h_le)
@@ -415,7 +419,7 @@ namespace Peano
         have h_ge_1 : Le 𝟙 (subₕₖ n' m' h_le') := aux_ge_1 h_sm'_le_n'
         calc
           subₕₖ (σ n') (σ (σ m')) h_le = subₕₖ n' (σ m') (succ_le_succ_then h_le)
-              := by simp only [subₕₖ, succ_le_succ_then]
+              := by simp only [subₕₖ]
           _ = ρ (subₕₖ n' m' h_le') (aux_neq_0 h_sm'_le_n') := by
             rw [ih m' h_sm'_le_n' h_ge_1]
           _ = ρ (subₕₖ (σ n') (σ m') (le_sn_m_then_le_n_m_or_succ_wp h_le)) (aux_neq_0 h_le) := by
@@ -488,7 +492,7 @@ namespace Peano
       calc
         Ψ (sub 𝟘 m) = Ψ 𝟘 := by rw [zero_sub]
         _ = 0 := by rfl
-        _ = Nat.sub 0 (Ψ m) := by simp [Nat.zero_sub]
+        _ = Nat.sub 0 (Ψ m) := by simp
         _ = Nat.sub (Ψ 𝟘) (Ψ m) := by rfl
     | succ n' ih =>
       cases m with
@@ -651,7 +655,7 @@ namespace Peano
     | zero =>
       cases m with
       | zero =>
-        simp only [subₕₖ, add, zero_add]
+        simp only [subₕₖ, add]
       | succ m' =>
         exfalso
         have h_succ_le_zero : Le (σ m') 𝟘 := h_m_le_n
@@ -659,7 +663,7 @@ namespace Peano
     | succ n' ih =>
       cases m with
       | zero =>
-        simp only [subₕₖ, add, zero_add]
+        simp only [subₕₖ, add]
       | succ m' =>
         have h_m'_le_n' : Le m' n' := succ_le_succ_then h_m_le_n
         constructor
@@ -766,13 +770,13 @@ namespace Peano
         _ = m := by rw [zero_add]
         _ = add 𝟘 m := by rw [zero_add]
         _ = sub (add 𝟘 m) 𝟘 := by
-          simp [sub, subₕₖ, add, zero_le]
+          simp [sub, subₕₖ, zero_le]
     | succ n' ih =>
       cases k with
       | zero =>
         have h_zero_le_succ : Le 𝟘 (σ n') := zero_le (σ n')
         have h_zero_le_add : Le 𝟘 (add (σ n') m) := zero_le (add (σ n') m)
-        simp [sub, h_zero_le_succ, h_zero_le_add, subₕₖ, add]
+        simp [sub, h_zero_le_succ, h_zero_le_add, subₕₖ]
       | succ k' =>
         have h_k'_le_n' : Le k' n' := succ_le_succ_then h_k_le_n
         have h_k'_le_add : Le k' (add n' m) := le_trans k' n' (add n' m) h_k'_le_n' (le_self_add n' m)

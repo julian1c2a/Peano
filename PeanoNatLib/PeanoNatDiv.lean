@@ -75,19 +75,19 @@ namespace Peano
       apply lt_sizeOf
       exact h_sub_a_b_lt_a
 
-    #eval divMod 𝟘 𝟘
-    #eval divMod 𝟙 𝟘
-    #eval divMod 𝟙 𝟙
-    #eval divMod 𝟙 𝟚
-    #eval divMod 𝟚 𝟘
-    #eval divMod 𝟚 𝟙
-    #eval divMod 𝟚 𝟚
-    #eval divMod 𝟚 𝟛
-    #eval divMod 𝟛 𝟘
-    #eval divMod 𝟛 𝟙
-    #eval divMod 𝟛 𝟚
-    #eval divMod 𝟛 𝟛
-    #eval divMod 𝟛 𝟜
+    -- #eval divMod 𝟘 𝟘
+    -- #eval divMod 𝟙 𝟘
+    -- #eval divMod 𝟙 𝟙
+    -- #eval divMod 𝟙 𝟚
+    -- #eval divMod 𝟚 𝟘
+    -- #eval divMod 𝟚 𝟙
+    -- #eval divMod 𝟚 𝟚
+    -- #eval divMod 𝟚 𝟛
+    -- #eval divMod 𝟛 𝟘
+    -- #eval divMod 𝟛 𝟙
+    -- #eval divMod 𝟛 𝟚
+    -- #eval divMod 𝟛 𝟛
+    -- #eval divMod 𝟛 𝟜
 
 
     def div (a b : ℕ₀) : ℕ₀ :=
@@ -212,47 +212,46 @@ namespace Peano
           have h_le : Le a (add a b') := le_self_add_forall a b'
           exact le_then_lt_succ_wp h_le
 
-    theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = (divMod a b).1 * b + (divMod a b).2 := by
-      intro h_b_neq_0
-      induction a using well_founded_lt with a ih
-      unfold divMod
-      simp [h_b_neq_0]
-      by_cases h_a_zero : a = 𝟘
-      · simp [h_a_zero, zero_mul, zero_add]
-      · simp [h_a_zero]
-        by_cases h_b_one : b = 𝟙
-        · simp [h_b_one, mul_one, add_zero]
-        · simp [h_b_one]
-          by_cases h_a_lt_b : Lt a b
-          · simp [h_a_lt_b, zero_mul, zero_add]
-          · simp [h_a_lt_b]
-            by_cases h_a_eq_b : a = b
-            · simp [h_a_eq_b, one_mul, add_zero]
-            · simp [h_a_eq_b]
-              have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
-              have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
-              have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
-              have h_ih := ih (sub a b) h_sub_lt_a
-              have h_divMod_ab : divMod a b = (σ (divMod (sub a b) b).1, (divMod (sub a b) b).2) := by
-                simp [divMod, h_b_neq_0, h_a_zero, h_b_one, h_a_lt_b, h_a_eq_b]
-              rw [h_divMod_ab, succ_mul]
-              let q := (divMod (sub a b) b).1
-              let r := (divMod (sub a b) b).2
-              have h_ih_qr : sub a b = q * b + r := h_ih
-              have h_sub_add_b_eq_a : sub a b + b = a := sub_add_cancel_of_le h_le_b_a
-              rw [h_ih_qr] at h_sub_add_b_eq_a
-              rw [h_sub_add_b_eq_a, add_assoc, add_comm r b, ←add_assoc]
-              rw [←one_mul b, ←mul_add, succ_eq_add_one]
-              rfl
+    -- theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = (divMod a b).1 * b + (divMod a b).2 := by
+    --   intro h_b_neq_0
+    --   induction a using well_founded_lt with a ih
+    --   unfold divMod
+    --   simp [h_b_neq_0]
+    --   by_cases h_a_zero : a = 𝟘
+    --   · simp [h_a_zero, zero_mul, zero_add]
+    --   · simp [h_a_zero]
+    --     by_cases h_b_one : b = 𝟙
+    --     · simp [h_b_one, mul_one, add_zero]
+    --     · simp [h_b_one]
+    --       by_cases h_a_lt_b : Lt a b
+    --       · simp [h_a_lt_b, zero_mul, zero_add]
+    --       · simp [h_a_lt_b]
+    --         by_cases h_a_eq_b : a = b
+    --         · simp [h_a_eq_b, one_mul, add_zero]
+    --         · simp [h_a_eq_b]
+    --           have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
+    --           have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
+    --           have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
+    --           have h_ih := ih (sub a b) h_sub_lt_a
+    --           have h_divMod_ab : divMod a b = (σ (divMod (sub a b) b).1, (divMod (sub a b) b).2) := by
+    --             simp [divMod, h_b_neq_0, h_a_zero, h_b_one, h_a_lt_b, h_a_eq_b]
+    --           rw [h_divMod_ab, succ_mul]
+    --           let q := (divMod (sub a b) b).1
+    --           let r := (divMod (sub a b) b).2
+    --           have h_ih_qr : sub a b = q * b + r := h_ih
+    --           have h_sub_add_b_eq_a : sub a b + b = a := sub_add_cancel_of_le h_le_b_a
+    --           rw [h_ih_qr] at h_sub_add_b_eq_a
+    --           rw [h_sub_add_b_eq_a, add_assoc, add_comm r b, ←add_assoc]
+    --           rw [←one_mul b, ←mul_add, succ_eq_add_one]
+    --           rfl
 
-    theorem divMod_eq__neq_a_0__lt_1_b__gt_a_b
-      (a b : ℕ₀)
-      (h_lt_1_b : Lt 𝟙 b)
-      (h_lt_b_a : Lt b a):
-        a = (divMod a b).1 * b + (divMod a b).2
-      := by
-        have h_b_neq_0 : b ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 𝟙 b lt_0_1 h_lt_1_b)
-        exact divMod_eq a b h_b_neq_0
+    -- theorem divMod_eq__neq_a_0__lt_1_b
+    --   (a b : ℕ₀)
+    --   (h_lt_1_b : Lt 𝟙 b) :
+    --     a = (divMod a b).1 * b + (divMod a b).2
+    --   := by
+    --     have h_b_neq_0 : b ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 𝟙 b lt_0_1 h_lt_1_b)
+    --     exact divMod_eq a b h_b_neq_0
 
   end Div
 

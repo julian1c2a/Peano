@@ -210,12 +210,16 @@ theorem min_of_min_max(n m : ℕ₀) :
                          rw [BLt_iff_Lt]
                          --   Meta: ¬ (Lt m' n')
                          exact h_not_lt_m_prime_n_prime
+                    have h_m'_ne_n' : ¬m' = n' := by
+                      intro h_eq
+                      apply h_eq_preds
+                      exact h_eq.symm
                     simp [
                           min,
                           max,
                           h_eq_preds,
-                          Ne.symm h_eq_preds,
-                          h_blt_bool, h_blt_m_prime_n_prime_is_false
+                          h_blt_bool, h_blt_m_prime_n_prime_is_false,
+                          h_m'_ne_n'
                     ]
                   · -- Caso: ¬ (BLt n' m')
                     simp [
@@ -262,9 +266,7 @@ theorem max_of_min_max(n m : ℕ₀) :
                          exact h_not_lt_m_prime_n_prime
                     simp [
                       min, max, h_eq_preds,
-                      Ne.symm h_eq_preds,
-                      h_blt_bool,
-                      h_blt_m_prime_n_prime_is_false
+                      h_blt_bool
                     ]
                   · -- Caso: ¬ (BLt n' m')
                     have h_blt_m_n_is_true :
@@ -1010,7 +1012,7 @@ theorem nexists_max_abs:
           · -- Caso b' = a'
             simp [min, h_eq]
           · -- Caso b' ≠ a'
-            simp [min, if_neg h_eq]
+            simp [min]
             cases h_b'_le_a' with
             | inl h_lt =>
               have h_blt_true : BLt b' a' = true := by
@@ -1023,7 +1025,7 @@ theorem nexists_max_abs:
                 rw [← Bool.not_eq_true, BLt_iff_Lt]
                 exact h_not_lt_a'_b'
               -- Ahora simplificamos la expresión condicional
-              simp only [if_neg h_eq, h_blt_a'_b'_false]
+              simp only [h_blt_a'_b'_false]
               simp
             | inr h_eq_contra =>
               exact False.elim (h_eq h_eq_contra)

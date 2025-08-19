@@ -800,7 +800,7 @@ namespace Peano
                 simp [Lt] at h_lt_a_ssb
               | succ b' =>
                 -- Lt (σ a') (σ (σ b')) → Le (σ a') (σ b')
-                simp [Lt] at h_lt_a_ssb
+                simp at h_lt_a_ssb
                 have h_lt_a'_sb' : Lt a' (σ b') := h_lt_a_ssb
                 have h_le_a'_b' : Le a' b' := (le_iff_lt_succ a' b').mpr h_lt_a'_sb'
                 exact (succ_le_succ_iff a' b').mpr h_le_a'_b'

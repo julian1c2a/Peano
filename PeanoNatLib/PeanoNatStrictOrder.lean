@@ -1,3 +1,5 @@
+-- PeanoNatLib/PeanoNatStrictOrder.lean
+
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
 import Init.Prelude

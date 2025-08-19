@@ -7,12 +7,12 @@
 
 -- También demostramos que el orden estricto '<' en ℕ₀ es un buen orden.
 
-import Init.WF
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
+import Init.Classical
 
 namespace Peano
   open Peano
@@ -80,47 +80,66 @@ namespace Peano
       contiene un único elemento mínimo. Es una consecuencia directa de `well_founded_lt`.
     -/
     theorem well_ordering_principle (P : ℕ₀ → Prop) (h_nonempty : ∃ k, P k) :
-      ∃¹ n, P n ∧ ∀ m, P m → Le n m := by
+      ∃¹ (n : ℕ₀), (P n) ∧ ∀ (m : ℕ₀), (P m) → (n ≤ m )
+        := by
       -- 1. Existencia del mínimo
-      -- `WellFounded.min_exists` nos da la prueba de que existe un elemento minimal.
-      have h_minimal_exists : ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m :=
-        @_root_.WellFounded.min_exists well_founded_lt P h_nonempty
+      -- Probamos que existe un elemento minimal (ninguno es estrictamente menor).
+      have h_minimal_exists : ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m := by
+        -- Prueba por contradicción: asumimos que no hay ningún elemento minimal.
+        apply Classical.byContradiction
+        intro h_no_minimal
+        -- `h_no_minimal` es `¬(∃ n, P n ∧ ...)` que es `∀ n, ¬(P n ∧ ...)`
+        -- Esto implica que para cualquier `n` con la propiedad `P`, siempre
+        -- existe un `m` más pequeño con la propiedad `P`.
+        have h_can_descend : ∀ n, P n → ∃ m, Lt m n ∧ P m := by
+          intro n hn
+          -- La negación de "n es minimal" es "existe un m < n con P m".
+          have h_not_minimal : ¬(P n ∧ ∀ (m : ℕ₀), Lt m n → ¬P m) := (not_exists.mp h_no_minimal) n
+          -- Usamos lógica clásica para simplificar la negación.
+          simp [not_and, Classical.not_forall, Classical.not_not] at h_not_minimal
+          exact h_not_minimal hn
 
-      -- Usamos `choose` (definido en PeanoNatLib) para obtener un término `n` que satisface esta propiedad.
+        -- Esta capacidad de descender siempre contradice que `Lt` es bien fundada.
+        -- Lo probamos mostrando que `P` no puede ser cierto para ningún número.
+        have h_not_P_all : ∀ n, ¬ P n := by
+          intro n
+          -- Usamos inducción bien fundada sobre `n` usando well_founded_lt.fix.
+          exact well_founded_lt.fix (fun x ih =>
+              fun h_Px =>
+                let ⟨y, ⟨h_lt_yx, h_Py⟩⟩ := h_can_descend x h_Px
+                ih y h_lt_yx h_Py
+            ) n
+        -- Si `P` no es cierto para ningún número, contradice que el conjunto no es vacío.
+        let ⟨k, hk⟩ := h_nonempty
+        exact h_not_P_all k hk
+
+      -- Usamos `choose` para obtener un término `n` que es minimal.
       let n := choose h_minimal_exists
       have h_n_props : P n ∧ ∀ m, Lt m n → ¬ P m := choose_spec h_minimal_exists
       let h_Pn := h_n_props.left
       let h_n_is_minimal := h_n_props.right
 
-      -- Probamos que este `n` es un elemento mínimo (el más pequeño o igual).
+      -- Probamos que este `n` minimal es también un elemento mínimo (menor o igual).
       have h_exists : ∃ n_min, P n_min ∧ ∀ m, P m → Le n_min m := by
         exists n
         exact ⟨h_Pn, fun m h_Pm =>
           match trichotomy n m with
-          | Or.inl h_lt_nm => Or.inl h_lt_nm -- Caso n < m, que implica n ≤ m.
-          | Or.inr (Or.inl h_eq_nm) => Or.inr h_eq_nm -- Caso n = m, que implica n ≤ m.
-          | Or.inr (Or.inr h_lt_mn) => -- Caso m < n.
-            -- Esto contradice que `n` es minimal, porque hemos encontrado
-            -- un `m` más pequeño que también tiene la propiedad `P`.
-            False.elim (h_n_is_minimal m h_lt_mn h_Pm)
+          | Or.inl h_lt_nm =>
+              Or.inl h_lt_nm
+          | Or.inr (Or.inl h_eq_nm) =>
+              Or.inr h_eq_nm
+          | Or.inr (Or.inr h_lt_mn) =>
+              False.elim (h_n_is_minimal m h_lt_mn h_Pm)
         ⟩
 
       -- 2. Unicidad del mínimo
-      -- Extraemos el mínimo `n_min` que acabamos de probar que existe.
       rcases h_exists with ⟨n_min, ⟨h_Pn_min, h_is_least⟩⟩
       exists n_min
       constructor
-      · -- La parte de existencia que ya probamos.
-        exact ⟨h_Pn_min, h_is_least⟩
-      · -- La parte de unicidad.
-        intro n' ⟨h_Pn', h_is_least'⟩
-        -- Asumimos que `n'` es otro mínimo.
-        -- Como `n_min` es un mínimo y `P n'`, entonces `Le n_min n'`.
+      · exact ⟨h_Pn_min, h_is_least⟩
+      · intro n' ⟨h_Pn', h_is_least'⟩
         have h_le1 : Le n_min n' := h_is_least n' h_Pn'
-        -- Como `n'` es un mínimo y `P n_min`, entonces `Le n' n_min`.
         have h_le2 : Le n' n_min := h_is_least' n_min h_Pn_min
-        -- Por la antisimetría de `Le`, si `n_min ≤ n'` y `n' ≤ n_min`,
-        -- entonces `n_min = n'`.
         exact le_antisymm n' n_min h_le2 h_le1
 
   end WellFounded

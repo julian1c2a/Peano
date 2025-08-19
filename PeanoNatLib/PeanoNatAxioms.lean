@@ -1,6 +1,5 @@
 import PeanoNatLib.PeanoNatLib
 
-
 namespace Peano
     open Peano
     -- set_option trace.Meta.Tactic.simp true
@@ -374,8 +373,8 @@ namespace Peano
         · -- Prueba de (k = Ψ (Λ k))
           apply Ψ_surj
 
-  theorem Inv_Λ_eq_Ψ :
-    Inv (Λ : Nat -> ℕ₀) (Ψ : ℕ₀ -> Nat)
+  theorem Comp_Λ_eq_Ψ :
+    Comp (Λ : Nat -> ℕ₀) (Ψ : ℕ₀ -> Nat)
         := by
         intro n
         induction n with
@@ -389,8 +388,8 @@ namespace Peano
             _ = Nat.succ (Ψ (Λ k)) := by rfl
             _ = Nat.succ k := by rw [ih]
 
-  theorem Inv_Ψ_eq_Λ :
-    Inv (Ψ : ℕ₀ -> Nat) (Λ : Nat -> ℕ₀)
+  theorem Comp_Ψ_eq_Λ :
+    Comp (Ψ : ℕ₀ -> Nat) (Λ : Nat -> ℕ₀)
         := by
         intro n
         induction n with
@@ -678,9 +677,12 @@ namespace Peano
     · intro h_Λn_eq_zero
       cases n with
       | zero => rfl
-      | succ k => exfalso; exact succ_neq_zero (Λ k) (h_Λn_eq_zero ▸ Λ_σ_eq_σ_Ψ k)
+      | succ k =>
+        exfalso
+        exact succ_neq_zero (Λ k) (h_Λn_eq_zero ▸ Λ_σ_eq_σ_Ψ k)
     · intro h_n_eq_zero
-      rw [h_n_eq_zero]; rfl
+      rw [h_n_eq_zero]
+      rfl
 
   theorem Λ_neq_zero_iff_neq_zero (n : Nat) :
       Λ n ≠ 𝟘 ↔ n ≠ 0
@@ -714,7 +716,8 @@ namespace Peano
     exact Ψ_τ_eq_τ_Λ n
 
   theorem isomorph_Λ_ρ (n : Nat) (h_n_neq_0 : n ≠ 0) :
-    ρ (Λ n) ((Λ_neq_zero_iff_neq_zero n).mpr h_n_neq_0) = Λ (Nat.pred n) := by
+    ρ (Λ n) ((Λ_neq_zero_iff_neq_zero n).mpr h_n_neq_0) = Λ (Nat.pred n)
+      := by
     rw [ρ_eq_τ (Λ n) ((Λ_neq_zero_iff_neq_zero n).mpr h_n_neq_0)]
     rw [← Λ_τ_eq_τ_Ψ n]
 
@@ -751,7 +754,7 @@ export Peano.Axioms (
   is_zero_xor_is_succ
   EqFn_refl EqFn_symm EqFn_trans
   EqFn_induction
-  Inv_Λ_eq_Ψ Inv_Ψ_eq_Λ
+  Comp_Λ_eq_Ψ Comp_Ψ_eq_Λ
   id_eq_id_lambda
   τ_σ_eq_self
   σ_ρ_eq_self

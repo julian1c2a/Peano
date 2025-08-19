@@ -6,8 +6,8 @@ import Init.Data.Nat.Basic
 
 open Peano
 namespace Peano
-        --set_option diagnostics true
-        --set_option trace.Meta.Tactic.simp true
+      --set_option diagnostics true
+      --set_option trace.Meta.Tactic.simp true
       open Peano
       open Peano.Axioms
 

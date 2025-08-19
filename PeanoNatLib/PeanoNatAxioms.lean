@@ -3,7 +3,7 @@ import PeanoNatLib.PeanoNatLib
 
 namespace Peano
     open Peano
-    set_option trace.Meta.Tactic.simp true
+    -- set_option trace.Meta.Tactic.simp true
 
   -- notation "σ" n:max => ℕ₀.succ n
   -- notation "𝟘" => ℕ₀.zero

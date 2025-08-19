@@ -22,9 +22,9 @@ namespace Peano
     -/
     def Le' (n m : ℕ₀) : Prop :=
       match n, m with
-      |   𝟘  ,   _  =>  True
-      | σ _  ,   𝟘  =>  False
-      | σ n' , σ m' =>  Le' n' m'
+      |   𝟘    ,     _    =>  True
+      | σ _    ,     𝟘    =>  False
+      | σ n'   ,   σ m'   =>  Le' n' m'
 
     theorem zero_le (n : ℕ₀) :
       Le 𝟘 n

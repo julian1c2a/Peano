@@ -1,4 +1,8 @@
 echo
+lake clean
+echo
+lake update
+echo
 lake build PeanoNatLib.PeanoNatLib
 echo
 lake build PeanoNatLib.PeanoNatAxioms

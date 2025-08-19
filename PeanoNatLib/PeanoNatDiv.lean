@@ -22,7 +22,6 @@ namespace Peano
       open Peano.WellFounded
       open Peano.Add
       open Peano.Sub
-
       open Peano.Mul
 
 
@@ -117,7 +116,7 @@ namespace Peano
         subst h_b_is_zero
         contradiction
       case isFalse h_b_not_zero_again =>
-        simp only [Prod.fst, Prod.snd, zero_mul, zero_add]
+        simp only [zero_mul]
         exact h_a_eq_zero
 
     theorem divMod_eq__neq_a_0__eq_b_1
@@ -135,7 +134,7 @@ namespace Peano
             exact Ne.symm neq_1_0
         contradiction
       case isFalse h_b_not_zero_again =>
-        simp only [Prod.fst, Prod.snd]
+        simp only
         rw [h_b_eq_1]
         simp only [mul_one, add_zero]
 
@@ -160,8 +159,8 @@ namespace Peano
               contradiction
            case neg =>
               symm
-              simp [Prod.fst]
-              simp [divMod, h_b_not_zero_again, h_b_is_one, h_lt_a_b]
+              simp
+              simp [h_b_is_one]
               simp only [zero_mul]
               simp only [zero_add]
 
@@ -194,7 +193,7 @@ namespace Peano
                 exact lt_irrefl b
               contradiction
             case isFalse h_nlt_a_b =>
-              simp only [Prod.fst]
+              simp only
               rw [h_eq_a_b]
               simp only [one_mul, add_zero]
 
@@ -249,14 +248,6 @@ namespace Peano
     --           rw [h_sub_add_b_eq_a, add_assoc, add_comm r b, ←add_assoc]
     --           rw [←one_mul b, ←mul_add, succ_eq_add_one]
     --           rfl
-
-    -- theorem divMod_eq__neq_a_0__lt_1_b
-    --   (a b : ℕ₀)
-    --   (h_lt_1_b : Lt 𝟙 b) :
-    --     a = (divMod a b).1 * b + (divMod a b).2
-    --   := by
-    --     have h_b_neq_0 : b ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 𝟙 b lt_0_1 h_lt_1_b)
-    --     exact divMod_eq a b h_b_neq_0
 
   end Div
 

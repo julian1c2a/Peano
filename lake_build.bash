@@ -13,6 +13,8 @@ lake build PeanoNatLib.PeanoNatOrder
 echo
 lake build PeanoNatLib.PeanoNatMaxMin
 echo
+lake build PeanoNatLib.PeanoNatWellFounded
+echo
 lake build PeanoNatLib.PeanoNatAdd
 echo
 lake build PeanoNatLib.PeanoNatSub

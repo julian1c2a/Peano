@@ -1,3 +1,5 @@
+-- PeanoNatLib/PeanoNatDiv.lean
+
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatStrictOrder
@@ -20,6 +22,7 @@ namespace Peano
       open Peano.WellFounded
       open Peano.Add
       open Peano.Sub
+
       open Peano.Mul
 
 

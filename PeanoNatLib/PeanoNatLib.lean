@@ -123,7 +123,7 @@ def idNat (n : Nat) : Nat := n
 def EqFnGen {α β : Type} (f : α → β) (g : α → β) :
     Prop :=
         ∀ (x : α), f x = g x
-def Inv {α β : Type} (f : α → β) (g : β → α) :
+def Comp {α β : Type} (f : α → β) (g : β → α) :
     Prop :=
         ∀ (x : α), g (f x) = x
 def EqFn {α : Type}

@@ -87,19 +87,21 @@ def ExistsUnique.exists {α : Type} {p : α → Prop} (h : ExistsUnique p) : (�
     El teorema de especificación para `ExistsUnique.choose`.
     Garantiza que el elemento devuelto cumple la propiedad.
   -/
-  theorem choose_spec_unique {α : Type} {p : α → Prop} (h : ExistsUnique p) : p (choose_unique h) :=
-    by
-      unfold choose_unique
-      exact choose_spec (ExistsUnique.exists h)
+  theorem choose_spec_unique {α : Type} {p : α → Prop}
+    (h : ExistsUnique p) : p (choose_unique h)
+      := by
+        unfold choose_unique
+        exact choose_spec (ExistsUnique.exists h)
 
   /--
     El teorema de unicidad para `choose_unique`.
     Garantiza que cualquier otro elemento `y` que cumpla la propiedad es igual
     al elemento devuelto por `h.choose_unique`.
   -/
-  theorem choose_uniq {α : Type} {p : α → Prop} (h : ExistsUnique p) {y : α} (hy : p y) :
-    y = choose_unique h
-      :=
+  theorem choose_uniq {α : Type} {p : α → Prop}
+    (h : ExistsUnique p) {y : α} (hy : p y) :
+      y = choose_unique h
+        :=
     let ⟨x, ⟨_, uniq⟩⟩ := h
     have hcu : p (choose_unique h) := choose_spec_unique h
     have y_eq_x : y = x := uniq y hy

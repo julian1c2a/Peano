@@ -5,6 +5,9 @@
 -- directamente a partir de la estructura inductiva de ℕ₀, sin
 -- depender del isomorfismo con Nat para la prueba principal.
 
+-- También demostramos que el orden estricto '<' en ℕ₀ es un buen orden.
+
+import Init.WF
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatStrictOrder
@@ -44,13 +47,10 @@ namespace Peano
         -- Caso base: 𝟘 es accesible porque no existe ningún `y` tal que `Lt y 𝟘`.
         exact Acc.intro 𝟘 (fun y h_lt_y_zero => False.elim (lt_zero y h_lt_y_zero))
       | succ n' ih =>
-        -- Caso inductivo: La hipótesis de inducción `ih` es que `n'` es
-        -- accesible (`Acc Lt n'`).
-
+        -- Caso inductivo: La hipótesis de inducción `ih` es que `n'` es accesible (`Acc Lt n'`).
         -- Queremos probar que `σ n'` es accesible.
         apply Acc.intro (σ n')
-        -- Para ello, debemos mostrar que cualquier `y`
-        -- tal que `Lt y (σ n')` es accesible.
+        -- Para ello, debemos mostrar que cualquier `y` tal que `Lt y (σ n')` es accesible.
         intro y h_lt_y_sn'
         -- Por el lema `lt_succ_iff_le`, si `y < σ n'`, entonces `y ≤ n'`.
         have h_le_y_n' : Le y n' := (lt_succ_iff_le y n').mp h_lt_y_sn'
@@ -71,10 +71,8 @@ namespace Peano
       Una relación es bien fundada si todos los elementos de su dominio son accesibles.
       La prueba consiste en aplicar el lema `acc_lt_wf` a cualquier `n`.
     -/
-    theorem well_founded_lt :
-      WellFounded Lt
-        :=
-          WellFounded.intro acc_lt_wf
+    theorem well_founded_lt : WellFounded Lt :=
+      WellFounded.intro acc_lt_wf
 
     /--
       El Principio de Buen Orden para ℕ₀.
@@ -82,31 +80,28 @@ namespace Peano
       contiene un único elemento mínimo. Es una consecuencia directa de `well_founded_lt`.
     -/
     theorem well_ordering_principle (P : ℕ₀ → Prop) (h_nonempty : ∃ k, P k) :
-        ∃¹ (n : ℕ₀), (P n) ∧ ∀ (m : ℕ₀), (P m) → (n ≤ m)
-          := by
-
+      ∃¹ n, P n ∧ ∀ m, P m → Le n m := by
       -- 1. Existencia del mínimo
-      -- `WellFounded.min` nos da un elemento minimal `n` con respecto a `Lt`.
-      -- Es decir, `P n` es cierto y no hay ningún `m < n` que cumpla `P`.
-      have h_minimal : ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m :=
-        WellFounded.min well_founded_lt P h_nonempty
+      -- `WellFounded.min_exists` nos da la prueba de que existe un elemento minimal.
+      have h_minimal_exists : ∃ n, P n ∧ ∀ m, Lt m n → ¬ P m :=
+        @_root_.WellFounded.min_exists well_founded_lt P h_nonempty
 
-      -- Extraemos ese elemento minimal `n` y sus propiedades.
-      rcases h_minimal with ⟨n, ⟨h_Pn, h_n_is_minimal⟩⟩
+      -- Usamos `choose` (definido en PeanoNatLib) para obtener un término `n` que satisface esta propiedad.
+      let n := choose h_minimal_exists
+      have h_n_props : P n ∧ ∀ m, Lt m n → ¬ P m := choose_spec h_minimal_exists
+      let h_Pn := h_n_props.left
+      let h_n_is_minimal := h_n_props.right
 
       -- Probamos que este `n` es un elemento mínimo (el más pequeño o igual).
       have h_exists : ∃ n_min, P n_min ∧ ∀ m, P m → Le n_min m := by
         exists n
         exact ⟨h_Pn, fun m h_Pm =>
           match trichotomy n m with
-          -- CORRECCIÓN: Cada rama de un `match` en modo táctica debe usar una táctica.
-          | Or.inl h_lt_nm =>
-            Or.inl h_lt_nm -- Caso n < m, que implica n ≤ m.
-          | Or.inr (Or.inl h_eq_nm) =>
-            Or.inr h_eq_nm -- Caso n = m, que implica n ≤ m.
+          | Or.inl h_lt_nm => Or.inl h_lt_nm -- Caso n < m, que implica n ≤ m.
+          | Or.inr (Or.inl h_eq_nm) => Or.inr h_eq_nm -- Caso n = m, que implica n ≤ m.
           | Or.inr (Or.inr h_lt_mn) => -- Caso m < n.
-            -- Esto contradice que `n` es minimal, porque hemos encontrado un `m` más
-            -- pequeño que también tiene la propiedad `P`.
+            -- Esto contradice que `n` es minimal, porque hemos encontrado
+            -- un `m` más pequeño que también tiene la propiedad `P`.
             False.elim (h_n_is_minimal m h_lt_mn h_Pm)
         ⟩
 

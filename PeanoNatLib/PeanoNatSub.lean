@@ -4,6 +4,7 @@ import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
+import PeanoNatLib.PeanoNatWellFounded
 
 namespace Peano
     open Peano
@@ -14,6 +15,7 @@ namespace Peano
         open Peano.StrictOrder
         open Peano.Order
         open Peano.MaxMin
+        open Peano.WellFounded
         open Peano.Add
 
   def subₕₖ (n m : ℕ₀) (h : Le m n) : ℕ₀ :=

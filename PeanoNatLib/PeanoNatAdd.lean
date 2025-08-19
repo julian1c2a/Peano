@@ -3,6 +3,7 @@ import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
+import PeanoNatLib.PeanoNatWellFounded
 
 
 namespace Peano
@@ -11,10 +12,11 @@ namespace Peano
 
   namespace Add
       open Add
-      open Axioms
-      open StrictOrder
-      open Order
-      open MaxMin
+      open Peano.Axioms
+      open Peano.StrictOrder
+      open Peano.Order
+      open Peano.MaxMin
+      open Peano.WellFounded
 
   def add (n m : ℕ₀) : ℕ₀ :=
     match m with

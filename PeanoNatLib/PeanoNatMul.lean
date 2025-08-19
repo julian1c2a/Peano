@@ -3,6 +3,7 @@ import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatOrder
 import PeanoNatLib.PeanoNatMaxMin
+import PeanoNatLib.PeanoNatWellFounded
 import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatSub
 
@@ -11,12 +12,13 @@ namespace Peano
   open Peano
 
   namespace Mul
-      open Axioms
-      open StrictOrder
-      open Order
-      open MaxMin
-      open Add
-      open Sub
+      open Peano.Axioms
+      open Peano.StrictOrder
+      open Peano.Order
+      open Peano.MaxMin
+      open Peano.WellFounded
+      open Peano.Add
+      open Peano.Sub
 
     def mul (n m : ℕ₀) : ℕ₀ :=
       match m with

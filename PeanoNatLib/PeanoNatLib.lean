@@ -86,11 +86,11 @@ namespace Peano
 
   def one : ℕ₀ := σ 𝟘
   def two : ℕ₀ := σ one
-  -- ... (y el resto de tus definiciones de números)
+  def three : ℕ₀ := σ two
 
   notation "𝟙" => one
   notation "𝟚" => two
-  -- ... (y el resto de tus notaciones)
+  notation "𝟛" => three
 
   def Λ(n : Nat) : ℕ₀ :=
     match n with

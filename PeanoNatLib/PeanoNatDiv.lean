@@ -9,6 +9,7 @@ import PeanoNatLib.PeanoNatWellFounded
 import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatSub
 import PeanoNatLib.PeanoNatMul
+import Init.WF
 
 
 namespace Peano
@@ -104,27 +105,52 @@ namespace Peano
 
     notation a " % " b => mod a b
 
+    theorem sub_lt_of_lt_and_neq_zero {a b : ℕ₀} (h_lt : Lt b a) (h_b_neq_zero : b ≠ 𝟘) :
+        Lt (sub a b) a
+            := by
+        have h_le : Le b a := lt_imp_le b a h_lt
+        exact sub_lt_self a b h_le h_b_neq_zero
+
+
+    theorem lt_add_of_pos_right (a b : ℕ₀) (h_b_pos : Lt 𝟘 b) :
+        Lt a (add a b)
+            := by
+        induction b with
+        | zero =>
+          exfalso
+          exact nlt_self 𝟘 h_b_pos
+        | succ b' =>
+          rw [add_succ]
+          have h_le : Le a (add a b') := le_self_add_forall a b'
+          exact le_then_lt_succ_wp h_le
+
+
     theorem divMod_eq__eq_a_0
-      (a b : ℕ₀)
-      (h_a_eq_zero : a = 𝟘)
-      (h_b_neq_0 : b ≠ 𝟘) :
-        a = (divMod a b).1 * b + (divMod a b).2
-      := by
+      (a b : ℕ₀) (h_a_eq_zero : a = 𝟘) :
+        b ≠ 𝟘 → a = add (mul (divMod a b).fst b) (divMod a b).snd
+          := by
+      intro h_b_neq_0
+      -- Sustituimos `a` por `𝟘` usando la hipótesis `h_a_eq_zero`.
+      rw [h_a_eq_zero]
+      -- Desplegamos la definición de `divMod` para ver los `if`.
       unfold divMod
-      split
-      case isTrue h_b_is_zero =>
-        subst h_b_is_zero
-        contradiction
-      case isFalse h_b_not_zero_again =>
-        simp only [zero_mul]
-        exact h_a_eq_zero
+      -- El primer `if` comprueba `b = 𝟘`. Usamos la hipótesis `h_b_neq_0`.
+      -- `dif_neg` elige la rama `else`.
+      rw [dif_neg h_b_neq_0]
+      -- El segundo `if` comprueba `a = 𝟘`. `a` ya es `𝟘`.
+      -- `dif_pos rfl` elige la rama `then`.
+      simp
+      -- El objetivo se simplifica a `𝟘 = 𝟘 * b + 𝟘`, lo cual es cierto.
+      rw [zero_mul, zero_add]
+
 
     theorem divMod_eq__neq_a_0__eq_b_1
       (a b : ℕ₀)
       (h_a_eq_zero : a ≠ 𝟘)
       (h_b_eq_1 : b = 𝟙) :
-        a = add (mul ((divMod a b).1) b) ((divMod a b).2)
-      := by
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+          := by
+      intro h_b_neq_0
       unfold divMod
       split
       case isTrue h_b_is_zero =>
@@ -143,7 +169,7 @@ namespace Peano
       (h_neq_a_0 : a ≠ 𝟘)
       (h_lt_1_b : Lt 𝟙 b)
       (h_lt_a_b : Lt a b)  :
-        a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
       := by
          unfold divMod
          split
@@ -158,96 +184,157 @@ namespace Peano
                 exact lt_1_b_then_b_neq_1 h_lt_1_b
               contradiction
            case neg =>
-              symm
-              simp
+              intro
               simp [h_b_is_one]
-              simp only [zero_mul]
-              simp only [zero_add]
+              by_cases h_a_is_zero : a = 𝟘
+              case pos =>
+                -- Case a = 𝟘
+                rw [h_a_is_zero]
+                simp only [add_zero]
+                exact Eq.symm (zero_mul b)
+              case neg =>
+                -- Case b ≠ 𝟙
+                -- In this branch, divMod a b = (0, a)
+                have h_divMod : divMod a b = (𝟘, a) := by
+                  unfold divMod
+                  simp [h_lt_a_b]
+                  simp [h_b_not_zero_again, h_a_is_zero, h_b_is_one]
+                simp only [zero_mul, zero_add]
 
     theorem divMod_eq__neq_a_0__lt_1_b__eq_a_b
       (a b : ℕ₀)
       (h_neq_a_0 : a ≠ 𝟘)
       (h_lt_1_b : Lt 𝟙 b)
       (h_eq_a_b : a = b) :
-        a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
       := by
-      unfold divMod
-      split
-      case isTrue h_b_is_zero =>
-        have h_b_not_zero : b ≠ 𝟘
-          := by exact lt_1_b_then_b_neq_0 h_lt_1_b
-        contradiction
-      case isFalse h_b_not_zero_again =>
-        split
-        case isTrue h_b_is_one =>
-          exfalso
-          have h_lt_1_b : Lt 𝟙 b := by exact h_lt_1_b
-          have h_b_not_one : b ≠ 𝟙 := by exact lt_1_b_then_b_neq_1 h_lt_1_b
-          contradiction
-        case isFalse h_b_not_one =>
-            split
-            case isTrue h_lt_a_b =>
-              exfalso
-              have h_a_nlt_b : ¬ Lt a b := by
-                rw [h_eq_a_b]
-                exact lt_irrefl b
-              contradiction
-            case isFalse h_nlt_a_b =>
-              simp only
-              rw [h_eq_a_b]
-              simp only [one_mul, add_zero]
-
-
-    theorem sub_lt_of_lt_and_neq_zero {a b : ℕ₀} (h_lt : Lt b a) (h_b_neq_zero : b ≠ 𝟘) :
-        Lt (sub a b) a
-            := by
-        have h_le : Le b a := lt_imp_le b a h_lt
-        exact sub_lt_self a b h_le h_b_neq_zero
-
-    theorem lt_add_of_pos_right (a b : ℕ₀) (h_b_pos : Lt 𝟘 b) :
-        Lt a (add a b)
-            := by
-        induction b with
-        | zero =>
-          exfalso
-          exact nlt_self 𝟘 h_b_pos
-        | succ b' =>
-          rw [add_succ]
-          have h_le : Le a (add a b') := le_self_add_forall a b'
-          exact le_then_lt_succ_wp h_le
-
-    theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = (divMod a b).1 * b + (divMod a b).2 := by
       intro h_b_neq_0
-      induction a using well_founded_lt with a ih
+      have h_b_not_one : b ≠ 𝟙 := lt_1_b_then_b_neq_1 h_lt_1_b
+      have h_not_lt_a_b : ¬ Lt a b := by rw [h_eq_a_b]; exact lt_irrefl b
       unfold divMod
-      simp [h_b_neq_0]
-      by_cases h_a_zero : a = 𝟘
-      · simp [h_a_zero, zero_mul, zero_add]
-      · simp [h_a_zero]
-        by_cases h_b_one : b = 𝟙
-        · simp [h_b_one, mul_one, add_zero]
-        · simp [h_b_one]
-          by_cases h_a_lt_b : Lt a b
-          · simp [h_a_lt_b, zero_mul, zero_add]
-          · simp [h_a_lt_b]
-            by_cases h_a_eq_b : a = b
-            · simp [h_a_eq_b, one_mul, add_zero]
-            · simp [h_a_eq_b]
-              have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
-              have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
-              have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
-              have h_ih := ih (sub a b) h_sub_lt_a
-              have h_divMod_ab : divMod a b = (σ (divMod (sub a b) b).1, (divMod (sub a b) b).2) := by
-                simp [divMod, h_b_neq_0, h_a_zero, h_b_one, h_a_lt_b, h_a_eq_b]
-              rw [h_divMod_ab, succ_mul]
-              let q := (divMod (sub a b) b).1
-              let r := (divMod (sub a b) b).2
-              have h_ih_qr : sub a b = q * b + r := h_ih
-              have h_sub_add_b_eq_a : sub a b + b = a := sub_add_cancel_of_le h_le_b_a
-              rw [h_ih_qr] at h_sub_add_b_eq_a
-              rw [h_sub_add_b_eq_a, add_assoc, add_comm r b, ←add_assoc]
-              rw [←one_mul b, ←mul_add, succ_eq_add_one]
-              rfl
+      simp [dif_neg h_b_neq_0, dif_neg h_neq_a_0, dif_neg h_b_not_one, dif_neg h_not_lt_a_b, dif_pos h_eq_a_b]
+      rw [one_mul, add_zero]
+      exact h_eq_a_b
+
+    theorem divMod_eq__lt_a_b
+      (a b : ℕ₀) (h_lt_a_b : Lt a b) (h_a_neq_0 : a ≠ 𝟘) :
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+          := by
+      intro h_b_neq_0
+      -- Desplegamos la definición de `divMod` para ver los `if`.
+      unfold divMod
+      -- Primer `if` comprueba `b = 𝟘`. Usamos la hipótesis `h_b_neq_0`.
+      rw [dif_neg h_b_neq_0]
+      -- Segundo `if` comprueba `a = 𝟘`. Usamos la hipótesis `h_a_neq_0`.
+      rw [dif_neg h_a_neq_0]
+      -- Ahora necesitamos comprobar `b = 𝟙`.
+      by_cases h_b_one : b = 𝟙
+      · -- Si `b = 𝟙`, entonces `h_lt_a_b` se convierte en `Lt a 𝟙`.
+        -- Esto implica `a = 𝟘` por `lt_b_1_then_b_eq_0`.
+        -- Esto contradice nuestra hipótesis `h_a_neq_0`.
+        have h_a_is_zero : a = 𝟘 := lt_b_1_then_b_eq_0 (h_b_one ▸ h_lt_a_b)
+        exact False.elim (h_a_neq_0 h_a_is_zero)
+      · -- Si `b ≠ 𝟙`, vamos al siguiente `if`.
+        rw [dif_neg h_b_one]
+        -- La siguiente condición es `Lt a b`, que es nuestra hipótesis `h_lt_a_b`.
+        rw [dif_pos h_lt_a_b]
+        -- En este caso, `divMod a b` evalúa a `(𝟘, a)`.
+        -- El objetivo se convierte en `a = add (mul 𝟘 b) a`.
+        rw [zero_mul, zero_add]
+
+    theorem divMod_eq__lt_b_a__eq_b_1
+      (a b : ℕ₀) (h_lt_b_a : Lt b a) (h_b_eq_1 : b = 𝟙) :
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+          := by
+      intro h_b_neq_0
+      -- Con `b = 𝟙`, `h_lt_b_a` se convierte en `Lt 𝟙 a`.
+      -- Esto implica `a ≠ 𝟘` y `a ≠ 𝟙`.
+      have h_a_neq_0 : a ≠ 𝟘 := by
+        intro h_a_zero
+        rw [h_a_zero] at h_lt_b_a
+        rw [h_b_eq_1] at h_lt_b_a -- `Lt 𝟙 𝟘`, que es falso.
+        exact nlt_n_0 𝟙 h_lt_b_a
+      unfold divMod
+      -- Evaluamos los `if` usando las hipótesis.
+      rw [dif_neg h_b_neq_0]
+      rw [dif_neg h_a_neq_0]
+      rw [dif_pos h_b_eq_1]
+      -- `divMod a b` se simplifica a `(a, 𝟘)`.
+      -- El objetivo se convierte en `a = add (mul a b) 𝟘`.
+      rw [h_b_eq_1, mul_one, add_zero]
+
+    theorem divMod_eq__eq_a_b
+      (a b : ℕ₀) (h_eq_a_b : a = b) (h_lt_0_a : Lt 𝟘 a) (h_lt_1_b : Lt 𝟙 b) :
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+          := by
+      intro h_b_neq_0
+      have h_b_not_one : b ≠ 𝟙 := lt_1_b_then_b_neq_1 h_lt_1_b
+      have h_not_lt_a_b : ¬ Lt a b := by rw [h_eq_a_b]; exact lt_irrefl b
+      have h_a_neq_0 : a ≠ 𝟘 := by
+        intro h
+        rw [h] at h_lt_0_a
+        exact nlt_self 𝟘 h_lt_0_a
+      unfold divMod
+      simp [dif_neg h_b_neq_0, dif_neg h_a_neq_0, dif_neg h_b_not_one, dif_neg h_not_lt_a_b, dif_pos h_eq_a_b]
+      rw [one_mul, add_zero]
+      exact h_eq_a_b
+
+    theorem divMod_eq__lt_b_a__lt_1_b
+      (a b : ℕ₀) (h_lt_b_a : Lt b a) (h_lt_1_b : Lt 𝟙 b) :
+        b ≠ 𝟘 → a = add (mul ((divMod a b).1) b) ((divMod a b).2)
+          := by
+      intro h_b_neq_0
+      have h_b_neq_1 : b ≠ 𝟙 := lt_1_b_then_b_neq_1 h_lt_1_b
+      unfold divMod
+      simp [dif_neg h_b_neq_0]
+      induction a using well_founded_lt.induction with a ih
+      have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
+      have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
+      have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
+
+      -- Aplicamos la hipótesis de inducción
+      have h_ih_call := ih (sub a b) h_sub_lt_a
+
+      -- Probamos la ecuación para este caso
+      unfold divMod
+      simp [dif_neg h_b_neq_0, dif_neg h_a_zero, dif_neg h_b_one, dif_neg h_a_lt_b, dif_neg h_a_eq_b]
+      rw [succ_mul, add_assoc, add_comm ((divMod (sub a b) b).2) b, ←add_assoc]
+      rw [←h_ih_call]
+      exact (sub_k_add_k a b h_le_b_a).symm
+
+    /--
+      Teorema general de la división euclídea.
+      Esta es la prueba principal que usa inducción bien fundada.
+    -/
+    theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2 := by
+      intro h_b_neq_0
+      induction a using well_founded_lt.induction with a ih
+      unfold divMod
+      if h_b_zero : b = 𝟘 then
+        exact False.elim (h_b_neq_0 h_b_zero)
+      else
+        if h_a_zero : a = 𝟘 then
+          simp [dif_pos h_a_zero, zero_mul, zero_add]
+        else
+          if h_b_one : b = 𝟙 then
+            simp [dif_pos h_b_one, mul_one, add_zero]
+          else
+            if h_a_lt_b : Lt a b then
+              simp [dif_pos h_a_lt_b, zero_mul, add_comm, zero_add]
+            else
+              if h_a_eq_b : a = b then
+                simp [dif_pos h_a_eq_b, one_mul, add_zero]
+              else
+                have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
+                have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
+                have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
+                have h_ih_call := ih (sub a b) h_sub_lt_a
+                have h_divMod_ab_def : divMod a b = (σ (divMod (sub a b) b).1, (divMod (sub a b) b).2) := by
+                  simp [divMod, h_b_zero, h_a_zero, h_b_one, h_a_lt_b, h_a_eq_b]
+                rw [h_divMod_ab_def, succ_mul, add_assoc]
+                rw [add_comm ((divMod (sub a b) b).2) b, ←add_assoc]
+                rw [←h_ih_call]
+                exact (sub_k_add_k a b h_le_b_a).symm
 
   end Div
 

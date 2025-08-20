@@ -1428,6 +1428,15 @@ namespace Peano
           intro h_contra
           exact gt_then_nle_wp h_contra h
 
+    theorem not_lt_and_not_eq_implies_gt (a b : ℕ₀) (h_not_lt : ¬ Lt a b) (h_not_eq : ¬ a = b) :
+      Lt b a
+        := by
+      rcases trichotomy a b with hlt | heq | hgt
+      · contradiction -- hlt contradicts h_not_lt
+      · contradiction -- heq contradicts h_not_eq
+      · exact hgt
+
+
   end Order
 end Peano
 
@@ -1532,4 +1541,5 @@ export Peano.Order (
   lt_pred_of_lt_succ
   lt_succ_iff_le
   nlt_of_le
+  not_lt_and_not_eq_implies_gt
 )

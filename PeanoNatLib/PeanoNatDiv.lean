@@ -32,12 +32,6 @@ namespace Peano
     If `b = 𝟘`, returns `(𝟘, 𝟘)`.
     !--/
 
-    theorem not_lt_and_not_eq_implies_gt (a b : ℕ₀) (h_not_lt : ¬ Lt a b) (h_not_eq : ¬ a = b) : Lt b a := by
-      rcases trichotomy a b with hlt | heq | hgt
-      · contradiction -- hlt contradicts h_not_lt
-      · contradiction -- heq contradicts h_not_eq
-      · exact hgt
-
     -- Definimos un lema para conectar `Lt` con `sizeOf` para la prueba de terminación.
     theorem lt_sizeOf (a b : ℕ₀) : Lt a b → sizeOf a < sizeOf b := by
       intro h_lt
@@ -86,39 +80,45 @@ namespace Peano
 
     notation a " % " b => mod a b
 
-    /--
+/--
       Teorema general de la división euclídea.
       Esta es la prueba principal que usa inducción bien fundada.
     -/
     theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2 := by
       intro h_b_neq_0
-      -- Usamos inducción bien fundada sobre `a` con la relación `Lt`.
-      induction a using well_founded_lt.induction with a ih
+      induction a using well_founded_lt.induction
+      -- CORRECCIÓN: Nombramos las variables correctamente. `a` es el número, `ih` la hipótesis.
+      rename_i a ih
 
-      -- Desplegamos la definición para analizar los casos.
+      -- Desplegamos la definición para que los `if` sean visibles.
       unfold divMod
 
-      -- Usamos `if/else` con `simp` para manejar los casos.
+      -- Manejamos cada `if` explícitamente con `rw [dif_pos h]` o `rw [dif_neg h]`.
       if h_b_zero : b = 𝟘 then
         exact False.elim (h_b_neq_0 h_b_zero)
       else -- b ≠ 𝟘
-        simp [dif_neg h_b_zero]
+        rw [dif_neg h_b_zero]
+
         if h_a_zero : a = 𝟘 then
-          simp [dif_pos h_a_zero, zero_mul, zero_add]
+          rw [dif_pos h_a_zero, h_a_zero, zero_mul, zero_add]
         else -- a ≠ 𝟘
-          simp [dif_neg h_a_zero]
+          rw [dif_neg h_a_zero]
           if h_b_one : b = 𝟙 then
-            simp [dif_pos h_b_one, mul_one, add_zero]
+            rw [dif_pos h_b_one]
+            rw [h_b_one]
+            rw [mul_one, add_zero]
           else -- b ≠ 𝟙
-            simp [dif_neg h_b_one]
+            rw [dif_neg h_b_one]
             if h_a_lt_b : Lt a b then
-              simp [dif_pos h_a_lt_b, zero_mul, add_comm, zero_add]
+              rw [dif_pos h_a_lt_b, zero_mul, zero_add]
             else -- ¬ (Lt a b)
-              simp [dif_neg h_a_lt_b]
+              rw [dif_neg h_a_lt_b]
               if h_a_eq_b : a = b then
-                simp [dif_pos h_a_eq_b, one_mul, add_zero]
+                rw [dif_pos h_a_eq_b, one_mul, add_zero]
+                exact h_a_eq_b
               else -- b < a (caso recursivo)
-                simp [dif_neg h_a_eq_b]
+                rw [dif_neg h_a_eq_b]
+
                 have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
                 have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
                 have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
@@ -126,16 +126,21 @@ namespace Peano
                 -- Aplicamos la hipótesis de inducción `ih` al término más pequeño `sub a b`.
                 have h_ih_call := ih (sub a b) h_sub_lt_a
 
-                -- Ahora podemos reescribir y finalizar la prueba.
-                rw [succ_mul, add_assoc]
-                rw [add_comm ((divMod (sub a b) b).2) b, ←add_assoc]
+                -- Usamos reescritura para finalizar la prueba.
+                simp only [succ_mul]
+                rw [←add_assoc ((divMod (sub a b) b).1 * b) b ((divMod (sub a b) b).2)]
+                rw [add_comm b ((divMod (sub a b) b).2)]
+                rw [add_assoc]
                 rw [←h_ih_call]
                 exact (sub_k_add_k a b h_le_b_a).symm
 
   end Div
 
 end Peano
-/-!
-  This file contains theorems related to the division of natural numbers in Peano's axioms.
-  It includes the definition of Euclidean division, properties of division, and related lemmas.
--/
+
+export Peano.Div (
+  divMod
+  div
+  mod
+  divMod_eq
+)

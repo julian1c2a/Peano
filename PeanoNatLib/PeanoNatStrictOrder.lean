@@ -1261,6 +1261,7 @@ namespace Peano
                           unfold Lt at h_lt_nm
                           exact ih_n' h_lt_nm
 
+
   end StrictOrder
 end Peano
 

@@ -1422,6 +1422,12 @@ namespace Peano
       := by
         exact (le_iff_lt_succ n m).symm
 
+    theorem nlt_of_le {a b : ℕ₀} (h : Le a b) :
+      ¬Lt b a
+        := by
+          intro h_contra
+          exact gt_then_nle_wp h_contra h
+
   end Order
 end Peano
 
@@ -1525,4 +1531,5 @@ export Peano.Order (
   le_iff_lt_or_eq
   lt_pred_of_lt_succ
   lt_succ_iff_le
+  nlt_of_le
 )

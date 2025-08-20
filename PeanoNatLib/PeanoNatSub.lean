@@ -1011,6 +1011,33 @@ namespace Peano
         rw [h_sub_eq]
         exact ih h_lt_a'_b' h_le_a'_b' h_neq_a'_b'
 
+theorem sub_gt_factor_of_gt_one_and_sufficient_gap {a b : ℕ₀}
+  (h_lt : Lt b a) (h_gap : Lt (add b b) a) :
+    Lt b (sub a b)
+      := by
+  have h_le : Le b a := lt_imp_le b a h_lt
+  have h_eq : add (sub a b) b = a := sub_k_add_k a b h_le
+
+  -- Usamos tricotomía
+  cases trichotomy b (sub a b) with
+  | inl h_lt_b_sub => exact h_lt_b_sub
+  | inr h_cases =>
+    cases h_cases with
+    | inl h_eq_b_sub =>
+      -- Si b = sub a b, entonces a = 2b, pero tenemos a > 2b
+      have h_a_eq_2b : a = add b b := by
+        rw [← h_eq, ← h_eq_b_sub, add_comm]
+      rw [h_a_eq_2b] at h_gap
+      exfalso
+      exact lt_irrefl (add b b) h_gap
+    | inr h_gt_b_sub =>
+      -- Si b > sub a b, llegamos a contradicción con h_gap
+      have h_sub_le_b : Le (sub a b) b := lt_imp_le (sub a b) b h_gt_b_sub
+      have h_a_le_2b : Le a (add b b) := by
+        rw [← h_eq, add_comm (sub a b) b]
+        exact add_le_add_left (sub a b) b b h_sub_le_b
+      have h_not_gap : ¬Lt (add b b) a := nlt_of_le h_a_le_2b
+      exact absurd h_gap h_not_gap
   end Sub
 
 
@@ -1052,4 +1079,5 @@ export Peano.Sub (
   lt_b_a_then_sub_a_b_neq_0
   sub_pos_of_lt
   sub_lt_self_wp
+  sub_gt_factor_of_gt_one_and_sufficient_gap
 )

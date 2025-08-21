@@ -188,30 +188,82 @@ namespace Peano
                 rw [dif_neg h_b_one]
                 rw [dif_pos h_lt]
 
-    /--
-      Si `𝟚 * b > a` y `a ≥ b`, el cociente es 𝟙.
-    -/
-    theorem div_of_lt_fst_interval (a b : ℕ₀) (h_le : Le b a) (h_a_ge_b : Lt a b) :
+    theorem div_of_lt_fst_interval (a b : ℕ₀) (h_le : Le b a) (h_a_lt_2b : Lt a (add b b)) :
       (a / b) = 𝟙
         := by
-          -- Usamos el lema `lt_imp_neq_zero_one` para obtener `b ≠ 𝟘` y `b ≠ 𝟙`.
-          have ⟨h_b_neq_0, h_b_neq_1⟩ := lt_imp_neq_zero_one b h_le
-          -- Aplicamos la propiedad de división por cero.
-          have h_div_le_self := div_le_self a b h_b_neq_0
-          -- Como `a ≥ b`, entonces `a / b ≥ 𝟙`.
-          have h_div_ge_one : Le (a / b) 𝟙 := by
-            rw [←lt_iff_le_not_eq] at h_a_ge_b
-            exact le_of_lt h_a_ge_b
+      have h_b_neq_0 : b ≠ 𝟘 := by
+        intro h_b_zero
+        rw [h_b_zero] at h_le
+        exact not_succ_le_zero 𝟘 h_le
+      have h_div_eq := divMod_eq a b h_b_neq_0
+      let q := a / b
+      let r := a % b
+      have h_a_eq_qbr : a = q * b + r := h_div_eq
+      have h_r_lt_b : Lt r b := mod_lt_divisor a b h_b_neq_0
+      -- Probamos `q ≥ 1`
+      have h_q_ge_1 : Le 𝟙 q := by
+        by_contra h_not_q_ge_1
+        have h_q_eq_0 : q = 𝟘 := by
+          cases q with
+          | zero => rfl
+          | succ q' => exact False.elim (h_not_q_ge_1 (le_1_succ q'))
+        rw [h_q_eq_0] at h_a_eq_qbr
+        simp [zero_mul, zero_add] at h_a_eq_qbr
+        rw [h_a_eq_qbr] at h_le
+        exact nlt_of_le h_le h_r_lt_b
+      -- Probamos `q < 2`
+      have h_q_lt_2 : Lt q 𝟚 := by
+        by_contra h_not_q_lt_2
+        have h_q_ge_2 : Le 𝟚 q := nle_then_gt_wp h_not_q_lt_2
+        have h_2b_le_qb : Le (mul 𝟚 b) (mul q b) := mul_le_mono_right b h_q_ge_2
+        rw [two_mul] at h_2b_le_qb
+        have h_2b_le_a : Le (add b b) a := by
+          rw [←h_a_eq_qbr]
+          exact le_trans (add b b) (mul q b) (add (mul q b) r) h_2b_le_qb (le_self_add_r _ _)
+        exact nlt_of_le h_2b_le_a h_a_lt_2b
+      -- Si `1 ≤ q` y `q < 2`, entonces `q = 1`.
+      exact (le_m_1_then_m_eq_0or1_wp (lt_then_le_succ_wp h_q_lt_2)).resolve_left (le_1_m_then_m_neq_0_wp h_q_ge_1)
 
-          exact le_antisymm h_div_ge_one h_div_le_self
-
-    /--
-      Si `𝟛 * b > a` y `a ≥ 𝟚 * b`, el cociente es 𝟙.
-    -/
-    theorem div_of_lt_snd_interval (a b : ℕ₀) (h_le : Le b a) (h_a_ge_b : Lt a b) :
+    theorem div_of_lt_snd_interval (a b : ℕ₀) (h_le : Le (add b b) a) (h_a_lt_3b : Lt a (add (add b b) b)) :
       (a / b) = 𝟚
-        := by sorry
-
+        := by
+      have h_b_neq_0 : b ≠ 𝟘 := by
+        intro h_b_zero
+        rw [h_b_zero, add_zero] at h_le
+        exact not_succ_le_zero 𝟘 h_le
+      have h_div_eq := divMod_eq a b h_b_neq_0
+      let q := a / b
+      let r := a % b
+      have h_a_eq_qbr : a = q * b + r := h_div_eq
+      have h_r_lt_b : Lt r b := mod_lt_divisor a b h_b_neq_0
+      -- Probamos `q ≥ 2`
+      have h_q_ge_2 : Le 𝟚 q := by
+        by_contra h_not_q_ge_2
+        have h_q_lt_2 : Lt q 𝟚 := nle_then_gt_wp h_not_q_ge_2
+        have h_q_le_1 : Le q 𝟙 := lt_then_le_succ_wp h_q_lt_2
+        have h_qb_le_b : Le (mul q b) b := by
+          have h_mul_le_1 : Le (mul q b) (mul 𝟙 b) := mul_le_mono_right b h_q_le_1
+          rw [one_mul] at h_mul_le_1
+          exact h_mul_le_1
+        have h_a_lt_2b : Lt a (add b b) := by
+          rw [h_a_eq_qbr]
+          apply lt_of_le_of_lt h_qb_le_b
+          rw [two_mul]
+          exact lt_add_of_pos_right b r (lt_of_lt_of_le h_r_lt_b (le_refl b))
+        exact nlt_of_le h_le h_a_lt_2b
+      -- Probamos `q < 3`
+      have h_q_lt_3 : Lt q 𝟛 := by
+        by_contra h_not_q_lt_3
+        have h_q_ge_3 : Le 𝟛 q := nle_then_gt_wp h_not_q_lt_3
+        have h_3b_le_qb : Le (mul 𝟛 b) (mul q b) := mul_le_mono_right b h_q_ge_3
+        rw [three_mul] at h_3b_le_qb
+        have h_3b_le_a : Le (add (add b b) b) a := by
+          rw [←h_a_eq_qbr]
+          exact le_trans (add (add b b) b) (mul q b) (add (mul q b) r) h_3b_le_qb (le_self_add_r _ _)
+        exact nlt_of_le h_3b_le_a h_a_lt_3b
+      -- Si `2 ≤ q` y `q < 3`, entonces `q = 2`.
+      have h_q_le_2 : Le q 𝟚 := lt_then_le_succ_wp h_q_lt_3
+      exact le_antisymm q 𝟚 h_q_le_2 h_q_ge_2
     /--
       El resto de la división siempre es menor que el divisor.
       Esta es la propiedad más importante de la división euclídea.

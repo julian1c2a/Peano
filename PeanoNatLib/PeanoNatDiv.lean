@@ -97,7 +97,9 @@ namespace Peano
         else
           rw [dif_neg h_a_zero]
           if h_b_one : b = 𝟙 then
-            rw [dif_pos h_b_one, mul_one, add_zero]
+            rw [dif_pos h_b_one]
+            simp only
+            rw [h_b_one, mul_one, add_zero]
           else
             rw [dif_neg h_b_one]
             if h_a_lt_b : Lt a b then
@@ -106,14 +108,20 @@ namespace Peano
               rw [dif_neg h_a_lt_b]
               if h_a_eq_b : a = b then
                 rw [dif_pos h_a_eq_b, one_mul, add_zero]
+                exact h_a_eq_b
               else
                 rw [dif_neg h_a_eq_b]
                 have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
                 have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
                 have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
                 have h_ih_call := ih (sub a b) h_sub_lt_a
-                rw [succ_mul, add_assoc]
-                rw [add_comm ((divMod (sub a b) b).2) b, ←add_assoc]
+                simp only [succ_mul]
+                have h_divmod_eq : (divMod (sub a b) b) = ((divMod (sub a b) b).1, (divMod (sub a b) b).2) := by simp
+                rw [h_divmod_eq]
+                simp only
+                rw [←add_assoc]
+                rw [add_comm b ((divMod (sub a b) b).2)]
+                rw [add_assoc]
                 rw [←h_ih_call]
                 exact (sub_k_add_k a b h_le_b_a).symm
 
@@ -161,8 +169,7 @@ namespace Peano
       El cociente de la división de `a` por `b` es menor o igual que `a`.
     -/
     theorem div_le_self (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
-      Le (a / b) a
-        := by
+      Le (a / b) a := by
       let q := a / b
       have h_eq := divMod_eq a b h_b_neq_0
       have h_qb_le_a : Le (mul q b) a := by
@@ -175,31 +182,76 @@ namespace Peano
         have h_q_le_qb : Le q (mul q b) := by
           have h_lt_0_b : Lt 𝟘 b := neq_0_then_lt_0 h_b_neq_0
           have h_le_1_b : Le 𝟙 b := lt_0_then_le_1 b h_lt_0_b
-          exact mul_le_right q b h_le_1_b
+          exact mul_le_right q b h_b_neq_0
         exact le_trans q (mul q b) a h_q_le_qb h_qb_le_a
 
     -- Lema auxiliar que faltaba.
-    theorem gt_imp_neq_zero_one (b : ℕ₀) (h : Lt 𝟙 b) :
-      b ≠ 𝟘 ∧ b ≠ 𝟙
-        :=  ⟨lt_1_b_then_b_neq_0 h, lt_1_b_then_b_neq_1 h⟩
+    theorem gt_imp_neq_zero_one (b : ℕ₀) (h : Lt 𝟙 b) : b ≠ 𝟘 ∧ b ≠ 𝟙 :=
+      ⟨lt_1_b_then_b_neq_0 h, lt_1_b_then_b_neq_1 h⟩
 
     /--
       El cociente de la división de `a` por `b` es estrictamente menor que `a` si `b > 𝟙` y `a ≠ 𝟘`.
     -/
     theorem div_lt_self (a b : ℕ₀) (h_b_gt_1 : Lt 𝟙 b) (h_a_neq_0 : a ≠ 𝟘) :
-      Lt (a / b) a
-        := by
+      Lt (a / b) a := by
       have ⟨h_b_neq_0, _⟩ := gt_imp_neq_zero_one b h_b_gt_1
       have h_div_le_a : Le (a / b) a := div_le_self a b h_b_neq_0
-      apply lt_of_le_of_ne h_div_le_a
+      apply lt_of_le_of_ne (a / b) a h_div_le_a
+      unfold div
       intro h_eq_div_a
       have h_div_eq := divMod_eq a b h_b_neq_0
-      rw [h_eq_div_a] at h_div_eq
-      have h_mul_lt : Lt a (mul a b) := by
-        rw [mul_comm]
-        exact mul_lt_right a b h_a_neq_0 h_b_gt_1
-      have h_mul_le_sum : Le (mul a b) (add (mul a b) (a % b)) :=
-        le_self_add_r (mul a b) (a % b)
+      have h_div_fst_eq : (divMod a b).fst = a / b := rfl
+      rw [h_div_fst_eq] at h_div_eq
+      have h_div_snd_eq : (divMod a b).snd = a % b := rfl
+      rw [h_div_snd_eq] at h_div_eq
+      have h_mul_le : Le (mul (a / b) b) a := by
+        rw [←h_div_fst_eq, ←h_eq_div_a]
+        have h_mul_lt : Lt (mul (a / b) b) (mul a b) := by
+          have h_lt_div_a : Lt (a / b) a := by
+            rw [h_div_fst_eq] at h_eq_div_a
+            rw [h_eq_div_a] at h_div_eq
+            have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b h_b_neq_0
+            have h_mod_pos : Lt 𝟘 (a % b) := by
+              -- Since a ≠ 0 and a % b < b, and b > 1, a % b ≠ 0
+              cases (a % b) with
+              | zero =>
+                -- a % b = 0, so a = (a / b) * b by divMod_eq
+                have h_div_eq := divMod_eq a b h_b_neq_0
+                -- But a < b, contradiction with a ≠ 0 and b > 1
+                have h_mul_le_a : Le (mul (a / b) b) a := by
+                  rw [h_div_eq]
+                  exact le_refl ((divMod a b).fst * b + (divMod a b).snd)
+                -- But a % b = 0 and a < b is impossible unless a = 0
+                -- Contradicts h_a_neq_0
+                exact h_a_neq_0 (by
+                  rw [←h_div_eq]
+                  have h_q := a / b
+                  cases h_q with
+                  | zero => rfl
+                  | succ q' =>
+                    -- If q' ≥ 1, then a ≥ b, contradiction to a < b
+                    exfalso
+                    have h_ge : Le b a := by
+                      have : Le (succ q' * b) b := by
+                        apply mul_le_right
+                        exact Nat.zero_lt_succ q'
+                        exact h_b_neq_0
+                      exact le_trans b (succ q' * b) a this h_mul_le_a
+                    exact not_lt_of_le h_ge h_mod_lt
+                )
+              | succ _ => exact Nat.zero_lt_succ _
+            have h_b_ge_2 : Le 𝟚 b := by
+              have h_b_gt_1_expanded : Lt 𝟙 b := h_b_gt_1
+              exact lt_then_le_succ_wp h_b_gt_1_expanded
+            rw [h_eq_div_a, mul_comm a b, ←h_div_eq] at h_div_eq
+            have h_contradiction : Lt a a := by
+              rw [h_div_eq]
+              exact lt_add_of_pos_right (mul a b) (a % b) h_mod_pos
+            exact lt_irrefl a h_contradiction
+          exact mul_lt_left b (a / b) a h_lt_div_a h_b_neq_0
+        exact lt_imp_le (mul (a / b) b) (mul a b) h_mul_lt
+      have h_mul_le_sum : Le (mul (a / b) b) (add (mul (a / b) b) (a % b)) :=
+        le_self_add_r (mul (a / b) b) (a % b)
       rw [←h_div_eq] at h_mul_le_sum
       have h_lt_a_a := lt_of_lt_of_le h_mul_lt h_mul_le_sum
       exact lt_irrefl a h_lt_a_a
@@ -261,7 +313,7 @@ namespace Peano
       (a / b) = 𝟙 := by
       have h_b_neq_0 : b ≠ 𝟘 := by
         intro h_b_zero
-        rw [h_b_zero] at h_le
+        rw [h_b_zero, add_zero] at h_le
         exact not_succ_le_zero 𝟘 h_le
       let q := a / b
       have h_a_eq_qbr : a = q * b + (a % b) := divMod_eq a b h_b_neq_0
@@ -289,7 +341,7 @@ namespace Peano
         exact nlt_of_le h_2b_le_a h_a_lt_2b
       -- Si `1 ≤ q` y `q < 2`, entonces `q = 1`.
       have h_q_le_1 : Le q 𝟙 := lt_then_le_succ_wp h_q_lt_2
-      exact le_antisymm q � h_q_le_1 h_q_ge_1
+      exact le_antisymm q 𝟙 h_q_le_1 h_q_ge_1
 
     /--
       Si `2 * b ≤ a < 3 * b`, el cociente es 2.
@@ -333,6 +385,32 @@ namespace Peano
       have h_q_le_2 : Le q 𝟚 := lt_then_le_succ_wp h_q_lt_3
       exact le_antisymm q 𝟚 h_q_le_2 h_q_ge_2
 
+    theorem le___mul__div_a_b__b____a (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
+      Le (mul (div a b) b) a
+        := by
+      have h_eq := divMod_eq a b h_b_neq_0
+      unfold div
+      let q : ℕ₀ := ((divMod a b).1)
+      let r : ℕ₀ := ((divMod a b).2)
+      have h_divmod_eq : a = (add (mul q b) r) := h_eq
+      have h_r_le_a : Le r a := by
+        rw [h_divmod_eq]
+        rw [add_comm (mul q b) r]
+        exact le_self_add_r r (mul q b)
+      rw [h_divmod_eq]
+      have h_mul_le : Le (mul q b) a := by
+        rw [h_divmod_eq]
+        exact le_self_add_r (mul q b) r
+      have h_a_eq : a = add (mul q b) r := h_divmod_eq
+      have h_le_trans_mul_q_b_a_r : Le (mul q b) (add (mul q b) r) := by
+        exact le_self_add_r (mul q b) r
+      have h_le_trans_mul_q_b_a : Le (mul q b) a := by
+        exact le_trans (mul q b) (add (mul q b) r) a h_le_trans_mul_q_b_a_r (by rw [h_divmod_eq.symm]; exact le_refl a)
+      have h_add_qb_r_eq_a : (add (mul q b) r) = a := h_divmod_eq.symm
+      rw [h_add_qb_r_eq_a] at h_le_trans_mul_q_b_a_r
+      unfold q at h_le_trans_mul_q_b_a
+      exact h_le_trans_mul_q_b_a
+
   end Div
 
 end Peano
@@ -350,6 +428,3 @@ export Peano.Div (
   div_of_lt_fst_interval
   div_of_lt_snd_interval
 )
-
-
-�

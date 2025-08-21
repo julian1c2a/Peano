@@ -83,9 +83,7 @@ namespace Peano
     /--
       Teorema general de la división euclídea.
     -/
-    theorem divMod_eq (a b : ℕ₀) :
-      b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2
-        := by
+    theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2 := by
       intro h_b_neq_0
       induction a using well_founded_lt.induction
       rename_i a ih
@@ -181,8 +179,9 @@ namespace Peano
         exact le_trans q (mul q b) a h_q_le_qb h_qb_le_a
 
     -- Lema auxiliar que faltaba.
-    theorem gt_imp_neq_zero_one (b : ℕ₀) (h : Lt 𝟙 b) : b ≠ 𝟘 ∧ b ≠ 𝟙 :=
-      ⟨lt_1_b_then_b_neq_0 h, lt_1_b_then_b_neq_1 h⟩
+    theorem gt_imp_neq_zero_one (b : ℕ₀) (h : Lt 𝟙 b) :
+      b ≠ 𝟘 ∧ b ≠ 𝟙
+        :=  ⟨lt_1_b_then_b_neq_0 h, lt_1_b_then_b_neq_1 h⟩
 
     /--
       El cociente de la división de `a` por `b` es estrictamente menor que `a` si `b > 𝟙` y `a ≠ 𝟘`.
@@ -209,8 +208,7 @@ namespace Peano
       Si `a < b`, el cociente es 0.
     -/
     theorem div_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
-      (a / b) = 𝟘
-        := by
+      (a / b) = 𝟘 := by
       unfold div divMod
       if h_b_zero : b = 𝟘 then
         have h_a_lt_zero : Lt a 𝟘 := by rw [h_b_zero] at h_lt; exact h_lt
@@ -233,8 +231,7 @@ namespace Peano
       Si `a < b`, el resto es `a`.
     -/
     theorem mod_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
-      (a % b) = a
-        := by
+      (a % b) = a := by
       unfold mod divMod
       if h_b_zero : b = 𝟘 then
         have h_a_lt_zero : Lt a 𝟘 := by rw [h_b_zero] at h_lt; exact h_lt
@@ -257,18 +254,18 @@ namespace Peano
             rw [dif_neg h_b_one]
             rw [dif_pos h_lt]
 
+    /--
+      Si `b ≤ a < 2 * b`, el cociente es 1.
+    -/
     theorem div_of_lt_fst_interval (a b : ℕ₀) (h_le : Le b a) (h_a_lt_2b : Lt a (add b b)) :
-      (a / b) = 𝟙
-        := by
+      (a / b) = 𝟙 := by
       have h_b_neq_0 : b ≠ 𝟘 := by
         intro h_b_zero
-        rw [h_b_zero, add_zero] at h_le
+        rw [h_b_zero] at h_le
         exact not_succ_le_zero 𝟘 h_le
-      have h_div_eq := divMod_eq a b h_b_neq_0
       let q := a / b
-      let r := a % b
-      have h_a_eq_qbr : a = q * b + r := h_div_eq
-      have h_r_lt_b : Lt r b := mod_lt_divisor a b h_b_neq_0
+      have h_a_eq_qbr : a = q * b + (a % b) := divMod_eq a b h_b_neq_0
+      have h_r_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_neq_0
       -- Probamos `q ≥ 1`
       have h_q_ge_1 : Le 𝟙 q := by
         by_contra h_not_q_ge_1
@@ -288,23 +285,24 @@ namespace Peano
         rw [two_mul] at h_2b_le_qb
         have h_2b_le_a : Le (add b b) a := by
           rw [←h_a_eq_qbr]
-          exact le_trans (add b b) (mul q b) (add (mul q b) r) h_2b_le_qb (le_self_add_r _ _)
+          exact le_trans (add b b) (mul q b) (add (mul q b) (a % b)) h_2b_le_qb (le_self_add_r _ _)
         exact nlt_of_le h_2b_le_a h_a_lt_2b
       -- Si `1 ≤ q` y `q < 2`, entonces `q = 1`.
       have h_q_le_1 : Le q 𝟙 := lt_then_le_succ_wp h_q_lt_2
-      exact le_antisymm q 𝟙 h_q_le_1 h_q_ge_1
+      exact le_antisymm q � h_q_le_1 h_q_ge_1
 
+    /--
+      Si `2 * b ≤ a < 3 * b`, el cociente es 2.
+    -/
     theorem div_of_lt_snd_interval (a b : ℕ₀) (h_le : Le (add b b) a) (h_a_lt_3b : Lt a (add (add b b) b)) :
-      (a / b) = 𝟚
-        := by
+      (a / b) = 𝟚 := by
       have h_b_neq_0 : b ≠ 𝟘 := by
         intro h_b_zero
         rw [h_b_zero, add_zero] at h_le
         exact not_succ_le_zero 𝟘 h_le
-      have h_div_eq := divMod_eq a b h_b_neq_0
       let q := a / b
       let r := a % b
-      have h_a_eq_qbr : a = q * b + r := h_div_eq
+      have h_a_eq_qbr : a = q * b + r := divMod_eq a b h_b_neq_0
       have h_r_lt_b : Lt r b := mod_lt_divisor a b h_b_neq_0
       -- Probamos `q ≥ 2`
       have h_q_ge_2 : Le 𝟚 q := by
@@ -352,3 +350,6 @@ export Peano.Div (
   div_of_lt_fst_interval
   div_of_lt_snd_interval
 )
+
+
+�

@@ -288,7 +288,7 @@ namespace Peano
                   rw [add_succ]
                   exact h_lt_a_than_s_add_a_b'
                 exact h_lt_a_than_add_a_s_b'
-
+    
     theorem lt_self_add_r_forall (a : ℕ₀) :
       ∀ (b : ℕ₀) , b ≠ 𝟘 → Lt a (add a b)
         := by

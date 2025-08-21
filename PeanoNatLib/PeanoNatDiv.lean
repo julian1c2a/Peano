@@ -267,40 +267,23 @@ namespace Peano
     /--
       El cociente de la división de `a` por `b` es estrictamente menor que `a` si `b > 𝟙` y `a ≠ 𝟘`.
     -/
-    theorem div_lt_self (a b : ℕ₀) (h_b_gt_1 : b > 𝟙) (h_a_neq_0 : a ≠ 𝟘) :
-      Lt (a / b) a
-        := by
-          -- Usamos el lema `gt_imp_neq_zero_one` para obtener `b ≠ 𝟘` y `b ≠ 𝟙`.
-          have ⟨h_b_neq_0, h_b_neq_1⟩ := gt_imp_neq_zero_one b h_b_gt_1
-          -- Aplicamos la propiedad de división por cero.
-          have h_div_le_self := div_le_self a b h_b_neq_0
-          -- Como `a ≠ 𝟘`, entonces `a / b < a`.
-          exact lt_of_le_neq (a / b) a h_div_le_self (fun h_eq => by
-            -- Si `a / b = a`, entonces por la ecuación de división:
-            -- `a = (a / b) * b + (a % b) = a * b + (a % b)`
-            -- Como `b > 𝟙`, esto implica `a * b > a`, contradicción.
-            have h_div_eq := divMod_eq a b h_b_neq_0
-            -- Rewrite using the definition of div and mod
-            have h_div_def : (a / b) = (divMod a b).1 := rfl
-            have h_mod_def : (a % b) = (divMod a b).2 := rfl
-            rw [←h_div_def, ←h_mod_def] at h_div_eq
-            rw [h_eq] at h_div_eq
-            -- Ahora tenemos: a = a * b + (a % b)
-            have h_mod_lt := mod_lt_divisor a b h_b_neq_0
-            -- Como a % b < b y b > 𝟙, tenemos a % b ≥ 𝟘
-            have h_ab_gt_a : Lt a (mul a b) := by
-              by_cases h_a_zero : a = 𝟘
-              · exact (h_a_neq_0 h_a_zero).elim
-              · rw [mul_comm a b]
-                exact mul_lt_right a b h_a_zero h_b_gt_1
-            -- De la ecuación a = a * b + (a % b), tenemos a ≥ a * b
-            have h_a_ge_ab : Le (mul a b) a := by
-              rw [h_div_eq]
-              have h_mod_def : (a % b) = (divMod a b).2 := rfl
-              rw [h_mod_def]
-              exact le_self_add (mul a b) (a % b)
-            -- Pero esto contradice a < a * b
-            exact lt_irrefl a (lt_of_le_of_lt h_a_ge_ab h_ab_gt_a))
+    theorem div_lt_self (a b : ℕ₀) (h_b_gt_1 : Lt 𝟙 b) (h_a_neq_0 : a ≠ 𝟘) :
+      Lt (a / b) a := by
+      have ⟨h_b_neq_0, _⟩ := gt_imp_neq_zero_one b h_b_gt_1
+      have h_div_le_a : Le (a / b) a := div_le_self a b h_b_neq_0
+      apply lt_of_le_neq h_div_le_a
+      intro h_eq_div_a
+      have h_div_eq := divMod_eq a b h_b_neq_0
+      rw [h_eq_div_a] at h_div_eq
+      have h_mul_lt : Lt a (mul a b) := by
+        rw [mul_comm]
+        exact mul_lt_right a b h_a_neq_0 h_b_gt_1
+      have h_mul_le_sum : Le (mul a b) (add (mul a b) (a % b)) :=
+        le_self_add_r (mul a b) (a % b)
+      rw [←h_div_eq] at h_mul_le_sum
+      have h_lt_a_a := lt_of_lt_of_le h_mul_lt h_mul_le_sum
+      exact lt_irrefl a h_lt_a_a
+
 
     /--
       Si `a < b`, el resto es `a`.

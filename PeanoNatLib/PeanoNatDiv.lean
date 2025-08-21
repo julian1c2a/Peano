@@ -316,10 +316,14 @@ namespace Peano
         rw [dif_neg h_b_zero]
         if h_a_zero : a = 𝟘 then
           rw [dif_pos h_a_zero]
+          simp only
+          exact h_a_zero.symm
         else
           rw [dif_neg h_a_zero]
           if h_b_one : b = 𝟙 then
-            have h_a_lt_one : Lt a 𝟙 := by rw [h_b_one] at h_lt; exact h_lt
+            have h_a_lt_one : Lt a 𝟙 := by
+              rw [h_b_one] at h_lt
+              exact h_lt
             have h_a_eq_zero : a = 𝟘 := lt_b_1_then_b_eq_0 h_a_lt_one
             exact (h_a_zero h_a_eq_zero).elim
           else

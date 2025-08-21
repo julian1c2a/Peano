@@ -233,6 +233,116 @@ namespace Peano
         rw [add_comm b c] at h_le_add
         exact h_le_add
 
+    theorem le_self_add_r (a b : ℕ₀) :
+      Le a (add a b)
+        := by
+        induction b with
+        | zero =>
+          rw [add_zero]
+          exact le_refl a
+        | succ b' ih =>
+            have h_le_a_than_add_a_b' : Le a (add a b') := ih
+            have h_le_a_than_s_add_a_b' : Le a (σ (add a b')) := by
+              exact le_trans a (add a b') (σ (add a b')) ih (le_succ_self (add a b'))
+            have h_le_a_than_add_a_s_b' : Le a (add a (σ b')) := by
+              rw [add_succ]
+              exact h_le_a_than_s_add_a_b'
+            exact h_le_a_than_add_a_s_b'
+
+    theorem le_self_add_r_forall (a : ℕ₀) :
+      ∀ (b : ℕ₀), Le a (add a b)
+        := by
+        intro (b : ℕ₀)
+        induction b with
+        | zero =>
+          rw [add_zero]
+          exact le_refl a
+        | succ b' ih =>
+            have h_le_a_than_add_a_b' : Le a (add a b') := ih
+            have h_le_a_than_s_add_a_b' : Le a (σ (add a b')) := by
+              exact le_trans a (add a b') (σ (add a b')) ih (le_succ_self (add a b'))
+            have h_le_a_than_add_a_s_b' : Le a (add a (σ b')) := by
+              rw [add_succ]
+              exact h_le_a_than_s_add_a_b'
+            exact h_le_a_than_add_a_s_b'
+
+    theorem lt_self_add_r (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘):
+      Lt a (add a b)
+        := by
+          induction b with
+          | zero =>
+            rw [add_zero]
+            exfalso
+            exact h_b_neq_0 rfl
+          | succ b' ih =>
+              cases b' with
+              | zero =>
+                rw [add_succ, add_zero]
+                exact lt_succ_self a
+              | succ b'' =>
+                have h_b'_neq_0 : σ b'' ≠ 𝟘 := succ_neq_zero b''
+                have h_lt_a_than_add_a_b' : Lt a (add a (σ b'')) := ih h_b'_neq_0
+                have h_lt_a_than_s_add_a_b' : Lt a (σ (add a (σ b''))) := by
+                  exact lt_trans a (add a (σ b'')) (σ (add a (σ b''))) h_lt_a_than_add_a_b' (lt_succ_self (add a (σ b'')))
+                have h_lt_a_than_add_a_s_b' : Lt a (add a (σ (σ b''))) := by
+                  rw [add_succ]
+                  exact h_lt_a_than_s_add_a_b'
+                exact h_lt_a_than_add_a_s_b'
+
+    theorem lt_self_add_r_forall (a : ℕ₀) :
+      ∀ (b : ℕ₀) , b ≠ 𝟘 → Lt a (add a b)
+        := by
+          intro (b : ℕ₀) h_b_neq_0
+          induction b with
+          | zero =>
+            rw [add_zero]
+            exfalso
+            exact h_b_neq_0 rfl
+          | succ b' ih =>
+              cases b' with
+              | zero =>
+                rw [add_succ, add_zero]
+                exact lt_succ_self a
+              | succ b'' =>
+                have h_b'_neq_0 : σ b'' ≠ 𝟘 := succ_neq_zero b''
+                have h_lt_a_than_add_a_b' : Lt a (add a (σ b'')) := ih h_b'_neq_0
+                have h_lt_a_than_s_add_a_b' : Lt a (σ (add a (σ b''))) := by
+                  exact lt_trans a (add a (σ b'')) (σ (add a (σ b''))) h_lt_a_than_add_a_b' (lt_succ_self (add a (σ b'')))
+                have h_lt_a_than_add_a_s_b' : Lt a (add a (σ (σ b''))) := by
+                  rw [add_succ]
+                  exact h_lt_a_than_s_add_a_b'
+                exact h_lt_a_than_add_a_s_b'
+
+    theorem le_self_add_l (a b : ℕ₀) :
+      Le a (add b a)
+        := by
+          have h_add_b_a_eq_add_a_b : add b a = add a b
+            := by rw [add_comm]
+          rw [h_add_b_a_eq_add_a_b]
+          exact le_self_add_r a b
+
+    theorem le_self_add_l_forall (a : ℕ₀) :
+      ∀ (b : ℕ₀), Le a (add b a)
+        := by
+          intro (b : ℕ₀)
+          have h_add_b_a_eq_add_a_b : add b a = add a b
+            := by rw [add_comm]
+          rw [h_add_b_a_eq_add_a_b]
+          exact le_self_add_r a b
+
+    theorem lt_self_add_l (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
+      Lt a (add b a)
+        := by
+          rw [add_comm b a]
+          exact lt_self_add_r a b h_b_neq_0
+
+    theorem lt_self_add_l_forall (a : ℕ₀) :
+      ∀ (b : ℕ₀), b ≠ 𝟘 → Lt a (add b a)
+        := by
+          intro (b : ℕ₀) h_b_neq_0
+          rw [add_comm b a]
+          exact lt_self_add_r a b h_b_neq_0
+
     theorem add_lt (n m k : ℕ₀) :
       Lt n m → Lt n (add m k)
         := by
@@ -1165,4 +1275,12 @@ export Peano.Add(
   lt_then_exists_add_succ_wp
   lt_add_pos
   lt_0_then_le_1
+  le_self_add_r
+  le_self_add_r_forall
+  le_self_add_l
+  le_self_add_l_forall
+  lt_self_add_r
+  lt_self_add_r_forall
+  lt_self_add_l
+  lt_self_add_l_forall
 )

@@ -13,7 +13,7 @@ lean_lib «PeanoNatLib» where
   -- Si tus archivos están en la raíz (PeanoNatAxioms.lean, PeanoNatStrictOrder.lean),
   -- Lake debería encontrarlos.
   -- Si los tienes en un subdirectorio, por ejemplo, "src", lo indicarías así:
-  -- rootDir := `PeanoNatLib -- Esta línea se elimina o se corrige si se usa srcDir
+  rootDir := `PeanoNatLib -- Esta línea se elimina o se corrige si se usa srcDir
 
 -- Opcional: si quieres importar Mathlib para tácticas u otras utilidades
 -- require mathlib from git

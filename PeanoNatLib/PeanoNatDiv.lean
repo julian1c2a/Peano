@@ -134,6 +134,129 @@ namespace Peano
                 rw [←h_ih_call]
                 exact (sub_k_add_k a b h_le_b_a).symm
 
+    /--
+      El resto de la división siempre es menor que el divisor.
+      Esta es la propiedad más importante de la división euclídea.
+    -/
+    theorem mod_lt_divisor (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
+      Lt (a % b) b := by
+      -- La prueba se hace por inducción bien fundada sobre `a`.
+      induction a using well_founded_lt.induction
+      -- CORRECCIÓN: Nombramos las variables correctamente. `a` es el número, `ih` la hipótesis.
+      rename_i a ih
+
+      unfold mod divMod
+      -- Replicamos la estructura de `if` de `divMod`.
+      if h_b_zero : b = 𝟘 then
+        exact False.elim (h_b_neq_0 h_b_zero)
+      else
+        rw [dif_neg h_b_zero]
+        if h_a_zero : a = 𝟘 then
+          rw [dif_pos h_a_zero]
+          -- El resto es 𝟘, y `Lt 𝟘 b` es cierto porque `b ≠ 𝟘`.
+          exact neq_0_then_lt_0 h_b_neq_0
+        else
+          rw [dif_neg h_a_zero]
+          if h_b_one : b = 𝟙 then
+            rw [dif_pos h_b_one]
+            -- El resto es 𝟘, y `Lt 𝟘 𝟙` es cierto.
+            simp only  -- reduce (a, 𝟘).snd to 𝟘
+            rw [h_b_one]
+            exact lt_0_1
+          else
+            rw [dif_neg h_b_one]
+            if h_a_lt_b : Lt a b then
+              rw [dif_pos h_a_lt_b]
+              -- El resto es `a`, y por hipótesis `Lt a b`.
+              exact h_a_lt_b
+            else
+              rw [dif_neg h_a_lt_b]
+              if h_a_eq_b : a = b then
+                rw [dif_pos h_a_eq_b]
+                -- El resto es 𝟘, y `Lt 𝟘 b` es cierto porque `b ≠ 𝟘` y `b ≠ 𝟙`.
+                have h_lt_1_b : Lt 𝟙 b := neq_01_then_gt_1 b ⟨h_b_neq_0, h_b_one⟩
+                exact lt_trans 𝟘 𝟙 b lt_0_1 h_lt_1_b
+              else
+                -- Caso recursivo: b < a
+                rw [dif_neg h_a_eq_b]
+                have h_b_lt_a : Lt b a := not_lt_and_not_eq_implies_gt a b h_a_lt_b h_a_eq_b
+                have h_le_b_a : Le b a := lt_imp_le b a h_b_lt_a
+                have h_sub_lt_a : Lt (sub a b) a := sub_lt_self a b h_le_b_a h_b_neq_0
+                -- El resto de `a % b` es el mismo que el de `(a-b) % b`.
+                -- Por hipótesis de inducción, sabemos que `(a-b) % b < b`.
+                exact ih (sub a b) h_sub_lt_a
+
+    -- Helper lemma: If b > 𝟙, then b ≠ 𝟘 ∧ b ≠ 𝟙
+    private def gt_imp_neq_zero_one (b : ℕ₀) (h : b > 𝟙) : b ≠ 𝟘 ∧ b ≠ 𝟙 :=
+      ⟨fun h0 => by
+          rw [h0] at h
+          -- Now h : 𝟘 > 𝟙, but 𝟘 < 𝟙, so this is absurd
+          exact False.elim (lt_asymm _ _ lt_0_1 h),
+        fun h1 => by
+          rw [h1] at h
+          -- Now h : 𝟙 > 𝟙, which is irreflexivity
+          exact lt_irrefl _ h⟩
+
+
+    /--
+      El cociente de la división de `a` por `b` es menor o igual que `a`.
+    -/
+    theorem div_le_self (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
+      Le (a / b) a
+        := by
+          let q := a / b
+          have h_eq := divMod_eq a b h_b_neq_0
+          have h_qb_le_a : Le (mul q b) a := by
+            rw [h_eq]
+            exact le_self_add (mul q b) (mod a b)
+
+          have h_q_le_qb : Le q (mul q b) :=
+            mul_le_right q b h_b_neq_0
+
+          exact le_trans q (mul q b) a h_q_le_qb h_qb_le_a
+
+    /--
+      El cociente de la división de `a` por `b` es estrictamente menor que `a` si `b > 𝟙` .
+    -/
+    theorem div_lt_self (a b : ℕ₀) (h_b_gt_1 : b > 𝟙) :
+      Lt (a / b) a
+        := by
+          sorry
+
+
+    /--
+      Si `a < b`, el cociente es 0.
+    -/
+    theorem div_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
+      (a / b) = 𝟘
+        := by
+          unfold div
+          unfold divMod
+          if h_b_zero : b = 𝟘 then
+            have h_a_lt_zero : Lt a 𝟘 := by rw [h_b_zero] at h_lt; exact h_lt
+            exact (nlt_n_0 a h_a_lt_zero).elim
+          else
+            rw [dif_neg h_b_zero]
+            if h_a_zero : a = 𝟘 then
+              rw [dif_pos h_a_zero]
+            else
+              rw [dif_neg h_a_zero]
+              if h_b_one : b = 𝟙 then
+                have h_a_lt_one : Lt a 𝟙 := by rw [h_b_one] at h_lt; exact h_lt
+                have h_a_eq_zero : a = 𝟘 := lt_b_1_then_b_eq_0 h_a_lt_one
+                exact (h_a_zero h_a_eq_zero).elim
+              else
+                rw [dif_neg h_b_one]
+                rw [dif_pos h_lt]
+
+    /--
+      Si `a < b`, el resto es `a`.
+    -/
+    theorem mod_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
+      (a % b) = a
+        := by
+          sorry
+
   end Div
 
 end Peano
@@ -143,4 +266,8 @@ export Peano.Div (
   div
   mod
   divMod_eq
+  mod_lt_divisor
+  div_le_self
+  div_of_lt
+  mod_of_lt
 )

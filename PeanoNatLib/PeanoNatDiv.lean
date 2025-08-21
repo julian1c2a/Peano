@@ -227,7 +227,7 @@ namespace Peano
                 rw [dif_pos h_lt]
 
     /--
-      Si `2 * b > a` y `a ≥ b`, el cociente es 𝟙.
+      Si `𝟚 * b > a` y `a ≥ b`, el cociente es 𝟙.
     -/
     theorem div_of_lt_fst_interval (a b : ℕ₀) (h_le : Le b a) (h_a_ge_b : Lt a b) :
       (a / b) = 𝟙
@@ -242,6 +242,13 @@ namespace Peano
             exact le_of_lt h_a_ge_b
 
           exact le_antisymm h_div_ge_one h_div_le_self
+
+    /--
+      Si `𝟛 * b > a` y `a ≥ 𝟚 * b`, el cociente es 𝟙.
+    -/
+    theorem div_of_lt_snd_interval (a b : ℕ₀) (h_le : Le b a) (h_a_ge_b : Lt a b) :
+      (a / b) = 𝟚
+        := by sorry
 
     /--
       El resto de la división siempre es menor que el divisor.

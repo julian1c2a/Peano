@@ -15,3 +15,9 @@ import PeanoNatLib.PeanoNatWellFounded
 -- Re-exportar todos los nombres del namespace Peano
 -- para que estén disponibles cuando se importe Peano
 export Peano (open)
+export Peano.Div (
+	div_of_lt_nth_interval
+	mod_of_lt_fst_interval
+	mod_of_lt_snd_interval
+	mod_of_lt_nth_interval
+)

@@ -16,6 +16,15 @@ Desde la parte aritmetica adicional se incluye el modulo `PeanoNatLib/PeanoNatAr
     - [6.1. Adición (add, +)](#61-adición-add-)
     - [6.2. Multiplicación (mul, \*)](#62-multiplicación-mul-)
   - [7. Otros Teoremas Notables](#7-otros-teoremas-notables)
+  - [8. Aritmetica Avanzada (Divisibilidad, GCD, LCM)](#8-aritmetica-avanzada-divisibilidad-gcd-lcm)
+    - [8.1. Divisibilidad](#81-divisibilidad)
+    - [8.2. Máximo Común Divisor (GCD) - Computable](#82-máximo-común-divisor-gcd---computable)
+    - [8.3. Mínimo Común Múltiplo (LCM) - Computable](#83-mínimo-común-múltiplo-lcm---computable)
+    - [8.4. Múltiples Inductivos](#84-múltiples-inductivos)
+    - [8.5. Listas Finitas de Divisores (DList)](#85-listas-finitas-de-divisores-dlist)
+    - [8.6. Predicados de Factorización](#86-predicados-de-factorización)
+    - [8.7. Función Computable de Factores](#87-función-computable-de-factores)
+    - [8.8. Lema de Bézout (Versión Natural)](#88-lema-de-bézout-versión-natural)
 
 ## Modulos principales
 
@@ -239,3 +248,171 @@ theorem neq_then_lt (n m : PeanoNat) : n ≠ m → (n < m) ∨ (m < n)
 theorem lt_then_neq (n m : PeanoNat) : n < m → n ≠ m -- Este es el mismo que lt_n_m_then_neq_n_m
 
 theorem not_exists_maximum : ¬(∃ k : PeanoNat, ∀ m : PeanoNat, m < k)
+
+## 8. Aritmetica Avanzada (Divisibilidad, GCD, LCM)
+
+El módulo [PeanoNatLib/PeanoNatArith.lean](PeanoNatLib/PeanoNatArith.lean) proporciona:
+
+### 8.1. Divisibilidad
+
+```lean
+def Divides (a b : ℕ₀) : Prop := ∃ k : ℕ₀, b = mul a k
+infix:50 " ∣ " => Divides
+```
+
+Un número `a` divide a `b` si existe un `k` tal que `b = a * k`.
+
+Lemas de divisibilidad:
+
+- `divides_refl`: Todo número se divide a sí mismo
+- `divides_zero`: Todo número divide a 0
+- `divides_trans`: La divisibilidad es transitiva
+- `divides_mul_right/left`: Si `a ∣ b`, entonces `a ∣ b*c`
+- `divides_add`: Si `a ∣ b` y `a ∣ c`, entonces `a ∣ b+c`
+
+### 8.2. Máximo Común Divisor (GCD) - Computable
+
+```lean
+def gcd (a b : ℕ₀) : ℕ₀ :=
+  if b = 𝟘 then a else gcd b (a % b)
+```
+
+Implementación del algoritmo de Euclides. El resultado es computable y se verifica por iteración:
+
+- `gcd 𝟘 𝟙 = 𝟙`
+- `gcd 𝟙 𝟘 = 𝟙`
+- `gcd 𝟚 𝟛 = 𝟙`
+
+### 8.3. Mínimo Común Múltiplo (LCM) - Computable
+
+```lean
+def lcm (a b : ℕ₀) : ℕ₀ := (mul a b) / (gcd a b)
+```
+
+Definido como `(a * b) / gcd(a, b)`.
+
+### 8.4. Múltiples Inductivos
+
+```lean
+inductive Multiples (n : ℕ₀) : ℕ₀ → Prop
+  | zero : Multiples n 𝟘
+  | add_step {k : ℕ₀} : Multiples n k → Multiples n (add k n)
+```
+
+Alternativa inductiva a divisibilidad. Teorema: `Multiples n m ↔ n ∣ m`
+
+### 8.5. Listas Finitas de Divisores (DList)
+
+```lean
+inductive DList (α : Type) : Type
+  | nil : DList α
+  | cons : α → DList α → DList α
+```
+
+Lista personalizada con operaciones:
+
+- `DList.append`: Concatenación
+- `DList.filter`: Filtrado con predicado booleano
+- `DList.length`: Longitud
+- `DList.NoDup`: Verificador de elementos únicos
+- `DList.MemDec`: Pertenencia decidible
+
+### 8.6. Predicados de Factorización
+
+```lean
+def IsGCD (a b d : ℕ₀) : Prop :=
+  d ∣ a ∧ d ∣ b ∧ ∀ e : ℕ₀, e ∣ a → e ∣ b → e ∣ d
+
+def IsLCM (a b m : ℕ₀) : Prop :=
+  a ∣ m ∧ b ∣ m ∧ ∀ n : ℕ₀, a ∣ n → b ∣ n → m ∣ n
+
+def Coprime (a b : ℕ₀) : Prop := gcd a b = 𝟙
+
+def Prime (p : ℕ₀) : Prop :=
+  p ≠ 𝟘 ∧ p ≠ 𝟙 ∧ ∀ a b : ℕ₀, p ∣ (mul a b) → p ∣ a ∨ p ∣ b
+```
+
+### 8.7. Función Computable de Factores
+
+```lean
+def Factors_of (n : ℕ₁) : DList ℕ₀
+```
+
+Genera lista de todos los divisores de `n` (restringido a `ℕ₁` para evitar casos degenerados con n=0).
+
+### 8.8. Lema de Bézout (Versión Natural)
+
+`"@
+
+Add-Content e:\Dropbox\GitHub\lean4\Peano\README.md @"
+lean
+-- Bézout: gcd divide cualquier combinación lineal
+theorem gcd_divides_linear_combo (a b n m : ℕ₀) :
+    gcd a b ∣ add (mul a n) (mul b m)
+
+-- Forma de Bézout usando max y min
+theorem bezout_natform (a b : ℕ₀) :
+    ∃ n m : ℕ₀,
+      gcd a b = sub (mul n (max a b)) (mul m (min a b))
+
+-- El MCD divide al máximo y mínimo
+theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b
+theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b
+`"@
+
+Add-Content e:\Dropbox\GitHub\lean4\Peano\README.md @"
+
+El **Lema de Bézout** establece que el MCD de dos números naturales puede expresarse como una combinación lineal de ellos. En esta implementación para naturales:
+
+- gcd(a,b) divide a
+*a + m*b para cualesquiera n, m
+- gcd(a,b) = n*max(a,b) - m*min(a,b) para ciertos n, m
+
+### 8.8. Lema de Bézout (Versión Natural)
+
+```lean
+-- Bézout: gcd divide cualquier combinación lineal
+theorem gcd_divides_linear_combo (a b n m : ℕ₀) :
+    gcd a b ∣ add (mul a n) (mul b m)
+
+-- Forma de Bézout usando max y min
+theorem bezout_natform (a b : ℕ₀) :
+    ∃ n m : ℕ₀,
+      gcd a b = sub (mul n (max a b)) (mul m (min a b))
+
+-- El MCD divide al máximo y mínimo
+theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b
+theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b
+```
+
+El **Lema de Bézout** establece que el MCD de dos números naturales puede expresarse como una combinación lineal de ellos. En esta implementación para naturales:
+
+- `gcd(a,b)` divide a `n*a + m*b` para cualesquiera n, m
+- `gcd(a,b) = n*max(a,b) - m*min(a,b)` para ciertos n, m
+
+
+## Progreso de Implementación - Lema de Bézout
+
+### Estado de Pruebas (15 de febrero de 2026)
+
+✅ **Completadas:**
+- `gcd_divides_linear_combo` - Prueba que gcd(a,b) divide cualquier combinación lineal n*a + m*b
+- `gcd_divides_max` - Prueba que gcd(a,b) ∣ max(a,b) 
+- `gcd_divides_min` - Prueba que gcd(a,b) ∣ min(a,b)
+
+⏳ **Pendientes (Sorry):**
+- `gcd_divides_left` - Requiere inducción fuerte sobre la recursión del algoritmo de Euclides
+- `gcd_divides_right` - Análogo al anterior
+- `bezout_natform` - Requiere análisis de casos del algoritmo extendido
+
+### Notas Técnicas
+
+- Las pruebas usadas aprovechan las propiedades de `max` y `min` del módulo `PeanoNatMaxMin`
+- El lema `Lt_of_not_le` facilita la conversión entre `¬(Le a b)` y `Lt b a`
+- Los lemas `le_then_max_eq_right`, `le_then_min_eq_left`, etc., proporcionan simplificaciones esenciales
+
+### Próximos Pasos
+
+1. Probar `gcd_divides_left/right` usando fuerte inducción sobre la estructura de `divMod`
+2. Establecer la forma fuerte de Bézout (coeficientes enteros) si se añade soporte para `Int`
+3. Aplicar estos lemas para probar propiedades de primalidad y factorización

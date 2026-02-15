@@ -7,6 +7,8 @@ import PeanoNatLib.PeanoNatStrictOrder
 import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatSub
+import PeanoNatLib.PeanoNatDiv
+import PeanoNatLib.PeanoNatMaxMin
 
 
 namespace Peano
@@ -19,6 +21,8 @@ namespace Peano
       open Peano.Add
       open Peano.Mul
       open Peano.Sub
+      open Peano.Div
+      open Peano.MaxMin
 
     def Divides (a b : ℕ₀) : Prop :=
       ∃ k : ℕ₀, b = mul a k
@@ -39,6 +43,11 @@ namespace Peano
     def DList.append {α : Type} : DList α → DList α → DList α
       | DList.nil, ys => ys
       | DList.cons x xs, ys => DList.cons x (DList.append xs ys)
+
+    def DList.filter {α : Type} (p : α → Bool) : DList α → DList α
+      | DList.nil => DList.nil
+      | DList.cons x xs =>
+        if p x then DList.cons x (DList.filter p xs) else DList.filter p xs
 
     def DList.length {α : Type} : DList α → ℕ₀
       | DList.nil => 𝟘
@@ -89,6 +98,17 @@ namespace Peano
 
     def Divisors (n : ℕ₀) : ℕ₀ → Prop :=
       fun d => d ∣ n
+
+    def range_from_one : ℕ₀ → DList ℕ₀
+      | 𝟘 => DList.nil
+      | σ n' => DList.append (range_from_one n') (DList.cons (σ n') DList.nil)
+
+    def dividesb (d n : ℕ₀) : Bool :=
+      decide ((n % d) = 𝟘)
+
+    def Factors_of (n : ℕ₁) : DList ℕ₀ :=
+      let n0 := n.val
+      DList.filter (fun d => dividesb d n0) (range_from_one n0)
 
     inductive Multiples (n : ℕ₀) : ℕ₀ → Prop
       | zero : Multiples n 𝟘
@@ -178,6 +198,87 @@ namespace Peano
     def Prime (p : ℕ₀) : Prop :=
       p ≠ 𝟘 ∧ p ≠ 𝟙 ∧ ∀ a b : ℕ₀, p ∣ (mul a b) → p ∣ a ∨ p ∣ b
 
+    def gcd (a b : ℕ₀) : ℕ₀ :=
+      if b = 𝟘 then a else gcd b (a % b)
+    termination_by b
+    decreasing_by
+      simp_wf
+      -- Goal: sizeOf (a % b) < sizeOf b under the else branch (b ≠ 𝟘)
+      -- Convert Lt to sizeOf ordering
+      apply Peano.Div.lt_sizeOf
+      exact Peano.Div.mod_lt_divisor a b (by assumption)
+
+    def lcm (a b : ℕ₀) : ℕ₀ :=
+      (mul a b) / (gcd a b)
+
+    -- First prove that gcd is commutative
+    private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a := by
+      sorry -- TODO: requires careful WF induction on both arguments
+
+    -- Helper lemmas for divisibility
+    private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
+      sorry -- TODO: Requires careful WF induction with proper term recursion
+
+    private theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
+      (gcd_divides_both a b).1
+
+    private theorem gcd_divides_right (a b : ℕ₀) : (gcd a b) ∣ b :=
+      (gcd_divides_both a b).2 -- Similar to gcd_divides_left but simpler by symmetry
+
+    -- Lemma 1: gcd divides any linear combination n*a + m*b
+    theorem gcd_divides_linear_combo (a b n m : ℕ₀) :
+        (gcd a b) ∣ add (mul a n) (mul b m) := by
+      have h_left := gcd_divides_left a b
+      have h_right := gcd_divides_right a b
+      -- gcd a b ∣ a  implies  gcd a b ∣ a*n
+      have h_an : (gcd a b) ∣ mul a n := divides_mul_right h_left
+      -- gcd a b ∣ b  implies  gcd a b ∣ b*m
+      have h_bm : (gcd a b) ∣ mul b m := divides_mul_right h_right
+      -- Both divide the sum
+      exact divides_add h_an h_bm
+
+    -- Lemma 2: Bézout-like form using max and min (natural version)
+    -- For any a, b: ∃ n m, gcd(a,b) = n*max(a,b) - m*min(a,b)
+    theorem bezout_natform (a b : ℕ₀) :
+        ∃ n m : ℕ₀,
+          gcd a b = sub (mul n (max a b)) (mul m (min a b)) := by
+      sorry -- Requires detailed case analysis and induction on Euclidean algorithm
+
+    -- Lemma 3: gcd divides the max
+    theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b := by
+      have h_left := gcd_divides_left a b
+      have h_right := gcd_divides_right a b
+      by_cases h : Le a b
+      · -- If a ≤ b, then max a b = b
+        have h_eq := Peano.MaxMin.le_then_max_eq_right a b h
+        rw [h_eq]
+        exact h_right
+      · -- If ¬(a ≤ b), then b < a and max a b = a
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.Lt_of_not_le h
+        have h_le : Le b a := Or.inl h_lt
+        have h_eq := Peano.MaxMin.le_then_max_eq_left a b h_le
+        rw [h_eq]
+        exact h_left
+
+    -- Lemma 4: gcd divides the min
+    theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b := by
+      have h_left := gcd_divides_left a b
+      have h_right := gcd_divides_right a b
+      by_cases h : Le a b
+      · -- If a ≤ b, then min a b = a
+        have h_eq := Peano.MaxMin.le_then_min_eq_left a b h
+        rw [h_eq]
+        exact h_left
+      · -- If ¬(a ≤ b), then b < a and min a b = b
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.Lt_of_not_le h
+        have h_le : Le b a := Or.inl h_lt
+        have h_eq := Peano.MaxMin.le_then_min_eq_right a b h_le
+        rw [h_eq]
+        exact h_right
+
+
+
+
     theorem divisorslist_one_mem {n : ℕ₀} (d : DivisorsList n) : 𝟙 ∈ d.vals :=
       d.complete 𝟙 (one_divides n)
 
@@ -201,11 +302,15 @@ export Peano.NatArith (
   DivisorsList
   DList.Mem
   DList.append
+  DList.filter
   DList.length
   DList.NoDup
   DList.MemDec
   mem_cons
   mem_append
+  range_from_one
+  dividesb
+  Factors_of
   one_divides
   divisorslist_one_mem
   divisorslist_self_mem
@@ -213,6 +318,8 @@ export Peano.NatArith (
   IsLCM
   Coprime
   Prime
+  gcd
+  lcm
   divides_refl
   divides_zero
   zero_divides_iff

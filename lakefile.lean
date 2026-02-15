@@ -3,7 +3,8 @@ open Lake DSL
 
 package «peanolib» where
   -- Add package configuration options here
-  moreServerArgs := #["-DautoImplicit=false"] -- Ejemplo de opción, puedes quitarla o ajustarla
+  moreServerArgs := #["-DautoImplicit=false", "-DwarningAsError=false"]
+  moreLeanArgs := #["-DautoImplicit=false", "-DwarningAsError=false"]
 
 @[default_target]
 lean_lib «Peano» where

@@ -54,4 +54,10 @@ export Peano.NatArith (
 	divides_mul_right
 	divides_mul_left
 	divides_add
+	gcd
+	lcm
+	gcd_divides_linear_combo
+	bezout_natform
+	gcd_divides_max
+	gcd_divides_min
 )

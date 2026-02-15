@@ -1,6 +1,32 @@
-# Desarrollo de Números Naturales de Peano (`PeanoNat.lean`)
+# Desarrollo de Números Naturales de Peano (`Peano.lean`)
 
-Este documento resume las definiciones y teoremas fundamentales implementados en el archivo `PeanoNat.lean`, que construye los números naturales desde los axiomas de Peano, define subtipos como los números positivos, y establece propiedades de las relaciones de orden (`<`, `≤`) y operaciones aritméticas básicas (`+`, `*`).
+Este documento resume las definiciones y teoremas fundamentales implementados en los modulos principales del proyecto, con `Peano.lean` como punto de entrada. La biblioteca construye los naturales desde los axiomas de Peano, define subtipos como los naturales positivos, y establece propiedades de las relaciones de orden (`<`, `≤`) y operaciones aritmeticas basicas (`+`, `*`).
+
+Desde la parte aritmetica adicional se incluye el modulo `PeanoNatLib/PeanoNatArith.lean`, que define divisibilidad, listas finitas de divisores y conjuntos inductivos de multiplos.
+
+## Indice rapido
+
+- [Desarrollo de Números Naturales de Peano (`Peano.lean`)](#desarrollo-de-números-naturales-de-peano-peanolean)
+  - [Indice rapido](#indice-rapido)
+  - [Modulos principales](#modulos-principales)
+  - [1. Tipo Inductivo Base: `PeanoNat`](#1-tipo-inductivo-base-peanonat)
+  - [4. Definiciones Booleanas y Proposicionales Auxiliares de Orden](#4-definiciones-booleanas-y-proposicionales-auxiliares-de-orden)
+  - [5. Relación de Orden No Estricto: Le (≤)](#5-relación-de-orden-no-estricto-le-)
+  - [6. Operaciones Aritméticas](#6-operaciones-aritméticas)
+    - [6.1. Adición (add, +)](#61-adición-add-)
+    - [6.2. Multiplicación (mul, \*)](#62-multiplicación-mul-)
+  - [7. Otros Teoremas Notables](#7-otros-teoremas-notables)
+
+## Modulos principales
+
+- [Peano.lean](Peano.lean): punto de entrada y re-export de toda la biblioteca.
+- [PeanoNatLib/PeanoNatLib.lean](PeanoNatLib/PeanoNatLib.lean): definiciones base (`ℕ₀`, `Λ`, `Ψ`, notaciones basicas).
+- [PeanoNatLib/PeanoNatAxioms.lean](PeanoNatLib/PeanoNatAxioms.lean): axiomas y resultados estructurales de Peano.
+- [PeanoNatLib/PeanoNatOrder.lean](PeanoNatLib/PeanoNatOrder.lean) y [PeanoNatLib/PeanoNatStrictOrder.lean](PeanoNatLib/PeanoNatStrictOrder.lean): orden no estricto y estricto.
+- [PeanoNatLib/PeanoNatAdd.lean](PeanoNatLib/PeanoNatAdd.lean), [PeanoNatLib/PeanoNatMul.lean](PeanoNatLib/PeanoNatMul.lean), [PeanoNatLib/PeanoNatSub.lean](PeanoNatLib/PeanoNatSub.lean), [PeanoNatLib/PeanoNatDiv.lean](PeanoNatLib/PeanoNatDiv.lean): operaciones aritmeticas y propiedades.
+- [PeanoNatLib/PeanoNatMaxMin.lean](PeanoNatLib/PeanoNatMaxMin.lean): maximos/minimos y lemas asociados.
+- [PeanoNatLib/PeanoNatWellFounded.lean](PeanoNatLib/PeanoNatWellFounded.lean): herramientas de bien fundado y terminacion.
+- [PeanoNatLib/PeanoNatArith.lean](PeanoNatLib/PeanoNatArith.lean): divisibilidad, divisores finitos y multiplos inductivos.
 
 ## 1. Tipo Inductivo Base: `PeanoNat`
 
@@ -74,17 +100,21 @@ theorem one_neq_two_prop : PosPeanoNat.one ≠ PosPeanoNat.two
 
 def two : FacPeanoNat
 
-## 3. Relación de Orden Estricto: 
+## 3. Relación de Orden Estricto
 
-Lt (<)def Lt (n m : PeanoNat) : Prop :=
+Definición de `Lt` y notación:
+
+```lean
+def Lt (n m : PeanoNat) : Prop :=
   match n, m with
-  | zero, zero      => False
-  | zero, succ _    => True
-  | succ _, zero    => False
+  | zero, zero       => False
+  | zero, succ _     => True
+  | succ _, zero     => False
   | succ n', succ m' => Lt n' m'
 
 infix:50 "<" => Lt
 instance lt_decidable : ∀ (n m : PeanoNat), Decidable (n < m)
+```
 
 Teoremas sobre Lt:
 
@@ -104,12 +134,17 @@ theorem lt_n_m_then_exists_k_eq_succ_k_m (n m: PeanoNat) :
 
 ## 4. Definiciones Booleanas y Proposicionales Auxiliares de Orden
 
+```lean
 def BTrichotomy (n m : PeanoNat) : Bool
 def PropTrichotomy (n m : PeanoNat) : Prop
 def BLe (n m : PeanoNat) : Bool
+```
 
-## 5. Relación de Orden No Estricto: Le (≤)inductive 
+## 5. Relación de Orden No Estricto: Le (≤)
 
+Definición de `Le` y notación:
+
+```lean
 def Le : PeanoNat -> PeanoNat -> Prop where
   | strict_lt {n m : PeanoNat} (h : Lt n m) : Le n m
   | refl_le {n : PeanoNat} : Le n n
@@ -118,6 +153,7 @@ infix:50 "<=" => Le
 infix:50 "≤"  => Le
 
 instance le_decidable : ∀ (n m : PeanoNat), Decidable (n <= m)
+```
 
 Teoremas sobre Le:
 
@@ -144,8 +180,10 @@ theorem lt_le_succ (n m : PeanoNat) : Lt n m → Le n m
 
 ### 6.1. Adición (add, +)
 
+```lean
 def add (n m : PeanoNat) : PeanoNat
 infix:65 "+" => add -- Nota: el infix original era 50, la suma suele tener mayor precedencia
+```
 
 Teoremas sobre add:
 
@@ -169,8 +207,10 @@ theorem lt_iff_exists_add_succ (a b : PeanoNat) : Lt a b ↔ ∃ p, b = add a (s
 
 ### 6.2. Multiplicación (mul, *)
 
+```lean
 def mul (n m : PeanoNat) : PeanoNat
 infix:70 "*" => mul
+```
 
 Teoremas sobre mul:
 

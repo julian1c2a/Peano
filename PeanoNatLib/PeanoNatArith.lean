@@ -208,8 +208,40 @@ namespace Peano
       apply Peano.Div.lt_sizeOf
       exact Peano.Div.mod_lt_divisor a b (by assumption)
 
-    -- def lcm (a b : ℕ₀) : ℕ₀ :=
+    def lcm (a b : ℕ₀) : ℕ₀ :=
       (mul a b) / (gcd a b)
+
+    -- ========================================
+    -- Versiones para ℕ₁ (números naturales positivos)
+    -- ========================================
+
+    -- Divisibilidad para ℕ₁
+    def Divides₁ (a b : ℕ₁) : Prop :=
+      a.val ∣ b.val
+
+    infix:50 " ∣₁ " => Divides₁
+
+    -- IsGCD para ℕ₁: d es el máximo común divisor de a y b
+    def IsGCD₁ (a b d : ℕ₁) : Prop :=
+      d ∣₁ a ∧ d ∣₁ b ∧ ∀ c : ℕ₁, (c ∣₁ a ∧ c ∣₁ b) → c ∣₁ d
+
+    -- Algoritmo de Euclides para ℕ₁
+    def gcd₁ (a b : ℕ₁) : ℕ₁ :=
+      let r := a.val % b.val
+      if hr : r = 𝟘 then
+        b  -- el resto es cero, entonces b divide a a perfectamente
+      else
+        have r_ne_zero : r ≠ 𝟘 := hr
+        gcd₁ b ⟨r, r_ne_zero⟩
+    termination_by b.val
+    decreasing_by
+      simp_wf
+      apply Peano.Div.lt_sizeOf
+      exact Peano.Div.mod_lt_divisor a.val b.val b.property
+
+    -- Coprimalidad para ℕ₁
+    def Coprime₁ (a b : ℕ₁) : Prop :=
+      gcd₁ a b = ⟨𝟙, by decide⟩
 
     -- First prove that gcd is commutative
     private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a := by
@@ -285,6 +317,66 @@ namespace Peano
     theorem divisorslist_self_mem {n : ℕ₀} (d : DivisorsList n) : n ∈ d.vals :=
       d.complete n (divides_refl n)
 
+    -- ========================================
+    -- Teoremas básicos para ℕ₁
+    -- ========================================
+
+    -- Reflexividad de la divisibilidad en ℕ₁
+    theorem divides₁_refl (a : ℕ₁) : a ∣₁ a := by
+      unfold Divides₁
+      exact divides_refl a.val
+
+    -- Transitividad de la divisibilidad en ℕ₁
+    theorem divides₁_trans {a b c : ℕ₁} (hab : a ∣₁ b) (hbc : b ∣₁ c) : a ∣₁ c := by
+      unfold Divides₁ at *
+      exact divides_trans hab hbc
+
+    -- Lemas auxiliares para gcd₁
+
+    -- Si a % b = 0, entonces b divide a a
+    private theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a) := by
+      unfold Divides₁
+      unfold Divides
+      constructor
+      · intro h_mod
+        sorry -- TODO: requiere teorema de división con resto
+      · intro h_div
+        sorry -- TODO: si b | a entonces a % b = 0
+
+    -- gcd₁ preserva la igualdad en los valores subyacentes
+    private theorem gcd₁_val_eq (a b : ℕ₁) :
+        (gcd₁ a b).val = gcd a.val b.val := by
+      sorry -- TODO: mostrar que gcd₁ y gcd dan el mismo resultado
+
+    -- gcd₁ es conmutativo
+    -- Esta es una prueba difícil que requiere varios lemas auxiliares
+    theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a := by
+      -- Estrategia general para la prueba completa:
+      -- 1. Mostrar que el algoritmo de Euclides preserva el GCD:
+      --    gcd₁ a b = gcd₁ b (a % b) cuando a % b ≠ 0
+      -- 2. Usar inducción bien fundada sobre el tamaño del segundo argumento
+      -- 3. Para el caso base (a % b = 0), necesitamos:
+      --    - mod_eq_zero_iff_divides: a % b = 0 ↔ b | a
+      --    - Si b | a y a | b, entonces a = b (antisimetría con divisibilidad)
+      -- 4. Para el caso recursivo, aplicar HI y la propiedad de Euclides
+      --
+      -- Lemas necesarios (pendientes):
+      -- - mod_eq_zero_iff_divides
+      -- - gcd₁_divides_both
+      -- - divides_antisymm: (a | b ∧ b | a) → a = b para ℕ₁
+      -- - gcd₁_greatest: si c | a y c | b entonces c | gcd₁ a b
+      sorry
+    theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
+      sorry -- TODO: Requires careful WF induction with proper term recursion
+
+    theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b := by
+      sorry -- TODO: Requires careful WF induction with proper term recursion
+
+    theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b := by
+      constructor
+      · exact gcd₁_divides_left a b
+      · exact gcd₁_divides_right a b
+
   end NatArith
 
 end Peano
@@ -327,4 +419,15 @@ export Peano.NatArith (
   divides_mul_right
   divides_mul_left
   divides_add
+  -- Nuevas definiciones para ℕ₁
+  Divides₁
+  IsGCD₁
+  gcd₁
+  Coprime₁
+  divides₁_refl
+  divides₁_trans
+  gcd₁_comm
+  gcd₁_divides_left
+  gcd₁_divides_right
+  gcd₁_divides_both
 )

@@ -120,8 +120,17 @@ end Peano
 
 -- Ahora puedes exportar todo lo que está dentro del namespace Peano
 export Peano (
-  ExistsUnique choose choose_spec ℕ₀ ℕ₁ ℕ₂
-  idℕ₀ idNat EqFnGen Comp EqFn EqFn2 EqFnNat
+  ExistsUnique
+  choose
+  choose_spec
+  ℕ₀ ℕ₁ ℕ₂
+  idℕ₀
+  idNat
+  EqFnGen
+  Comp
+  EqFn
+  EqFn2
+  EqFnNat
   Λ Ψ τ ρ
 )
 -- PeanoNatLib/PeanoNatDiv.lean

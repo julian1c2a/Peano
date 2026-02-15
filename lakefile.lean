@@ -1,19 +1,16 @@
 import Lake
 open Lake DSL
 
-package «peanonatlib» where
+package «peanolib» where
   -- Add package configuration options here
   moreServerArgs := #["-DautoImplicit=false"] -- Ejemplo de opción, puedes quitarla o ajustarla
 
 @[default_target]
-lean_lib «PeanoNatLib» where
-  -- Add library configuration options here
-  -- Por defecto, buscará archivos .lean en un directorio con el mismo nombre que la biblioteca
-  -- (es decir, "PeanoNatLib") o en la raíz si no existe tal directorio.
-  -- Si tus archivos están en la raíz (PeanoNatAxioms.lean, PeanoNatStrictOrder.lean),
-  -- Lake debería encontrarlos.
-  -- Si los tienes en un subdirectorio, por ejemplo, "src", lo indicarías así:
-  rootDir := `PeanoNatLib -- Esta línea se elimina o se corrige si se usa srcDir
+lean_lib «Peano» where
+  -- Configuramos múltiples roots: Peano y todos los módulos de PeanoNatLib
+  srcDir := "."
+  roots := #[`Peano]
+  globs := #[Glob.submodules `PeanoNatLib]
 
 -- Opcional: si quieres importar Mathlib para tácticas u otras utilidades
 -- require mathlib from git

@@ -208,7 +208,7 @@ namespace Peano
       apply Peano.Div.lt_sizeOf
       exact Peano.Div.mod_lt_divisor a b (by assumption)
 
-    def lcm (a b : ℕ₀) : ℕ₀ :=
+    -- def lcm (a b : ℕ₀) : ℕ₀ :=
       (mul a b) / (gcd a b)
 
     -- First prove that gcd is commutative

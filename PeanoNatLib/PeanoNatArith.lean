@@ -186,6 +186,13 @@ namespace Peano
       refine ⟨add k l, ?_⟩
       rw [hk, hl, ← mul_ldistr a k l]
 
+    theorem antisymm_divides {a b : ℕ₀} : (a ∣ b) → (b ∣ a) → a = b := by
+      intro h_ab h_ba
+      rcases h_ab with ⟨k, hk⟩
+      rcases h_ba with ⟨l, hl⟩
+      rw [hk, hl]
+      rw [mul_comm k a, mul_assoc k a l, mul_comm l a]
+
     def IsGCD (a b d : ℕ₀) : Prop :=
       d ∣ a ∧ d ∣ b ∧ ∀ c : ℕ₀, (c ∣ a ∧ c ∣ b) → c ∣ d
 
@@ -243,13 +250,70 @@ namespace Peano
     def Coprime₁ (a b : ℕ₁) : Prop :=
       gcd₁ a b = ⟨𝟙, by decide⟩
 
+    private theorem gcd_divides_first (a b : ℕ₀) : (gcd a b) ∣ a := by
+      -- Prove that gcd a b divides a
+      induction a with
+      | zero =>
+        rw [gcd]
+        simp
+        exact divides_zero 𝟘
+      | succ a' ih =>
+        induction b with
+        | zero =>
+          rw [gcd]
+          simp
+          exact divides_refl (succ a')
+        | succ b' ih_b =>
+          rw [gcd]
+          simp only [if_neg (succ b' ≠ 𝟘)]
+          have h_mod := Peano.Div.mod_def (succ a') (succ b')
+          rw [h_mod]
+          apply ih_b
+
+    private theorem gcd_divides_second (a b : ℕ₀) : (gcd a b) ∣ b := by
+      -- Prove that gcd a b divides b
+      induction a with
+      | zero =>
+        rw [gcd]
+        simp
+        exact one_divides 𝟘
+      | succ a' ih =>
+        induction b with
+        | zero =>
+          rw [gcd]
+          simp
+          exact divides_zero 𝟘
+        | succ b' ih_b =>
+          rw [gcd]
+          simp only [if_neg (succ b' ≠ 𝟘)]
+          have h_mod := Peano.Div.mod_def (succ a') (succ b')
+          rw [h_mod]
+          apply ih_b
+
+    private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
+      constructor
+      · exact gcd_divides_first a b
+      · exact gcd_divides_second a b
+
+    private theorem gcd_divides_gcd_symm (a b : ℕ₀) : gcd a b ∣ gcd b a := by
+      have gcd_div_a := (gcd a b) | a := gcd_divides_first a b
+      have gcd_div_b := (gcd a b) | b := gcd_divides_second a b
+      have gcd_rev_div_a := (gcd b a) | a := gcd_divides_first b a
+      have gcd_rev_div_b := (gcd b a) | b := gcd_divides_second b a
+      -- We want to show gcd a b = gcd b a
+      have h1 : (gcd a b) | (gcd b a) := by
+        apply gcd_divides_both a b
+        exact gcd_div_a
+        exact gcd_div_b
+      exact h1
+
     -- First prove that gcd is commutative
     private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a := by
-      sorry -- TODO: requires careful WF induction on both arguments
-
-    -- Helper lemmas for divisibility
-    private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
-      sorry -- TODO: Requires careful WF induction with proper term recursion
+      -- We want to show gcd a b = gcd b a
+      have h1 : (gcd a b) | (gcd b a) := gcd_divides_gcd_symm (a b)
+      have h2 : (gcd b a) | (gcd a b) := gcd_divides_gcd_symm (b a)
+      -- If d | e and e | d, then d = e (antisymmetry of divisibility)
+      exact antisymm_divides h1 h2
 
     private theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
       (gcd_divides_both a b).1

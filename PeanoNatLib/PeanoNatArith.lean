@@ -1,5 +1,11 @@
--- PeanoNatLib/PeanoNatArith.lean
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
 
+-- PeanoNatLib/PeanoNatArith.lean
+import Init.Classical
 import PeanoNatLib.PeanoNatLib
 import PeanoNatLib.PeanoNatAxioms
 import PeanoNatLib.PeanoNatOrder
@@ -19,10 +25,10 @@ namespace Peano
       open Peano.Order
       open Peano.StrictOrder
       open Peano.Add
-      open Peano.Mul
       open Peano.Sub
       open Peano.Div
       open Peano.MaxMin
+      open Classical
 
     def Divides (a b : ℕ₀) : Prop :=
       ∃ k : ℕ₀, b = mul a k
@@ -35,6 +41,7 @@ namespace Peano
 
     def DivisorOf (d n : ℕ₀) : Prop :=
       Divides d n
+      open Classical
 
     inductive DList (α : Type) : Type
       | nil : DList α
@@ -186,12 +193,37 @@ namespace Peano
       refine ⟨add k l, ?_⟩
       rw [hk, hl, ← mul_ldistr a k l]
 
+    theorem divides_le {a b : ℕ₀} :
+      a ∣ b → b ≠ 𝟘 → a ≤ b
+        := by
+      intro h h_b_ne_zero
+      rcases h with ⟨k, hk⟩
+      subst hk
+      cases k with
+      | zero =>
+        rw [mul_zero] at h_b_ne_zero
+        exfalso
+        exact h_b_ne_zero rfl
+      | succ k' =>
+        rw [mul_succ, add_comm]
+        apply le_self_add_r
+
+
     theorem antisymm_divides {a b : ℕ₀} : (a ∣ b) → (b ∣ a) → a = b := by
       intro h_ab h_ba
-      rcases h_ab with ⟨k, hk⟩
-      rcases h_ba with ⟨l, hl⟩
-      rw [hk, hl]
-      rw [mul_comm k a, mul_assoc k a l, mul_comm l a]
+      cases Classical.em (a = 𝟘) with
+      | inl ha0 =>
+        rw [ha0] at h_ab
+        have hb0 : b = 𝟘 := (zero_divides_iff b).mp h_ab
+        rw [ha0, hb0]
+      | inr hna0 =>
+        have hnb0 : b ≠ 𝟘 := by
+          intro hb0
+          rw [hb0] at h_ba
+          exact hna0 ((zero_divides_iff a).mp h_ba)
+        have h_le_ab : a ≤ b := divides_le h_ab hnb0
+        have h_le_ba : b ≤ a := divides_le h_ba hna0
+        exact le_antisymm a b h_le_ab h_le_ba
 
     def IsGCD (a b d : ℕ₀) : Prop :=
       d ∣ a ∧ d ∣ b ∧ ∀ c : ℕ₀, (c ∣ a ∧ c ∣ b) → c ∣ d
@@ -251,44 +283,10 @@ namespace Peano
       gcd₁ a b = ⟨𝟙, by decide⟩
 
     private theorem gcd_divides_first (a b : ℕ₀) : (gcd a b) ∣ a := by
-      -- Prove that gcd a b divides a
-      induction a with
-      | zero =>
-        rw [gcd]
-        simp
-        exact divides_zero 𝟘
-      | succ a' ih =>
-        induction b with
-        | zero =>
-          rw [gcd]
-          simp
-          exact divides_refl (succ a')
-        | succ b' ih_b =>
-          rw [gcd]
-          simp only [if_neg (succ b' ≠ 𝟘)]
-          have h_mod := Peano.Div.mod_def (succ a') (succ b')
-          rw [h_mod]
-          apply ih_b
+      sorry
 
     private theorem gcd_divides_second (a b : ℕ₀) : (gcd a b) ∣ b := by
-      -- Prove that gcd a b divides b
-      induction a with
-      | zero =>
-        rw [gcd]
-        simp
-        exact one_divides 𝟘
-      | succ a' ih =>
-        induction b with
-        | zero =>
-          rw [gcd]
-          simp
-          exact divides_zero 𝟘
-        | succ b' ih_b =>
-          rw [gcd]
-          simp only [if_neg (succ b' ≠ 𝟘)]
-          have h_mod := Peano.Div.mod_def (succ a') (succ b')
-          rw [h_mod]
-          apply ih_b
+      sorry
 
     private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
       constructor
@@ -296,24 +294,11 @@ namespace Peano
       · exact gcd_divides_second a b
 
     private theorem gcd_divides_gcd_symm (a b : ℕ₀) : gcd a b ∣ gcd b a := by
-      have gcd_div_a := (gcd a b) | a := gcd_divides_first a b
-      have gcd_div_b := (gcd a b) | b := gcd_divides_second a b
-      have gcd_rev_div_a := (gcd b a) | a := gcd_divides_first b a
-      have gcd_rev_div_b := (gcd b a) | b := gcd_divides_second b a
-      -- We want to show gcd a b = gcd b a
-      have h1 : (gcd a b) | (gcd b a) := by
-        apply gcd_divides_both a b
-        exact gcd_div_a
-        exact gcd_div_b
-      exact h1
+      sorry
 
     -- First prove that gcd is commutative
     private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a := by
-      -- We want to show gcd a b = gcd b a
-      have h1 : (gcd a b) | (gcd b a) := gcd_divides_gcd_symm (a b)
-      have h2 : (gcd b a) | (gcd a b) := gcd_divides_gcd_symm (b a)
-      -- If d | e and e | d, then d = e (antisymmetry of divisibility)
-      exact antisymm_divides h1 h2
+      sorry
 
     private theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
       (gcd_divides_both a b).1

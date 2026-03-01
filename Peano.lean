@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
 -- Peano.lean
 -- Archivo principal que importa y re-exporta todos los módulos de la biblioteca de números naturales de Peano
 

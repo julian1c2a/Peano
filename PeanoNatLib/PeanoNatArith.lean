@@ -475,7 +475,7 @@ namespace Peano
       · -- b = 0: gcd(a,0) = a, max = a, min = 0, testigos n=0 m=1
         subst hb0
         refine ⟨𝟘, 𝟙, ?_⟩
-        rw [mul_zero, add_zero, one_mul, max_0_not]
+        rw [zero_mul, add_zero, one_mul, max_0_not]
       · -- b ≠ 0: gcd(a,b) = gcd(b, a%b), IH sobre (a%b < b)
         have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b hb0
         -- IH sobre (b, a%b): gcd(b,a%b) + n'*min(b,a%b) = m'*max(b,a%b)
@@ -490,8 +490,8 @@ namespace Peano
         have h_gcd_eq : gcd a b = gcd b (a % b) := gcd_step a b hb0
         rw [h_gcd_eq]
         -- División: a = q*b + (a%b)
-        let q := a / b
-        have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
+        obtain ⟨q, h_div_eq⟩ : ∃ q : ℕ₀, a = add (mul q b) (a % b) :=
+          ⟨a / b, divMod_eq a b hb0⟩
         -- Decidir quién es mayor entre a y b
         rcases le_total a b with h_le_ab | h_le_ba
         · -- a ≤ b: max=b, min=a
@@ -505,10 +505,10 @@ namespace Peano
             rw [h_mod_a]
             exact ⟨n', m', ih_eq⟩
           · -- a = b: gcd(a,a) = a, testigos n=0 m=1
-            subst h_eq_ab
+            rw [h_eq_ab]
             have h_mod_zero : (b % b) = 𝟘 := by
               have h_bpos : Lt 𝟘 b := neq_0_then_lt_0 hb0
-              have h1 : Le (mul b 𝟙) b := by rw [mul_one]
+              have h1 : Le (mul b 𝟙) b := by rw [mul_one]; exact le_refl b
               have h2 : Lt b (mul b (σ 𝟙)) := by
                 rw [mul_succ, mul_one]
                 exact lt_add_of_pos_right h_bpos
@@ -520,7 +520,7 @@ namespace Peano
             have h_max_bb : max b b = b := le_then_max_eq_right b b (le_refl b)
             have h_min_bb : min b b = b := le_then_min_eq_left b b (le_refl b)
             rw [h_max_bb, h_min_bb]
-            exact ⟨𝟘, 𝟙, by rw [mul_zero, add_zero, one_mul]⟩
+            exact ⟨𝟘, 𝟙, by rw [zero_mul, add_zero, one_mul]⟩
         · -- b ≤ a: max=a, min=b
           have h_max : max a b = a := le_then_max_eq_left a b h_le_ba
           have h_min : min a b = b := le_then_min_eq_right a b h_le_ba
@@ -528,7 +528,7 @@ namespace Peano
           -- q*b ≤ a
           have h_qb_le_a : Le (mul q b) a := by
             rw [h_div_eq]; exact le_self_add (mul q b) (a % b)
-          by_cases hmod0 : a % b = 𝟘
+          by_cases hmod0 : (a % b) = 𝟘
           · -- a%b = 0: a = q*b, gcd(a,b)=b, testigos n=(q-1), m=1
             have h_a_eq : a = mul q b := by
               rw [hmod0, add_zero] at h_div_eq; exact h_div_eq
@@ -538,9 +538,9 @@ namespace Peano
               rw [hq0, zero_mul] at h_a_eq
               rcases h_le_ba with h_lt | h_eq
               · exact absurd (h_a_eq ▸ h_lt) (nlt_n_0 b)
-              · exact hb0 h_eq.symm
+              · exact hb0 (h_eq.trans h_a_eq)
             have hq_pos : Lt 𝟘 q := neq_0_then_lt_0 hqne
-            have hq_ge1 : Le 𝟙 q := hq_pos
+            have hq_ge1 : Le 𝟙 q := lt_0n_then_le_1n_wp hq_pos
             -- gcd(b,0) = b
             have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [hmod0, h_gcd_b0]

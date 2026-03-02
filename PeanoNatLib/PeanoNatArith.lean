@@ -617,7 +617,7 @@ namespace Peano
       rw [h] at key
       -- key : m*max - n*min = gcd
       exact key.symm
-
+    -- subₕₖ a b (Lt b a) = sub a b
     -- Lemma 3: gcd divides the max
     theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b := by
       have h_left := gcd_divides_left a b

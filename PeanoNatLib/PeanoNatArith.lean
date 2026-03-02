@@ -432,6 +432,29 @@ namespace Peano
       -- Both divide the sum
       exact divides_add h_an h_bm
 
+    -- Lema auxiliar: reducción de gcd cuando b ≠ 0
+    private theorem gcd_step (a b : ℕ₀) (hb : b ≠ 𝟘) : gcd a b = gcd b (a % b) := by
+      apply antisymm_divides
+      · -- gcd a b ∣ gcd b (a%b): usa gcd_greatest b (a%b) (gcd a b)
+        apply gcd_greatest
+        constructor
+        · exact gcd_divides_second a b
+        · exact divides_mod (gcd_divides_first a b) (gcd_divides_second a b)
+      · -- gcd b (a%b) ∣ gcd a b: usa gcd_greatest a b (gcd b (a%b))
+        apply gcd_greatest
+        constructor
+        · -- gcd b (a%b) ∣ a: reconstruir a desde a = (a/b)*b + (a%b)
+          have h1 := gcd_divides_first b (a % b)   -- gcd b (a%b) ∣ b
+          have h2 := gcd_divides_second b (a % b)  -- gcd b (a%b) ∣ a%b
+          have h3 : gcd b (a % b) ∣ mul (a / b) b :=
+            divides_mul_left h1
+          have h4 : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
+            divides_add h3 h2
+          unfold div mod at h4
+          rw [← divMod_eq a b hb] at h4
+          exact h4
+        · exact gcd_divides_first b (a % b)
+
     -- Lemma 2: Bézout-like form using max and min (natural version)
     -- For any a, b: ∃ n m, gcd(a,b) = n*max(a,b) - m*min(a,b)
 
@@ -464,12 +487,10 @@ namespace Peano
           le_then_min_eq_right b (a % b) (Or.inl h_mod_lt)
         rw [h_max_b, h_min_b] at ih_eq
         -- ih_eq : gcd(b,a%b) + n'*(a%b) = m'*b
-        have h_gcd_eq : gcd a b = gcd b (a % b) := by
-          conv_lhs => unfold gcd
-          rw [if_neg hb0]
+        have h_gcd_eq : gcd a b = gcd b (a % b) := gcd_step a b hb0
         rw [h_gcd_eq]
         -- División: a = q*b + (a%b)
-        set q := a / b
+        let q := a / b
         have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
         -- Decidir quién es mayor entre a y b
         rcases le_total a b with h_le_ab | h_le_ba
@@ -479,13 +500,13 @@ namespace Peano
           rw [h_max, h_min]
           rcases h_le_ab with h_lt_ab | h_eq_ab
           · -- a < b: a%b = a (mod_of_lt)
-            have h_mod_a : a % b = a := mod_of_lt a b h_lt_ab
+            have h_mod_a : (a % b) = a := mod_of_lt a b h_lt_ab
             rw [h_mod_a] at ih_eq
             rw [h_mod_a]
             exact ⟨n', m', ih_eq⟩
           · -- a = b: gcd(a,a) = a, testigos n=0 m=1
             subst h_eq_ab
-            have h_mod_zero : b % b = 𝟘 := by
+            have h_mod_zero : (b % b) = 𝟘 := by
               have h_bpos : Lt 𝟘 b := neq_0_then_lt_0 hb0
               have h1 : Le (mul b 𝟙) b := by rw [mul_one]
               have h2 : Lt b (mul b (σ 𝟙)) := by

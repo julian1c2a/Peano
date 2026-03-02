@@ -465,7 +465,8 @@ namespace Peano
         rw [h_max_b, h_min_b] at ih_eq
         -- ih_eq : gcd(b,a%b) + n'*(a%b) = m'*b
         have h_gcd_eq : gcd a b = gcd b (a % b) := by
-          unfold gcd; rw [if_neg hb0]
+          conv_lhs => unfold gcd
+          rw [if_neg hb0]
         rw [h_gcd_eq]
         -- División: a = q*b + (a%b)
         set q := a / b
@@ -480,17 +481,20 @@ namespace Peano
           · -- a < b: a%b = a (mod_of_lt)
             have h_mod_a : a % b = a := mod_of_lt a b h_lt_ab
             rw [h_mod_a] at ih_eq
-            -- gcd(b,a) + n'*a = m'*b, y gcd(a,b)=gcd(b,a) por gcd_comm
-            exact ⟨n', m', by rw [← gcd_comm b a]; exact ih_eq⟩
+            rw [h_mod_a]
+            exact ⟨n', m', ih_eq⟩
           · -- a = b: gcd(a,a) = a, testigos n=0 m=1
             subst h_eq_ab
             have h_mod_zero : b % b = 𝟘 := by
-              have := mod_of_lt_nth_interval b b 𝟙
-                (by rw [mul_one])
-                (by rw [mul_succ, mul_one]; exact lt_self_σ_self b)
+              have h_bpos : Lt 𝟘 b := neq_0_then_lt_0 hb0
+              have h1 : Le (mul b 𝟙) b := by rw [mul_one]
+              have h2 : Lt b (mul b (σ 𝟙)) := by
+                rw [mul_succ, mul_one]
+                exact lt_add_of_pos_right h_bpos
+              have := mod_of_lt_nth_interval b b 𝟙 h1 h2
               rw [mul_one, sub_self] at this; exact this
             rw [h_mod_zero]
-            have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; simp
+            have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [h_gcd_b0]
             have h_max_bb : max b b = b := le_then_max_eq_right b b (le_refl b)
             have h_min_bb : min b b = b := le_then_min_eq_left b b (le_refl b)
@@ -517,7 +521,7 @@ namespace Peano
             have hq_pos : Lt 𝟘 q := neq_0_then_lt_0 hqne
             have hq_ge1 : Le 𝟙 q := hq_pos
             -- gcd(b,0) = b
-            have h_gcd_b0 : gcd b 𝟘 = b := by simp [gcd]
+            have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [hmod0, h_gcd_b0]
             -- testigos: n = sub q 𝟙, m = 𝟙
             -- b + (q-1)*b = q*b = a

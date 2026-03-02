@@ -490,9 +490,6 @@ namespace Peano
         -- ih_eq : gcd(b,a%b) + n'*(a%b) = m'*b
         have h_gcd_eq : gcd a b = gcd b (a % b) := gcd_step a b hb0
         rw [h_gcd_eq]
-        -- División: a = q*b + (a%b)
-        let q := a / b
-        have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
         -- Decidir quién es mayor entre a y b
         rcases le_total a b with h_le_ab | h_le_ba
         · -- a ≤ b: max=b, min=a
@@ -523,6 +520,9 @@ namespace Peano
           have h_max : max a b = a := le_then_max_eq_left a b h_le_ba
           have h_min : min a b = b := le_then_min_eq_right a b h_le_ba
           rw [h_max, h_min]
+          -- División: a = q*b + (a%b)
+          let q := a / b
+          have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
           -- q*b ≤ a
           have h_qb_le_a : Le (mul q b) a := by
             rw [h_div_eq]; exact le_self_add (mul q b) (a % b)
@@ -545,9 +545,13 @@ namespace Peano
             -- testigos: n = sub q 𝟙, m = 𝟙
             -- b + (q-1)*b = q*b = a
             refine ⟨sub q 𝟙, 𝟙, ?_⟩
-            rw [one_mul, ← one_mul b, ← mul_rdistr 𝟙 (sub q 𝟙) b,
-                add_comm 𝟙 (sub q 𝟙), sub_k_add_k q 𝟙 hq_ge1]
-            exact h_a_eq.symm
+            rw [one_mul, add_comm]
+            -- Goal: (sub q 𝟙)*b + b = a
+            have h_expand : mul q b = add (mul (sub q 𝟙) b) b := by
+              have h3 : add (mul (sub q 𝟙) b) b = add (mul (sub q 𝟙) b) (mul 𝟙 b) :=
+                by rw [one_mul]
+              rw [h3, ← mul_rdistr (sub q 𝟙) 𝟙 b, sub_k_add_k q 𝟙 hq_ge1]
+            exact h_expand.symm.trans h_a_eq.symm
           · -- a%b ≠ 0: derivamos usando mul_sub
             -- q*b < a
             have h_qb_lt_a : Lt (mul q b) a := by
@@ -555,9 +559,11 @@ namespace Peano
                 lt_add_of_pos_right (neq_0_then_lt_0 hmod0)
               rw [← h_div_eq] at this; exact this
             -- a%b = a - q*b
-            have h_mod_eq : a % b = sub a (mul q b) := by
-              have key := add_k_sub_k (a % b) (mul q b)
-              rw [← h_div_eq] at key; exact key.symm
+            have h_mod_eq : (a % b) = sub a (mul q b) := by
+              show (a % b) = sub a (mul (a / b) b)
+              have key := add_k_sub_k (a % b) (mul (a / b) b)
+              have h_div : a = add (mul (a / b) b) (a % b) := divMod_eq a b hb0
+              rw [← h_div] at key; exact key.symm
             -- n'*(a%b) = n'*(a - q*b) = n'*a - n'*(q*b)
             have h_mul_mod : mul n' (a % b) = sub (mul n' a) (mul (mul n' q) b) := by
               rw [h_mod_eq, mul_sub n' a (mul q b) h_qb_lt_a, mul_assoc n' q b]

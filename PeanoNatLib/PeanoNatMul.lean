@@ -716,6 +716,26 @@ namespace Peano
         exact (lt_then_neq (mul n k) (mul m l) h_lt) h_eq
       exact lt_of_le_of_ne (mul n k) (mul m l) h_le_mul_compat h_neq
 
+    /--
+      Distributividad de la multiplicación sobre la resta truncada.
+      Si `b < a`, entonces `c * (a - b) = c * a - c * b`.
+    -/
+    theorem mul_sub (c a b : ℕ₀) (h_lt : Lt b a) :
+        mul c (sub a b) = sub (mul c a) (mul c b) := by
+      have h_le : Le b a := lt_imp_le b a h_lt
+      have h_add_sub : add (sub a b) b = a := sub_k_add_k a b h_le
+      -- c * a = c * (sub a b + b) = c*(sub a b) + c*b
+      have h_mul_expand : mul c a = add (mul c (sub a b)) (mul c b) :=
+        calc mul c a
+            = mul c (add (sub a b) b) := by rw [h_add_sub]
+          _ = add (mul c (sub a b)) (mul c b) := mul_ldistr c (sub a b) b
+      -- sub (c*a) (c*b) = sub (c*(sub a b) + c*b) (c*b) = c*(sub a b)
+      -- add_k_sub_k : sub (add k n) k = n
+      have h_result : sub (mul c a) (mul c b) = mul c (sub a b) := by
+        rw [h_mul_expand, add_comm (mul c (sub a b)) (mul c b)]
+        exact add_k_sub_k (mul c (sub a b)) (mul c b)
+      exact h_result.symm
+
   end Mul
 
 end Peano
@@ -751,8 +771,11 @@ export Peano.Mul(
   archimedean_property
   exists_unique_mul_le_and_lt_succ_mul
   mul_le_then_exists_max_factor
+  mul_le_mono_right
   le_le_mul_le_compat
   lt_lt_mul_lt_compat
   mul_pos
   le_lt_mul_lt_compat
+  mul_sub
+  lt_of_lt_of_le
 )

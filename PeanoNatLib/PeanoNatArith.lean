@@ -208,7 +208,6 @@ namespace Peano
         rw [mul_succ, add_comm]
         apply le_self_add_r
 
-
     theorem antisymm_divides {a b : ℕ₀} : (a ∣ b) → (b ∣ a) → a = b := by
       intro h_ab h_ba
       cases Classical.em (a = 𝟘) with
@@ -282,23 +281,138 @@ namespace Peano
     def Coprime₁ (a b : ℕ₁) : Prop :=
       gcd₁ a b = ⟨𝟙, by decide⟩
 
-    private theorem gcd_divides_first (a b : ℕ₀) : (gcd a b) ∣ a := by
-      sorry
+  private theorem gcd_divides_first (a b : ℕ₀) : (gcd a b) ∣ a := by
+  have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
+    intro b_arg
+    induction b_arg using well_founded_lt.induction
+    rename_i b ih
+    intro a
+    unfold gcd
+    by_cases h_b_is_zero : b = 𝟘
+    · rw [h_b_is_zero]
+      simp
+      exact ⟨divides_refl a, divides_zero a⟩
+    · simp [if_neg h_b_is_zero]
+      have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+      let ih_call := ih (a % b) h_mod_lt_b
+      let ih_specific := ih_call b
+      rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
+      have h_gcd_div_a : gcd b (a % b) ∣ a := by
+        have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
+          divides_mul_left h_gcd_div_b
+        have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
+          divides_add h_div_prod h_gcd_div_mod
+        unfold div mod at h_div_sum
+        rw [← divMod_eq a b h_b_is_zero] at h_div_sum
+        exact h_div_sum
+      exact ⟨h_gcd_div_a, h_gcd_div_b⟩
+  exact (H b a).1
 
-    private theorem gcd_divides_second (a b : ℕ₀) : (gcd a b) ∣ b := by
-      sorry
+  private theorem gcd_divides_second (a b : ℕ₀) : (gcd a b) ∣ b := by
+  have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
+    intro b_arg
+    induction b_arg using well_founded_lt.induction
+    rename_i b ih
+    intro a
+    unfold gcd
+    by_cases h_b_is_zero : b = 𝟘
+    · rw [h_b_is_zero]
+      simp
+      exact ⟨divides_refl a, divides_zero a⟩
+    · simp [if_neg h_b_is_zero]
+      have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+      let ih_call := ih (a % b) h_mod_lt_b
+      let ih_specific := ih_call b
+      rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
+      have h_gcd_div_a : gcd b (a % b) ∣ a := by
+        have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
+          divides_mul_left h_gcd_div_b
+        have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
+          divides_add h_div_prod h_gcd_div_mod
+        unfold div mod at h_div_sum
+        rw [← divMod_eq a b h_b_is_zero] at h_div_sum
+        exact h_div_sum
+      exact ⟨h_gcd_div_a, h_gcd_div_b⟩
+  exact (H b a).2
 
-    private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
-      constructor
-      · exact gcd_divides_first a b
-      · exact gcd_divides_second a b
+  private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
+    constructor
+    · exact gcd_divides_first a b
+    · exact gcd_divides_second a b
 
-    private theorem gcd_divides_gcd_symm (a b : ℕ₀) : gcd a b ∣ gcd b a := by
-      sorry
+  /--
+    Si c divide a y b, entonces c divide a - b (resta truncada), bajo la condición b < a.
+  -/
+  theorem divides_sub {a b c : ℕ₀} (h_lt_a_b : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (sub a b) := by
+    rcases ha with ⟨ka, hka⟩
+    rcases hb with ⟨kb, hkb⟩
+    -- c * kb < c * ka (reescribiendo b < a)
+    have h_mul_lt : Lt (mul c kb) (mul c ka) := by
+      rw [← hkb, ← hka]; exact h_lt_a_b
+    -- Derivar Lt kb ka por contradicción
+    have h_lt_kb_ka : Lt kb ka := by
+      by_cases h_le : Le ka kb
+      · -- Si ka ≤ kb, entonces c*ka ≤ c*kb, contradicción con c*kb < c*ka
+        have h_le_mul : Le (mul c ka) (mul c kb) := by
+          rw [mul_comm c ka, mul_comm c kb]
+          exact mul_le_mono_right c h_le
+        exact absurd (lt_of_lt_of_le h_mul_lt h_le_mul) (lt_irrefl (mul c kb))
+      · exact nle_then_gt_wp h_le
+    -- El testigo es sub ka kb
+    exact ⟨sub ka kb, by rw [hka, hkb]; exact (mul_sub c ka kb h_lt_kb_ka).symm⟩
+
+  /--
+    Si c divide a y b, entonces c divide a % b (resto de la división euclídea).
+  -/
+  theorem divides_mod {a b c : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a % b) := by
+    by_cases hb0 : b = 𝟘
+    · -- Cuando b = 0, divMod a 0 = (0, 0), luego a % 0 = 0
+      subst hb0; simp [mod, divMod]; exact divides_zero c
+    · -- Cuando b ≠ 0, a = (a/b)*b + (a%b)
+      by_cases hmod : (a % b) = 𝟘
+      · rw [hmod]; exact divides_zero c
+      · -- a%b ≠ 0, luego (a/b)*b < a
+        have h_eq : a = add (mul (a / b) b) (a % b) := divMod_eq a b hb0
+        have h1 : c ∣ mul (a / b) b := divides_mul_left hb
+        have h_lt : Lt (mul (a / b) b) a := by
+          have h_lt' : Lt (mul (a / b) b) (add (mul (a / b) b) (a % b)) :=
+            lt_add_of_pos_right (neq_0_then_lt_0 hmod)
+          rw [← h_eq] at h_lt'
+          exact h_lt'
+        have h_mod_eq : (a % b) = sub a (mul (a / b) b) := by
+          have key : sub (add (mul (a / b) b) (a % b)) (mul (a / b) b) = a % b :=
+            add_k_sub_k (a % b) (mul (a / b) b)
+          rw [← h_eq] at key
+          exact key.symm
+        rw [h_mod_eq]
+        exact divides_sub h_lt ha h1
+
+  theorem gcd_greatest (a b c : ℕ₀) :
+    (c ∣ a ∧ c ∣ b) → c ∣ (gcd a b)
+      := by
+    -- Generalizamos sobre ambos argumentos para que la hipótesis de inducción sea suficientemente fuerte
+    have H : ∀ (b a : ℕ₀), c ∣ a → c ∣ b → c ∣ gcd a b := by
+      intro b_arg
+      induction b_arg using well_founded_lt.induction
+      rename_i b ih
+      intro a h_div_a h_div_b
+      unfold gcd
+      by_cases h_b_is_zero : b = 𝟘
+      · -- gcd a 0 = a
+        rw [h_b_is_zero]; simp; exact h_div_a
+      · -- gcd a b = gcd b (a%b), inducción sobre (a%b) < b
+        simp [if_neg h_b_is_zero]
+        have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+        exact ih (a % b) h_mod_lt_b b h_div_b (divides_mod h_div_a h_div_b)
+    intro ⟨h_a, h_b⟩
+    exact H b a h_a h_b
+
+    private theorem gcd_divides_gcd_symm (a b : ℕ₀) : gcd a b ∣ gcd b a :=
+      gcd_greatest b a (gcd a b) ⟨gcd_divides_second a b, gcd_divides_first a b⟩
 
     -- First prove that gcd is commutative
-    private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a := by
-      sorry
+    private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a :=
+      antisymm_divides (gcd_divides_gcd_symm a b) (gcd_divides_gcd_symm b a)
 
     private theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
       (gcd_divides_both a b).1
@@ -320,10 +434,210 @@ namespace Peano
 
     -- Lemma 2: Bézout-like form using max and min (natural version)
     -- For any a, b: ∃ n m, gcd(a,b) = n*max(a,b) - m*min(a,b)
+
+    /--
+      Forma aditiva de Bézout natural: ∃ n m, gcd(a,b) + n*min(a,b) = m*max(a,b).
+      Se demuestra por inducción bien fundada sobre b.
+    -/
+    private theorem bezout_additive (a b : ℕ₀) :
+        ∃ n m : ℕ₀, add (gcd a b) (mul n (min a b)) = mul m (max a b) := by
+      -- Inducción bien fundada sobre b, con a libre
+      suffices H : ∀ (b a : ℕ₀), ∃ n m : ℕ₀,
+          add (gcd a b) (mul n (min a b)) = mul m (max a b) by
+        exact H b a
+      intro b
+      induction b using well_founded_lt.induction
+      rename_i b ih
+      intro a
+      by_cases hb0 : b = 𝟘
+      · -- Caso b = 0: gcd(a, 0) = a; max = a, min = 0
+        -- gcd a 0 + n*0 = m*a  →  n=0, m=1
+        subst hb0
+        simp [gcd, max_0_not, min_0_abs, mul_zero, add_zero, one_mul]
+        exact ⟨𝟘, 𝟙, by rw [mul_zero, add_zero, one_mul]⟩
+      · -- Caso b ≠ 0: gcd(a, b) = gcd(b, a%b)
+        -- Aplicamos IH a (b, a%b): ∃ n' m', gcd(b, a%b) + n'*min(b, a%b) = m'*max(b, a%b)
+        -- Sabemos: a%b < b, así que max(b, a%b) = b y min(b, a%b) = a%b
+        have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b hb0
+        have h_le_mod : Le (a % b) b := lt_imp_le _ _ h_mod_lt
+        -- max(b, a%b) = b,  min(b, a%b) = a%b
+        have h_max_b_mod : max b (a % b) = b := le_then_max_eq_left b (a % b) (Or.inl h_mod_lt)
+        have h_min_b_mod : min b (a % b) = a % b := le_then_min_eq_right b (a % b) (Or.inl h_mod_lt)
+        -- IH: ∃ n' m', gcd(b, a%b) + n'*(a%b) = m'*b
+        obtain ⟨n', m', ih_eq⟩ := ih (a % b) h_mod_lt b
+        rw [h_max_b_mod, h_min_b_mod] at ih_eq
+        -- Reescribir gcd(a,b) = gcd(b, a%b)
+        have h_gcd_step : gcd a b = gcd b (a % b) := by
+          unfold gcd
+          rw [if_neg hb0]
+        rw [h_gcd_step]
+        -- a%b = a - (a/b)*b (usamos divMod_eq y add_k_sub_k)
+        have h_div_eq : a = add (mul (a / b) b) (a % b) := divMod_eq a b hb0
+        -- q := a / b
+        set q := a / b with hq
+        -- Expandimos a%b = a - q*b en ih_eq:
+        -- gcd(b, a%b) + n'*(a%b) = m'*b
+        -- ↔ gcd(b, a%b) + n'*(a - q*b) = m'*b
+        -- ↔ gcd(b, a%b) + n'*a - n'*q*b = m'*b
+        -- ↔ gcd(b, a%b) + n'*a = (m' + n'*q)*b
+        -- Necesitamos ahora decidir quién es max/min de (a, b):
+        by_cases h_le_ab : Le a b
+        · -- a ≤ b: max(a,b) = b, min(a,b) = a
+          have h_max_ab : max a b = b := le_then_max_eq_right a b h_le_ab
+          have h_min_ab : min a b = a := le_then_min_eq_left a b h_le_ab
+          -- a < b (o a = b): en ambos casos a%b = a (mod_of_lt) si a < b, o a%b=0 si a=b
+          -- Caso a = b: gcd(b, 0) = b, gcd(a,b) = b, testigos n=0, m=1
+          -- Caso a < b: a%b = a (por mod_of_lt), luego ih_eq dice gcd + n'*a = m'*b
+          cases h_le_ab with
+          | inl h_lt_ab =>
+            -- a < b, luego a%b = a
+            have h_mod_is_a : a % b = a := mod_of_lt a b h_lt_ab
+            rw [h_mod_is_a] at ih_eq
+            -- ih_eq : gcd(b, a) + n'*a = m'*b
+            -- Pero gcd(a,b) = gcd(b,a) (por gcd_comm)
+            rw [gcd_comm]
+            rw [h_min_ab, h_max_ab]
+            exact ⟨n', m', ih_eq⟩
+          | inr h_eq_ab =>
+            -- a = b: gcd(a,b) = a = b
+            subst h_eq_ab
+            rw [h_max_ab, h_min_ab]
+            simp [gcd, if_neg hb0]
+            -- gcd(b, b%b) + n*(min b b) = m*(max b b)
+            -- b%b = 0, max b b = b, min b b = b
+            -- gcd(b, 0) = b, testigos n=0, m=1
+            have h_mod_self : b % b = 𝟘 := by
+              rw [mod_of_lt_nth_interval b b 𝟙
+                (by rw [mul_one]; exact le_refl b)
+                (by rw [mul_succ, mul_one]; exact lt_self_σ_self b)]
+              rw [mul_one, sub_self]
+            simp [h_mod_self, gcd, mul_zero, add_zero, one_mul]
+            exact ⟨𝟘, 𝟙, by rw [mul_zero, add_zero, one_mul]⟩
+        · -- b < a: max(a,b) = a, min(a,b) = b
+          have h_lt_ba : Lt b a := nle_then_gt_wp h_le_ab
+          have h_le_ba : Le b a := lt_imp_le _ _ h_lt_ba
+          have h_max_ab : max a b = a := le_then_max_eq_left a b (Or.inl h_lt_ba)
+          have h_min_ab : min a b = b := le_then_min_eq_right a b (Or.inl h_lt_ba)
+          rw [h_max_ab, h_min_ab]
+          -- ih_eq : gcd(b, a%b) + n'*(a%b) = m'*b
+          -- a%b = a - q*b, y n'*(a - q*b) = n'*a - n'*q*b (mul_sub, válido pues q*b ≤ a)
+          -- Necesitamos q*b < a para mul_sub (o q*b ≤ a es suficiente para el cálculo)
+          -- De h_div_eq: a = q*b + a%b.  Como a%b ≥ 0, q*b ≤ a.
+          have h_qb_le_a : Le (mul q b) a := by
+            rw [h_div_eq]
+            exact le_self_add (mul q b) (a % b)
+          -- Si a%b = 0, entonces a = q*b, gcd(a,b) = b, testigos n=0, m=q
+          -- Si a%b ≠ 0, derivamos la fórmula
+          by_cases hmod0 : a % b = 𝟘
+          · -- a%b = 0 → a = q*b → gcd(a,b) = b
+            have h_a_eq_qb : a = mul q b := by
+              have := h_div_eq; rw [hmod0, add_zero] at this; exact this
+            have h_gcd_eq_b : gcd b (a % b) = b := by
+              rw [hmod0]; simp [gcd]
+            -- objetivo: ∃ n m, b + n*b = m*a
+            -- con a = q*b: b + 0*b = 1*b = (1/q)*a? No exacto.
+            -- mejor: b + (q-1)*b = q*b = a → b*(q-1+1) = a
+            -- gcd addr: gcd(a,b) = b, queremos b + n*b = m*a
+            -- b*(1) = b, y b*q = a, así que b = 1*(1/q * a)?  No int.
+            -- Tomamos n=𝟘, m con b = m*a? Solo si a=b, pero a=q*b y b<a→q≥2.
+            -- En cambio, la forma que queremos: gcd + n*min = m*max
+            --   = b + n*b = m*a
+            -- (1+n)*b = m*a = m*q*b  →  (1+n) = m*q
+            -- Testigos: n = q-1 (truncado), m = 1: 1*b + (q-1)*b = q*b = a ✓
+            -- gcd + n*b = m*a  →  b + (q-1)*b = 1*a
+            -- Necesitamos sub q 𝟙 como n, y m=1:
+            -- add b (mul (sub q 𝟙) b) = a
+            -- = add b (sub (mul q b) b)    [mul_sub: q*(1) → (q-1)*b = q*b - b]
+            -- = add b (sub a b)            [h_a_eq_qb]
+            -- = a                          [sub_k_add_k, ya que b ≤ a]
+            refine ⟨sub q 𝟙, 𝟙, ?_⟩
+            rw [one_mul]
+            cases Classical.em (q = 𝟘) with
+            | inl hq0 =>
+              -- q=0 → a=0, pero b < a es contradicción
+              rw [hq0, zero_mul] at h_a_eq_qb
+              exact absurd h_a_eq_qb (fun h => by rw [h] at h_lt_ba; exact lt_irrefl _ h_lt_ba)
+            | inr hqne =>
+              -- q ≥ 1, sub q 𝟙 bien definido
+              have hq_pos : Lt 𝟘 q := neq_0_then_lt_0 hqne
+              have hq_ge1 : Le 𝟙 q := hq_pos
+              -- (q-1)*b = q*b - b   [mul_sub con 𝟙 < q, o con Le 𝟙 q]
+              have h_sub_mul : mul (sub q 𝟙) b = sub (mul q b) b := by
+                rw [mul_comm (sub q 𝟙) b, mul_comm q b, mul_comm 𝟙 b]
+                exact mul_sub b q 𝟙 hq_ge1
+              rw [h_sub_mul, ← h_a_eq_qb]
+              -- add b (sub a b) = a  [sub_k_add_k]
+              rw [add_comm]
+              exact sub_k_add_k a b h_le_ba
+          · -- a%b ≠ 0: derivamos gcd + n'*(a%b) = m'*b con a%b = a - q*b
+            -- Necesitamos que q*b < a para mul_sub
+            have h_qb_lt_a : Lt (mul q b) a := by
+              have h_lt' : Lt (mul q b) (add (mul q b) (a % b)) :=
+                lt_add_of_pos_right (neq_0_then_lt_0 hmod0)
+              rw [← h_div_eq] at h_lt'
+              exact h_lt'
+            -- a%b = a - q*b
+            have h_mod_eq : a % b = sub a (mul q b) := by
+              have key := add_k_sub_k (a % b) (mul q b)
+              rw [← h_div_eq] at key
+              exact key.symm
+            -- n'*(a-q*b) = n'*a - n'*q*b  (mul_sub, válido pues q*b < a)
+            have h_mul_mod : mul n' (a % b) = sub (mul n' a) (mul n' (mul q b)) := by
+              rw [h_mod_eq]
+              exact mul_sub n' a (mul q b) h_qb_lt_a
+            -- Reescribimos ih_eq:
+            -- gcd + n'*(a%b) = m'*b
+            -- → gcd + (n'*a - n'*q*b) = m'*b
+            -- → gcd + n'*a = m'*b + n'*q*b    (usando add_k_sub_k)
+            -- → gcd + n'*a = (m' + n'*q)*b
+            rw [h_mul_mod] at ih_eq
+            -- ih_eq : (gcd b (a%b)) + (n'*a - n'*q*b) = m'*b
+            -- Necesitamos pasar la resta al otro lado
+            -- add G (sub X Y) = Z  →  add G X = add Z Y  (cuando Y ≤ X)
+            have h_n'qb_le_n'a : Le (mul n' (mul q b)) (mul n' a) := by
+              rw [mul_comm q b, ← mul_assoc]
+              rw [mul_assoc n' q b]
+              apply mul_le_mono_right
+              exact lt_imp_le _ _ h_qb_lt_a
+            -- add gcd (sub (n'a) (n'qb)) = m'b
+            -- add gcd (n'a) = add (m'b) (n'qb)    [add_sub_assoc invertido]
+            have h_rearrange : add (gcd b (a % b)) (mul n' a) =
+                add (mul m' b) (mul n' (mul q b)) := by
+              have := add_sub_assoc (mul n' a) (gcd b (a % b)) (mul n' (mul q b)) h_n'qb_le_n'a
+              -- this: (n'a - n'qb) + gcd = (n'a + gcd) - n'qb
+              rw [add_comm (gcd b (a % b)) (sub (mul n' a) (mul n' (mul q b)))] at ih_eq
+              rw [← add_sub_assoc (mul n' a) (gcd b (a % b)) (mul n' (mul q b)) h_n'qb_le_n'a] at ih_eq
+              -- ih_eq : (n'a + gcd) - n'qb = m'b
+              -- → n'a + gcd = m'b + n'qb  [sub_k_add_k]
+              have step : add (add (mul n' a) (gcd b (a % b))) (mul n' (mul q b)) =
+                  add (mul m' b) (mul n' (mul q b)) := by
+                rw [← ih_eq]
+                rw [sub_k_add_k]
+              rw [add_comm (mul n' a) (gcd b (a % b))]
+              exact (add_right_cancel _ _ _ step)
+            -- add gcd (n'a) = m'b + n'qb = (m' + n'q)*b
+            have h_factor : add (mul m' b) (mul n' (mul q b)) =
+                mul (add m' (mul n' q)) b := by
+              rw [mul_rdistr m' (mul n' q) b, mul_assoc n' q b, mul_comm q b, ← mul_assoc n' b q,
+                  mul_comm n' b, mul_assoc b n' q, ← mul_assoc n' q b]
+              ring_nf
+              rw [mul_comm q b, mul_assoc n' b q, mul_comm n' b]
+            rw [h_factor] at h_rearrange
+            -- h_rearrange : gcd + n'*a = (m' + n'*q)*b
+            exact ⟨n', add m' (mul n' q), by rw [add_comm (gcd b (a % b)) (mul n' a)]; exact h_rearrange⟩
+
     theorem bezout_natform (a b : ℕ₀) :
         ∃ n m : ℕ₀,
           gcd a b = sub (mul n (max a b)) (mul m (min a b)) := by
-      sorry -- Requires detailed case analysis and induction on Euclidean algorithm
+      obtain ⟨n, m, h⟩ := bezout_additive a b
+      -- h : gcd(a,b) + n*min(a,b) = m*max(a,b)
+      -- → gcd(a,b) = m*max(a,b) - n*min(a,b)
+      exact ⟨m, n, by
+        have h_le : Le (mul n (min a b)) (mul m (max a b)) := by
+          rw [← h]; exact le_self_add (gcd a b) (mul n (min a b))
+        rw [← h]
+        rw [add_comm]
+        exact (add_k_sub_k (gcd a b) (mul n (min a b))).symm⟩
 
     -- Lemma 3: gcd divides the max
     theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b := by
@@ -356,9 +670,6 @@ namespace Peano
         have h_eq := Peano.MaxMin.le_then_min_eq_right a b h_le
         rw [h_eq]
         exact h_right
-
-
-
 
     theorem divisorslist_one_mem {n : ℕ₀} (d : DivisorsList n) : 𝟙 ∈ d.vals :=
       d.complete 𝟙 (one_divides n)
@@ -468,6 +779,9 @@ export Peano.NatArith (
   divides_mul_right
   divides_mul_left
   divides_add
+  divides_sub
+  divides_mod
+  gcd_greatest
   -- Nuevas definiciones para ℕ₁
   Divides₁
   IsGCD₁

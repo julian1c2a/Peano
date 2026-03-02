@@ -475,7 +475,8 @@ namespace Peano
       · -- b = 0: gcd(a,0) = a, max = a, min = 0, testigos n=0 m=1
         subst hb0
         refine ⟨𝟘, 𝟙, ?_⟩
-        rw [zero_mul, add_zero, one_mul, max_0_not]
+        have h_gcd_a0 : gcd a 𝟘 = a := by unfold gcd; rw [if_pos rfl]
+        rw [h_gcd_a0, zero_mul, add_zero, one_mul, max_0_not]
       · -- b ≠ 0: gcd(a,b) = gcd(b, a%b), IH sobre (a%b < b)
         have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b hb0
         -- IH sobre (b, a%b): gcd(b,a%b) + n'*min(b,a%b) = m'*max(b,a%b)
@@ -490,8 +491,8 @@ namespace Peano
         have h_gcd_eq : gcd a b = gcd b (a % b) := gcd_step a b hb0
         rw [h_gcd_eq]
         -- División: a = q*b + (a%b)
-        obtain ⟨q, h_div_eq⟩ : ∃ q : ℕ₀, a = add (mul q b) (a % b) :=
-          ⟨a / b, divMod_eq a b hb0⟩
+        let q := a / b
+        have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
         -- Decidir quién es mayor entre a y b
         rcases le_total a b with h_le_ab | h_le_ba
         · -- a ≤ b: max=b, min=a
@@ -517,9 +518,6 @@ namespace Peano
             rw [h_mod_zero]
             have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [h_gcd_b0]
-            have h_max_bb : max b b = b := le_then_max_eq_right b b (le_refl b)
-            have h_min_bb : min b b = b := le_then_min_eq_left b b (le_refl b)
-            rw [h_max_bb, h_min_bb]
             exact ⟨𝟘, 𝟙, by rw [zero_mul, add_zero, one_mul]⟩
         · -- b ≤ a: max=a, min=b
           have h_max : max a b = a := le_then_max_eq_left a b h_le_ba
@@ -547,12 +545,9 @@ namespace Peano
             -- testigos: n = sub q 𝟙, m = 𝟙
             -- b + (q-1)*b = q*b = a
             refine ⟨sub q 𝟙, 𝟙, ?_⟩
-            rw [one_mul]
-            have h_sub_mul : mul (sub q 𝟙) b = sub (mul q b) (mul 𝟙 b) := by
-              rw [mul_comm (sub q 𝟙) b, mul_comm q b, mul_comm 𝟙 b]
-              exact mul_sub b q 𝟙 hq_ge1
-            rw [h_sub_mul, mul_one, ← h_a_eq, add_comm]
-            exact sub_k_add_k a b h_le_ba
+            rw [one_mul, ← one_mul b, ← mul_rdistr 𝟙 (sub q 𝟙) b,
+                add_comm 𝟙 (sub q 𝟙), sub_k_add_k q 𝟙 hq_ge1]
+            exact h_a_eq.symm
           · -- a%b ≠ 0: derivamos usando mul_sub
             -- q*b < a
             have h_qb_lt_a : Lt (mul q b) a := by

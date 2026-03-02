@@ -466,6 +466,7 @@ namespace Peano
         -- ih_eq : gcd(b,a%b) + n'*(a%b) = m'*b
         have h_gcd_eq : gcd a b = gcd b (a % b) := by
           unfold gcd; rw [if_neg hb0]
+        rw [h_gcd_eq]
         -- División: a = q*b + (a%b)
         set q := a / b
         have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
@@ -474,7 +475,7 @@ namespace Peano
         · -- a ≤ b: max=b, min=a
           have h_max : max a b = b := le_then_max_eq_right a b h_le_ab
           have h_min : min a b = a := le_then_min_eq_left a b h_le_ab
-          rw [h_gcd_eq, h_max, h_min]
+          rw [h_max, h_min]
           rcases h_le_ab with h_lt_ab | h_eq_ab
           · -- a < b: a%b = a (mod_of_lt)
             have h_mod_a : a % b = a := mod_of_lt a b h_lt_ab
@@ -489,12 +490,16 @@ namespace Peano
                 (by rw [mul_succ, mul_one]; exact lt_self_σ_self b)
               rw [mul_one, sub_self] at this; exact this
             rw [h_mod_zero]
-            simp only [gcd, if_pos rfl]
+            have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; simp
+            rw [h_gcd_b0]
+            have h_max_bb : max b b = b := le_then_max_eq_right b b (le_refl b)
+            have h_min_bb : min b b = b := le_then_min_eq_left b b (le_refl b)
+            rw [h_max_bb, h_min_bb]
             exact ⟨𝟘, 𝟙, by rw [mul_zero, add_zero, one_mul]⟩
         · -- b ≤ a: max=a, min=b
           have h_max : max a b = a := le_then_max_eq_left a b h_le_ba
           have h_min : min a b = b := le_then_min_eq_right a b h_le_ba
-          rw [h_gcd_eq, h_max, h_min]
+          rw [h_max, h_min]
           -- q*b ≤ a
           have h_qb_le_a : Le (mul q b) a := by
             rw [h_div_eq]; exact le_self_add (mul q b) (a % b)
@@ -579,11 +584,13 @@ namespace Peano
       -- h : gcd(a,b) + n*min(a,b) = m*max(a,b)
       -- → gcd(a,b) = m*max(a,b) - n*min(a,b)
       refine ⟨m, n, ?_⟩
-      have h_le : Le (mul n (min a b)) (mul m (max a b)) := by
-        rw [← h]; exact le_self_add_r (mul n (min a b)) (gcd a b)
-      have := add_k_sub_k (gcd a b) (mul n (min a b))
-      rw [h] at this
-      exact this.symm
+      have key := add_k_sub_k (gcd a b) (mul n (min a b))
+      -- key : (n*min + gcd) - n*min = gcd
+      rw [add_comm] at key
+      -- key : (gcd + n*min) - n*min = gcd
+      rw [h] at key
+      -- key : m*max - n*min = gcd
+      exact key.symm
 
     -- Lemma 3: gcd divides the max
     theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b := by

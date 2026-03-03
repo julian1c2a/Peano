@@ -697,6 +697,12 @@ namespace Peano
       unfold Divides₁ at *
       exact divides_trans hab hbc
 
+    -- Antisimetría de la divisibilidad en ℕ₁
+    theorem divides₁_antisymm {a b : ℕ₁} (hab : a ∣₁ b) (hba : b ∣₁ a) : a = b := by
+      apply Subtype.ext
+      unfold Divides₁ at *
+      exact antisymm_divides hab hba
+
     -- Lemas auxiliares para gcd₁
 
     -- Si a % b = 0, entonces b divide a a
@@ -709,7 +715,7 @@ namespace Peano
         have h_eq : a.val = add (mul (a.val / b.val) b.val) (a.val % b.val) :=
           divMod_eq a.val b.val b.property
         rw [h_mod, add_zero] at h_eq
-        exact ⟨a.val / b.val, by rw [h_eq, mul_comm]⟩
+        exact ⟨a.val / b.val, h_eq.trans (mul_comm _ _)⟩
       · -- Dirección ←: ∃ k, a = b * k → a % b = 0
         intro ⟨k, hk⟩
         -- b ∣ a (con nuestra definición izquierda)
@@ -729,14 +735,33 @@ namespace Peano
     -- gcd₁ preserva la igualdad en los valores subyacentes
     theorem gcd₁_val_eq (a b : ℕ₁) :
         (gcd₁ a b).val = gcd a.val b.val := by
-      sorry -- TODO: mostrar que gcd₁ y gcd dan el mismo resultado
+      -- Inducción bien fundada: para todo bv, para todo b con b.val = bv
+      suffices H : ∀ (bv : ℕ₀) (a b : ℕ₁), b.val = bv →
+          (gcd₁ a b).val = gcd a.val b.val from H b.val a b rfl
+      intro bv
+      induction bv using well_founded_lt.induction
+      rename_i bv ih
+      intro a b hb
+      unfold gcd₁
+      set r := a.val % b.val with hr_def
+      by_cases hr : r = 𝟘
+      · -- Caso base: a % b = 0  ⇒  gcd₁ a b = b  y  gcd a.val b.val = b.val
+        rw [dif_pos hr]
+        rw [gcd_step a.val b.val b.property, ← hr_def, hr]
+        simp [gcd]
+      · -- Caso recursivo: a % b ≠ 0  ⇒  gcd₁ a b = gcd₁ b ⟨r, hr⟩
+        rw [dif_neg hr]
+        show (gcd₁ b ⟨r, hr⟩).val = gcd a.val b.val
+        have h_r_lt_bv : Lt r bv := hb ▸ mod_lt_divisor a.val b.val b.property
+        have h_val := ih r h_r_lt_bv b ⟨r, hr⟩ rfl
+        rw [h_val, hr_def, ← gcd_step a.val b.val b.property]
 
     -- gcd₁ es conmutativo
     theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a := by
       apply Subtype.ext
       rw [gcd₁_val_eq, gcd₁_val_eq]
       exact gcd_comm a.val b.val
-    private theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
+    theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
       unfold Divides₁
       rw [gcd₁_val_eq]
       exact gcd_divides_left a.val b.val
@@ -803,6 +828,7 @@ export Peano.NatArith (
   Coprime₁
   divides₁_refl
   divides₁_trans
+  divides₁_antisymm
   gcd₁_comm
   gcd₁_divides_left
   gcd₁_divides_right

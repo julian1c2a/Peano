@@ -1,6 +1,6 @@
 # Guía de Referencia Técnica para el Proyecto Peano
 
-**Última actualización:** 2026-03-02 00:00
+**ÚLtima actualización:** 2026-03-03 00:00
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -238,31 +238,113 @@ Este módulo define la división euclidiana (cociente y resto).
 
 ### 2.11. PeanoNatArith.lean
 
-Este módulo introduce conceptos de la teoría de números elemental.
+Este módulo introduce conceptos de la teoría de números elemental. Todo el módulo compila sin ningún `sorry`.
 
-#### Definiciones
+#### Definiciones para `ℕ₀`
 
 * **`Divides (a b : ℕ₀) : Prop`**: Proposición que afirma que `a` divide a `b`.
   * `∃ k, b = a * k`
   * **Notación**: `a ∣ b`
 
-* **`gcd (a b : ℕ₀) : ℕ₀`**: El máximo común divisor, implementado con el algoritmo de Euclides (`gcd b (a % b)`).
+* **`MultipleOf (n m : ℕ₀) : Prop`**: Sinónimo de `Divides n m`.
 
-* **`lcm (a b : ℕ₀) : ℕ₀`**: El mínimo común múltiplo, definido como `(a * b) / gcd a b`.
+* **`DivisorOf (d n : ℕ₀) : Prop`**: Sinónimo de `Divides d n`.
+
+* **`Divisors (n : ℕ₀) : ℕ₀ → Prop`**: El predicado "ser divisor de n".
+
+* **`IsGCD (a b d : ℕ₀) : Prop`**: `d` es el máximo común divisor de `a` y `b`.
+  * `d ∣ a ∧ d ∣ b ∧ ∀ c, (c ∣ a ∧ c ∣ b) → c ∣ d`
+
+* **`IsLCM (a b m : ℕ₀) : Prop`**: `m` es el mínimo común múltiplo de `a` y `b`.
+
+* **`Coprime (a b : ℕ₀) : Prop`**: Dos números son coprimos si su `gcd` es 1.
+  * `IsGCD a b 𝟙`
 
 * **`Prime (p : ℕ₀) : Prop`**: Un número `p` es primo si no es 0 ni 1, y si `p ∣ a * b`, entonces `p ∣ a` o `p ∣ b` (Lema de Euclides).
 
-* **`Coprime (a b : ℕ₀) : Prop`**: Dos números son coprimos si su `gcd` es 1.
+* **`gcd (a b : ℕ₀) : ℕ₀`**: El máximo común divisor, implementado con el algoritmo de Euclides.
+  * `gcd a 𝟘 = a`
+  * `gcd a b = gcd b (a % b)` si `b ≠ 𝟘`
 
-#### Teoremas Principales
+* **`lcm (a b : ℕ₀) : ℕ₀`**: El mínimo común múltiplo.
+  * `lcm a b = (a * b) / gcd a b`
 
-* **`divides_sub {a b c : ℕ₀} (h_lt : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a - b)`**: Si `c ∣ a` y `c ∣ b` y `b < a`, entonces `c ∣ (a - b)`. La condición `b < a` garantiza que la resta truncada coincide con la resta entera.
-  * **Dependencias**: `mul_le_mono_right`, `lt_of_lt_of_le`, `nle_then_gt_wp`, `mul_sub`
+#### Definiciones para `ℕ₁` (naturales positivos)
 
-* **`divides_mod {a b c : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a % b)`**: Si `c ∣ a` y `c ∣ b`, entonces `c ∣ (a % b)`. Cuando `b = 0` o `a % b = 0` el resultado es trivial; en otro caso usa `divides_sub`.
-  * **Dependencias**: `divMod_eq`, `divides_mul_left`, `lt_add_of_pos_right`, `neq_0_then_lt_0`, `add_k_sub_k`, `divides_sub`
+`ℕ₁` es el subtipo `{n : ℕ₀ // n ≠ 𝟘}`, i.e., los naturales de Peano distintos de cero.
 
-* **`gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b`**: Todo divisor común de `a` y `b` también divide a `gcd a b`. La demostración usa inducción bien fundada sobre `b` con un lema `H` generalizado sobre ambos argumentos.
-  * **Dependencias**: `well_founded_lt.induction`, `mod_lt_divisor`, `divides_mod`
+* **`Divides₁ (a b : ℕ₁) : Prop`**: Divisibilidad en `ℕ₁`, definida como `a.val ∣ b.val`.
+  * **Notación**: `a ∣₁ b`
 
-*Teoremas importantes como la identidad de Bézout (`bezout_natform`) y la conmutatividad del `gcd` (`gcd_comm`) están enunciados pero pendientes de demostración (`sorry`).**
+* **`IsGCD₁ (a b d : ℕ₁) : Prop`**: `d` es el MCD de `a` y `b` en `ℕ₁`.
+
+* **`gcd₁ (a b : ℕ₁) : ℕ₁`**: Algoritmo de Euclides sobre `ℕ₁`.
+  * `gcd₁ a b = b`  si `a.val % b.val = 𝟘`
+  * `gcd₁ a b = gcd₁ b ⟨a.val % b.val, _⟩`  en otro caso
+  * Terminación: `well_founded_lt` sobre `b.val`.
+
+* **`Coprime₁ (a b : ℕ₁) : Prop`**: `gcd₁ a b = ⟨𝟙, _⟩`.
+
+#### Teoremas para `ℕ₀`
+
+**Divisibilidad básica:**
+
+* **`divides_refl (a : ℕ₀) : a ∣ a`**
+* **`one_divides (a : ℕ₀) : 𝟙 ∣ a`**
+* **`divides_zero (a : ℕ₀) : a ∣ 𝟘`**
+* **`zero_divides_iff (b : ℕ₀) : (𝟘 ∣ b) ↔ b = 𝟘`**
+* **`divides_trans {a b c : ℕ₀} : a ∣ b → b ∣ c → a ∣ c`**
+* **`divides_mul_right {a b c : ℕ₀} : a ∣ b → a ∣ b * c`**
+* **`divides_mul_left {a b c : ℕ₀} : a ∣ b → a ∣ c * b`**
+* **`divides_add {a b c : ℕ₀} : a ∣ b → a ∣ c → a ∣ b + c`**
+* **`divides_le {a b : ℕ₀} : a ∣ b → b ≠ 𝟘 → a ≤ b`**: Un divisor no puede superar al dividendo (cuando este es positivo).
+* **`antisymm_divides {a b : ℕ₀} : a ∣ b → b ∣ a → a = b`**: Antisimetría de la divisibilidad; usa `divides_le` más `le_antisymm`.
+* **`divides_sub {a b c : ℕ₀} (h_lt : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a - b)`**: Si `c ∣ a` y `c ∣ b` y `b < a`, entonces `c ∣ (a - b)`.
+* **`divides_mod {a b c : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a % b)`**: Si `c ∣ a` y `c ∣ b`, entonces `c ∣ (a % b)`.
+
+**MCD y propiedades:**
+
+* **`gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b`**: Todo divisor común divide al MCD. Demostración por induccción bien fundada con patrón `H` doblemente generalizado.
+* **`gcd_divides_left (a b : ℕ₀) : gcd a b ∣ a`** (privado)
+* **`gcd_divides_right (a b : ℕ₀) : gcd a b ∣ b`** (privado)
+* **`gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b`**
+* **`gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b`**
+* **`gcd_divides_linear_combo (a b n m : ℕ₀) : gcd a b ∣ (a * n + b * m)`**: El MCD divide toda combinación lineal con coeficientes naturales.
+* **`gcd_step (a b : ℕ₀) (hb : b ≠ 𝟘) : gcd a b = gcd b (a % b)`** (privado): Paso de reducción de Euclides; probado mediante `antisymm_divides` + `gcd_greatest`.
+
+**Identidad de Bézout (forma natural):**
+
+* **`bezout_additive (a b : ℕ₀) : ∃ n m, (gcd a b + n * min a b = m * max a b) ∨ (gcd a b + n * max a b = m * min a b)`** (privado)
+  * Forma aditiva natural de la identidad de Bézout: enésima iteración alterna entre las dos formas OR (ver nota técnica más abajo).
+  * Demostración: induccción bien fundada sobre `b` con 5 ramas (b=0, a<b, a=b, b≤a y a%b=0, b≤a y a%b≠0). La rama recursiva bifurca sobre el OR de la hipótesis inductiva.
+
+* **`bezout_natform (a b : ℕ₀) : ∃ n m, (gcd a b = n * a - m * b) ∨ (gcd a b = n * b - m * a)`**
+  * El MCD se expresa siempre como diferencia de múltiplos naturales. Derivado de `bezout_additive` usando el lema `add_k_sub_k`.
+
+> **Nota técnica — por qué la forma OR**: En la recursión de Euclides, la forma `G + n*min = m*max` alterna entre aplicarse sobre los dos argumentos en cada nivel. Si la hipótesis inductiva es de la forma A, la rama recursiva produce la forma B, y viceversa. Resolver esto con un único tipo de igualdad requiere coeficientes enteros; con coeficientes naturales (ℕ₀), la solución es devolver un tipo `Or` y propagar la alternancia.
+
+#### Teoremas para `ℕ₁`
+
+**Divisibilidad:**
+
+* **`divides₁_refl (a : ℕ₁) : a ∣₁ a`**
+* **`divides₁_trans {a b c : ℕ₁} (hab : a ∣₁ b) (hbc : b ∣₁ c) : a ∣₁ c`**
+* **`divides₁_antisymm {a b : ℕ₁} (hab : a ∣₁ b) (hba : b ∣₁ a) : a = b`**: Antisimetría en `ℕ₁`; usa `Subtype.ext` + `antisymm_divides` sobre `.val`.
+
+**MCD en `ℕ₁`:**
+
+* **`mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a)`** (privado)
+  * (→): `divMod_eq` + testigo `a / b`.
+  * (←): `divides_mod` + `cases Classical.em` + contradicción con `le_not_lt`.
+
+* **`gcd₁_val_eq (a b : ℕ₁) : (gcd₁ a b).val = gcd a.val b.val`** (privado)
+  * Demuestra que `gcd₁` y `gcd` tienen el mismo comportamiento. Induccción bien fundada sobre `b.val`; usa `unfold gcd₁` + `dif_pos`/`dif_neg` para reducir el `if-decidible` sin que el elaborador desdoble el cuerpo recursivo.
+  * **Llave de implementación**: La definición de `gcd₁` usa un `dite` directo (sin `let r := ...`) para que `unfold` no genere un cuerpo con `let` pendiente que impida `rfl` / `dif_pos`.
+
+* **`gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a`**: `Subtype.ext` + `gcd₁_val_eq` + `gcd_comm`.
+
+* **`gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a`**: `unfold Divides₁` + `gcd₁_val_eq` + `gcd_divides_left`.
+
+* **`gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b`**: Análogo.
+
+* **`gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b`**: Empaqueta los dos anteriores.

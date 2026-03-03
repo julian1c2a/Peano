@@ -718,43 +718,39 @@ namespace Peano
         exact ⟨a.val / b.val, h_eq.trans (mul_comm _ _)⟩
       · -- Dirección ←: ∃ k, a = b * k → a % b = 0
         intro ⟨k, hk⟩
-        -- b ∣ a (con nuestra definición izquierda)
         have h_div_a : b.val ∣ a.val := ⟨k, hk⟩
-        -- b ∣ b
-        have h_div_b : b.val ∣ b.val := divides_refl b.val
-        -- b ∣ (a % b)  por divides_mod
-        have h_div_mod : b.val ∣ (a.val % b.val) := divides_mod h_div_a h_div_b
-        -- a % b < b
+        have h_div_mod : b.val ∣ (a.val % b.val) :=
+          divides_mod h_div_a (divides_refl b.val)
         have h_mod_lt : Lt (a.val % b.val) b.val :=
           mod_lt_divisor a.val b.val b.property
-        -- Si a % b ≠ 0, entonces b ≤ a % b, contradicción
-        by_contra h_ne_zero
-        have h_le : Le b.val (a.val % b.val) := divides_le h_div_mod h_ne_zero
-        exact (le_not_lt h_le) h_mod_lt
+        cases Classical.em ((a.val % b.val) = 𝟘) with
+        | inl h => exact h
+        | inr h => exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h))
 
     -- gcd₁ preserva la igualdad en los valores subyacentes
     theorem gcd₁_val_eq (a b : ℕ₁) :
         (gcd₁ a b).val = gcd a.val b.val := by
-      -- Inducción bien fundada: para todo bv, para todo b con b.val = bv
       suffices H : ∀ (bv : ℕ₀) (a b : ℕ₁), b.val = bv →
           (gcd₁ a b).val = gcd a.val b.val from H b.val a b rfl
       intro bv
       induction bv using well_founded_lt.induction
       rename_i bv ih
       intro a b hb
-      unfold gcd₁
-      set r := a.val % b.val with hr_def
-      by_cases hr : r = 𝟘
-      · -- Caso base: a % b = 0  ⇒  gcd₁ a b = b  y  gcd a.val b.val = b.val
-        rw [dif_pos hr]
-        rw [gcd_step a.val b.val b.property, ← hr_def, hr]
+      by_cases hr : (a.val % b.val) = 𝟘
+      · -- gcd₁ a b = b: desplegar y sustituir r := 0
+        have hv : (gcd₁ a b).val = b.val := by
+          unfold gcd₁; rw [hr]; simp
+        rw [hv, gcd_step a.val b.val b.property, hr]
         simp [gcd]
-      · -- Caso recursivo: a % b ≠ 0  ⇒  gcd₁ a b = gcd₁ b ⟨r, hr⟩
-        rw [dif_neg hr]
-        show (gcd₁ b ⟨r, hr⟩).val = gcd a.val b.val
-        have h_r_lt_bv : Lt r bv := hb ▸ mod_lt_divisor a.val b.val b.property
-        have h_val := ih r h_r_lt_bv b ⟨r, hr⟩ rfl
-        rw [h_val, hr_def, ← gcd_step a.val b.val b.property]
+      · -- gcd₁ a b = gcd₁ b ⟨a%b, hr⟩: desplegar y sustituir
+        have hv : (gcd₁ a b).val = (gcd₁ b ⟨a.val % b.val, hr⟩).val := by
+          have hr' : ¬((a.val % b.val) = 𝟘) := hr
+          unfold gcd₁; rw [show (a.val % b.val) ≠ 𝟘 from hr]; simp
+        rw [hv]
+        have h_r_lt_bv : Lt (a.val % b.val) bv :=
+          hb ▸ mod_lt_divisor a.val b.val b.property
+        rw [ih (a.val % b.val) h_r_lt_bv b ⟨a.val % b.val, hr⟩ rfl,
+            ← gcd_step a.val b.val b.property]
 
     -- gcd₁ es conmutativo
     theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a := by

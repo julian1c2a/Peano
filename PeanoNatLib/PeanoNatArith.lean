@@ -700,7 +700,7 @@ namespace Peano
     -- Lemas auxiliares para gcd₁
 
     -- Si a % b = 0, entonces b divide a a
-    private theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a) := by
+    theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a) := by
       unfold Divides₁
       unfold Divides
       constructor
@@ -710,7 +710,7 @@ namespace Peano
         sorry -- TODO: si b | a entonces a % b = 0
 
     -- gcd₁ preserva la igualdad en los valores subyacentes
-    private theorem gcd₁_val_eq (a b : ℕ₁) :
+    theorem gcd₁_val_eq (a b : ℕ₁) :
         (gcd₁ a b).val = gcd a.val b.val := by
       sorry -- TODO: mostrar que gcd₁ y gcd dan el mismo resultado
 
@@ -732,10 +732,10 @@ namespace Peano
       -- - divides_antisymm: (a | b ∧ b | a) → a = b para ℕ₁
       -- - gcd₁_greatest: si c | a y c | b entonces c | gcd₁ a b
       sorry
-    theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
+    private theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
       sorry -- TODO: Requires careful WF induction with proper term recursion
 
-    theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b := by
+    private theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b := by
       sorry -- TODO: Requires careful WF induction with proper term recursion
 
     theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b := by

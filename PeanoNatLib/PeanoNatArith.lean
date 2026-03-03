@@ -463,9 +463,12 @@ namespace Peano
       Se demuestra por inducción bien fundada sobre b.
     -/
     private theorem bezout_additive (a b : ℕ₀) :
-        ∃ n m : ℕ₀, add (gcd a b) (mul n (min a b)) = mul m (max a b) := by
+        ∃ n m : ℕ₀,
+          (add (gcd a b) (mul n (min a b)) = mul m (max a b)) ∨
+          (add (gcd a b) (mul n (max a b)) = mul m (min a b)) := by
       suffices H : ∀ (b a : ℕ₀), ∃ n m : ℕ₀,
-          add (gcd a b) (mul n (min a b)) = mul m (max a b) by
+          (add (gcd a b) (mul n (min a b)) = mul m (max a b)) ∨
+          (add (gcd a b) (mul n (max a b)) = mul m (min a b)) by
         exact H b a
       intro b
       induction b using well_founded_lt.induction
@@ -474,9 +477,8 @@ namespace Peano
       by_cases hb0 : b = 𝟘
       · -- b = 0: gcd(a,0) = a, max = a, min = 0, testigos n=0 m=1
         subst hb0
-        refine ⟨𝟘, 𝟙, ?_⟩
         have h_gcd_a0 : gcd a 𝟘 = a := by unfold gcd; rw [if_pos rfl]
-        rw [h_gcd_a0, zero_mul, add_zero, one_mul, max_0_not]
+        exact ⟨𝟘, 𝟙, Or.inl (by rw [h_gcd_a0, zero_mul, add_zero, one_mul, max_0_not])⟩
       · -- b ≠ 0: gcd(a,b) = gcd(b, a%b), IH sobre (a%b < b)
         have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b hb0
         -- IH sobre (b, a%b): gcd(b,a%b) + n'*min(b,a%b) = m'*max(b,a%b)
@@ -501,6 +503,7 @@ namespace Peano
             have h_mod_a : (a % b) = a := mod_of_lt a b h_lt_ab
             rw [h_mod_a] at ih_eq
             rw [h_mod_a]
+            -- ih_eq ya es un Or con el tipo correcto
             exact ⟨n', m', ih_eq⟩
           · -- a = b: gcd(a,a) = a, testigos n=0 m=1
             rw [h_eq_ab]
@@ -515,7 +518,7 @@ namespace Peano
             rw [h_mod_zero]
             have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [h_gcd_b0]
-            exact ⟨𝟘, 𝟙, by rw [zero_mul, add_zero, one_mul]⟩
+            exact ⟨𝟘, 𝟙, Or.inl (by rw [zero_mul, add_zero, one_mul])⟩
         · -- b ≤ a: max=a, min=b
           have h_max : max a b = a := le_then_max_eq_left a b h_le_ba
           have h_min : min a b = b := le_then_min_eq_right a b h_le_ba
@@ -542,9 +545,8 @@ namespace Peano
             -- gcd(b,0) = b
             have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [hmod0, h_gcd_b0]
-            -- testigos: n = sub q 𝟙, m = 𝟙
-            -- b + (q-1)*b = q*b = a
-            refine ⟨sub q 𝟙, 𝟙, ?_⟩
+            -- testigos: n = sub q 𝟙, m = 𝟙, forma Or.inl: G + (q-1)*b = 1*a
+            refine ⟨sub q 𝟙, 𝟙, Or.inl ?_⟩
             rw [one_mul, add_comm]
             -- Goal: (sub q 𝟙)*b + b = a
             have h_expand : mul q b = add (mul (sub q 𝟙) b) b := by
@@ -577,8 +579,12 @@ namespace Peano
               have hle : Le (mul q b) a := lt_imp_le _ _ h_qb_lt_a
               -- mul_le_mono_right k h : Le (n*k) (m*k)
               have h1 : Le (mul (mul q b) n') (mul a n') := mul_le_mono_right n' hle
-              rwa [mul_comm (mul q b) n', mul_comm a n',
-                   mul_assoc q b n', mul_comm b n'] at h1
+              -- h1 : Le ((q*b)*n') (a*n')
+              -- después de mul_comm: Le (n'*(q*b)) (n'*a)
+              -- necesitamos: Le ((n'*q)*b) (n'*a), i.e. rw [← mul_assoc q n' b] en el LHS
+              rw [mul_comm (mul q b) n', mul_comm a n'] at h1
+              -- h1 : Le (n'*(q*b)) (n'*a)
+              rwa [← mul_assoc q n' b] at h1
             -- Reescribir ih_eq: G + (n'*a - (n'*q)*b) = m'*b
             rw [h_mul_mod] at ih_eq
             -- Demostrar: G + n'*a = (m'+n'*q)*b
@@ -602,23 +608,43 @@ namespace Peano
                 exact key.symm
               -- m'*b + (n'*q)*b = (m' + n'*q)*b
               rw [add_comm (gcd b (a % b)) (mul n' a), step2, ← mul_rdistr m' (mul n' q) b]
-            -- G + n'*a = (m'+n'*q)*b  → testigos n=m'+n'*q (coef de b=min), m=n' (coef de a=max)
-            exact ⟨add m' (mul n' q), n', h_move⟩
+            -- h_move: G + n'*(max=a) = (m'+n'*q)*(min=b)  → Or.inr con n=n', m=m'+n'*q
+            exact ⟨n', add m' (mul n' q), Or.inr h_move⟩
 
+    /--
+      Lema de Bézout en forma substractiva: el mcd es expresable como diferencia
+      n*a - m*b  o bien  n*b - m*a  con coeficientes naturales.
+    -/
     theorem bezout_natform (a b : ℕ₀) :
         ∃ n m : ℕ₀,
-          gcd a b = sub (mul n (max a b)) (mul m (min a b)) := by
+          (gcd a b = sub (mul n a) (mul m b)) ∨
+          (gcd a b = sub (mul n b) (mul m a)) := by
       obtain ⟨n, m, h⟩ := bezout_additive a b
-      -- h : gcd(a,b) + n*min(a,b) = m*max(a,b)
-      -- → gcd(a,b) = m*max(a,b) - n*min(a,b)
-      refine ⟨m, n, ?_⟩
-      have key := add_k_sub_k (gcd a b) (mul n (min a b))
-      -- key : (n*min + gcd) - n*min = gcd
-      rw [add_comm] at key
-      -- key : (gcd + n*min) - n*min = gcd
-      rw [h] at key
-      -- key : m*max - n*min = gcd
-      exact key.symm
+      -- h : (G + n*min = m*max) ∨ (G + n*max = m*min)
+      -- En ambos casos derivamos G = sub(m*max)(n*min) o G = sub(m*min)(n*max)
+      -- y según quién sea max/min entre a y b, obtenemos la forma Or adecuada.
+      -- Lema auxiliar: de G + k*x = l*y se sigue G = sub (l*y) (k*x)
+      have aux : ∀ (x y k l : ℕ₀), add (gcd a b) (mul k x) = mul l y →
+          gcd a b = sub (mul l y) (mul k x) := fun x y k l heq => by
+        have key := add_k_sub_k (gcd a b) (mul k x)
+        rw [add_comm] at key; rw [heq] at key; exact key.symm
+      rcases h with h | h
+      · -- Or.inl: G + n*min = m*max
+        rcases le_total a b with h_le | h_le
+        · -- a ≤ b: min=a, max=b  →  G + n*a = m*b  →  G = m*b - n*a
+          rw [le_then_min_eq_left a b h_le, le_then_max_eq_right a b h_le] at h
+          exact ⟨m, n, Or.inr (aux a b n m h)⟩
+        · -- b ≤ a: min=b, max=a  →  G + n*b = m*a  →  G = m*a - n*b
+          rw [le_then_min_eq_right a b h_le, le_then_max_eq_left a b h_le] at h
+          exact ⟨m, n, Or.inl (aux b a n m h)⟩
+      · -- Or.inr: G + n*max = m*min
+        rcases le_total a b with h_le | h_le
+        · -- a ≤ b: max=b, min=a  →  G + n*b = m*a  →  G = m*a - n*b
+          rw [le_then_min_eq_left a b h_le, le_then_max_eq_right a b h_le] at h
+          exact ⟨m, n, Or.inl (aux b a n m h)⟩
+        · -- b ≤ a: max=a, min=b  →  G + n*a = m*b  →  G = m*b - n*a
+          rw [le_then_min_eq_right a b h_le, le_then_max_eq_left a b h_le] at h
+          exact ⟨m, n, Or.inr (aux a b n m h)⟩
 
     -- subₕₖ a b (Lt b a) = sub a b
     -- Lemma 3: gcd divides the max

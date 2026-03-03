@@ -265,12 +265,8 @@ namespace Peano
 
     -- Algoritmo de Euclides para ℕ₁
     def gcd₁ (a b : ℕ₁) : ℕ₁ :=
-      let r := a.val % b.val
-      if hr : r = 𝟘 then
-        b  -- el resto es cero, entonces b divide a a perfectamente
-      else
-        have r_ne_zero : r ≠ 𝟘 := hr
-        gcd₁ b ⟨r, r_ne_zero⟩
+      if hr : (a.val % b.val) = 𝟘 then b
+      else gcd₁ b ⟨a.val % b.val, hr⟩
     termination_by b.val
     decreasing_by
       simp_wf
@@ -736,17 +732,15 @@ namespace Peano
       induction bv using well_founded_lt.induction
       rename_i bv ih
       intro a b hb
+      -- Desplegar gcd₁ a b directamente en el goal
+      unfold gcd₁
       by_cases hr : (a.val % b.val) = 𝟘
-      · -- gcd₁ a b = b: desplegar y sustituir r := 0
-        have hv : (gcd₁ a b).val = b.val := by
-          unfold gcd₁; rw [hr]; simp
-        rw [hv, gcd_step a.val b.val b.property, hr]
+      · -- if evalua a True: gcd₁ a b = b
+        rw [dif_pos hr, gcd_step a.val b.val b.property, hr]
         simp [gcd]
-      · -- gcd₁ a b = gcd₁ b ⟨a%b, hr⟩: desplegar y sustituir
-        have hv : (gcd₁ a b).val = (gcd₁ b ⟨a.val % b.val, hr⟩).val := by
-          have hr' : ¬((a.val % b.val) = 𝟘) := hr
-          unfold gcd₁; rw [show (a.val % b.val) ≠ 𝟘 from hr]; simp
-        rw [hv]
+      · -- if evalua a False: gcd₁ a b = gcd₁ b ⟨a%b, hr⟩
+        rw [dif_neg hr]
+        -- goal: (gcd₁ b ⟨a.val % b.val, hr⟩).val = gcd a.val b.val
         have h_r_lt_bv : Lt (a.val % b.val) bv :=
           hb ▸ mod_lt_divisor a.val b.val b.property
         rw [ih (a.val % b.val) h_r_lt_bv b ⟨a.val % b.val, hr⟩ rfl,

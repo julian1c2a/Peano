@@ -465,7 +465,8 @@ namespace Peano
     private theorem bezout_additive (a b : ℕ₀) :
         ∃ n m : ℕ₀,
           (add (gcd a b) (mul n (min a b)) = mul m (max a b)) ∨
-          (add (gcd a b) (mul n (max a b)) = mul m (min a b)) := by
+          (add (gcd a b) (mul n (max a b)) = mul m (min a b))
+            := by
       suffices H : ∀ (b a : ℕ₀), ∃ n m : ℕ₀,
           (add (gcd a b) (mul n (min a b)) = mul m (max a b)) ∨
           (add (gcd a b) (mul n (max a b)) = mul m (min a b)) by
@@ -554,62 +555,58 @@ namespace Peano
                 by rw [one_mul]
               rw [h3, ← mul_rdistr (sub q 𝟙) 𝟙 b, sub_k_add_k q 𝟙 hq_ge1]
             exact h_expand.symm.trans h_a_eq.symm
-          · -- a%b ≠ 0: IH da G + n'*(a%b) = m'*b, con a = q*b + (a%b)
-            -- Queremos: G + n*b = m*a.  Derivamos: G + n'*a = (m'+n'*q)*b
-            -- → testigos n = m'+n'*q, m = n'
+          · -- a%b ≠ 0: IH (Or) da:
+            --   Or.inl: G + n'*(a%b) = m'*b  → derivar G + n'*a = (m'+n'*q)*b → Or.inr
+            --   Or.inr: G + n'*b = m'*(a%b)  → derivar G + (n'+m'*q)*b = m'*a → Or.inl
+            -- Lemas comunes a ambos casos:
             -- q*b < a
             have h_qb_lt_a : Lt (mul q b) a := by
               have : Lt (mul q b) (add (mul q b) (a % b)) :=
                 lt_add_of_pos_right (neq_0_then_lt_0 hmod0)
               rw [← h_div_eq] at this; exact this
+            have hle_qb : Le (mul q b) a := lt_imp_le _ _ h_qb_lt_a
             -- a%b = a - q*b
             have h_mod_eq : (a % b) = sub a (mul q b) := by
               have key := add_k_sub_k (a % b) (mul q b)
               rw [← h_div_eq] at key; exact key.symm
-            -- n'*(a%b) = n'*a - (n'*q)*b
-            -- mul_assoc (n m k) : (m*n)*k = m*(n*k)
-            -- necesitamos (n'*q)*b = n'*(q*b): usar ← mul_assoc q n' b
-            have h_mul_mod : mul n' (a % b) = sub (mul n' a) (mul (mul n' q) b) := by
-              rw [h_mod_eq, mul_sub n' a (mul q b) h_qb_lt_a]
-              congr 1
-              -- goal: n'*(q*b) = (n'*q)*b
-              rw [← mul_assoc q n' b]
-            -- (n'*q)*b ≤ n'*a
-            have h_le_mul : Le (mul (mul n' q) b) (mul n' a) := by
-              have hle : Le (mul q b) a := lt_imp_le _ _ h_qb_lt_a
-              -- mul_le_mono_right k h : Le (n*k) (m*k)
-              have h1 : Le (mul (mul q b) n') (mul a n') := mul_le_mono_right n' hle
-              -- h1 : Le ((q*b)*n') (a*n')
-              -- después de mul_comm: Le (n'*(q*b)) (n'*a)
-              -- necesitamos: Le ((n'*q)*b) (n'*a), i.e. rw [← mul_assoc q n' b] en el LHS
-              rw [mul_comm (mul q b) n', mul_comm a n'] at h1
-              -- h1 : Le (n'*(q*b)) (n'*a)
-              rwa [← mul_assoc q n' b] at h1
-            -- Reescribir ih_eq: G + (n'*a - (n'*q)*b) = m'*b
-            rw [h_mul_mod] at ih_eq
-            -- Demostrar: G + n'*a = (m'+n'*q)*b
-            have h_move : add (gcd b (a % b)) (mul n' a) =
-                mul (add m' (mul n' q)) b := by
-              -- ih_eq: G + (n'*a - (n'*q)*b) = m'*b
-              -- add_sub_assoc: (n'*a - k) + G = (n'*a + G) - k   [k = (n'*q)*b ≤ n'*a]
-              have h_le_mul2 : Le (mul (mul n' q) b) (add (mul n' a) (gcd b (a % b))) :=
-                le_trans _ _ _ h_le_mul (le_self_add _ _)
-              have step1 : sub (add (mul n' a) (gcd b (a % b))) (mul (mul n' q) b) = mul m' b := by
-                have hasc : add (sub (mul n' a) (mul (mul n' q) b)) (gcd b (a % b)) =
-                    sub (add (mul n' a) (gcd b (a % b))) (mul (mul n' q) b) :=
-                  add_sub_assoc (mul n' a) (gcd b (a % b)) (mul (mul n' q) b) h_le_mul
-                rw [add_comm (gcd b (a % b)) (sub (mul n' a) (mul (mul n' q) b))] at ih_eq
-                rw [← hasc]; exact ih_eq
-              -- (n'*a + G) - (n'*q)*b = m'*b  →  n'*a + G = m'*b + (n'*q)*b
-              have step2 : add (mul n' a) (gcd b (a % b)) =
-                  add (mul m' b) (mul (mul n' q) b) := by
-                have key := sub_k_add_k (add (mul n' a) (gcd b (a % b))) (mul (mul n' q) b) h_le_mul2
-                rw [step1] at key
-                exact key.symm
-              -- m'*b + (n'*q)*b = (m' + n'*q)*b
-              rw [add_comm (gcd b (a % b)) (mul n' a), step2, ← mul_rdistr m' (mul n' q) b]
-            -- h_move: G + n'*(max=a) = (m'+n'*q)*(min=b)  → Or.inr con n=n', m=m'+n'*q
-            exact ⟨n', add m' (mul n' q), Or.inr h_move⟩
+            -- Lema: para cualquier c, (c*q)*b ≤ c*a
+            -- [mul_le_mono_right : Le (n*k) (m*k), luego mul_comm]
+            have le_cq_ca : ∀ c : ℕ₀, Le (mul (mul c q) b) (mul c a) := fun c => by
+              have h1 := mul_le_mono_right c hle_qb
+              rw [mul_comm (mul q b) c, mul_comm a c] at h1
+              rwa [← mul_assoc q c b] at h1
+            -- Lema: c*(a%b) = c*a - (c*q)*b
+            have mul_mod : ∀ c : ℕ₀,
+                mul c (a % b) = sub (mul c a) (mul (mul c q) b) := fun c => by
+              rw [h_mod_eq, mul_sub c a (mul q b) h_qb_lt_a]
+              congr 1; rw [← mul_assoc q c b]
+            -- Reescribir ih_eq con h_mul_mod para n'
+            rw [mul_mod n'] at ih_eq
+            -- ih_eq (Or):
+            --   Or.inl: G + (n'*a - (n'*q)*b) = m'*b
+            --   Or.inr: G + n'*b = m'*(a%b)  [no tocado por mul_mod n', ya que es mul m' ...]
+            rcases ih_eq with ih_eq | ih_eq
+            · -- Or.inl: G + (n'*a - (n'*q)*b) = m'*b
+              -- Derivar: G + n'*a = (m'+n'*q)*b
+              -- Prueba: G + n'*a = G + (n'*a-(n'*q)*b) + (n'*q)*b = m'*b + (n'*q)*b = (m'+n'*q)*b
+              have h_le_mul : Le (mul (mul n' q) b) (mul n' a) := le_cq_ca n'
+              have h_move : add (gcd b (a % b)) (mul n' a) =
+                  mul (add m' (mul n' q)) b := by
+                rw [← sub_k_add_k (mul n' a) (mul (mul n' q) b) h_le_mul,
+                    add_assoc, ih_eq, ← mul_rdistr]
+              exact ⟨n', add m' (mul n' q), Or.inr h_move⟩
+            · -- Or.inr: G + n'*b = m'*(a%b)
+              -- Reescribir con mul_mod m': m'*(a%b) = m'*a - (m'*q)*b
+              rw [mul_mod m'] at ih_eq
+              -- ih_eq: G + n'*b = m'*a - (m'*q)*b
+              -- Derivar: G + (n'+m'*q)*b = m'*a
+              -- Prueba: G + (n'+m'*q)*b = (G + n'*b) + (m'*q)*b = (m'*a-(m'*q)*b) + (m'*q)*b = m'*a
+              have h_le_m : Le (mul (mul m' q) b) (mul m' a) := le_cq_ca m'
+              have h_move2 : add (gcd b (a % b)) (mul (add n' (mul m' q)) b) =
+                  mul m' a := by
+                rw [mul_rdistr, add_assoc, ih_eq]
+                exact sub_k_add_k (mul m' a) (mul (mul m' q) b) h_le_m
+              exact ⟨add n' (mul m' q), m', Or.inl h_move2⟩
 
     /--
       Lema de Bézout en forma substractiva: el mcd es expresable como diferencia
@@ -618,7 +615,8 @@ namespace Peano
     theorem bezout_natform (a b : ℕ₀) :
         ∃ n m : ℕ₀,
           (gcd a b = sub (mul n a) (mul m b)) ∨
-          (gcd a b = sub (mul n b) (mul m a)) := by
+          (gcd a b = sub (mul n b) (mul m a))
+            := by
       obtain ⟨n, m, h⟩ := bezout_additive a b
       -- h : (G + n*min = m*max) ∨ (G + n*max = m*min)
       -- En ambos casos derivamos G = sub(m*max)(n*min) o G = sub(m*min)(n*max)

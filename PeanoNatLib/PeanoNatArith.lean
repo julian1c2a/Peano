@@ -704,10 +704,27 @@ namespace Peano
       unfold Divides₁
       unfold Divides
       constructor
-      · intro h_mod
-        sorry -- TODO: requiere teorema de división con resto
-      · intro h_div
-        sorry -- TODO: si b | a entonces a % b = 0
+      · -- Dirección →: a % b = 0 → ∃ k, a = b * k
+        intro h_mod
+        have h_eq : a.val = add (mul (a.val / b.val) b.val) (a.val % b.val) :=
+          divMod_eq a.val b.val b.property
+        rw [h_mod, add_zero] at h_eq
+        exact ⟨a.val / b.val, by rw [h_eq, mul_comm]⟩
+      · -- Dirección ←: ∃ k, a = b * k → a % b = 0
+        intro ⟨k, hk⟩
+        -- b ∣ a (con nuestra definición izquierda)
+        have h_div_a : b.val ∣ a.val := ⟨k, hk⟩
+        -- b ∣ b
+        have h_div_b : b.val ∣ b.val := divides_refl b.val
+        -- b ∣ (a % b)  por divides_mod
+        have h_div_mod : b.val ∣ (a.val % b.val) := divides_mod h_div_a h_div_b
+        -- a % b < b
+        have h_mod_lt : Lt (a.val % b.val) b.val :=
+          mod_lt_divisor a.val b.val b.property
+        -- Si a % b ≠ 0, entonces b ≤ a % b, contradicción
+        by_contra h_ne_zero
+        have h_le : Le b.val (a.val % b.val) := divides_le h_div_mod h_ne_zero
+        exact (le_not_lt h_le) h_mod_lt
 
     -- gcd₁ preserva la igualdad en los valores subyacentes
     theorem gcd₁_val_eq (a b : ℕ₁) :
@@ -715,28 +732,19 @@ namespace Peano
       sorry -- TODO: mostrar que gcd₁ y gcd dan el mismo resultado
 
     -- gcd₁ es conmutativo
-    -- Esta es una prueba difícil que requiere varios lemas auxiliares
     theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a := by
-      -- Estrategia general para la prueba completa:
-      -- 1. Mostrar que el algoritmo de Euclides preserva el GCD:
-      --    gcd₁ a b = gcd₁ b (a % b) cuando a % b ≠ 0
-      -- 2. Usar inducción bien fundada sobre el tamaño del segundo argumento
-      -- 3. Para el caso base (a % b = 0), necesitamos:
-      --    - mod_eq_zero_iff_divides: a % b = 0 ↔ b | a
-      --    - Si b | a y a | b, entonces a = b (antisimetría con divisibilidad)
-      -- 4. Para el caso recursivo, aplicar HI y la propiedad de Euclides
-      --
-      -- Lemas necesarios (pendientes):
-      -- - mod_eq_zero_iff_divides
-      -- - gcd₁_divides_both
-      -- - divides_antisymm: (a | b ∧ b | a) → a = b para ℕ₁
-      -- - gcd₁_greatest: si c | a y c | b entonces c | gcd₁ a b
-      sorry
+      apply Subtype.ext
+      rw [gcd₁_val_eq, gcd₁_val_eq]
+      exact gcd_comm a.val b.val
     private theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a := by
-      sorry -- TODO: Requires careful WF induction with proper term recursion
+      unfold Divides₁
+      rw [gcd₁_val_eq]
+      exact gcd_divides_left a.val b.val
 
-    private theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b := by
-      sorry -- TODO: Requires careful WF induction with proper term recursion
+    theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b := by
+      unfold Divides₁
+      rw [gcd₁_val_eq]
+      exact gcd_divides_right a.val b.val
 
     theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b := by
       constructor

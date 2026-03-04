@@ -7,53 +7,67 @@ Este documento establece los requisitos y estándares para la documentación té
 
 ---
 
-## Requisitos para REFERENCE.md
+## Documentación que debe contener REFERENCE.md
 
-### (1.) Los diferentes módulos .lean
+### (0.) **Esta documentación es de tipo técnico, no de usuario final**, incluso como referencia de la IA, para no tener que cargar el proyecto completo. Debe ser clara, precisa y completa, pero no necesariamente amigable para usuarios sin conocimientos técnicos
 
-### (2.) Las dependencias entre los módulos
+### (1.) **Los diferentes módulos .lean** : tanto en el módulo raíz como en los módulos secundarios, con su ubicación, namespace, dependencias y estado de documentación (si está documentado o no, o si está pendiente de documentación)
 
-### (3.) Espacios de nombres y relaciones entre ellos
+### (2.) **Las dependencias entre los módulos**: cada módulo tiene que tener claramente documentado a qué otros módulos depende, y qué módulos dependen de él, para entender la estructura del proyecto y las relaciones entre los diferentes componentes. Esto es especialmente importante para la IA, para que pueda entender cómo se relacionan los diferentes módulos y cómo navegar por el proyecto sin necesidad de cargarlo completamente
 
-### (4.) Axiomas introducidos y sus referencias a dónde se encuentran, módulo, namespace, orden en el que se declaran/definen
+### (3.) **Espacios de nombres y relaciones entre ellos**: al no ser necesariamente iguales los espacioes de nombre que los módulos, es importante documentar claramente qué espacios de nombre existen, a qué módulos pertenecen, y cómo se relacionan entre sí. Esto ayudará a la IA a entender la organización del proyecto y a navegar por él de manera más eficiente
 
-### (5.) En cuanto a los axiomas y las definciones, las queremos:
+### (4.) **Definiciones introducidas**: por cada módulo y espacio de nombres debe quedar claras las definiciones que se introducen, con su ubicación, dependencias, y formato tanto en nomenclatura matemática como en firma lean4, para que se puedan usar como referencia en la documentación y en los comentarios de los archivos .lean, y para que la IA pueda entender claramente qué definiciones existen, cómo se relacionan entre sí, y cómo se pueden usar en demostraciones o construcciones más elaboradas
 
-#### (5.1.) En nomenclatura matemática (no lean code), para una fácil comprensión humana, y para que se puedan usar como referencia en la documentación y en los comentarios de los archivos .lean
+#### (4.1.) **Como reflejar en la documentación las definiciones**: Debe que dar, además de la firma lean4, la nomenclatura matemática (sin explicaciones, los destinatarios de esta documentación son matemáticos y técnicos en lean4) de cada definición siguiendo lo más fielmente posible la estructura del código. Debe aparecer el módulo y el espacio de nombres al que pertenece, y las dependencias necesarias para construir la definición
 
-#### (5.2.) Firma lean4 para que cuando se llamen en demostraciones o construcciones más elaboradas, se haga correctamente
+#### (4.2.) **Característica de computabilidad**: Debe indicarse si la definición es computable o no, si tiene par booleano
 
-#### (5.3.) Debe quedar en algún sitio las dependencias para construir la definición o el axioma
+#### (4.3.) **Característica de buena fundación**: Debe indicarse si en la definición se contiene una demostración terminación de la computación (*terminated by*)
 
-### (6.) Teoremas principales **sin demostración de ningún tipo**, con su referencia a dónde se encuentran, módulo, namespace, orden en el que se declaran/demuestran:
+#### (4.4.) **Notación**: Debe quedar registrada la notación introducida por cada deficnión, si es infija o prefija, o más compleja, qué símbolos se usan y qué prioridades hay entre las notaciones, para que se puedan usar correctamente en la documentación y en los comentarios de los archivos .lean, y para que la IA pueda entender claramente cómo se pueden usar en demostraciones o construcciones más elaboradas
 
-#### (6.1.) En nomenclatura matemática (no lean code), para una fácil comprensión humana, y para que se puedan usar como referencia en la documentación y en los comentarios de los archivos .lean
+### (5.) **Axiomas introducidos y sus referencias**: cada axioma debe tener claramente documentado dónde se encuentra, en qué módulo, en qué namespace, y el orden en el que se declaran/definen, su relación con las definiciones
 
-#### (6.2.) Firma lean4 para que cuando se llamen en demostraciones o construcciones más elaboradas, se haga correctamente
+### (6.) En cuanto a los axiomas y las definciones, las queremos
 
-#### (6.3.) Debe quedar en algún sitio las dependencias para construir la demostración del teorema
+#### (6.1.) En **nomenclatura matemática (no lean code)**, para una fácil comprensión humana, y para que se puedan usar como referencia en la documentación y en los comentarios de los archivos .lean. No necesitamos explicaciones, el lenguiaje matemático se bastará por sí mismo
 
-### (7.) Nada que no esté demostrado o construido debe estar en este archivo, ni siquiera como comentario o como "teorema pendiente". Solo lo que ya esté demostrado o construido en los archivos .lean
+#### (6.2.) **Firma lean4** para que cuando se llamen en demostraciones o construcciones más elaboradas, se haga correctamente
 
-### (8.) Cada vez que cargas un archivo .lean, actualizas (si es necesario) el REFERENCE.md con lo que se ha demostrado o construido en ese archivo, siguiendo los puntos anteriores. Si hace falta anotar una fecha y la fecha de la última modificación del archivo .lean, estará bien, para trazar bien lo que de hecho tenemos
+#### (6.3.) Deben quedar registradas las **dependencias** para construir el axioma
 
-### (9.) El archivo REFERENCE.md debe ser lo único que necesites para escribir la documentación, o para hacer un nuevo archivo/módulo .lean de forma que no haya que cargar la totalidad de los tokens que tiene actualmente el proyecto
+### (7.) Teoremas principales **sin demostración de ningún tipo**, con su referencia a dónde se encuentran, módulo, namespace, orden en el que se declaran/demuestran
+
+#### (7.1.) En **nomenclatura matemática (no lean code)**, para una fácil comprensión humana, y para que se puedan usar como referencia en la documentación y en los comentarios de los archivos .lean. No se necesitan explicaciones, el lenguaje matemático se bastará por sí mismo
+
+#### (7.2.) **Firma lean4** para que cuando se llamen en demostraciones o construcciones más elaboradas, se haga correctamente
+
+#### (7.3.) Deben quedar registradas las **dependencias** para construir la demostración del teorema
+
+### (8.) Nada que no esté demostrado o construido debe estar en este archivo, ni siquiera como comentario o como "teorema pendiente". Solo lo que ya esté demostrado o construido en los archivos .lean
+
+### (9.) Cada vez que cargas un archivo .lean, actualizas (si es necesario) el REFERENCE.md con lo que se ha demostrado o construido en ese archivo, siguiendo los puntos anteriores. Si hace falta anotar una fecha y la fecha de la última modificación del archivo .lean, estará bien, para trazar bien lo que de hecho tenemos
+
+### (10.) El archivo REFERENCE.md debe ser lo único que necesites para escribir la documentación, o para hacer un nuevo archivo/módulo .lean de forma que no haya que cargar la totalidad de los tokens que tiene actualmente el proyecto. Esto es especialmente importante para la IA, para que pueda entender claramente qué definiciones, axiomas, teoremas, módulos y espacios de nombre existen, cómo se relacionan entre sí, y cómo se pueden usar en demostraciones o construcciones más elaboradas sin necesidad de cargar el proyecto completo
+
+### (11.) Cunado leas este archivo introduce en cada archivo .lean una cabecera de instrucciones de su relación con REFERENCE.md, para que al entrar y leer, si es que es necesario, un archivo .lean, se recuerde la necesidad de **proyectar** ese archivo de código en REFERENCE.md
+
+### (12.) Defino **proyectar** un archivo .lean en REFERENCE.md como el poceso de actualizar REFERENCE.md con toda la información relevante demostrada o construida en ese archivo .lean, siguiendo los puntos anteriores
+
+### (13.) Por información relevante me refiero a todoas las definciones, notaciones, axiomas, teoremas no privados, y cualquier otro contenido que se haya demostrado o construido en ese archivo .lean, y que sea necesario para entender el proyecto, para usarlo como referencia, o para construir demostraciones o construcciones más elaboradas
+
+### (14.) Todo lo exportable en un módulo .lean debe estar proyectado en REFERENCE.md, y debe aparecer en el export de ese módulo .lean
 
 ---
 
 ## Requisitos de Timestamps
 
-### (10.) Formato de Fecha y Hora
+### (15.) Formato de Fecha y Hora
 
 Todos los archivos de documentación técnica deben incluir timestamps completos con el siguiente formato:
 
 **Formato requerido**: `YYYY-MM-DD HH:MM` (ISO 8601 abreviado)
-
-**Ejemplos válidos**:
-
-- `2026-02-12 14:30`
-- `2026-02-12 09:15`
-- `2026-01-05 23:45`
 
 **Dónde aplicar**:
 
@@ -76,13 +90,13 @@ Todos los archivos de documentación técnica deben incluir timestamps completos
 
 ## Requisitos de Autoría y Licencia
 
-### (11.) Información de Autoría
+### (16.) Información de Autoría
 
 En todos los archivos de documentación principal (README.md, REFERENCE.md, CURRENT-STATUS-PROJECT.md), debe quedar claro:
 
 **Autor**: Julián Calderón Almendros
 
-### (12.) Créditos y Reconocimientos
+### (17.) Créditos y Reconocimientos
 
 Los siguientes créditos deben estar claramente visibles en README.md:
 
@@ -101,7 +115,7 @@ Los siguientes créditos deben estar claramente visibles en README.md:
 - Claude Code AI (Anthropic)
 - Gemini AI (Google)
 
-### (13.) Licencia
+### (18.) Licencia
 
 **Licencia del proyecto**: MIT License
 
@@ -112,7 +126,7 @@ Debe estar claramente indicada en:
 - CURRENT-STATUS-PROJECT.md (en el footer)
 - Badge en README.md: `[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)`
 
-### (14.) Cabeceras de Archivos .lean
+### (19.) Cabeceras de Archivos .lean
 
 **Todos los archivos .lean DEBEN incluir una cabecera con información de copyright y licencia.**
 
@@ -152,11 +166,11 @@ License: MIT
 
 ```bash
 grep -n "Copyright (c) 2025" Peano/*.lean | wc -l
-# Debe devolver ?? (número total de archivos .lean)
+# Debe devolver N (N es el número total de archivos .lean)
 ```
 
 ---
 
 ## Cumplimiento de Requisitos
 
-Verificar que REFERENCE.md, archivos .lean y otros archivos de documentación cumplan con todos los puntos (1-14) antes de considerar la documentación completa y actualizada.
+Verificar que REFERENCE.md, archivos .lean y otros archivos de documentación cumplan con todos los puntos (1-19) antes de considerar la documentación completa y actualizada.

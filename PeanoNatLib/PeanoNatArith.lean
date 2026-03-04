@@ -20,7 +20,7 @@ import PeanoNatLib.PeanoNatMaxMin
 namespace Peano
   open Peano
 
-  namespace NatArith
+  namespace Arith
       open Peano.Axioms
       open Peano.Order
       open Peano.StrictOrder
@@ -766,11 +766,11 @@ namespace Peano
       · exact gcd₁_divides_left a b
       · exact gcd₁_divides_right a b
 
-  end NatArith
+  end Arith
 
 end Peano
 
-export Peano.NatArith (
+export Peano.Arith (
   Divides
   MultipleOf
   DivisorOf

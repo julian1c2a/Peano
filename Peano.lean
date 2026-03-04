@@ -19,6 +19,7 @@ import PeanoNatLib.PeanoNatSub
 import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatDiv
 import PeanoNatLib.PeanoNatArith
+import PeanoNatLib.PeanoNatPrimes
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (PeanoNatLib.lean)
@@ -621,4 +622,42 @@ export Peano.Arith (
   Factors_of
   dividesb
   range_from_one
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Primes  (PeanoNatPrimes.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Primes (
+  Irreducible
+  HasExactlyTwoDivisors
+  prime_ne_zero
+  prime_ne_one
+  one_lt_prime
+  prime_ge_two
+  not_prime_one
+  not_prime_zero
+  mul_eq_one
+  prime_divisors
+  prime_imp_irreducible
+  irreducible_imp_prime
+  prime_iff_irreducible
+  not_has_two_divisors_one
+  not_has_two_divisors_zero
+  prime_iff_has_exactly_two_divisors
+  coprime_symm
+  gcd_eq_one_iff_coprime
+  prime_not_dvd_imp_coprime
+  prime_coprime_or_dvd
+  coprime_dvd_of_dvd_mul
+  PrimeList
+  product_list
+  product_nil
+  product_cons
+  product_append
+  product_list_pos
+  prime_dvd_product_list
+  exists_prime_divisor
+  exists_prime_factorization
+  mem_dvd_product
+  unique_prime_factorization
 )

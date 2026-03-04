@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-03-04 12:00
+**Última actualización:** 2026-07-04 10:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -26,7 +26,8 @@
 | `PeanoNatLib/PeanoNatSub.lean` | `Peano.Sub` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd` | `Mul`, `Div`, `Arith` |
 | `PeanoNatLib/PeanoNatMul.lean` | `Peano.Mul` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub` | `Div`, `Arith` |
 | `PeanoNatLib/PeanoNatDiv.lean` | `Peano.Div` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith` |
-| `PeanoNatLib/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | — |
+| `PeanoNatLib/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
+| `PeanoNatLib/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
 
@@ -43,6 +44,7 @@
 | `Peano.Mul` | `PeanoNatMul.lean` | `Peano` |
 | `Peano.Div` | `PeanoNatDiv.lean` | `Peano` |
 | `Peano.Arith` | `PeanoArith.lean` | `Peano` |
+| `Peano.Primes` | `PeanoNatPrimes.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -1058,6 +1060,206 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 **[T11.24]** `mod_eq_zero_iff_divides`
 - **Lean4:** `theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a)`
+
+---
+
+## 12. PeanoNatPrimes.lean — `namespace Peano.Primes`
+
+*Dependencias: todos los módulos anteriores + `PeanoNatArith` (`Init.Classical`)*
+
+> **Estado:** Compilado sin errores. Contiene 3 `sorry` legítimos señalados con ⚠️.  
+> Objetivo principal: **Teorema Fundamental de la Aritmética (TFA)** —  existencia y unicidad de la factorización en primos— junto con tres definiciones equivalentes de numero primo y sus equivalencias.
+
+### 12.1. Propiedades básicas de `Prime`
+
+**[T12.1]** `prime_ne_zero`
+- **Lean4:** `theorem prime_ne_zero {p : ℕ₀} (hp : Prime p) : p ≠ 𝟘`
+- **Matemática:** p primo ⇒ p ≠ 0
+- **Dependencias:** `Prime`
+
+**[T12.2]** `prime_ne_one`
+- **Lean4:** `theorem prime_ne_one {p : ℕ₀} (hp : Prime p) : p ≠ 𝟙`
+- **Matemática:** p primo ⇒ p ≠ 1
+
+**[T12.3]** `one_lt_prime`
+- **Lean4:** `theorem one_lt_prime {p : ℕ₀} (hp : Prime p) : Lt 𝟙 p`
+- **Matemática:** p primo ⇒ 1 < p
+- **Dependencias:** `Lt`, `prime_ne_zero`, `prime_ne_one`
+
+**[T12.4]** `prime_ge_two`
+- **Lean4:** `theorem prime_ge_two {p : ℕ₀} (hp : Prime p) : Le 𝟚 p`
+- **Matemática:** p primo ⇒ 2 ≤ p
+- **Dependencias:** `Le`, `one_lt_prime`
+
+**[T12.5]** `not_prime_one`
+- **Lean4:** `theorem not_prime_one : ¬ Prime 𝟙`
+- **Matemática:** 1 no es primo
+
+**[T12.6]** `not_prime_zero`
+- **Lean4:** `theorem not_prime_zero : ¬ Prime 𝟘`
+- **Matemática:** 0 no es primo
+
+### 12.2. Irreducibilidad y equivalencias entre definiciones de primo
+
+**[D12.1]** `Irreducible` (Def. A)
+- **Lean4:** `def Irreducible (p : ℕ₀) : Prop := p ≠ 𝟙 ∧ ∀ a b : ℕ₀, mul a b = p → a = 𝟙 ∨ b = 𝟙`
+- **Matemática:** p ≠ 1 ∧ (∀a,b, a·b = p ⇒ a = 1 ∨ b = 1)
+- **Computable:** No (Prop)
+- **Dependencias:** `mul`
+
+**[D12.2]** `HasExactlyTwoDivisors` (Def. B)
+- **Lean4:** `def HasExactlyTwoDivisors (p : ℕ₀) : Prop := (∀ d : ℕ₀, d ∣ p → d = 𝟙 ∨ d = p) ∧ p ≠ 𝟙`
+- **Matemática:** (∀d, d∣p ⇒ d=1 ∨ d=p) ∧ p ≠ 1  (automáticamente excluye p=0 y p=1)
+- **Computable:** No (Prop)
+- **Dependencias:** `Divides`
+
+**[T12.7]** `mul_eq_one`
+- **Lean4:** `theorem mul_eq_one {a b : ℕ₀} (h : mul a b = 𝟙) : a = 𝟙 ∧ b = 𝟙`
+- **Matemática:** a·b = 1 ⇒ a = 1 ∧ b = 1
+- **Dependencias:** `divides_le`, `mul_comm`
+
+**[T12.8]** `prime_divisors`
+- **Lean4:** `theorem prime_divisors {p d : ℕ₀} (hp : Prime p) (hd : d ∣ p) : d = 𝟙 ∨ d = p`
+- **Matemática:** p primo ∧ d ∣ p ⇒ d = 1 ∨ d = p
+- **Dependencias:** `mul_eq_one`, `antisymm_divides`, `mul_cancelation_left`
+
+**[T12.9]** `prime_imp_irreducible`
+- **Lean4:** `theorem prime_imp_irreducible {p : ℕ₀} (hp : Prime p) : Irreducible p`
+- **Matemática:** p primo (Def. C) ⇒ p irreducible (Def. A)
+- **Dependencias:** `prime_divisors`, `prime_ne_one`, `mul_cancelation_left`
+
+**[T12.10]** `irreducible_imp_prime` ⚠️ sorry
+- **Lean4:** `theorem irreducible_imp_prime {p : ℕ₀} (hp0 : p ≠ 𝟘) (hirr : Irreducible p) : Prime p`
+- **Matemática:** p ≠ 0 ∧ p irreducible (Def. A) ⇒ p primo (Def. C)
+- **Dependencias (transitivo):** `gcd_eq_one_iff_coprime`, `coprime_dvd_of_dvd_mul` (§12.3 — sorry)
+- **Nota:** El sorry en la rama `gcd(p,a) = 1` delega en `coprime_dvd_of_dvd_mul`.
+
+**[T12.11]** `prime_iff_irreducible`
+- **Lean4:** `theorem prime_iff_irreducible {p : ℕ₀} : Prime p ↔ (p ≠ 𝟘 ∧ Irreducible p)`
+- **Matemática:** p primo (C) ⟺ p ≠ 0 ∧ p irreducible (A)
+- **Dependencias:** `prime_imp_irreducible`, `irreducible_imp_prime` ⚠️
+
+**[T12.12]** `not_has_two_divisors_one`
+- **Lean4:** `theorem not_has_two_divisors_one : ¬ HasExactlyTwoDivisors 𝟙`
+- **Matemática:** 1 no tiene exactamente dos divisores
+
+**[T12.13]** `not_has_two_divisors_zero`
+- **Lean4:** `theorem not_has_two_divisors_zero : ¬ HasExactlyTwoDivisors 𝟘`
+- **Matemática:** 0 no tiene exactamente dos divisores (𝟚 ∣ 0 pero 𝟚 ≠ 1 y 𝟚 ≠ 0)
+- **Dependencias:** `divides_zero`, `succ_inj_pos_wp`, `succ_neq_zero`
+
+**[T12.14]** `prime_iff_has_exactly_two_divisors`
+- **Lean4:** `theorem prime_iff_has_exactly_two_divisors {p : ℕ₀} : Prime p ↔ HasExactlyTwoDivisors p`
+- **Matemática:** p primo (C) ⟺ p tiene exactamente dos divisores (B)
+- **Dependencias:** `prime_divisors`, `prime_ne_one`, `irreducible_imp_prime` ⚠️
+
+### 12.3. Coprimalidad y lema de Gauss
+
+**[T12.15]** `coprime_symm`
+- **Lean4:** `theorem coprime_symm {a b : ℕ₀} (h : Coprime a b) : Coprime b a`
+- **Matemática:** gcd(a,b) = 1 ⇒ gcd(b,a) = 1
+- **Dependencias:** `Coprime`, `IsGCD`
+
+**[T12.16]** `gcd_eq_one_iff_coprime`
+- **Lean4:** `theorem gcd_eq_one_iff_coprime (a b : ℕ₀) : gcd a b = 𝟙 ↔ Coprime a b`
+- **Matemática:** gcd(a,b) = 1 ⟺ Coprime(a,b)
+- **Dependencias:** `gcd`, `Coprime`, `gcd_greatest`, `antisymm_divides`
+
+**[T12.17]** `prime_not_dvd_imp_coprime`
+- **Lean4:** `theorem prime_not_dvd_imp_coprime {p a : ℕ₀} (hp : Prime p) (hna : ¬ p ∣ a) : gcd p a = 𝟙`
+- **Matemática:** p primo ∧ p ∤ a ⇒ gcd(p,a) = 1
+- **Dependencias:** `prime_divisors`, `gcd_dvd_left`
+
+**[T12.18]** `prime_coprime_or_dvd`
+- **Lean4:** `theorem prime_coprime_or_dvd {p n : ℕ₀} (hp : Prime p) : p ∣ n ∨ Coprime p n`
+- **Matemática:** p primo ⇒ p ∣ n ∨ gcd(p,n) = 1
+- **Dependencias:** `prime_not_dvd_imp_coprime`, `gcd_eq_one_iff_coprime`
+
+**[T12.19]** `coprime_dvd_of_dvd_mul` ⚠️ 4×sorry
+- **Lean4:** `theorem coprime_dvd_of_dvd_mul {a b c : ℕ₀} (hcop : Coprime a b) (hdvd : a ∣ mul b c) : a ∣ c`
+- **Matemática:** gcd(a,b) = 1 ∧ a ∣ b·c ⇒ a ∣ c  (**Lema de Gauss**)
+- **Dependencias:** `bezout_natform`, `sub_pos_iff_lt`, `divides_sub`
+- **Nota:** 4 `sorry` pendientes de aritmética de resta: `sub (mul n a · c) (mul m b · c) = c` y desigualdades de transporte correspondientes.
+
+### 12.4. Listas de primos y función producto
+
+**[D12.3]** `PrimeList`
+- **Lean4:** `def PrimeList (ps : DList ℕ₀) : Prop := ∀ p, DList.Mem p ps → Prime p`
+- **Matemática:** Todos los elementos de la lista `ps` son primos
+- **Computable:** No (Prop)
+- **Dependencias:** `DList`, `Prime`
+
+**[D12.4]** `product_list`
+- **Lean4:**
+  ```
+  def product_list : DList ℕ₀ → ℕ₀
+    | DList.nil       => 𝟙
+    | DList.cons p ps => mul p (product_list ps)
+  ```
+- **Matemática:** ∏ ps (producto de todos los elementos de `ps`)
+- **Computable:** Sí
+- **Terminado por:** recursión estructural sobre `DList`
+- **Dependencias:** `mul`, `DList`
+
+**[T12.20]** `product_nil`
+- **Lean4:** `@[simp] theorem product_nil : product_list DList.nil = 𝟙`
+- **Matemática:** ∏ [] = 1
+
+**[T12.21]** `product_cons`
+- **Lean4:** `@[simp] theorem product_cons (p : ℕ₀) (ps : DList ℕ₀) : product_list (DList.cons p ps) = mul p (product_list ps)`
+- **Matemática:** ∏ (p :: ps) = p · ∏ ps
+
+**[T12.22]** `product_append`
+- **Lean4:** `theorem product_append (l1 l2 : DList ℕ₀) : product_list (DList.append l1 l2) = mul (product_list l1) (product_list l2)`
+- **Matemática:** ∏ (l1 ++ l2) = (∏ l1) · (∏ l2)
+- **Dependencias:** `mul_assoc`, `one_mul`
+
+**[T12.23]** `product_list_pos`
+- **Lean4:** `theorem product_list_pos {ps : DList ℕ₀} (hps : PrimeList ps) : Lt 𝟘 (product_list ps)`
+- **Matemática:** `PrimeList ps` ⇒ ∏ ps > 0
+- **Dependencias:** `prime_ne_zero`, `mul_pos`
+
+**[T12.24]** `prime_dvd_product_list`
+- **Lean4:** `theorem prime_dvd_product_list {p : ℕ₀} (hp : Prime p) : ∀ ps : DList ℕ₀, p ∣ product_list ps → ∃ q, DList.Mem q ps ∧ p ∣ q`
+- **Matemática:** p primo ∧ p ∣ ∏ ps ⇒ ∃q ∈ ps, p ∣ q  (**Euclides para listas**)
+- **Dependencias:** `prime_ge_two`, `divides_le`, `lt_asymm`, `Prime.2.2` (propiedad euclídea)
+
+### 12.5. Existencia de divisor primo y factorización prima
+
+**[T12.25]** `exists_prime_divisor`
+- **Lean4:** `theorem exists_prime_divisor (n : ℕ₀) (hn : Le 𝟚 n) : ∃ p, Prime p ∧ p ∣ n`
+- **Matemática:** n ≥ 2 ⇒ ∃p primo tal que p ∣ n
+- **Dependencias:** `well_founded_lt`, `Irreducible`, `irreducible_prime_dvd_mul` (privado), `mul_lt_right`, `mul_le_mono_right`
+- **Método:** Inducción bien fundada: si n es irreducible se construye el primo directamente; si no, se factoriza n = a·b con a,b ≥ 2, y se aplica HI sobre a < n.
+
+**[T12.26]** `exists_prime_factorization`
+- **Lean4:** `theorem exists_prime_factorization (n : ℕ₀) (hn : Le 𝟚 n) : ∃ ps : DList ℕ₀, PrimeList ps ∧ product_list ps = n`
+- **Matemática:** n ≥ 2 ⇒ ∃ lista de primos ps tal que ∏ ps = n  (**TFA — Existencia**)
+- **Dependencias:** `well_founded_lt`, `Irreducible`, `product_append`, `irreducible_prime_dvd_mul` (privado)
+- **Método:** Inducción bien fundada: caso irreducible → lista unitaria; caso reducible n = a·b → concatenar factorizaciones de a y b (ambos estrictamente menores que n).
+
+### 12.6. Unicidad de la factorización prima
+
+**[T12.27]** `mem_dvd_product`
+- **Lean4:** `theorem mem_dvd_product {q : ℕ₀} {l : DList ℕ₀} (h : DList.Mem q l) : q ∣ product_list l`
+- **Matemática:** q ∈ l ⇒ q ∣ ∏ l
+- **Dependencias:** `divides_mul_right`, `divides_trans`
+
+**[T12.28]** `unique_prime_factorization` ⚠️ sorry
+- **Lean4:**
+  ```
+  theorem unique_prime_factorization :
+      ∀ ps qs : DList ℕ₀,
+        PrimeList ps → PrimeList qs →
+        product_list ps = product_list qs →
+        ∀ p : ℕ₀, Prime p →
+          DList.length (DList.filter (fun q => decide (q = p)) ps) =
+          DList.length (DList.filter (fun q => decide (q = p)) qs)
+  ```
+- **Matemática:** Si ∏ ps = ∏ qs con ps, qs listas de primos, entonces ∀p primo, la multiplicidad de p en ps = multiplicidad de p en qs  (**TFA — Unicidad**)
+- **Dependencias (esquema):** `prime_dvd_product_list`, `mem_dvd_product`, cancelación en productos de primos
+- **Nota:** Demostración pendiente (sorry). Esquema: inducción sobre `length ps`; cabeza p₀ divide algún elemento de qs; como ambos son primos son iguales; se relocaliza al frente y se cancela; HI cierra.
+
 - **Matemática:** a mod b = 0 ⟺ b ∣₁ a
 
 **[T11.25]** `gcd₁_val_eq`
@@ -1082,7 +1284,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ---
 
-## 12. Peano.lean — Módulo Raíz
+## 13. Peano.lean — Módulo Raíz
 
 *Archivo de entrada. No introduce definiciones ni teoremas propios.*
 *Importa y re-exporta todos los módulos de `PeanoNatLib/`*
@@ -1098,6 +1300,7 @@ import PeanoNatLib.PeanoNatAdd
 import PeanoNatLib.PeanoNatSub
 import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatDiv
-import PeanoNatLib.PeanoArith
+import PeanoNatLib.PeanoNatArith
+import PeanoNatLib.PeanoNatPrimes
 ```
 

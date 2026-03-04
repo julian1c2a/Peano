@@ -1,10 +1,29 @@
 -- test_gcd1.lean
 -- Ejemplos de uso de gcd₁ con ℕ₁ (números naturales positivos)
 
-import Peano
+import Init.Classical
+import PeanoNatLib.PeanoNatLib
+import PeanoNatLib.PeanoNatAxioms
+import PeanoNatLib.PeanoNatOrder
+import PeanoNatLib.PeanoNatStrictOrder
+import PeanoNatLib.PeanoNatAdd
+import PeanoNatLib.PeanoNatMul
+import PeanoNatLib.PeanoNatSub
+import PeanoNatLib.PeanoNatDiv
+import PeanoNatLib.PeanoNatMaxMin
+import PeanoNatLib.PeanoNatArith
 
 open Peano
-open Peano.NatArith
+open Peano.Axioms
+open Peano.Order
+open Peano.StrictOrder
+open Peano.Add
+open Peano.Sub
+open Peano.Div
+open Peano.MaxMin
+open Peano.Mul
+open Peano.Div
+open Peano.Arith
 
 -- Ejemplos de construcción de valores ℕ₁
 def doce₁ : ℕ₁ := ⟨Λ 12, by decide⟩
@@ -24,11 +43,8 @@ def cuatro₁ : ℕ₁ := ⟨Λ 4, by decide⟩
 
 -- Verificar que 4 divide a 12
 example : cuatro₁ ∣₁ doce₁ := by
-  unfold Divides₁
-  unfold Divides
-  use Λ 3
-  simp [Λ]
-  rfl
+  unfold Divides₁ Divides
+  exact ⟨Λ 3, by decide⟩
 
 -- Verificar reflexividad
 example : doce₁ ∣₁ doce₁ := divides₁_refl doce₁

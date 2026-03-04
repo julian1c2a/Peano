@@ -8,6 +8,7 @@ import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatSub
 import PeanoNatLib.PeanoNatDiv
 import PeanoNatLib.PeanoNatMaxMin
+import PeanoNatLib.PeanoNatArith
 
 open Peano
 open Peano.Axioms
@@ -22,10 +23,10 @@ open Peano.Div
 open Peano.Arith
 
 -- Test gcd
-#eval gcd (Peano.ofNat 12) (Peano.ofNat 8)
-#eval gcd (Peano.ofNat 100) (Peano.ofNat 35)
-#eval gcd (Peano.ofNat 0) (Peano.ofNat 5)
+#eval Ψ (gcd (Λ 12) (Λ 8))
+#eval Ψ (gcd (Λ 100) (Λ 35))
+#eval Ψ (gcd (Λ 0) (Λ 5))
 
 -- Test lcm
-#eval lcm (Peano.ofNat 12) (Peano.ofNat 8)
-#eval lcm (Peano.ofNat 4) (Peano.ofNat 6)
+#eval Ψ (lcm (Λ 12) (Λ 8))
+#eval Ψ (lcm (Λ 4) (Λ 6))

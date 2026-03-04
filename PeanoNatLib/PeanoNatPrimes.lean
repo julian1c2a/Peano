@@ -398,12 +398,19 @@ namespace Peano
           · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
           · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
         have h_notfact : ∃ a b : ℕ₀, mul a b = n ∧ a ≠ 𝟙 ∧ b ≠ 𝟙 := by
-          rw [Irreducible] at hnirr
-          push_neg at hnirr
-          rcases hnirr hn1 with ⟨a, b, h_ab, h_ne⟩
-          exact ⟨a, b, h_ab,
-            fun h => h_ne (Or.inl h),
-            fun h => h_ne (Or.inr h)⟩
+          unfold Irreducible at hnirr
+          -- hnirr : ¬ (n ≠ 𝟙 ∧ ∀ a b, mul a b = n → a = 𝟙 ∨ b = 𝟙)
+          -- Como n ≠ 𝟙, la primera parte es verdadera, así que la segunda es falsa:
+          have h2 : ¬ (∀ a b : ℕ₀, mul a b = n → a = 𝟙 ∨ b = 𝟙) :=
+            fun hall => hnirr ⟨hn1, hall⟩
+          -- Negación clásica: ∃ a b, mul a b = n ∧ (a ≠ 𝟙 ∧ b ≠ 𝟙)
+          have := Classical.not_forall.mp h2
+          obtain ⟨a, ha⟩ := this
+          have hb := Classical.not_forall.mp ha
+          obtain ⟨b, hb'⟩ := hb
+          rw [Classical.not_imp] at hb'
+          have hne := not_or.mp hb'.2
+          exact ⟨a, b, hb'.1, hne.1, hne.2⟩
         obtain ⟨a, b, h_ab, ha1, hb1⟩ := h_notfact
         have ha0 : a ≠ 𝟘 := by
           intro h0; rw [h0, zero_mul] at h_ab; exact hn0 h_ab.symm
@@ -459,12 +466,16 @@ namespace Peano
           · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
           · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
         have h_notfact : ∃ a b : ℕ₀, mul a b = n ∧ a ≠ 𝟙 ∧ b ≠ 𝟙 := by
-          rw [Irreducible] at hnirr
-          push_neg at hnirr
-          rcases hnirr hn1 with ⟨a, b, h_ab, h_ne⟩
-          exact ⟨a, b, h_ab,
-            fun h => h_ne (Or.inl h),
-            fun h => h_ne (Or.inr h)⟩
+          unfold Irreducible at hnirr
+          have h2 : ¬ (∀ a b : ℕ₀, mul a b = n → a = 𝟙 ∨ b = 𝟙) :=
+            fun hall => hnirr ⟨hn1, hall⟩
+          have := Classical.not_forall.mp h2
+          obtain ⟨a, ha⟩ := this
+          have hb := Classical.not_forall.mp ha
+          obtain ⟨b, hb'⟩ := hb
+          rw [Classical.not_imp] at hb'
+          have hne := not_or.mp hb'.2
+          exact ⟨a, b, hb'.1, hne.1, hne.2⟩
         obtain ⟨a, b, h_ab, ha1, hb1⟩ := h_notfact
         have ha0 : a ≠ 𝟘 := by
           intro h0; rw [h0, zero_mul] at h_ab; exact hn0 h_ab.symm

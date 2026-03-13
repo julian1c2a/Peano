@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-07-04 10:00
+**Última actualización:** 2026-03-13 12:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -25,7 +25,8 @@
 | `PeanoNatLib/PeanoNatAdd.lean` | `Peano.Add` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded` | `Sub`, `Mul`, `Div`, `Arith` |
 | `PeanoNatLib/PeanoNatSub.lean` | `Peano.Sub` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd` | `Mul`, `Div`, `Arith` |
 | `PeanoNatLib/PeanoNatMul.lean` | `Peano.Mul` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub` | `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatDiv.lean` | `Peano.Div` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith` |
+| `PeanoNatLib/PeanoNatDiv.lean` | `Peano.Div` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith`, `Pow` |
+| `PeanoNatLib/PeanoNatPow.lean` | `Peano.Pow` | Sí | `PeanoNatLib`, ..., `PeanoNatDiv` (sin `Arith`) | `Peano.lean` |
 | `PeanoNatLib/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
 | `PeanoNatLib/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
 
@@ -45,6 +46,7 @@
 | `Peano.Div` | `PeanoNatDiv.lean` | `Peano` |
 | `Peano.Arith` | `PeanoArith.lean` | `Peano` |
 | `Peano.Primes` | `PeanoNatPrimes.lean` | `Peano` |
+| `Peano.Pow` | `PeanoNatPow.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -69,6 +71,7 @@
 | `a ∣ b` | infijo | 50 | `Peano.Arith` | `PeanoArith.lean` |
 | `a ∤ b` | notación negación | 50 | `Peano.Arith` | `PeanoArith.lean` |
 | `a ∣₁ b` | infijo | 50 | `Peano.Arith` | `PeanoArith.lean` |
+| `n ^ m` | infijo | 80 | `Peano.Pow` | `PeanoNatPow.lean` |
 
 ---
 
@@ -356,6 +359,10 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 **[T3.9]** `not_lt_and_not_eq_implies_gt`
 - **Lean4:** `theorem not_lt_and_not_eq_implies_gt (a b : ℕ₀) : ¬ Lt a b → ¬ (a = b) → Lt b a`
 - **Matemática:** ¬(a < b) ∧ a ≠ b ⇒ b < a
+
+**[T3.10]** `lt_succ_self`
+- **Lean4:** `theorem lt_succ_self (n : ℕ₀) : Lt n (σ n)`
+- **Matemática:** ∀n ∈ ℕ₀, n < σ(n)
 
 ---
 
@@ -1060,6 +1067,27 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 **[T11.24]** `mod_eq_zero_iff_divides`
 - **Lean4:** `theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a)`
+- **Matemática:** a mod b = 0 ⟺ b ∣₁ a
+
+**[T11.25]** `gcd₁_val_eq`
+- **Lean4:** `theorem gcd₁_val_eq (a b : ℕ₁) : (gcd₁ a b).val = gcd a.val b.val`
+- **Matemática:** (gcd₁(a,b))_ℕ = gcd(a_ℕ, b_ℕ)
+
+**[T11.26]** `gcd₁_comm`
+- **Lean4:** `theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a`
+- **Matemática:** gcd₁(a, b) = gcd₁(b, a)
+
+**[T11.27]** `gcd₁_divides_left`
+- **Lean4:** `theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a`
+- **Matemática:** gcd₁(a, b) ∣₁ a
+
+**[T11.28]** `gcd₁_divides_right`
+- **Lean4:** `theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b`
+- **Matemática:** gcd₁(a, b) ∣₁ b
+
+**[T11.29]** `gcd₁_divides_both`
+- **Lean4:** `theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b`
+- **Matemática:** gcd₁(a,b) ∣₁ a  ∧  gcd₁(a,b) ∣₁ b
 
 ---
 
@@ -1260,31 +1288,61 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Dependencias (esquema):** `prime_dvd_product_list`, `mem_dvd_product`, cancelación en productos de primos
 - **Nota:** Demostración pendiente (sorry). Esquema: inducción sobre `length ps`; cabeza p₀ divide algún elemento de qs; como ambos son primos son iguales; se relocaliza al frente y se cancela; HI cierra.
 
-- **Matemática:** a mod b = 0 ⟺ b ∣₁ a
+---
 
-**[T11.25]** `gcd₁_val_eq`
-- **Lean4:** `theorem gcd₁_val_eq (a b : ℕ₁) : (gcd₁ a b).val = gcd a.val b.val`
-- **Matemática:** (gcd₁(a,b))_ℕ = gcd(a_ℕ, b_ℕ)
+## 13. PeanoNatPow.lean — `namespace Peano.Pow`
 
-**[T11.26]** `gcd₁_comm`
-- **Lean4:** `theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a`
-- **Matemática:** gcd₁(a, b) = gcd₁(b, a)
+*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`*
 
-**[T11.27]** `gcd₁_divides_left`
-- **Lean4:** `theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a`
-- **Matemática:** gcd₁(a, b) ∣₁ a
+### 13.1. Definiciones
 
-**[T11.28]** `gcd₁_divides_right`
-- **Lean4:** `theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b`
-- **Matemática:** gcd₁(a, b) ∣₁ b
+**[D13.1]** `pow`
+- **Lean4:**
+  ```
+  def pow (n m : ℕ₀) : ℕ₀ :=
+    match m with
+    | 𝟘    => 𝟙
+    | σ m' => mul (pow n m') n
+  ```
+- **Matemática:** n⁰ = 1;  n^(σm) = n^m · n
+- **Computable:** Sí
+- **Terminado por:** recursión estructural sobre `m`
+- **Notación:** `n ^ m` (infijo, prioridad 80)
+- **Dependencias:** `mul`
 
-**[T11.29]** `gcd₁_divides_both`
-- **Lean4:** `theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b`
-- **Matemática:** gcd₁(a,b) ∣₁ a  ∧  gcd₁(a,b) ∣₁ b
+### 13.2. Teoremas principales
+
+**[T13.1]** `pow_zero`
+- **Lean4:** `theorem pow_zero (n : ℕ₀) : n ^ 𝟘 = 𝟙`
+- **Matemática:** ∀n ∈ ℕ₀, n⁰ = 1  (incluye 0⁰ = 1)
+
+**[T13.2]** `zero_pow`
+- **Lean4:** `theorem zero_pow {m : ℕ₀} (h_neq_0 : m ≠ 𝟘) : 𝟘 ^ m = 𝟘`
+- **Matemática:** m ≠ 0 ⇒ 0^m = 0
+- **Dependencias:** `mul_zero`
+
+**[T13.3]** `one_pow`
+- **Lean4:** `theorem one_pow (m : ℕ₀) : 𝟙 ^ m = 𝟙`
+- **Matemática:** ∀m ∈ ℕ₀, 1^m = 1
+- **Dependencias:** `mul`
+
+**[T13.4]** `pow_succ`
+- **Lean4:** `theorem pow_succ (n m : ℕ₀) : n ^ (σ m) = mul (n ^ m) n`
+- **Matemática:** n^(σm) = n^m · n  (ecuación recursiva de la definición)
+
+**[T13.5]** `pow_one`
+- **Lean4:** `theorem pow_one (n : ℕ₀) : n ^ 𝟙 = n`
+- **Matemática:** ∀n ∈ ℕ₀, n¹ = n
+- **Dependencias:** `pow_zero`, `one_mul`
+
+**[T13.6]** `pow_gt`
+- **Lean4:** `theorem pow_gt {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) (h_m_gt_0 : m > 𝟘) : n ^ m > 𝟘`
+- **Matemática:** n > 0 ∧ m > 0 ⇒ n^m > 0
+- **Dependencias:** `mul_pos`, `lt_succ_self`, `pow_zero`
 
 ---
 
-## 13. Peano.lean — Módulo Raíz
+## 14. Peano.lean — Módulo Raíz
 
 *Archivo de entrada. No introduce definiciones ni teoremas propios.*
 *Importa y re-exporta todos los módulos de `PeanoNatLib/`*

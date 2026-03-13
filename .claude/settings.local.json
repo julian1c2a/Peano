@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lake build:*)",
+      "Bash(python3 -c \":*)",
+      "Bash(python3 write_binom.py)"
+    ]
+  }
+}

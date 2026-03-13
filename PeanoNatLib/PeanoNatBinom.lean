@@ -147,33 +147,29 @@ namespace Peano
 
     -- ── Relación entre C(n, k) y factoriales ─────────────────────────────────────────────────
 
-    /- Lema: sub n' k' = σ (sub n' (σ k')) cuando k' < n'. -/
-    private theorem sub_eq_succ_of_lt {n' k' : ℕ₀} (h_lt : Lt k' n') :
-        sub n' k' = σ (sub n' (σ k')) := by
-      have h_sk'_le_n' : Le (σ k') n' :=
-        (lt_succ_iff_le (σ k') n').mp ((succ_lt_succ_iff k' n').mpr h_lt)
-      have h_sub_ne0 : sub n' k' ≠ 𝟘 := lt_b_a_then_sub_a_b_neq_0 n' k' h_lt
-      have h_eq : sub n' (σ k') = τ (sub n' k') := succ_sub n' k' h_sk'_le_n'
-      have h_eq2 : σ (sub n' (σ k')) = sub n' k' := by
-        rw [h_eq, tau_eq_rho_if_ne_zero _ h_sub_ne0, σ_ρ_eq_self]
-      exact h_eq2.symm
-
-    /- Lema: factorial (sub n' k') = factorial (sub n' (σ k')) · (sub n' k') cuando k' < n'. -/
-    private theorem factorial_sub_pred {n' k' : ℕ₀} (h_lt : Lt k' n') :
-        factorial (sub n' k') = mul (factorial (sub n' (σ k'))) (sub n' k') := by
-      have h_eq := sub_eq_succ_of_lt h_lt; rw [h_eq, factorial_succ, ← h_eq]
-
-    /- Lema: (σ k') + (n' - k') = σ n' cuando k' ≤ n'. -/
-    private theorem add_sk_sub {n' k' : ℕ₀} (h_le : Le k' n') :
-        add (σ k') (sub n' k') = σ n' := by
-      rw [succ_add, add_comm, sub_k_add_k n' k' h_le]
-
     /- Lema auxiliar de conmutación de factores: (a·b)·c = (a·c)·b. -/
     private theorem mul_swap_last (a b c : ℕ₀) : mul (mul a b) c = mul (mul a c) b := by
       rw [mul_assoc b a c, mul_comm b c, ← mul_assoc c a b]
 
+    private theorem sub_eq_succ_of_lt {n k : ℕ₀} (h_lt : Lt k n) :
+        sub n k = σ (sub n (σ k)) := by
+      have h_sk'_le_n' : Le (σ k) n :=
+        (lt_succ_iff_le (σ k) n).mp ((succ_lt_succ_iff k n).mpr h_lt)
+      have h_sub_ne0 : sub n k ≠ 𝟘 := lt_b_a_then_sub_a_b_neq_0 n k h_lt
+      have h_eq : sub n (σ k) = τ (sub n k) := succ_sub n k h_sk'_le_n'
+      have h_eq2 : σ (sub n (σ k)) = sub n k := by
+        rw [h_eq, tau_eq_rho_if_ne_zero _ h_sub_ne0, σ_ρ_eq_self]
+      exact h_eq2.symm
+
+    private theorem factorial_sub_succ {n k : ℕ₀} (h_lt : Lt k n) :
+        factorial (sub n k) = mul (factorial (sub n (σ k))) (sub n k) := by
+      have h_eq := sub_eq_succ_of_lt h_lt; rw [h_eq, factorial_succ, ← h_eq]
+
+    private theorem add_succ_sub_self {n k : ℕ₀} (h_le : Le k n) :
+        add (σ k) (sub n k) = σ n := by
+      rw [succ_add, add_comm, sub_k_add_k n k h_le]
+
     /- Teorema principal: C(n, k) · k! · (n - k)! = n! para k ≤ n. -/
-    /-
     theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) :
         mul (mul C(n, k) (factorial k)) (factorial (sub n k)) = factorial n := by
       induction n generalizing k with
@@ -189,65 +185,22 @@ namespace Peano
               have h_k'_le_n' : Le k' n' := (succ_le_succ_iff k' n').mp h
               rcases (le_iff_lt_or_eq k' n').mp h_k'_le_n' with h_lt | h_eq
               · -- Caso k' < n'
-                have h_sk'_le_n' : Le (σ k') n' :=
-                  (lt_succ_iff_le (σ k') n').mp ((succ_lt_succ_iff k' n').mpr h_lt)
-                have h_fact_pred : factorial (sub n' k') =
-                    mul (factorial (sub n' (σ k'))) (sub n' k') :=
-                  factorial_sub_pred h_lt
-                have h_add_eq : add (σ k') (sub n' k') = σ n' := add_sk_sub h_k'_le_n'
-                have ih1' : mul (mul (binom n' k') (factorial k'))
-                                (mul (factorial (sub n' (σ k'))) (sub n' k')) = factorial n' := by
-                  rw [← h_fact_pred]; exact ih h_k'_le_n'
-                have ih2' : mul (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
-                                (factorial (sub n' (σ k'))) = factorial n' := by
-                  rw [← factorial_succ k']; exact ih h_sk'_le_n'
-                rw [← sub_succ_succ_eq n' k', binom_pascal, factorial_succ k',
-                    factorial_succ n', h_fact_pred]
-                have fact1 :
-                    mul (mul (binom n' k') (mul (factorial k') (σ k')))
-                        (mul (factorial (sub n' (σ k'))) (sub n' k'))
-                    = mul (factorial n') (σ k') := by
-                  rw [mul_assoc (binom n' k'), mul_swap_last, ih1']
-                have fact2 :
-                    mul (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
-                        (mul (factorial (sub n' (σ k'))) (sub n' k'))
-                    = mul (factorial n') (sub n' k') := by
-                  rw [mul_assoc, mul_assoc, ← mul_assoc (mul (binom n' (σ k')) (mul (factorial k') (σ k'))), ih2', mul_assoc]
-                calc mul (mul (add (binom n' k') (binom n' (σ k')))
-                              (mul (factorial k') (σ k')))
-                          (mul (factorial (sub n' (σ k'))) (sub n' k'))
-                    = mul (add (binom n' k') (binom n' (σ k')))
-                          (mul (mul (factorial k') (σ k'))
-                               (mul (factorial (sub n' (σ k'))) (sub n' k')))
-                        := mul_assoc (mul (factorial k') (σ k'))
-                                     (add (binom n' k') (binom n' (σ k')))
-                                     (mul (factorial (sub n' (σ k'))) (sub n' k'))
-                  _ = add (mul (binom n' k')
-                               (mul (mul (factorial k') (σ k'))
-                                    (mul (factorial (sub n' (σ k'))) (sub n' k'))))
-                          (mul (binom n' (σ k'))
-                               (mul (mul (factorial k') (σ k'))
-                                    (mul (factorial (sub n' (σ k'))) (sub n' k'))))
-                        := mul_rdistr (binom n' k') (binom n' (σ k'))
-                                      (mul (mul (factorial k') (σ k'))
-                                           (mul (factorial (sub n' (σ k'))) (sub n' k')))
-                  _ = add (mul (mul (binom n' k') (mul (factorial k') (σ k')))
-                               (mul (factorial (sub n' (σ k'))) (sub n' k')))
-                          (mul (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
-                               (mul (factorial (sub n' (σ k'))) (sub n' k'))))
-                        := by rw [← mul_assoc (mul (factorial k') (σ k')) (binom n' k')
-                                               (mul (factorial (sub n' (σ k'))) (sub n' k')),
-                                  ← mul_assoc (mul (factorial k') (σ k')) (binom n' (σ k'))
-                                               (mul (factorial (sub n' (σ k'))) (sub n' k'))]
-                  _ = add (mul (factorial n') (σ k')) (mul (factorial n') (sub n' k'))
-                        := by rw [fact1, fact2]
-                  _ = mul (factorial n') (σ n')
-                        := by rw [← mul_ldistr (factorial n') (σ k') (sub n' k'), h_add_eq]
+                rw [binom_pascal, mul_add, sub_succ_succ_eq]
+                have h_le_k' : Le k' n' := le_of_lt h_lt
+                have h_le_sk' : Le (σ k') n' := (lt_imp_le h_lt)
+                have term1 := ih h_le_k'
+                have term2 := ih h_le_sk'
+                have h_fact_sub : factorial (sub n' k') = factorial (sub n' (σ k')) * (sub n' k') := by
+                  exact factorial_sub_succ h_lt
+                rw [h_fact_sub, ← mul_assoc, mul_comm (factorial (sub n' (σ k'))), ← mul_assoc] at term1
+                rw [term1, term2]
+                rw [← add_mul, factorial_succ (σ k'), mul_assoc, mul_comm (factorial (σ k')), ← mul_assoc]
+                rw [← mul_add (factorial n'), add_succ_sub_self h_le_k', factorial_succ n']
               · -- Caso k' = n'
                 subst h_eq
-                rw [← sub_succ_succ_eq n' n', sub_self, factorial_zero,
-                    mul_one, binom_self, one_mul]
--/
+                rw [binom_self (σ k'), one_mul, sub_self, factorial_zero, mul_one, factorial_succ]
+                exact ih (le_refl n')
+
   end Binom
 end Peano
 
@@ -264,5 +217,5 @@ export Peano.Binom (
   binom_pos
   binom_one
   binom_succ_n_by_n
-  -- binom_mul_factorials
+  binom_mul_factorials
 )

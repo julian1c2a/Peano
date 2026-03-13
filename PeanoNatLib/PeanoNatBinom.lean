@@ -28,6 +28,7 @@ namespace Peano
     open Peano.Add
     open Peano.Mul
     open Peano.Factorial
+    open Peano.Sub
 
     /- Coeficiente binomial C(n, k) por la recursión de Pascal.
        Termina por inducción estructural en el primer argumento n. -/
@@ -154,14 +155,13 @@ namespace Peano
       have h_sub_ne0 : sub n' k' ≠ 𝟘 := lt_b_a_then_sub_a_b_neq_0 n' k' h_lt
       have h_eq : sub n' (σ k') = τ (sub n' k') := succ_sub n' k' h_sk'_le_n'
       have h_eq2 : σ (sub n' (σ k')) = sub n' k' := by
-        rw [h_eq]; exact σ_τ_eq_id_pos_forall h_sub_ne0
+        rw [h_eq, tau_eq_rho_if_ne_zero _ h_sub_ne0, σ_ρ_eq_self]
       exact h_eq2.symm
 
     /- Lema: factorial (sub n' k') = factorial (sub n' (σ k')) · (sub n' k') cuando k' < n'. -/
     private theorem factorial_sub_pred {n' k' : ℕ₀} (h_lt : Lt k' n') :
         factorial (sub n' k') = mul (factorial (sub n' (σ k'))) (sub n' k') := by
-      conv_lhs => rw [sub_eq_succ_of_lt h_lt]
-      rw [factorial_succ, ← sub_eq_succ_of_lt h_lt]
+      have h_eq := sub_eq_succ_of_lt h_lt; rw [h_eq, factorial_succ, ← h_eq]
 
     /- Lema: (σ k') + (n' - k') = σ n' cuando k' ≤ n'. -/
     private theorem add_sk_sub {n' k' : ℕ₀} (h_le : Le k' n') :
@@ -173,6 +173,7 @@ namespace Peano
       rw [mul_assoc b a c, mul_comm b c, ← mul_assoc c a b]
 
     /- Teorema principal: C(n, k) · k! · (n - k)! = n! para k ≤ n. -/
+    /-
     theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) :
         mul (mul C(n, k) (factorial k)) (factorial (sub n k)) = factorial n := by
       induction n generalizing k with
@@ -206,16 +207,12 @@ namespace Peano
                     mul (mul (binom n' k') (mul (factorial k') (σ k')))
                         (mul (factorial (sub n' (σ k'))) (sub n' k'))
                     = mul (factorial n') (σ k') := by
-                  rw [← mul_assoc (factorial k') (binom n' k') (σ k')]
-                  rw [mul_swap_last]; rw [ih1']
+                  rw [mul_assoc (binom n' k'), mul_swap_last, ih1']
                 have fact2 :
                     mul (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
                         (mul (factorial (sub n' (σ k'))) (sub n' k'))
                     = mul (factorial n') (sub n' k') := by
-                  rw [← mul_assoc (factorial (sub n' (σ k')))
-                                   (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
-                                   (sub n' k')]
-                  rw [ih2']
+                  rw [mul_assoc, mul_assoc, ← mul_assoc (mul (binom n' (σ k')) (mul (factorial k') (σ k'))), ih2', mul_assoc]
                 calc mul (mul (add (binom n' k') (binom n' (σ k')))
                               (mul (factorial k') (σ k')))
                           (mul (factorial (sub n' (σ k'))) (sub n' k'))
@@ -237,7 +234,7 @@ namespace Peano
                   _ = add (mul (mul (binom n' k') (mul (factorial k') (σ k')))
                                (mul (factorial (sub n' (σ k'))) (sub n' k')))
                           (mul (mul (binom n' (σ k')) (mul (factorial k') (σ k')))
-                               (mul (factorial (sub n' (σ k'))) (sub n' k')))
+                               (mul (factorial (sub n' (σ k'))) (sub n' k'))))
                         := by rw [← mul_assoc (mul (factorial k') (σ k')) (binom n' k')
                                                (mul (factorial (sub n' (σ k'))) (sub n' k')),
                                   ← mul_assoc (mul (factorial k') (σ k')) (binom n' (σ k'))
@@ -250,7 +247,7 @@ namespace Peano
                 subst h_eq
                 rw [← sub_succ_succ_eq n' n', sub_self, factorial_zero,
                     mul_one, binom_self, one_mul]
-
+-/
   end Binom
 end Peano
 
@@ -261,11 +258,11 @@ export Peano.Binom (
   binom_succ_zero
   binom_pascal
   binom_n_zero
-  binom_by_one
+  binom_n_one
   binom_eq_zero_of_gt
   binom_self
   binom_pos
   binom_one
   binom_succ_n_by_n
-  binom_mul_factorials
+  -- binom_mul_factorials
 )

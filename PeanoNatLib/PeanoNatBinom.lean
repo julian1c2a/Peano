@@ -17,6 +17,83 @@ import PeanoNatLib.PeanoNatSub
 import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatFactorial
 
+/-!
+Paso 1: El Caso Base (n=0)
+
+Para n=0, dado que 0≤k≤n, obligatoriamente k=0.
+
+Sustituimos en la ecuación que queremos demostrar:
+C(0,0)⋅0!⋅(0−0)!=0!
+
+Usando nuestra definición de C(0,0)=1 y 0!=1:
+1⋅1⋅1=1
+
+La igualdad se cumple perfectamente para el caso base.
+Paso 2: La Hipótesis Inductiva
+
+Asumimos como cierta nuestra ecuación para un número natural n y para todo k tal que 0≤k≤n. Es decir, suponemos que es verdadero que:
+C(n,k)⋅k!⋅(n−k)!=n!
+Paso 3: El Paso Inductivo (n+1)
+
+Debemos demostrar que la propiedad se mantiene para n+1. Es decir, queremos llegar a demostrar que para cualquier j (donde 0≤j≤n+1):
+C(n+1,j)⋅j!⋅((n+1)−j)!=(n+1)!
+
+Caso A: Los extremos (j=0 y j=n+1)
+
+    Si j=0: C(n+1,0)⋅0!⋅(n+1)!=1⋅1⋅(n+1)!=(n+1)!. Se cumple.
+
+    Si j=n+1: Por la recursión C(n+1,n+1)=C(n,n)+C(n,n+1)=1+0=1. Entonces: C(n+1,n+1)⋅(n+1)!⋅0!=1⋅(n+1)!⋅1=(n+1)!. Se cumple.
+
+Caso B: El centro (j=k+1, donde 0≤k<n)
+Evaluamos la expresión izquierda de nuestra meta para j=k+1:
+C(n+1,k+1)⋅(k+1)!⋅((n+1)−(k+1))!
+
+Que se simplifica a:
+C(n+1,k+1)⋅(k+1)!⋅(n−k)!
+
+Ahora, sustituimos C(n+1,k+1) por la regla de recursión de Pascal:
+(C(n,k)+C(n,k+1))⋅(k+1)!⋅(n−k)!
+
+Aplicamos la propiedad distributiva de la multiplicación respecto a la suma:
+[C(n,k)⋅(k+1)!⋅(n−k)!]+[C(n,k+1)⋅(k+1)!⋅(n−k)!]
+
+Ahora usamos la definición del factorial recursivo, (x+1)!=(x+1)⋅x!, para extraer términos en cada corchete y que aparezca nuestra Hipótesis Inductiva:
+
+    En el primer corchete: Expandimos (k+1)! como (k+1)⋅k!.
+    C(n,k)⋅(k+1)⋅k!⋅(n−k)!
+
+    Por la propiedad conmutativa, reordenamos:
+    (k+1)⋅[C(n,k)⋅k!⋅(n−k)!]
+
+    ¡Lo que hay dentro del corchete es exactamente nuestra Hipótesis Inductiva! Sustituimos por n!:
+    (k+1)⋅n!
+
+    En el segundo corchete: Expandimos (n−k)! como (n−k)⋅(n−k−1)!, lo cual es válido porque k<n. Recordando que (n−k−1)! es lo mismo que (n−(k+1))!:
+    C(n,k+1)⋅(k+1)!⋅(n−k)⋅(n−(k+1))!
+
+    Reordenamos usando la propiedad conmutativa:
+    (n−k)⋅[C(n,k+1)⋅(k+1)!⋅(n−(k+1))!]
+
+    Aquí aplicamos nuevamente nuestra Hipótesis Inductiva (evaluada para el término k+1). Lo que hay dentro del corchete equivale a n!. Sustituimos:
+    (n−k)⋅n!
+
+Sumamos ambos resultados simplificados:
+(k+1)⋅n!+(n−k)⋅n!
+
+Aplicamos la propiedad distributiva a la inversa (sacamos factor común n!):
+n!⋅(k+1+n−k)
+
+Los términos k y −k se cancelan:
+n!⋅(n+1)
+
+Por la definición de factorial, sabemos que n!⋅(n+1)=(n+1)!.
+Conclusión
+
+Hemos demostrado usando exclusivamente suma, multiplicación (con sus propiedades asociativa, conmutativa y distributiva) y la definición recursiva del factorial que:
+C(n+1,k+1)⋅(k+1)!⋅(n−k)!=(n+1)!
+
+Como se cumple para el caso base n=0 y el paso inductivo garantiza que de n se hereda a n+1, queda demostrado por el Principio de Inducción que C(n,k)⋅k!⋅(n−k)!=n! es verdadero para todos los números naturales.
+-/
 
 namespace Peano
   open Peano
@@ -187,14 +264,19 @@ namespace Peano
               · -- Caso k' < n'
                 have h_le_k' : Le k' n' := lt_imp_le_wp h_lt
                 have h_le_sk' : Le (σ k') n' := (lt_succ_iff_le _ _).mp ((succ_lt_succ_iff _ _).mpr h_lt)
-                rw [binom_pascal, mul_rdistr, sub_succ_succ_eq]
+                -- term1: C(n',k')·(k'+1)!·(n'-k')! = n'!·(k'+1)
+                -- factorial(σk') = factorial(k')·σk', extraemos σk' con mul_swap_last
                 have term1_rw : mul (mul (C(n', k')) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (σ k') := by
-                  rw [factorial_succ k', mul_assoc, mul_comm (factorial k'), ←mul_assoc, ←mul_assoc, ih h_le_k']
-                have term2_rw : mul (mul (C( n' , (σ k'))) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (sub n' k') := by
-                  have h_fact : factorial (sub n' k') = mul (factorial (sub n' (σ k'))) (sub n' k') := factorial_sub_succ h_lt
-                  rw [h_fact, ←mul_assoc, mul_comm (sub n' k'), ←mul_assoc]
-                  rw [ih h_le_sk']
-                rw [term1_rw, term2_rw, ←mul_ldistr, add_succ_sub_self h_le_k', factorial_succ]
+                  rw [factorial_succ k',
+                      ←mul_assoc (factorial k') (C(n', k')) (σ k'),
+                      mul_swap_last, ih h_le_k']
+                -- term2: C(n',k'+1)·(k'+1)!·(n'-k')! = n'!·(n'-k')
+                -- expandimos (n'-k')! = (n'-k'-1)!·(n'-k'), luego asociamos
+                have term2_rw : mul (mul (C(n', σ k')) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (sub n' k') := by
+                  rw [factorial_sub_succ h_lt, ←mul_assoc, ih h_le_sk']
+                -- ensamblamos: Pascal + distribución + HI + factorial_succ
+                rw [binom_pascal, mul_rdistr, ←sub_succ_succ_eq, mul_rdistr,
+                    term1_rw, term2_rw, ←mul_ldistr, add_succ_sub_self h_le_k', factorial_succ]
               · -- Caso k' = n'
                 subst h_eq
                 rw [binom_self (σ k'), one_mul, sub_self, factorial_zero, mul_one]

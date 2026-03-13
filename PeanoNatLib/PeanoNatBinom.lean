@@ -186,20 +186,18 @@ namespace Peano
               rcases (le_iff_lt_or_eq k' n').mp h_k'_le_n' with h_lt | h_eq
               · -- Caso k' < n'
                 have h_le_k' : Le k' n' := lt_imp_le_wp h_lt
-                have h_le_sk' : Le (σ k') n' := lt_imp_le_wp ((succ_lt_succ_iff k' n').mpr h_lt)
+                have h_le_sk' : Le (σ k') n' := (lt_succ_iff_le _ _).mp ((succ_lt_succ_iff _ _).mpr h_lt)
                 rw [binom_pascal, mul_rdistr, sub_succ_succ_eq]
-                have term1_rw : C(n',k') * factorial (σ k') * factorial (sub n' k') = factorial n' * (σ k') := by
-                  have h_le_k'_n' : Le k' n' := le_of_lt h_lt
-                  rw [factorial_succ k', mul_assoc, mul_comm (factorial k'), ←mul_assoc, ←mul_assoc, ih h_le_k'_n']
-                have term2_rw : C(n',σ k') * factorial (σ k') * factorial (sub n' k') = factorial n' * (sub n' k') := by
-                  have h_fact : factorial (sub n' k') = factorial (sub n' (σ k')) * (sub n' k') := factorial_sub_succ h_lt
+                have term1_rw : mul (mul (C(n', k')) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (σ k') := by
+                  rw [factorial_succ k', mul_assoc, mul_comm (factorial k'), ←mul_assoc, ←mul_assoc, ih h_le_k']
+                have term2_rw : mul (mul (C( n' , (σ k'))) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (sub n' k') := by
+                  have h_fact : factorial (sub n' k') = mul (factorial (sub n' (σ k'))) (sub n' k') := factorial_sub_succ h_lt
                   rw [h_fact, ←mul_assoc, mul_comm (sub n' k'), ←mul_assoc]
                   rw [ih h_le_sk']
                 rw [term1_rw, term2_rw, ←mul_ldistr, add_succ_sub_self h_le_k', factorial_succ]
               · -- Caso k' = n'
                 subst h_eq
-                rw [binom_self (σ n'), one_mul, sub_self, factorial_zero, mul_one, factorial_succ]
-                exact ih (le_refl n')
+                rw [binom_self (σ k'), one_mul, sub_self, factorial_zero, mul_one]
 
   end Binom
 end Peano

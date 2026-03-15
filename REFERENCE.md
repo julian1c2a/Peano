@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-03-13 12:00
+**Última actualización:** 2026-03-15 12:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -29,6 +29,10 @@
 | `PeanoNatLib/PeanoNatPow.lean` | `Peano.Pow` | Sí | `PeanoNatLib`, ..., `PeanoNatDiv` (sin `Arith`) | `Peano.lean` |
 | `PeanoNatLib/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
 | `PeanoNatLib/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
+| `PeanoNatLib/PeanoNatPow.lean` | `Peano.Pow` | Sí | `PeanoNatLib`…`PeanoNatMul`, `PeanoNatDiv` | `Peano.lean` |
+| `PeanoNatLib/PeanoNatFactorial.lean` | `Peano.Factorial` | Sí | `PeanoNatLib`…`PeanoNatAdd`, `PeanoNatMul` | `PeanoNatBinom`, `PeanoNatNewtonBinom` |
+| `PeanoNatLib/PeanoNatBinom.lean` | `Peano.Binom` | Sí | `PeanoNatLib`…`PeanoNatMul`, `PeanoNatFactorial` | `PeanoNatNewtonBinom` |
+| `PeanoNatLib/PeanoNatNewtonBinom.lean` | `Peano.NewtonBinom` | Sí | `PeanoNatLib`…`PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom` | `Peano.lean` |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
 
@@ -47,6 +51,9 @@
 | `Peano.Arith` | `PeanoArith.lean` | `Peano` |
 | `Peano.Primes` | `PeanoNatPrimes.lean` | `Peano` |
 | `Peano.Pow` | `PeanoNatPow.lean` | `Peano` |
+| `Peano.Factorial` | `PeanoNatFactorial.lean` | `Peano` |
+| `Peano.Binom` | `PeanoNatBinom.lean` | `Peano` |
+| `Peano.NewtonBinom` | `PeanoNatNewtonBinom.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -1340,9 +1347,212 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Matemática:** n > 0 ∧ m > 0 ⇒ n^m > 0
 - **Dependencias:** `mul_pos`, `lt_succ_self`, `pow_zero`
 
+**[T13.7]** `pow_ge_one`
+- **Lean4:** `theorem pow_ge_one {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) : n ^ m ≥ 𝟙`
+- **Matemática:** n > 0 ⇒ n^m ≥ 1
+
+**[T13.8]** `pow_lt_succ_base`
+- **Lean4:** `theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt (n ^ m) ((σ n) ^ m)`
+- **Matemática:** n ≠ 0 ∧ m ≠ 0 ⇒ n^m < (n+1)^m
+
+**[T13.9]** `pow_lt_succ_base_strong`
+- **Lean4:** `theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt (n ^ m) ((σ n) ^ m)`
+- **Matemática:** m ≠ 0 ⇒ n^m < (n+1)^m  (sin condición sobre n)
+
+**[T13.10]** `pow_lt_succ_exp`
+- **Lean4:** `theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) : Lt (n ^ m) (n ^ σ m)`
+- **Matemática:** 1 < n ⇒ n^m < n^(m+1)
+
+**[T13.11]** `pow_add_eq_mul_pow`
+- **Lean4:** `theorem pow_add_eq_mul_pow (n m k : ℕ₀) : n ^ (add m k) = mul (n ^ m) (n ^ k)`
+- **Matemática:** n^(m+k) = n^m · n^k
+
+**[T13.12]** `mul_pow_n_m_pow_k_m_eq_pow_nk_m`
+- **Lean4:** `theorem mul_pow_n_m_pow_k_m_eq_pow_nk_m (n k m : ℕ₀) : mul (pow n m) (pow k m) = pow (mul n k) m`
+- **Matemática:** n^m · k^m = (n·k)^m
+
+**[T13.13]** `pow_pow_eq_pow_mul`
+- **Lean4:** `theorem pow_pow_eq_pow_mul (n m k : ℕ₀) : pow (pow n m) k = pow n (mul m k)`
+- **Matemática:** (n^m)^k = n^(m·k)
+
+**[T13.14]** `pow_ne_zero`
+- **Lean4:** `theorem pow_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) (m : ℕ₀) : n ^ m ≠ 𝟘`
+- **Matemática:** n ≠ 0 ⇒ n^m ≠ 0
+- **Dependencias:** `pow_gt`, `lt_zero`
+
+**[T13.15]** `pow_two`
+- **Lean4:** `theorem pow_two (n : ℕ₀) : n ^ 𝟚 = mul n n`
+- **Matemática:** n² = n·n
+
+**[T13.16]** `pow_eq_zero_iff`
+- **Lean4:** `theorem pow_eq_zero_iff {n m : ℕ₀} : n ^ m = 𝟘 ↔ n = 𝟘 ∧ m ≠ 𝟘`
+- **Matemática:** n^m = 0 ⟺ n = 0 ∧ m ≠ 0
+
+**[T13.17]** `one_lt_pow`
+- **Lean4:** `theorem one_lt_pow {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt 𝟙 (n ^ m)`
+- **Matemática:** 1 < n ∧ m ≠ 0 ⇒ 1 < n^m
+
+**[T13.18]** `pow_eq_one_iff`
+- **Lean4:** `theorem pow_eq_one_iff {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} : n ^ m = 𝟙 ↔ n = 𝟙 ∨ m = 𝟘`
+- **Matemática:** n ≠ 0 ⇒ (n^m = 1 ⟺ n = 1 ∨ m = 0)
+
+**[T13.19]** `pow_lt_mono_exp`
+- **Lean4:** `theorem pow_lt_mono_exp {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Lt m k) : Lt (n ^ m) (n ^ k)`
+- **Matemática:** 1 < n ∧ m < k ⇒ n^m < n^k  (monotonicidad estricta en el exponente)
+
+**[T13.20]** `pow_le_pow_right`
+- **Lean4:** `theorem pow_le_pow_right {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Le m k) : Le (n ^ m) (n ^ k)`
+- **Matemática:** 1 < n ∧ m ≤ k ⇒ n^m ≤ n^k
+
+**[T13.21]** `pow_lt_mono_base`
+- **Lean4:** `theorem pow_lt_mono_base {m n : ℕ₀} (h : Lt m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) : Lt (m ^ k) (n ^ k)`
+- **Matemática:** m < n ∧ k ≠ 0 ⇒ m^k < n^k  (monotonicidad estricta en la base)
+
+**[T13.22]** `pow_le_pow_left`
+- **Lean4:** `theorem pow_le_pow_left {m n : ℕ₀} (h : Le m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) : Le (m ^ k) (n ^ k)`
+- **Matemática:** m ≤ n ∧ k ≠ 0 ⇒ m^k ≤ n^k
+
+**[T13.23]** `pow_mul_comm`
+- **Lean4:** `theorem pow_mul_comm (n m k : ℕ₀) : mul (n ^ m) (n ^ k) = mul (n ^ k) (n ^ m)`
+- **Matemática:** n^m · n^k = n^k · n^m
+
 ---
 
-## 14. Peano.lean — Módulo Raíz
+## 14. PeanoNatFactorial.lean — `namespace Peano.Factorial`
+
+*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatMul`*
+
+### 14.1. Definiciones
+
+**[D14.1]** `factorial`
+- **Lean4:**
+  ```
+  def factorial : ℕ₀ → ℕ₀
+    | 𝟘   => 𝟙
+    | σ n => mul (factorial n) (σ n)
+  ```
+- **Matemática:** 0! = 1;  (σn)! = n! · σ(n)
+- **Computable:** Sí
+- **Terminado por:** recursión estructural sobre el argumento
+- **Nota:** En Lean 4 el lexer trata `n!` como identificador; se usa `factorial n` directamente
+
+### 14.2. Teoremas principales
+
+**[T14.1]** `factorial_zero`
+- **Lean4:** `theorem factorial_zero : factorial 𝟘 = 𝟙`
+- **Matemática:** 0! = 1
+
+**[T14.2]** `factorial_succ`
+- **Lean4:** `theorem factorial_succ (n : ℕ₀) : factorial (σ n) = mul (factorial n) (σ n)`
+- **Matemática:** (n+1)! = n! · (n+1)
+
+**[T14.3]** `factorial_one`
+- **Lean4:** `theorem factorial_one : factorial 𝟙 = 𝟙`
+- **Matemática:** 1! = 1
+
+**[T14.4]** `factorial_two`
+- **Lean4:** `theorem factorial_two : factorial 𝟚 = 𝟚`
+- **Matemática:** 2! = 2
+
+**[T14.5]** `factorial_pos`
+- **Lean4:** `theorem factorial_pos (n : ℕ₀) : factorial n > 𝟘`
+- **Matemática:** ∀n ∈ ℕ₀, n! > 0
+
+**[T14.6]** `factorial_ne_zero`
+- **Lean4:** `theorem factorial_ne_zero (n : ℕ₀) : factorial n ≠ 𝟘`
+- **Matemática:** ∀n ∈ ℕ₀, n! ≠ 0
+
+**[T14.7]** `factorial_ge_one`
+- **Lean4:** `theorem factorial_ge_one (n : ℕ₀) : factorial n ≥ 𝟙`
+- **Matemática:** ∀n ∈ ℕ₀, n! ≥ 1
+
+**[T14.8]** `factorial_le_succ`
+- **Lean4:** `theorem factorial_le_succ (n : ℕ₀) : Le (factorial n) (factorial (σ n))`
+- **Matemática:** n! ≤ (n+1)!
+
+**[T14.9]** `factorial_le_mono`
+- **Lean4:** `theorem factorial_le_mono {m n : ℕ₀} (h : Le m n) : Le (factorial m) (factorial n)`
+- **Matemática:** m ≤ n ⇒ m! ≤ n!
+
+---
+
+## 15. PeanoNatBinom.lean — `namespace Peano.Binom`
+
+*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatFactorial`*
+
+### 15.1. Definiciones
+
+**[D15.1]** `binom`
+- **Lean4:**
+  ```
+  def binom : ℕ₀ → ℕ₀ → ℕ₀
+    | 𝟘,   𝟘   => 𝟙
+    | 𝟘,   σ _ => 𝟘
+    | σ _, 𝟘   => 𝟙
+    | σ n, σ k => add (binom n k) (binom n (σ k))
+  ```
+- **Matemática:** C(0,0)=1; C(0,k+1)=0; C(n+1,0)=1; C(n+1,k+1)=C(n,k)+C(n,k+1)  (triángulo de Pascal)
+- **Computable:** Sí
+- **Terminado por:** recursión estructural en el primer argumento
+- **Notación:** `C(n, k)` — `notation "C(" n ", " k ")" => binom n k`
+- **Dependencias:** `add`
+
+### 15.2. Teoremas principales
+
+**[T15.1]** `binom_zero_zero`
+- **Lean4:** `theorem binom_zero_zero : C(𝟘, 𝟘) = 𝟙`
+- **Matemática:** C(0,0) = 1
+
+**[T15.2]** `binom_zero_succ`
+- **Lean4:** `theorem binom_zero_succ (k : ℕ₀) : C(𝟘, σ k) = 𝟘`
+- **Matemática:** C(0, k+1) = 0
+
+**[T15.3]** `binom_succ_zero`
+- **Lean4:** `theorem binom_succ_zero (n : ℕ₀) : C(σ n, 𝟘) = 𝟙`
+- **Matemática:** C(n+1, 0) = 1
+
+**[T15.4]** `binom_pascal`
+- **Lean4:** `theorem binom_pascal (n k : ℕ₀) : C(σ n, σ k) = add C(n, k) C(n, σ k)`
+- **Matemática:** C(n+1, k+1) = C(n,k) + C(n,k+1)  (identidad de Pascal)
+
+**[T15.5]** `binom_n_zero`
+- **Lean4:** `theorem binom_n_zero (n : ℕ₀) : C(n, 𝟘) = 𝟙`
+- **Matemática:** C(n,0) = 1
+
+**[T15.6]** `binom_n_one`
+- **Lean4:** `theorem binom_n_one (n : ℕ₀) : C(n, 𝟙) = n`
+- **Matemática:** C(n,1) = n
+
+**[T15.7]** `binom_eq_zero_of_gt`
+- **Lean4:** `theorem binom_eq_zero_of_gt {n k : ℕ₀} (h : Lt n k) : C(n, k) = 𝟘`
+- **Matemática:** n < k ⇒ C(n,k) = 0
+
+**[T15.8]** `binom_self`
+- **Lean4:** `theorem binom_self (n : ℕ₀) : C(n, n) = 𝟙`
+- **Matemática:** C(n,n) = 1
+
+**[T15.9]** `binom_pos`
+- **Lean4:** `theorem binom_pos {n k : ℕ₀} (h : Le k n) : C(n, k) > 𝟘`
+- **Matemática:** k ≤ n ⇒ C(n,k) > 0
+
+**[T15.10]** `binom_one`
+- **Lean4:** `theorem binom_one (n : ℕ₀) : C(σ n, 𝟙) = σ n`
+- **Matemática:** C(n+1, 1) = n+1
+
+**[T15.11]** `binom_succ_n_by_n`
+- **Lean4:** `theorem binom_succ_n_by_n (n : ℕ₀) : C(σ n, n) = σ n`
+- **Matemática:** C(n+1, n) = n+1
+
+**[T15.12]** `binom_mul_factorials`
+- **Lean4:** `theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) : mul (mul C(n, k) (factorial k)) (factorial (sub n k)) = factorial n`
+- **Matemática:** k ≤ n ⇒ C(n,k) · k! · (n-k)! = n!
+- **Dependencias:** `factorial`, `sub`, `mul`, `binom_pascal`
+
+---
+
+## 16. Peano.lean — Módulo Raíz
+
+**Última actualización:** 2026-03-15 12:00
 
 *Archivo de entrada. No introduce definiciones ni teoremas propios.*
 *Importa y re-exporta todos los módulos de `PeanoNatLib/`*
@@ -1360,5 +1570,98 @@ import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatDiv
 import PeanoNatLib.PeanoNatArith
 import PeanoNatLib.PeanoNatPrimes
+import PeanoNatLib.PeanoNatPow
+import PeanoNatLib.PeanoNatFactorial
+import PeanoNatLib.PeanoNatBinom
+import PeanoNatLib.PeanoNatNewtonBinom
 ```
 
+---
+
+## 17. PeanoNatNewtonBinom.lean — `namespace Peano.NewtonBinom`
+
+*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`*
+
+> **Estado:** Compilado sin errores. Varios `sorry` legítimos señalados con ⚠️ donde la demostración requiere reindexación de sumatorios o acotaciones polinomial-vs-exponencial.
+
+### 17.1. Definiciones
+
+**[D17.1]** `finSum`
+- **Lean4:** `def finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀` — `𝟘 ↦ f 𝟘`;  `σ n ↦ add (finSum f n) (f (σ n))`
+- **Matemática:** finSum f n = Σ_{k=0}^{n} f(k)
+- **Computable:** Sí; **Terminado por:** recursión estructural sobre `n`
+
+**[D17.2]** `binomTerm`
+- **Lean4:** `def binomTerm (a b n k : ℕ₀) : ℕ₀ := mul (mul C(n, k) (pow a k)) (pow b (sub n k))`
+- **Matemática:** T(a, b, n, k) = C(n,k) · aᵏ · b^(n−k)
+- **Computable:** Sí; **Dependencias:** `binom`, `pow`, `sub`
+
+### 17.2. Propiedades del sumatorio finito
+
+**[T17.1]** `finSum_zero` — `finSum f 𝟘 = f 𝟘`
+
+**[T17.2]** `finSum_succ` — `finSum f (σ n) = add (finSum f n) (f (σ n))`
+
+**[T17.3]** `finSum_zero_fn` — `finSum (fun _ => 𝟘) n = 𝟘`
+
+**[T17.4]** `finSum_add_fn`
+- **Lean4:** `theorem finSum_add_fn (f g : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum (fun k => add (f k) (g k)) n = add (finSum f n) (finSum g n)`
+- **Matemática:** Σ (f + g) = Σ f + Σ g
+
+**[T17.5]** `finSum_mul_const`
+- **Lean4:** `theorem finSum_mul_const (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum (fun k => mul c (f k)) n = mul c (finSum f n)`
+- **Matemática:** Σ (c · f) = c · Σ f
+
+**[T17.6]** `finSum_mul_const_right`
+- **Lean4:** `theorem finSum_mul_const_right (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) : mul (finSum f n) c = finSum (fun k => mul (f k) c) n`
+- **Matemática:** (Σ f) · c = Σ (f · c)
+
+**[T17.7]** `finSum_le_of_le`
+- **Lean4:** `theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) : Le (finSum f n) (finSum g n)`
+- **Matemática:** (∀k, f(k) ≤ g(k)) ⇒ Σ f ≤ Σ g
+
+**[T17.8]** `finSum_pos`
+- **Lean4:** `theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) : Lt 𝟘 (finSum f n)`
+- **Matemática:** (∀k, f(k) > 0) ⇒ Σ f > 0
+
+**[T17.9]** `finSum_const`
+- **Lean4:** `theorem finSum_const (c n : ℕ₀) : finSum (fun _ => c) n = mul (σ n) c`
+- **Matemática:** Σ_{k=0}^{n} c = (n+1) · c
+
+### 17.3. Suma de la fila de Pascal y binomio de Newton
+
+**[T17.10]** `sum_binom_eq_pow_two` ⚠️ sorry
+- **Lean4:** `theorem sum_binom_eq_pow_two (n : ℕ₀) : finSum (fun k => C(n, k)) n = pow 𝟚 n`
+- **Matemática:** Σ_{k=0}^{n} C(n,k) = 2ⁿ
+- **Nota:** ⚠️ sorry en la reindexación con Pascal.
+
+**[T17.11]** `binomTerm_zero`
+- **Lean4:** `theorem binomTerm_zero (a b n : ℕ₀) : binomTerm a b n 𝟘 = pow b n`
+- **Matemática:** T(a,b,n,0) = bⁿ
+
+**[T17.12]** `binomTerm_self`
+- **Lean4:** `theorem binomTerm_self (a b n : ℕ₀) : binomTerm a b n n = pow a n`
+- **Matemática:** T(a,b,n,n) = aⁿ
+
+**[T17.13]** `newton_binom` ⚠️ sorry
+- **Lean4:** `theorem newton_binom (a b n : ℕ₀) : pow (add a b) n = finSum (binomTerm a b n) n`
+- **Matemática:** (a+b)ⁿ = Σ_{k=0}^{n} C(n,k) · aᵏ · b^(n−k)
+- **Dependencias:** `binomTerm`, `finSum`, `binom_pascal`, `pow_succ`, `mul_ldistr`
+- **Nota:** ⚠️ sorry en la convolución de sumatorios; caso base demostrado.
+
+### 17.4. Crecimiento comparado
+
+**[T17.14]** `pow_add_split`
+- **Lean4:** `theorem pow_add_split (n m k : ℕ₀) : pow n (add m k) = mul (pow n m) (pow n k)`
+- **Matemática:** n^(m+k) = nᵐ · nᵏ  (alias de `pow_add_eq_mul_pow`)
+
+**[T17.15]** `exists_nm_growth` ⚠️ sorry
+- **Lean4:**
+  ```
+  theorem exists_nm_growth :
+      ∃ n m : ℕ₀, ∀ k : ℕ₀, Le 𝟙 k →
+        Lt (pow (add n k) m) (pow n (add m k))
+  ```
+- **Matemática:** ∃n,m ∈ ℕ₀, ∀k ≥ 1, (n+k)ᵐ < n^(m+k)
+- **Testigo:** n=4, m=2; 4^(2+k)=16·4ᵏ crece exponencialmente frente a (4+k)²
+- **Nota:** ⚠️ sorry en la cota por inducción.

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Added (2026-03-15)
+
+- **`PeanoNatLib/PeanoNatNewtonBinom.lean`** — módulo nuevo, `namespace Peano.NewtonBinom`.
+  - `finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀` — sumatorio finito Σ_{k=0}^{n} f(k); computable, recursión estructural.
+  - Propiedades demostradas: `finSum_zero`, `finSum_succ`, `finSum_zero_fn`, `finSum_add_fn` (linealidad), `finSum_mul_const`, `finSum_mul_const_right` (escalado), `finSum_le_of_le` (monotonía), `finSum_pos` (positividad), `finSum_const` (suma constante = (n+1)·c).
+  - `binomTerm a b n k` = C(n,k)·aᵏ·b^(n−k) — término k-ésimo del binomio; con `binomTerm_zero` y `binomTerm_self`.
+  - `sum_binom_eq_pow_two (n)` — Σ_{k=0}^{n} C(n,k) = 2ⁿ. ⚠️ sorry en reindexación con Pascal.
+  - `newton_binom (a b n)` — (a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k). ⚠️ sorry en convolución de sumatorios (caso base demostrado).
+  - `pow_add_split (n m k)` — nᵐ⁺ᵏ = nᵐ·nᵏ.
+  - `exists_nm_growth` — ∃n=4, m=2, ∀k≥1, (n+k)ᵐ < n^(m+k). ⚠️ sorry en cota exponencial.
+- **`Peano.lean`** — añadidos imports y re-exports de `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`, `PeanoNatNewtonBinom`.
+- **`REFERENCE.md`** — secciones 13 (Pow, completada T13.7–T13.23), 14 (Factorial, nueva), 15 (Binom, nueva), 16 (Peano.lean raíz actualizada), 17 (NewtonBinom, nueva); tabla de módulos y namespaces ampliada.
+
 ### Added (2026-03-03)
 
 - `PeanoNatArith.lean`: Teorema `antisymm_divides {a b : ℕ₀} : a ∣ b → b ∣ a → a = b` — antisimetría de la divisibilidad en `ℕ₀`.

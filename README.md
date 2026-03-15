@@ -10,7 +10,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 ## Descripción
 
-Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética básica: orden, suma, resta, multiplicación, división entera, máximo/mínimo, bien-fundación y aritmética de divisores (MCD, MCM, primos, Bézout).
+Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética básica: orden, suma, resta, multiplicación, división entera, máximo/mínimo, bien-fundación, aritmética de divisores (MCD, MCM, primos, Bézout), potenciación, factorial, coeficientes binomiales y el **Teorema del Binomio de Newton**.
 
 Toda la biblioteca está **computacionalmente realizada**: las operaciones producen términos de `ℕ₀` evaluables por el kernel de Lean.
 
@@ -19,19 +19,24 @@ Toda la biblioteca está **computacionalmente realizada**: las operaciones produ
 ## Estructura de módulos
 
 ```
-Peano.lean                        ← entrada; importa toda la librería
+Peano.lean                           ← entrada; importa toda la librería
 └─ PeanoNatLib/
-   ├─ PeanoNatLib.lean            namespace Peano
-   ├─ PeanoNatAxioms.lean         namespace Peano.Axioms
-   ├─ PeanoNatStrictOrder.lean    namespace Peano.StrictOrder
-   ├─ PeanoNatOrder.lean          namespace Peano.Order
-   ├─ PeanoNatMaxMin.lean         namespace Peano.MaxMin
-   ├─ PeanoNatWellFounded.lean    namespace Peano.WellFounded
-   ├─ PeanoNatAdd.lean            namespace Peano.Add
-   ├─ PeanoNatSub.lean            namespace Peano.Sub
-   ├─ PeanoNatMul.lean            namespace Peano.Mul
-   ├─ PeanoNatDiv.lean            namespace Peano.Div
-   └─ PeanoNatArith.lean          namespace Peano.Arith
+   ├─ PeanoNatLib.lean               namespace Peano
+   ├─ PeanoNatAxioms.lean            namespace Peano.Axioms
+   ├─ PeanoNatStrictOrder.lean       namespace Peano.StrictOrder
+   ├─ PeanoNatOrder.lean             namespace Peano.Order
+   ├─ PeanoNatMaxMin.lean            namespace Peano.MaxMin
+   ├─ PeanoNatWellFounded.lean       namespace Peano.WellFounded
+   ├─ PeanoNatAdd.lean               namespace Peano.Add
+   ├─ PeanoNatSub.lean               namespace Peano.Sub
+   ├─ PeanoNatMul.lean               namespace Peano.Mul
+   ├─ PeanoNatDiv.lean               namespace Peano.Div
+   ├─ PeanoNatArith.lean             namespace Peano.Arith
+   ├─ PeanoNatPrimes.lean            namespace Peano.Primes
+   ├─ PeanoNatPow.lean               namespace Peano.Pow
+   ├─ PeanoNatFactorial.lean         namespace Peano.Factorial
+   ├─ PeanoNatBinom.lean             namespace Peano.Binom
+   └─ PeanoNatNewtonBinom.lean       namespace Peano.NewtonBinom
 ```
 
 ---
@@ -118,6 +123,39 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 | `Multiples` | Inductivo de múltiplos |
 
 Teoremas destacados: `bezout_natform`, `gcd_greatest`, `divides_trans`, `multiples_iff_divides`, `gcd_divides_linear_combo`.
+
+### `Peano.Primes` — Números primos y TFA
+
+- `Irreducible`, `HasExactlyTwoDivisors`, `Prime` — tres definiciones equivalentes de primo
+- `prime_iff_irreducible`, `prime_iff_has_exactly_two_divisors` — equivalencias demostradas
+- `exists_prime_factorization` — **TFA existencia**: todo n ≥ 2 tiene factorización prima
+- `unique_prime_factorization` — **TFA unicidad** (⚠️ sorry pendiente)
+
+### `Peano.Pow` — Potenciación `^`
+
+- `pow n m` — nᵐ; computable, notación `n ^ m` (prioridad 80)
+- Propiedades: `pow_zero`, `pow_one`, `pow_succ`, `pow_add_eq_mul_pow`, `pow_pow_eq_pow_mul`, `mul_pow_n_m_pow_k_m_eq_pow_nk_m`
+- Monotonía: `pow_lt_mono_exp`, `pow_le_pow_right`, `pow_lt_mono_base`, `pow_le_pow_left`
+
+### `Peano.Factorial` — Factorial `n!`
+
+- `factorial n` — n!; computable (la notación `n!` no es posible en Lean 4)
+- `factorial_pos`, `factorial_ne_zero`, `factorial_ge_one`, `factorial_le_mono`
+
+### `Peano.Binom` — Coeficientes binomiales `C(n,k)`
+
+- `binom n k` — C(n,k) por la recursión de Pascal; notación `C(n, k)`
+- `binom_pascal` — C(n+1,k+1) = C(n,k) + C(n,k+1)
+- `binom_mul_factorials` — **C(n,k)·k!·(n−k)! = n!** (fórmula factorial)
+- `binom_pos`, `binom_eq_zero_of_gt`, `binom_self`, `binom_succ_n_by_n`
+
+### `Peano.NewtonBinom` — Sumatorios y Binomio de Newton
+
+- `finSum f n` — Σ_{k=0}^{n} f(k); linealidad, monotonía, positividad
+- `binomTerm a b n k` — C(n,k)·aᵏ·b^(n−k)
+- `sum_binom_eq_pow_two` — Σ C(n,k) = 2ⁿ (⚠️ sorry)
+- `newton_binom` — **(a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k)** (⚠️ sorry en convolución)
+- `exists_nm_growth` — ∃n,m, ∀k≥1, (n+k)ᵐ < n^(m+k) (⚠️ sorry)
 
 ---
 

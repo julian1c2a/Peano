@@ -20,6 +20,10 @@ import PeanoNatLib.PeanoNatMul
 import PeanoNatLib.PeanoNatDiv
 import PeanoNatLib.PeanoNatArith
 import PeanoNatLib.PeanoNatPrimes
+import PeanoNatLib.PeanoNatPow
+import PeanoNatLib.PeanoNatFactorial
+import PeanoNatLib.PeanoNatBinom
+import PeanoNatLib.PeanoNatNewtonBinom
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (PeanoNatLib.lean)
@@ -660,4 +664,92 @@ export Peano.Primes (
   exists_prime_factorization
   mem_dvd_product
   unique_prime_factorization
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Pow  (PeanoNatPow.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Pow (
+  pow
+  pow_zero
+  zero_pow
+  one_pow
+  pow_one
+  pow_succ
+  pow_gt
+  pow_ge_one
+  pow_lt_succ_base
+  pow_lt_succ_base_strong
+  pow_lt_succ_exp
+  pow_add_eq_mul_pow
+  mul_pow_n_m_pow_k_m_eq_pow_nk_m
+  pow_pow_eq_pow_mul
+  pow_ne_zero
+  pow_two
+  pow_eq_zero_iff
+  one_lt_pow
+  pow_eq_one_iff
+  pow_lt_mono_exp
+  pow_le_pow_right
+  pow_lt_mono_base
+  pow_le_pow_left
+  pow_mul_comm
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Factorial  (PeanoNatFactorial.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Factorial (
+  factorial
+  factorial_zero
+  factorial_one
+  factorial_two
+  factorial_succ
+  factorial_pos
+  factorial_ne_zero
+  factorial_ge_one
+  factorial_le_succ
+  factorial_le_mono
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Binom  (PeanoNatBinom.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Binom (
+  binom
+  binom_zero_zero
+  binom_zero_succ
+  binom_succ_zero
+  binom_pascal
+  binom_n_zero
+  binom_n_one
+  binom_eq_zero_of_gt
+  binom_self
+  binom_pos
+  binom_one
+  binom_succ_n_by_n
+  binom_mul_factorials
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.NewtonBinom  (PeanoNatNewtonBinom.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.NewtonBinom (
+  finSum
+  finSum_zero
+  finSum_succ
+  finSum_zero_fn
+  finSum_add_fn
+  finSum_mul_const
+  finSum_mul_const_right
+  finSum_le_of_le
+  finSum_pos
+  finSum_const
+  sum_binom_eq_pow_two
+  binomTerm
+  binomTerm_zero
+  binomTerm_self
+  newton_binom
+  pow_add_split
+  exists_nm_growth
 )

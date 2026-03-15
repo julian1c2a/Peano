@@ -60,9 +60,10 @@ namespace Peano
       induction n with
       | zero    => rfl
       | succ n' ih =>
-          -- Objetivo tras rw ih: (A+B)+C = (A+C)+B  con A=ΣF, B=ΣG, C=f(σn')
+          -- Objetivo tras rw ih: (A+B)+(C+D) = (A+C)+(B+D)  con A=ΣF, B=ΣG, C=f(σn'), D=g(σn')
           rw [finSum_succ, finSum_succ, finSum_succ, ih]
-          rw [add_assoc, add_comm (finSum g n') (f (σ n')), ← add_assoc]
+          rw [add_assoc, ← add_assoc (finSum f n'), add_comm (finSum g n'),
+              add_assoc (finSum f n'), ← add_assoc]
 
     /- Factor constante: Σ (c · f) = c · Σ f. -/
     theorem finSum_mul_const (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
@@ -85,7 +86,7 @@ namespace Peano
       | zero    => exact h 𝟘
       | succ n' ih =>
           rw [finSum_succ, finSum_succ]
-          exact add_le ih (h (σ n'))
+          exact le_add_compat_wp ih (h (σ n'))
 
     /- Positividad: si f > 0 puntualmente entonces Σ f > 0. -/
     theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) :
@@ -201,11 +202,10 @@ namespace Peano
     theorem exists_nm_growth :
         ∃ n m : ℕ₀, ∀ k : ℕ₀, Le 𝟙 k →
           Lt (pow (add n k) m) (pow n (add m k)) := by
-      use σ (σ (σ (σ 𝟘))), σ (σ 𝟘)   -- n = 4, m = 2
-      intro k hk
+      refine ⟨σ (σ (σ (σ 𝟘))), σ (σ 𝟘), fun k hk => ?_⟩  -- n = 4, m = 2
       rw [pow_add_split]
       exact poly_vs_exp_bound (σ (σ (σ (σ 𝟘)))) (σ (σ 𝟘))
-              (by exact Or.inl (lt_succ_self 𝟙)) k hk
+              (le_trans 𝟚 (σ 𝟚) (σ (σ 𝟚)) (le_succ_self 𝟚) (le_succ_self (σ 𝟚))) k hk
 
   end NewtonBinom
 end Peano

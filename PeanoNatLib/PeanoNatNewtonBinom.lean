@@ -141,18 +141,29 @@ namespace Peano
 
     /- Suma de la fila n del triángulo de Pascal: Σ_{k=0}^{n} C(n,k) = 2^n.
        Prueba por inducción con la identidad de Pascal.
-       ⚠️ sorry: la reindexación de la suma de k=0..n requiere un lema de desplazamiento
-       de índice que involucra cuidadosa aritmética sobre la resta truncada. -/
+    -/
     theorem sum_binom_eq_pow_two (n : ℕ₀) :
         finSum (fun k => C(n, k)) n = pow 𝟚 n := by
       induction n with
       | zero =>
           rw [finSum_zero, binom_zero_zero, pow_zero]
       | succ n' ih =>
-          -- Objetivo: Σ_{k=0}^{n'+1} C(n'+1,k) = 2^(n'+1) = 2^n' · 2
-          -- Ecuación clave: Σ C(n'+1,k) = Σ C(n',k-1) + Σ C(n',k)  (Pascal)
-          -- Bordes: C(n',−1)=0 y C(n',n'+1)=0; resultado = 2·2^n' = 2^(n'+1).
-          sorry  -- ⚠️ Reindexación compleja; esquema: Pascal + desplazamiento de índice.
+          -- Paso 1: desplazar el sumatorio por la izquierda
+          rw [finSum_succ_left, binom_succ_zero]
+          -- Meta: add 𝟙 (finSum (fun k => C(σ n', σ k)) n') = pow 𝟚 (σ n')
+          -- Paso 2: Pascal → C(σn', σk) = C(n',k) + C(n', σk)
+          have h_pascal_fn : finSum (fun k => C(σ n', σ k)) n' =
+              add (finSum (fun k => C(n', k)) n') (finSum (fun k => C(n', σ k)) n') :=
+            finSum_add_fn (fun k => C(n', k)) (fun k => C(n', σ k)) n'
+          rw [h_pascal_fn, ih]
+          -- Meta: add 𝟙 (add (pow 𝟚 n') (finSum (fun k => C(n', σ k)) n')) = pow 𝟚 (σ n')
+          -- Paso 3: la fila n' extendida hasta σn' da pow 𝟚 n' = 1 + Σ C(n', σk)
+          have hss : finSum (fun k => C(n', k)) (σ n') = pow 𝟚 n' := by
+            rw [finSum_succ, binom_eq_zero_of_gt (lt_succ_self n'), add_zero, ih]
+          have h_shift : pow 𝟚 n' = add 𝟙 (finSum (fun k => C(n', σ k)) n') := by
+            rw [← hss, finSum_succ_left, binom_n_zero]
+          -- Paso 4: álgebra  1 + (P + X) = P + P  con  P = 1 + X
+          rw [add_comm (pow 𝟚 n'), add_assoc, ← h_shift, ← mul_two, ← pow_succ]
 
     -- ── §3. Término del binomio de Newton ────────────────────────────────────
 

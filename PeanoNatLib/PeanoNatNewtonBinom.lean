@@ -41,6 +41,10 @@ namespace Peano
       | 𝟘   => f 𝟘
       | σ n => add (finSum f n) (f (σ n))
 
+    /- Notación: `∑ k ≤ n, f k` = finSum (fun k => f k) n = Σ_{k=0}^{n} f(k).
+       Uso: ∑ k ≤ n', C(n', k)  en lugar de  finSum (fun k => C(n', k)) n'. -/
+    macro "∑ " k:ident " ≤ " n:term ", " f:term : term => `(finSum (fun $k => $f) $n)
+
     -- ── Propiedades básicas del sumatorio ─────────────────────────────────────
 
     theorem finSum_zero (f : ℕ₀ → ℕ₀) : finSum f 𝟘 = f 𝟘 := by rfl
@@ -105,6 +109,34 @@ namespace Peano
       | succ n' ih =>
           rw [finSum_succ, ih, ← succ_mul]
 
+    -- ── §1b. Desplazamiento e inversión de índice ─────────────────────────────
+
+    /- Desplazamiento a la izquierda:
+       Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1). -/
+    theorem finSum_succ_left (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
+        finSum f (σ n) = add (f 𝟘) (finSum (fun k => f (σ k)) n) := by
+      induction n with
+      | zero    => rfl
+      | succ n' ih =>
+          rw [finSum_succ, ih, finSum_succ, ← add_assoc]
+
+    /- Invariancia por inversión del índice:
+       Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n-k).
+       Esto expresa que el sumatorio no depende del orden de recorrido. -/
+    theorem finSum_reverse (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
+        finSum f n = finSum (fun k => f (sub n k)) n := by
+      induction n with
+      | zero    => rw [finSum_zero, finSum_zero, sub_self]
+      | succ n' ih =>
+          rw [finSum_succ, ih,
+              finSum_succ_left (fun k => f (sub (σ n') k)),
+              sub_zero]
+          -- Meta: add (finSum (fun k => f (sub n' k)) n') (f (σ n'))
+          --     = add (f (σ n')) (finSum (fun k => f (sub (σ n') (σ k))) n')
+          have h_fn : (fun k => f (sub (σ n') (σ k))) = (fun k => f (sub n' k)) := by
+            funext k; rw [← sub_succ_succ_eq]
+          rw [h_fn, add_comm]
+
     -- ── §2. Sumatorio de coeficientes binomiales ──────────────────────────────
 
     /- Suma de la fila n del triángulo de Pascal: Σ_{k=0}^{n} C(n,k) = 2^n.
@@ -140,15 +172,39 @@ namespace Peano
       unfold binomTerm
       rw [binom_self, sub_self, pow_zero, mul_one, one_mul]
 
+    /- Auxiliar: (a·b)·c = (a·c)·b. -/
+    private theorem mul_swap_last' (a b c : ℕ₀) : mul (mul a b) c = mul (mul a c) b := by
+      rw [mul_assoc b a c, mul_comm b c, ← mul_assoc c a b]
+
     /- Relación de Pascal en términos del binomio:
-       T(n+1, k+1) = T(n,k)·a + T(n,k+1)·b  cuando k+1 ≤ n+1.
-       Prueba: desarrollar por definición con Pascal y propiedades de pow y sub.
-       ⚠️ sorry: requiere `sub_succ_succ_eq` y manejo de `pow (σ k)`. -/
+       T(n+1, k+1) = T(n,k)·a + T(n,k+1)·b  cuando k+1 ≤ n+1. -/
     private theorem binomTerm_pascal_step (a b n k : ℕ₀) :
         binomTerm a b (σ n) (σ k) =
         add (mul (binomTerm a b n k) a) (mul (binomTerm a b n (σ k)) b) := by
       unfold binomTerm
-      sorry  -- ⚠️ Pascal + aritmética de pow y sub
+      rw [binom_pascal, ← sub_succ_succ_eq, pow_succ]
+      -- Meta: mul (mul (add C(n,k) C(n,σk)) (mul (pow a k) a)) (pow b (sub n k))
+      --     = add (mul (mul (mul C(n,k) (pow a k)) (pow b (sub n k))) a)
+      --           (mul (mul (mul C(n,σk) (mul (pow a k) a)) (pow b (sub n (σk)))) b)
+      by_cases h : Le (σ k) n
+      · -- Caso σk ≤ n: sub n k = σ(sub n (σk)), b^(n-k) = b^(n-k-1) · b
+        have h_sub_eq : sub n k = σ (sub n (σ k)) :=
+          (sub_succ_succ_eq n k).trans (sub_succ n (σ k) h)
+        rw [h_sub_eq, pow_succ]
+        -- LHS: (C1+C2)·(A·a)·(B·b)  RHS: C1·A·(B·b)·a + C2·(A·a)·B·b
+        rw [mul_rdistr, mul_rdistr]
+        congr 1
+        · -- C1·(A·a)·(B·b) = (C1·A)·(B·b)·a
+          rw [← mul_assoc (pow a k) C(n, k) a,
+              mul_swap_last' (mul C(n, k) (pow a k)) a (mul (pow b (sub n (σ k))) b)]
+        · -- C2·(A·a)·(B·b) = (C2·(A·a))·B·b
+          rw [← mul_assoc (pow b (sub n (σ k))) (mul C(n, σ k) (mul (pow a k) a)) b]
+      · -- Caso ¬(σk ≤ n): C(n, σk) = 0, todo el segundo sumando desaparece
+        have h_lt : Lt n (σ k) := nle_then_gt_wp h
+        rw [binom_eq_zero_of_gt h_lt, add_zero, zero_mul, zero_mul, zero_mul, add_zero]
+        -- Meta: C(n,k)·(A·a)·B_k = (C(n,k)·A)·B_k·a
+        rw [← mul_assoc (pow a k) C(n, k) a,
+            mul_swap_last' (mul C(n, k) (pow a k)) a (pow b (sub n k))]
 
     /- Teorema del Binomio de Newton:
        (a + b)^n = Σ_{k=0}^{n} C(n,k) · a^k · b^(n-k).
@@ -221,6 +277,8 @@ export Peano.NewtonBinom (
   finSum_le_of_le
   finSum_pos
   finSum_const
+  finSum_succ_left
+  finSum_reverse
   sum_binom_eq_pow_two
   binomTerm
   binomTerm_zero

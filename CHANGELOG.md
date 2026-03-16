@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### Added (2026-03-16)
+
+- **`PeanoNatLib/PeanoNatNewtonBinom.lean`** — módulo completado sin ningún `sorry`.
+  - `finSum_succ_left (f n)` — desplazamiento a la izquierda: Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1).
+  - `finSum_reverse (f n)` — invariancia por inversión del índice: Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n−k).
+  - `sum_binom_eq_pow_two (n)` — **demostrado**: Σ_{k=0}^{n} C(n,k) = 2ⁿ. Prueba por inducción con `finSum_succ_left` y Pascal.
+  - `newton_binom (a b n)` — **demostrado**: (a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k). Prueba por inducción; paso usa `binomTerm_pascal_step`, `finSum_mul_const_right`, `finSum_add_fn` y álgebra.
+  - `exists_nm_growth` — **demostrado** con testigo n=2, m=1: ∀k≥1, 2+k < 2·2ᵏ. Prueba por inducción en k con lema auxiliar privado `lt_add_double_of_lt_of_pos`.
+  - Eliminados todos los `sorry` del módulo.
+- **`REFERENCE.md`** — sección 17 actualizada: añadidos T17.9b (`finSum_succ_left`), T17.9c (`finSum_reverse`); eliminados marcadores ⚠️ sorry de T17.10, T17.13, T17.15; estado del módulo actualizado a "completamente demostrado"; testigo de `exists_nm_growth` corregido a n=2, m=1.
+- **`README.md`** — sección `Peano.NewtonBinom` actualizada; eliminados marcadores ⚠️ sorry de `sum_binom_eq_pow_two`, `newton_binom`, `exists_nm_growth`.
+
 ### Added (2026-03-15)
 
 - **`PeanoNatLib/PeanoNatNewtonBinom.lean`** — módulo nuevo, `namespace Peano.NewtonBinom`.

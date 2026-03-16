@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-03-15 12:00
+**Última actualización:** 2026-03-16 12:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -1582,7 +1582,7 @@ import PeanoNatLib.PeanoNatNewtonBinom
 
 *Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`*
 
-> **Estado:** Compilado sin errores. Varios `sorry` legítimos señalados con ⚠️ donde la demostración requiere reindexación de sumatorios o acotaciones polinomial-vs-exponencial.
+> **Estado:** Completamente demostrado, compilado sin errores ni `sorry`. Todos los teoremas del módulo están formalmente probados.
 
 ### 17.1. Definiciones
 
@@ -1628,12 +1628,22 @@ import PeanoNatLib.PeanoNatNewtonBinom
 - **Lean4:** `theorem finSum_const (c n : ℕ₀) : finSum (fun _ => c) n = mul (σ n) c`
 - **Matemática:** Σ_{k=0}^{n} c = (n+1) · c
 
+**[T17.9b]** `finSum_succ_left`
+- **Lean4:** `theorem finSum_succ_left (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum f (σ n) = add (f 𝟘) (finSum (fun k => f (σ k)) n)`
+- **Matemática:** Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1)  (desplazamiento a la izquierda)
+- **Dependencias:** `finSum_succ`, `add_assoc`
+
+**[T17.9c]** `finSum_reverse`
+- **Lean4:** `theorem finSum_reverse (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum f n = finSum (fun k => f (sub n k)) n`
+- **Matemática:** Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n−k)  (invariancia por inversión del índice)
+- **Dependencias:** `finSum_succ_left`, `sub_succ_succ_eq`, `sub_zero`, `add_comm`
+
 ### 17.3. Suma de la fila de Pascal y binomio de Newton
 
-**[T17.10]** `sum_binom_eq_pow_two` ⚠️ sorry
+**[T17.10]** `sum_binom_eq_pow_two`
 - **Lean4:** `theorem sum_binom_eq_pow_two (n : ℕ₀) : finSum (fun k => C(n, k)) n = pow 𝟚 n`
 - **Matemática:** Σ_{k=0}^{n} C(n,k) = 2ⁿ
-- **Nota:** ⚠️ sorry en la reindexación con Pascal.
+- **Dependencias:** `finSum_succ_left`, `finSum_add_fn`, `binom_pascal` (rfl), `binom_succ_zero`, `binom_n_zero`, `binom_eq_zero_of_gt`, `mul_two`, `pow_succ`
 
 **[T17.11]** `binomTerm_zero`
 - **Lean4:** `theorem binomTerm_zero (a b n : ℕ₀) : binomTerm a b n 𝟘 = pow b n`
@@ -1643,11 +1653,11 @@ import PeanoNatLib.PeanoNatNewtonBinom
 - **Lean4:** `theorem binomTerm_self (a b n : ℕ₀) : binomTerm a b n n = pow a n`
 - **Matemática:** T(a,b,n,n) = aⁿ
 
-**[T17.13]** `newton_binom` ⚠️ sorry
+**[T17.13]** `newton_binom`
 - **Lean4:** `theorem newton_binom (a b n : ℕ₀) : pow (add a b) n = finSum (binomTerm a b n) n`
 - **Matemática:** (a+b)ⁿ = Σ_{k=0}^{n} C(n,k) · aᵏ · b^(n−k)
-- **Dependencias:** `binomTerm`, `finSum`, `binom_pascal`, `pow_succ`, `mul_ldistr`
-- **Nota:** ⚠️ sorry en la convolución de sumatorios; caso base demostrado.
+- **Dependencias:** `binomTerm_pascal_step` (private), `finSum_succ_left`, `finSum_mul_const_right`, `finSum_add_fn`, `mul_ldistr`, `pow_succ`, `mul_two`, `add_succ`, `add_assoc`, `add_comm`
+- **Estrategia:** Inducción; paso: (a+b)ⁿ·(a+b) = ΣT·a + ΣT·b; usar T(n',0)=bⁿ' para separar término frontal, Pascal para interior, álgebra.
 
 ### 17.4. Crecimiento comparado
 
@@ -1655,7 +1665,7 @@ import PeanoNatLib.PeanoNatNewtonBinom
 - **Lean4:** `theorem pow_add_split (n m k : ℕ₀) : pow n (add m k) = mul (pow n m) (pow n k)`
 - **Matemática:** n^(m+k) = nᵐ · nᵏ  (alias de `pow_add_eq_mul_pow`)
 
-**[T17.15]** `exists_nm_growth` ⚠️ sorry
+**[T17.15]** `exists_nm_growth`
 - **Lean4:**
   ```
   theorem exists_nm_growth :
@@ -1663,5 +1673,6 @@ import PeanoNatLib.PeanoNatNewtonBinom
         Lt (pow (add n k) m) (pow n (add m k))
   ```
 - **Matemática:** ∃n,m ∈ ℕ₀, ∀k ≥ 1, (n+k)ᵐ < n^(m+k)
-- **Testigo:** n=4, m=2; 4^(2+k)=16·4ᵏ crece exponencialmente frente a (4+k)²
-- **Nota:** ⚠️ sorry en la cota por inducción.
+- **Testigo:** n=2, m=1; prueba que 2+k < 2·2ᵏ para k ≥ 1 (crecimiento lineal vs. exponencial)
+- **Estrategia:** Inducción en k; base k=1: 3 < 4; paso: σ(2+k) < 2·2ᵏ + 2·2ᵏ usando `lt_add_double_of_lt_of_pos` (privado)
+- **Dependencias:** `pow_add_split`, `pow_one`, `pow_succ`, `mul_two`, `mul_ldistr`, `succ_lt_succ_iff`, `lt_self_add_r`, `lt_nm_then_le_nm_wp`, `lt_of_lt_of_le`, `pow_gt`, `mul_pos`, `zero_lt_succ`

@@ -235,7 +235,44 @@ namespace Peano
           rw [pow_zero, finSum_zero, binomTerm_zero, pow_zero]
       | succ n' ih =>
           rw [pow_succ, ih, mul_ldistr]
-          sorry  -- ⚠️ Convolución de sumatorios + Pascal
+          -- Meta: add (mul (finSum (binomTerm a b n') n') a)
+          --           (mul (finSum (binomTerm a b n') n') b)
+          --     = finSum (binomTerm a b (σ n')) (σ n')
+
+          -- Auxiliar 1: T(n', σn') = 0  (C(n', σn') = 0)
+          have h_zero : binomTerm a b n' (σ n') = 𝟘 := by
+            unfold binomTerm
+            rw [binom_eq_zero_of_gt (lt_succ_self n'), zero_mul, zero_mul]
+
+          -- Auxiliar 2: Σ_{k=0}^{n'} T(n',k) = b^{n'} + Σ_{k=0}^{n'} T(n',σk)
+          --   Prueba: finSum (σ n') = T(n',0) + Σ T(n',σk)  (por finSum_succ_left)
+          --           finSum (σ n') = finSum (n') + T(n',σn') = finSum (n') + 0
+          have h_shift : finSum (binomTerm a b n') n' =
+              add (pow b n') (finSum (fun k => binomTerm a b n' (σ k)) n') := by
+            have h1 := finSum_succ_left (binomTerm a b n') n'
+            rw [binomTerm_zero] at h1
+            rw [← h1, finSum_succ, h_zero, add_zero]
+
+          -- Auxiliar 3: Σ (T(n',k)·b) = b^{σn'} + Σ (T(n',σk)·b)
+          have h_b_sum : finSum (fun k => mul (binomTerm a b n' k) b) n' =
+              add (pow b (σ n')) (finSum (fun k => mul (binomTerm a b n' (σ k)) b) n') := by
+            rw [← finSum_mul_const_right, h_shift, mul_rdistr,
+                finSum_mul_const_right b (fun k => binomTerm a b n' (σ k)) n', ← pow_succ]
+
+          -- Paso: expandir (Σ T)·a y (Σ T)·b como sumatorios
+          rw [finSum_mul_const_right, finSum_mul_const_right]
+          -- Expandir el RHS: T(σn',0) = b^{σn'},  luego Pascal en índices interiores
+          rw [finSum_succ_left (binomTerm a b (σ n')) n', binomTerm_zero]
+          have h_pascal : (fun k => binomTerm a b (σ n') (σ k)) =
+                          (fun k => add (mul (binomTerm a b n' k) a)
+                                        (mul (binomTerm a b n' (σ k)) b)) :=
+            funext (fun k => binomTerm_pascal_step a b n' k)
+          rw [h_pascal, finSum_add_fn, h_b_sum]
+          -- Meta: add X (add Y Z) = add Y (add X Z)
+          --   con X = Σ(T·a), Y = b^{σn'}, Z = Σ(T·b desplazado)
+          rw [add_assoc,
+              add_comm (finSum (fun k => mul (binomTerm a b n' k) a) n') (pow b (σ n')),
+              ← add_assoc]
 
     -- ── §4. Crecimiento comparado: (n+k)^m < n^(m+k) ─────────────────────────
 
@@ -244,34 +281,49 @@ namespace Peano
         pow n (add m k) = mul (pow n m) (pow n k) :=
       pow_add_eq_mul_pow n m k
 
-    /- Lema auxiliar: Para n ≥ 2 y k ≥ 1: (n+k)^m < n^m · n^k cuando n^k > (n+k)^m / n^m.
-       La prueba formal requiere establecer que n^k crece geométricamente y (n+k)^m polinomialmente.
-       ⚠️ sorry: requiere lemas de acotación polinomial vs exponencial. -/
-    private theorem poly_vs_exp_bound (n m : ℕ₀) (hn : Le 𝟚 n) :
-        ∀ k : ℕ₀, Le 𝟙 k →
-          Lt (pow (add n k) m) (mul (pow n m) (pow n k)) := by
-      intro k hk
-      induction k with
-      | zero => exact absurd hk (not_succ_le_zero 𝟘)
-      | succ k' _ih =>
-          sorry  -- ⚠️ Inducción: (n+k'+1)^m < n^m · n^(k'+1)
+    /- Lema clave: si X < Y entonces σX < Y + Y.
+       Prueba: σX < σY ≤ Y+Y, pues Y > 0 implica σY ≤ Y+Y. -/
+    private theorem lt_add_double_of_lt_of_pos {X Y : ℕ₀}
+        (h_lt : Lt X Y) (h_pos : Lt 𝟘 Y) :
+        Lt (σ X) (add Y Y) := by
+      have h_sX_lt_sY : Lt (σ X) (σ Y) := (succ_lt_succ_iff X Y).mpr h_lt
+      have h_Y_ne_0 : Y ≠ 𝟘 := by
+        intro h; exact absurd (h ▸ h_pos) (lt_irrefl 𝟘)
+      have h_lt_Y_addYY : Lt Y (add Y Y) := lt_self_add_r Y Y h_Y_ne_0
+      exact lt_of_lt_of_le h_sX_lt_sY (lt_nm_then_le_nm_wp h_lt_Y_addYY)
 
     /- Teorema de crecimiento: ∃ n m, ∀ k ≥ 1, (n+k)^m < n^(m+k).
 
-       Tomamos n=4, m=2. Verificación:
-         n^(m+k) = 4^(2+k) = 16 · 4^k  (crece exponencialmente)
-         (n+k)^m = (4+k)^2             (crece polinomialmente)
-       Para k=1: 25 < 64; para k=2: 36 < 256; en general 16·4^k >> (4+k)^2.
-
-       Reformulación: (n+k)^m < n^m · n^k  (por pow_add_split)
-       que es `poly_vs_exp_bound n m hn`. -/
+       Tomamos n=2, m=1. Verificación: (2+k)^1 = 2+k  y  2^(1+k) = 2·2^k.
+       Prueba: 2+k < 2·2^k para k ≥ 1.
+         Base k=1: 3 < 4.
+         Paso k → k+1: 2+(k+1) = σ(2+k) < 2·2^k + 2·2^k = 2·2^(k+1)
+           pues 2+k < 2·2^k (HI) y 2·2^k > 0. -/
     theorem exists_nm_growth :
         ∃ n m : ℕ₀, ∀ k : ℕ₀, Le 𝟙 k →
           Lt (pow (add n k) m) (pow n (add m k)) := by
-      refine ⟨σ (σ (σ (σ 𝟘))), σ (σ 𝟘), fun k hk => ?_⟩  -- n = 4, m = 2
-      rw [pow_add_split]
-      exact poly_vs_exp_bound (σ (σ (σ (σ 𝟘)))) (σ (σ 𝟘))
-              (le_trans 𝟚 (σ 𝟚) (σ (σ 𝟚)) (le_succ_self 𝟚) (le_succ_self (σ 𝟚))) k hk
+      refine ⟨𝟚, 𝟙, fun k hk => ?_⟩  -- n = 2, m = 1
+      rw [pow_add_split, pow_one, pow_one]
+      -- Meta: Lt (add 𝟚 k) (mul 𝟚 (pow 𝟚 k))
+      induction k with
+      | zero => exact absurd hk (not_succ_le_zero 𝟘)
+      | succ k' ih =>
+        cases k' with
+        | zero =>
+          -- k = 1: Lt 3 (mul 𝟚 𝟚) = Lt 3 4
+          rw [pow_succ, pow_zero, one_mul, mul_two]
+          exact lt_succ_self (σ 𝟚)
+        | succ k'' =>
+          -- k = σ(σ k''), HI: Le 𝟙 (σ k'') → Lt (add 𝟚 (σ k'')) (mul 𝟚 (pow 𝟚 (σ k'')))
+          have h_le_1_sk : Le 𝟙 (σ k'') := succ_le_succ_if_wp (zero_le k'')
+          have ih_k := ih h_le_1_sk
+          rw [add_succ, pow_succ, mul_two (pow 𝟚 (σ k'')), mul_ldistr]
+          -- Meta: Lt (σ(add 𝟚 (σ k''))) (add (mul 𝟚 (pow 𝟚 (σ k''))) (mul 𝟚 (pow 𝟚 (σ k''))))
+          have h_pow_pos : Lt 𝟘 (pow 𝟚 (σ k'')) :=
+            pow_gt (lt_trans 𝟘 𝟙 𝟚 (lt_succ_self 𝟘) (lt_succ_self 𝟙)) (zero_lt_succ k'')
+          have h_Y_pos : Lt 𝟘 (mul 𝟚 (pow 𝟚 (σ k''))) :=
+            mul_pos (lt_trans 𝟘 𝟙 𝟚 (lt_succ_self 𝟘) (lt_succ_self 𝟙)) h_pow_pos
+          exact lt_add_double_of_lt_of_pos ih_k h_Y_pos
 
   end NewtonBinom
 end Peano

@@ -151,11 +151,11 @@ Teoremas destacados: `bezout_natform`, `gcd_greatest`, `divides_trans`, `multipl
 
 ### `Peano.NewtonBinom` — Sumatorios y Binomio de Newton
 
-- `finSum f n` — Σ_{k=0}^{n} f(k); linealidad, monotonía, positividad
+- `finSum f n` — Σ_{k=0}^{n} f(k); linealidad, monotonía, positividad, desplazamiento (`finSum_succ_left`), inversión (`finSum_reverse`)
 - `binomTerm a b n k` — C(n,k)·aᵏ·b^(n−k)
-- `sum_binom_eq_pow_two` — Σ C(n,k) = 2ⁿ (⚠️ sorry)
-- `newton_binom` — **(a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k)** (⚠️ sorry en convolución)
-- `exists_nm_growth` — ∃n,m, ∀k≥1, (n+k)ᵐ < n^(m+k) (⚠️ sorry)
+- `sum_binom_eq_pow_two` — **Σ C(n,k) = 2ⁿ** (demostrado)
+- `newton_binom` — **(a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k)** (demostrado)
+- `exists_nm_growth` — **∃n,m, ∀k≥1, (n+k)ᵐ < n^(m+k)** (demostrado; testigo n=2, m=1)
 
 ---
 

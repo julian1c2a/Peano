@@ -147,9 +147,10 @@ namespace Peano
     | σ n => fun t1 t2 =>
         match decEq t1.1 t2.1, tupleDecEq n t1.2 t2.2 with
         | isTrue h1, isTrue h2 => isTrue (by
+            have : t1.1 = t2.1 := h1
+            have : t1.2 = t2.2 := h2
             cases t1; cases t2
-            simp only [Prod.mk.injEq]
-            exact ⟨h1, h2⟩)
+            congr)
         | isFalse h1, _ => isFalse (fun h => h1 (by cases h; rfl))
         | _, isFalse h2 => isFalse (fun h => h2 (by cases h; rfl))
 

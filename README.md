@@ -1,5 +1,7 @@
 # Peano
 
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+
 Formalización de la aritmética de Peano en **Lean 4**, construida desde los axiomas inductivos de `ℕ₀` sin depender de Mathlib.
 
 > **Autor:** Julián Calderón Almendros
@@ -197,6 +199,24 @@ Ver [`REFERENCE.md`](REFERENCE.md) para la referencia completa de definiciones, 
 
 ---
 
+## Créditos y Reconocimientos
+
+**Recursos Educativos:**
+- "Razonando con Lean" - José A. Alonso (YouTube)
+- Adrián GQ (@conjuntos_y_logica) - YouTube
+
+**Referencias Bibliográficas:**
+- "Axiomatic Set Theory" - Patrick Suppes (1960/1972)
+- "Axiomatic Set Theory" - Paul Bernays (1958)
+
+**Herramientas de IA:**
+- Claude Code AI (Anthropic)
+- Gemini AI (Google)
+
+---
+
 ## Licencia
 
 MIT — ver [`LICENSE`](LICENSE).
+
+Copyright (c) 2025 Julián Calderón Almendros

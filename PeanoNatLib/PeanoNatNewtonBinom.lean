@@ -227,8 +227,7 @@ namespace Peano
                             = Σ T(a,b,n,k)·a + Σ T(a,b,n,k)·b
        La reindexación de ambas sumas y la aplicación de Pascal producen
        Σ_{k=0}^{n+1} T(a,b,n+1,k).
-       ⚠️ sorry: la convolución de índices requiere `binomTerm_pascal_step`
-       y lemas de desplazamiento de suma que dependen de la resta truncada. -/
+    -/
     theorem newton_binom (a b n : ℕ₀) :
         pow (add a b) n = finSum (binomTerm a b n) n := by
       induction n with

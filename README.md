@@ -128,8 +128,9 @@ Teoremas destacados: `bezout_natform`, `gcd_greatest`, `divides_trans`, `multipl
 
 - `Irreducible`, `HasExactlyTwoDivisors`, `Prime` — tres definiciones equivalentes de primo
 - `prime_iff_irreducible`, `prime_iff_has_exactly_two_divisors` — equivalencias demostradas
-- `exists_prime_factorization` — **TFA existencia**: todo n ≥ 2 tiene factorización prima
-- `unique_prime_factorization` — **TFA unicidad** (⚠️ sorry pendiente)
+- `coprime_dvd_of_dvd_mul` — **Lema de Gauss**: gcd(a,b) = 1 ∧ a ∣ b·c ⇒ a ∣ c (demostrado)
+- `exists_prime_factorization` — **TFA existencia**: todo n ≥ 2 tiene factorización prima (demostrado)
+- `unique_prime_factorization` — **TFA unicidad**: igualdad de multiplicidades primo a primo (completamente demostrado)
 
 ### `Peano.Pow` — Potenciación `^`
 

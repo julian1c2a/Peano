@@ -1,6 +1,6 @@
 # Dependencias del Proyecto Peano
 
-**Última actualización:** 2026-03-15 12:00
+**Última actualización:** 2026-03-16 18:00
 **Autor**: Julián Calderón Almendros
 
 ---

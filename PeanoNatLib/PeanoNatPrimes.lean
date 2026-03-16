@@ -663,6 +663,48 @@ namespace Peano
             rw [filter_count_neq (Ne.symm h_pp₀) qs hp₀_mem]
             exact ih_eq
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 8. Alias exportable de Prime y conjunto ℙ
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Alias de `Peano.Arith.Prime` en el namespace `Peano.Primes`,
+        para que sea exportable junto con los resultados de este módulo.
+        Computable: No (Prop). Dependencias: `Peano.Arith.Prime`. -/
+    abbrev Prime (p : ℕ₀) : Prop := Peano.Arith.Prime p
+
+    /-- El **conjunto de los números primos** como subtipo de ℕ₂.
+        ℙ := { n ∈ ℕ₂ // Prime n.val.val }
+        donde ℕ₂ = { n : ℕ₁ // n.val ≠ 1 } y ℕ₁ = { n : ℕ₀ // n ≠ 0 },
+        de modo que todo n : ℙ satisface n ≠ 0, n ≠ 1, y es primo.
+        Computable: No (Prop). Dependencias: `ℕ₂`, `Prime`. -/
+    def ℙ : Type := {n : ℕ₂ // Prime n.val.val}
+
   end Primes
 
 end Peano
+
+export Peano.Primes (
+    Prime
+    ℙ
+    Irreducible
+    HasExactlyTwoDivisors
+    prime_ne_zero
+    prime_ge_two
+    prime_divisors
+    prime_ne_one
+    irreducible_imp_prime
+    prime_iff_irreducible
+    not_has_two_divisors_one
+    not_has_two_divisors_zero
+    prime_iff_has_exactly_two_divisors
+    PrimeList
+    product_list
+    product_nil
+    product_cons
+    product_append
+    product_list_pos
+    prime_dvd_product_list
+    exists_prime_divisor
+    exists_prime_factorization
+    unique_prime_factorization
+)

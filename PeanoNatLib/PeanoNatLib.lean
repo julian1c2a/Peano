@@ -146,28 +146,34 @@ namespace Peano
     | 𝟘 => fun _ _ => isTrue rfl
     | σ n => fun t1 t2 =>
         match decEq t1.1 t2.1, tupleDecEq n t1.2 t2.2 with
-        | isTrue h1, isTrue h2 => isTrue (by rw [h1, h2])
-        | isFalse h1, _ => isFalse (fun h => h1 (by rw [h]))
-        | _, isFalse h2 => isFalse (fun h => h2 (by rw [h]))
+        | isTrue h1, isTrue h2 => isTrue (by
+            cases t1; cases t2
+            simp only [Prod.mk.injEq]
+            exact ⟨h1, h2⟩)
+        | isFalse h1, _ => isFalse (fun h => h1 (by cases h; rfl))
+        | _, isFalse h2 => isFalse (fun h => h2 (by cases h; rfl))
 
   -- Representación para tuplas
   instance tupleRepr : (n : ℕ₀) → Repr (Tuple n)
     | 𝟘 => ⟨fun _ _ => "⟨⟩"⟩
     | σ n => ⟨fun t _ =>
         let head := repr t.1
-        let tail := (tupleRepr n).reprPrec t.2 0
-        if tail = "⟨⟩" then
+        let tailRepr := (tupleRepr n).reprPrec t.2 0
+        let tailStr := toString tailRepr
+        if tailStr = "⟨⟩" then
           s!"⟨{head}⟩"
         else
-          s!"⟨{head}, {tail.drop 1}"⟩
+          s!"⟨{head}, {tailStr.drop 1}"⟩
 
   -- Función para obtener el i-ésimo elemento de una tupla (con prueba de bounds)
+  -- NOTA: Esta función requiere Lt de PeanoNatStrictOrder, por lo que se deja
+  -- comentada hasta que ese módulo esté disponible
+  /-
   def getTuple : (n : ℕ₀) → Tuple n → (i : ℕ₀) → (h : Lt i n) → ℕ₀
     | σ n, t, 𝟘, _ => headTuple t
-    | σ n, t, σ i, h => getTuple n (tailTuple t) i (by
-        -- Aquí necesitaríamos Lt (σ i) (σ n) → Lt i n
-        -- que vendrá de PeanoNatStrictOrder
-        sorry)
+    | σ n, t, σ i, h => getTuple n (tailTuple t) i (by sorry)
+    | 𝟘, _, _, h => absurd h (by sorry)
+  -/
 
   -- Función para construir una tupla desde una función
   def mkTuple : (n : ℕ₀) → (f : ℕ₀ → ℕ₀) → Tuple n
@@ -195,7 +201,6 @@ export Peano (
   consTuple
   headTuple
   tailTuple
-  getTuple
   mkTuple
 )
 -- PeanoNatLib/PeanoNatDiv.lean

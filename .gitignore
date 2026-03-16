@@ -38,3 +38,5 @@ txtcopies/PeanoNatMul.lean.txt
 txtcopies/PeanoNatOrder.lean.txt
 txtcopies/PeanoNatStrictOrder.lean.txt
 txtcopies/PeanoNatSub.lean.txt
+.aider*
+.env

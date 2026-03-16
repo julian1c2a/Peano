@@ -160,7 +160,7 @@
   def EqFnGen {α β} (f g : α → β)       : Prop  -- ∀ x, f x = g x
   def Comp    {α β} (f : α→β) (g : β→α) : Prop  -- ∀ x, g(f x) = x
   def EqFn    {α}   (f g : ℕ₀ → α)      : Prop
-  def EqFn2   {α}   (f g : ℕ₀×ℕ₀ → α) : Prop
+  def EqFn2   {α}   (f g : ℕ₀×ℕ₀ → α)   : Prop
   def EqFnNat {α}   (f g : Nat → α)     : Prop
   ```
 - **Computable:** Sí (identidades y definiciones proposicionales)

@@ -125,86 +125,6 @@ namespace Peano
           rw [hap] at hab
           exact mul_cancelation_left p b 𝟙 (prime_ne_zero hp) (hab.trans (mul_one p).symm)⟩
 
-    /-- **Irreducible → Prime**: si p es irreducible (y p ≠ 0), entonces es primo.
-        La demostración usa el lema de Gauss (coprime_dvd_of_dvd_mul), que a su
-        vez depende de bezout_natform y aritmética de resta. Transitivamente
-        hereda los sorry de coprime_dvd_of_dvd_mul. -/
-    theorem irreducible_imp_prime {p : ℕ₀} (hp0 : p ≠ 𝟘) (hirr : Irreducible p) :
-        Prime p :=
-      ⟨hp0, hirr.1, fun a b hdvd => by
-        -- gcd(p, a) divide a p
-        rcases gcd_dvd_left p a with ⟨k, hk⟩
-        -- hk : p = mul (gcd p a) k  (por definición de divisibilidad)
-        -- Irreducibilidad de p: gcd(p,a) = 1 ó k = 1
-        rcases hirr.2 (gcd p a) k hk.symm with h1 | hk1
-        · -- gcd(p, a) = 1  →  Coprime p a  →  Gauss  →  p ∣ b
-          -- (gcd_eq_one_iff_coprime y coprime_dvd_of_dvd_mul se definen en §3;
-          --  hasta que se refactorice el orden, sorry transitivo aquí)
-          exact Or.inr (by sorry)
-        · -- k = 1  →  gcd(p, a) = p  →  p ∣ a
-          have hgp : gcd p a = p := by
-            rw [hk1, mul_one] at hk; exact hk.symm
-          exact Or.inl (hgp ▸ gcd_dvd_right p a)⟩
-
-    -- ──────────────────────────────────────────────────────────────────
-    -- Equivalencias entre definiciones de primo
-    -- ──────────────────────────────────────────────────────────────────
-
-    /-- **Def. C ↔ Def. A**: Prime (Euclides) es equivalente a p ≠ 0 ∧ Irreducible.
-        La dirección ← hereda el sorry de coprime_dvd_of_dvd_mul. -/
-    theorem prime_iff_irreducible {p : ℕ₀} :
-        Prime p ↔ (p ≠ 𝟘 ∧ Irreducible p) := by
-      constructor
-      · intro hp
-        exact ⟨prime_ne_zero hp, prime_imp_irreducible hp⟩
-      · intro ⟨hp0, hirr⟩
-        exact irreducible_imp_prime hp0 hirr
-
-    /-- **Def. B**: p tiene exactamente dos divisores — todos los divisores de p
-        son 1 ó p, y p ≠ 1. Esta formulación excluye automáticamente p = 0
-        (porque todo natural divide a 0) y p = 1 (por la segunda cláusula). -/
-    def HasExactlyTwoDivisors (p : ℕ₀) : Prop :=
-      (∀ d : ℕ₀, d ∣ p → d = 𝟙 ∨ d = p) ∧ p ≠ 𝟙
-
-    /-- 1 no tiene exactamente dos divisores (la condición p ≠ 1 falla). -/
-    theorem not_has_two_divisors_one : ¬ HasExactlyTwoDivisors 𝟙 :=
-      fun h => h.2 rfl
-
-    /-- 0 no tiene exactamente dos divisores: 𝟚 ∣ 0 pero 𝟚 ≠ 1 y 𝟚 ≠ 0. -/
-    theorem not_has_two_divisors_zero : ¬ HasExactlyTwoDivisors 𝟘 := by
-      intro ⟨hall, _⟩
-      rcases hall 𝟚 (divides_zero 𝟚) with h | h
-      · -- 𝟚 = 𝟙: succ_inj_pos_wp da σ𝟘 = 𝟘, absurdo por succ_neq_zero
-        exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
-      · -- 𝟚 = 𝟘: σ(σ𝟘) = 𝟘  →  absurdo
-        exact absurd h (succ_neq_zero (σ 𝟘))
-
-    /-- **Def. C ↔ Def. B**: Prime es equivalente a HasExactlyTwoDivisors.
-        Dirección →: prime_divisors + prime_ne_one.
-        Dirección ←: reducir a irreducible_imp_prime (hereda sorry de Gauss). -/
-    theorem prime_iff_has_exactly_two_divisors {p : ℕ₀} :
-        Prime p ↔ HasExactlyTwoDivisors p := by
-      constructor
-      · intro hp
-        exact ⟨fun d hd => prime_divisors hp hd, prime_ne_one hp⟩
-      · intro ⟨hall, hp1⟩
-        -- p ≠ 0: si p = 0, entonces 𝟚 ∣ 0, pero hall daría 𝟚 = 1 ó 𝟚 = 0 — ambas falsas
-        have hp0 : p ≠ 𝟘 := by
-          intro h0
-          subst h0
-          rcases hall 𝟚 (divides_zero 𝟚) with h | h
-          · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
-          · exact absurd h (succ_neq_zero (σ 𝟘))
-        apply irreducible_imp_prime hp0
-        refine ⟨hp1, fun a b hab => ?_⟩
-        rcases hall a ⟨b, hab.symm⟩ with ha1 | hap
-        · exact Or.inl ha1
-        · right
-          -- a = p y a·b = p  →  p·b = p·1  →  b = 1
-          rw [← hap] at hab
-          exact mul_cancelation_left a b 𝟙 (hap ▸ hp0)
-            (hab.trans (mul_one a).symm)
-
     -- ══════════════════════════════════════════════════════════════════
     -- § 3. Coprimalidad y lema de Gauss
     -- ══════════════════════════════════════════════════════════════════
@@ -251,34 +171,102 @@ namespace Peano
       · rw [hc0]; exact divides_zero a
       rcases h_bez with h | h
       · -- Caso 1: 𝟙 = sub (mul n a) (mul m b)
-        -- (Aritmética de resta natural: sorry pendiente de completar)
-        have h_lt : Lt (mul m b) (mul n a) := by
-          exact (sub_pos_iff_lt (mul n a) (mul m b)).mp (h ▸ Or.inr rfl)
-        -- mul n a = mul m b + 1
-        -- multiplicar por c → mul (mul n a) c = mul (mul m b) c + c
-        -- a ∣ mul (mul n a) c y a ∣ mul (mul m b) c → a ∣ c
+        have h_lt : Lt (mul m b) (mul n a) :=
+          (sub_pos_iff_lt (mul n a) (mul m b)).mp (h ▸ Or.inr rfl)
         have h1 : a ∣ mul (mul n a) c := by
           rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
         have h2 : a ∣ mul (mul m b) c := by
           rw [mul_assoc]; exact divides_mul_left hdvd
-        -- sub (mul (mul n a) c) (mul (mul m b) c) = c
-        -- (Requiere probar que mul (mul n a) c = mul (mul m b) c + c,
-        --  lo que se sigue de: 1 = n·a − m·b → n·a = m·b + 1 → n·a·c = m·b·c + c)
-        have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by sorry
-        have h_lt2 : Lt (mul (mul m b) c) (mul (mul n a) c) := by sorry
+        -- n·a = m·b + 1  →  (n·a)·c = (m·b)·c + c
+        have h_na_c : mul (mul n a) c = add (mul (mul m b) c) c := by
+          have h_sk := sub_k_add_k (mul n a) (mul m b) (lt_imp_le_wp h_lt)
+          rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m b) = mul n a
+          rw [h_sk.symm, mul_rdistr, one_mul]
+          exact add_comm c (mul (mul m b) c)
+        have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by
+          rw [h_na_c]
+          exact add_k_sub_k c (mul (mul m b) c)
+        have h_lt2 : Lt (mul (mul m b) c) (mul (mul n a) c) := by
+          rw [h_na_c]; exact lt_self_add_r (mul (mul m b) c) c hc_ne
         rw [← h_sub_c]
         exact divides_sub h_lt2 h1 h2
       · -- Caso 2: 𝟙 = sub (mul n b) (mul m a)  (simétrico)
-        have h_lt : Lt (mul m a) (mul n b) := by
-          exact (sub_pos_iff_lt (mul n b) (mul m a)).mp (h ▸ Or.inr rfl)
+        have h_lt : Lt (mul m a) (mul n b) :=
+          (sub_pos_iff_lt (mul n b) (mul m a)).mp (h ▸ Or.inr rfl)
         have h1 : a ∣ mul (mul n b) c := by
           rw [mul_assoc]; exact divides_mul_left hdvd
         have h2 : a ∣ mul (mul m a) c := by
           rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
-        have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by sorry
-        have h_lt2 : Lt (mul (mul m a) c) (mul (mul n b) c) := by sorry
+        -- n·b = m·a + 1  →  (n·b)·c = (m·a)·c + c
+        have h_nb_c : mul (mul n b) c = add (mul (mul m a) c) c := by
+          have h_sk := sub_k_add_k (mul n b) (mul m a) (lt_imp_le_wp h_lt)
+          rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m a) = mul n b
+          rw [h_sk.symm, mul_rdistr, one_mul]
+          exact add_comm c (mul (mul m a) c)
+        have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by
+          rw [h_nb_c]
+          exact add_k_sub_k c (mul (mul m a) c)
+        have h_lt2 : Lt (mul (mul m a) c) (mul (mul n b) c) := by
+          rw [h_nb_c]; exact lt_self_add_r (mul (mul m a) c) c hc_ne
         rw [← h_sub_c]
         exact divides_sub h_lt2 h1 h2
+
+    -- ──────────────────────────────────────────────────────────────────
+    -- Irreducible → Prime y equivalencias (dependen de coprime_dvd_of_dvd_mul)
+    -- ──────────────────────────────────────────────────────────────────
+
+    /-- **Irreducible → Prime**: si p es irreducible (y p ≠ 0), entonces es primo. -/
+    theorem irreducible_imp_prime {p : ℕ₀} (hp0 : p ≠ 𝟘) (hirr : Irreducible p) :
+        Prime p :=
+      ⟨hp0, hirr.1, fun a b hdvd => by
+        rcases gcd_dvd_left p a with ⟨k, hk⟩
+        rcases hirr.2 (gcd p a) k hk.symm with h1 | hk1
+        · exact Or.inr (coprime_dvd_of_dvd_mul
+            ((gcd_eq_one_iff_coprime p a).mp h1) hdvd)
+        · have hgp : gcd p a = p := by
+            rw [hk1, mul_one] at hk; exact hk.symm
+          exact Or.inl (hgp ▸ gcd_dvd_right p a)⟩
+
+    /-- **Def. C ↔ Def. A**: Prime (Euclides) ↔ p ≠ 0 ∧ Irreducible. -/
+    theorem prime_iff_irreducible {p : ℕ₀} :
+        Prime p ↔ (p ≠ 𝟘 ∧ Irreducible p) :=
+      ⟨fun hp => ⟨prime_ne_zero hp, prime_imp_irreducible hp⟩,
+       fun ⟨hp0, hirr⟩ => irreducible_imp_prime hp0 hirr⟩
+
+    /-- **Def. B**: p tiene exactamente dos divisores — todos los divisores de p
+        son 1 ó p, y p ≠ 1. -/
+    def HasExactlyTwoDivisors (p : ℕ₀) : Prop :=
+      (∀ d : ℕ₀, d ∣ p → d = 𝟙 ∨ d = p) ∧ p ≠ 𝟙
+
+    theorem not_has_two_divisors_one : ¬ HasExactlyTwoDivisors 𝟙 :=
+      fun h => h.2 rfl
+
+    theorem not_has_two_divisors_zero : ¬ HasExactlyTwoDivisors 𝟘 := by
+      intro ⟨hall, _⟩
+      rcases hall 𝟚 (divides_zero 𝟚) with h | h
+      · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
+      · exact absurd h (succ_neq_zero (σ 𝟘))
+
+    /-- **Def. C ↔ Def. B**: Prime ↔ HasExactlyTwoDivisors. -/
+    theorem prime_iff_has_exactly_two_divisors {p : ℕ₀} :
+        Prime p ↔ HasExactlyTwoDivisors p := by
+      constructor
+      · intro hp
+        exact ⟨fun d hd => prime_divisors hp hd, prime_ne_one hp⟩
+      · intro ⟨hall, hp1⟩
+        have hp0 : p ≠ 𝟘 := by
+          intro h0; subst h0
+          rcases hall 𝟚 (divides_zero 𝟚) with h | h
+          · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
+          · exact absurd h (succ_neq_zero (σ 𝟘))
+        apply irreducible_imp_prime hp0
+        refine ⟨hp1, fun a b hab => ?_⟩
+        rcases hall a ⟨b, hab.symm⟩ with ha1 | hap
+        · exact Or.inl ha1
+        · right
+          rw [← hap] at hab
+          exact mul_cancelation_left a b 𝟙 (hap ▸ hp0)
+            (hab.trans (mul_one a).symm)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 4. Listas de primos y función producto
@@ -528,17 +516,102 @@ namespace Peano
         · simp [product_list]
           exact divides_trans (ih h_mem) (divides_mul_left (divides_refl _))
 
-    /-- **TFA — Unicidad.**
-        Dos listas de primos con el mismo producto tienen la misma
-        multiplicidad de cada primo.
+    -- ──────────────────────────────────────────────────────────────────
+    -- Auxiliares para unicidad (remove_one y propiedades)
+    -- ──────────────────────────────────────────────────────────────────
 
-        Esquema de la demostración (por inducción sobre length ps):
-          Base: ps = nil → producto = 1 = producto qs → qs = nil.
-          Paso: sea p₀ la cabeza de ps. Entonces p₀ ∣ ∏qs.
-            Por prime_dvd_product_list, ∃ q ∈ qs tal que p₀ ∣ q.
-            Como q es primo y p₀ primo: p₀ = q.
-            Relocalizamos q al frente de qs y cancelamos p₀ en ambos productos.
-            La IH da igualdad de multiplicidades para el resto.         -/
+    /-- Elimina la primera ocurrencia de p. -/
+    private def remove_one (p : ℕ₀) : DList ℕ₀ → DList ℕ₀
+      | DList.nil       => DList.nil
+      | DList.cons q qs => if q = p then qs else DList.cons q (remove_one p qs)
+
+    private theorem product_remove_one {p : ℕ₀} :
+        ∀ l : DList ℕ₀, DList.Mem p l →
+          product_list l = mul p (product_list (remove_one p l)) := by
+      intro l hm
+      induction l with
+      | nil => exact hm.elim
+      | cons q qs ih =>
+        by_cases h : q = p
+        · subst h
+          simp [remove_one, product_list]
+        · simp only [remove_one, if_neg h, product_list]
+          rcases hm with rfl | hm
+          · exact absurd rfl h
+          · rw [ih hm, ← mul_assoc, mul_comm q p, mul_assoc]
+
+    private theorem primelist_remove_one {p : ℕ₀} {l : DList ℕ₀}
+        (hm : DList.Mem p l) (hpl : PrimeList l) : PrimeList (remove_one p l) := by
+      induction l with
+      | nil => exact hm.elim
+      | cons q qs ih =>
+        by_cases h : q = p
+        · subst h
+          simp only [remove_one]
+          intro r hr; exact hpl r (Or.inr hr)
+        · simp only [remove_one, if_neg h]
+          rcases hm with rfl | hm
+          · exact absurd rfl h
+          · intro r hr
+            rcases hr with rfl | hr
+            · exact hpl r (Or.inl rfl)
+            · exact ih hm (fun r hr => hpl r (Or.inr hr)) r hr
+
+    /-- Quitar p de l no afecta la longitud del filtro de p' ≠ p. -/
+    private theorem filter_count_neq {p p' : ℕ₀} (hne : p ≠ p') :
+        ∀ l : DList ℕ₀, DList.Mem p l →
+          DList.length (DList.filter (fun q => decide (q = p')) l) =
+          DList.length (DList.filter (fun q => decide (q = p')) (remove_one p l)) := by
+      intro l
+      induction l with
+      | nil => intro hm; exact hm.elim
+      | cons q qs ih =>
+        intro hm
+        by_cases hqp : q = p
+        · subst hqp
+          simp only [remove_one, DList.filter]
+          have : decide (q = p') = false := by simp [hne]
+          simp [this]
+        · simp only [remove_one, if_neg hqp, DList.filter]
+          rcases hm with rfl | hm
+          · exact absurd rfl hqp
+          · by_cases hqp' : q = p'
+            · simp only [show decide (q = p') = true from decide_eq_true_eq.mpr hqp',
+                         if_true, DList.length]
+              exact congrArg (fun n => σ n) (ih hm)
+            · have : decide (q = p') = false := by simp [hqp']
+              simp only [this]
+              exact ih hm
+
+    /-- La multiplicidad de p en l es 1 + la multiplicidad en remove_one p l. -/
+    private theorem filter_count_eq {p : ℕ₀} :
+        ∀ l : DList ℕ₀, DList.Mem p l →
+          DList.length (DList.filter (fun q => decide (q = p)) l) =
+          σ (DList.length (DList.filter (fun q => decide (q = p)) (remove_one p l))) := by
+      intro l
+      induction l with
+      | nil => intro hm; exact hm.elim
+      | cons q qs ih =>
+        intro hm
+        by_cases h : q = p
+        · simp [h, remove_one, DList.filter, DList.length]
+        · simp only [remove_one, if_neg h, DList.filter]
+          have hdf : decide (q = p) = false := by simp [h]
+          simp only [hdf]
+          rcases hm with rfl | hm
+          · exact absurd rfl h
+          · exact ih hm
+
+    private theorem prime_list_nil_of_prod_one {qs : DList ℕ₀}
+        (hpl : PrimeList qs) (h : product_list qs = 𝟙) : qs = DList.nil := by
+      cases qs with
+      | nil => rfl
+      | cons q qs' =>
+        rw [product_cons] at h
+        exact absurd (mul_eq_one h).1 (prime_ne_one (hpl q (Or.inl rfl)))
+
+    /-- **TFA — Unicidad.** Dos listas de primos con igual producto tienen
+        la misma multiplicidad para cada primo. -/
     theorem unique_prime_factorization :
         ∀ ps qs : DList ℕ₀,
           PrimeList ps → PrimeList qs →
@@ -546,7 +619,49 @@ namespace Peano
           ∀ p : ℕ₀, Prime p →
             DList.length (DList.filter (fun q => decide (q = p)) ps) =
             DList.length (DList.filter (fun q => decide (q = p)) qs) := by
-      sorry
+      intro ps
+      induction ps with
+      | nil =>
+        intro qs _ hqs h_prod p _
+        rw [product_nil] at h_prod
+        have hqs_nil := prime_list_nil_of_prod_one hqs h_prod.symm
+        subst hqs_nil
+        simp [DList.filter, DList.length]
+      | cons p₀ ps' ih =>
+        intro qs hps hqs h_prod p hp
+        have hp₀     : Prime p₀    := hps p₀ (Or.inl rfl)
+        have hps'    : PrimeList ps' := fun r hr => hps r (Or.inr hr)
+        rw [product_cons] at h_prod
+        -- p₀ ∣ ∏ qs
+        have hp₀_dvd : p₀ ∣ product_list qs := ⟨product_list ps', h_prod.symm⟩
+        -- ∃ q ∈ qs, p₀ ∣ q
+        obtain ⟨q, hq_mem, hq_dvd⟩ := prime_dvd_product_list hp₀ qs hp₀_dvd
+        -- q primo y p₀ ∣ q  →  p₀ = q
+        have hq_prime : Prime q := hqs q hq_mem
+        rcases prime_divisors hq_prime hq_dvd with h1 | heq
+        · exact absurd h1 (prime_ne_one hp₀)
+        · have hp₀_mem : p₀ ∈ qs := heq ▸ hq_mem
+          -- qs' = qs sin una copia de p₀
+          have hqs'    : PrimeList (remove_one p₀ qs) :=
+            primelist_remove_one hp₀_mem hqs
+          have h_prod_qs : product_list qs = mul p₀ (product_list (remove_one p₀ qs)) :=
+            product_remove_one qs hp₀_mem
+          -- cancelar p₀
+          have h_prod' : product_list ps' = product_list (remove_one p₀ qs) :=
+            mul_cancelation_left p₀ _ _ (prime_ne_zero hp₀) (h_prod.trans h_prod_qs)
+          have ih_eq := ih (remove_one p₀ qs) hps' hqs' h_prod' p hp
+          by_cases h_pp₀ : p = p₀
+          · subst h_pp₀
+            -- count p₀ (p₀ :: ps') = σ (count p₀ ps')
+            simp [DList.filter, DList.length]
+            -- count p₀ qs = σ (count p₀ (remove_one p₀ qs))
+            rw [filter_count_eq qs hp₀_mem]
+            rw [ih_eq]
+          · -- count p (p₀ :: ps') = count p ps'  (p ≠ p₀)
+            simp [DList.filter, Ne.symm h_pp₀]
+            -- count p qs = count p (remove_one p₀ qs)
+            rw [filter_count_neq (Ne.symm h_pp₀) qs hp₀_mem]
+            exact ih_eq
 
   end Primes
 

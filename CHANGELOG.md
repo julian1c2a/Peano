@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### Changed (2026-04-10)
+
+- **Phase 14 — Extract Prelim.lean**: Extracted `ExistsUnique`, `choose`,
+  `choose_spec`, `choose_unique`, `choose_spec_unique`, `choose_uniq` and
+  `∃¹` syntax macros from `PeanoNat.lean` into new `Peano/Prelim.lean`.
+  - `PeanoNat.lean` now imports `Peano.Prelim` instead of `Init.Classical`.
+  - `Peano.lean` updated with `import Peano.Prelim` + separate export block.
+  - DEPENDENCIES.md updated (new Prelim node in dependency graph).
+  - Build: 20/20 jobs, 0 sorry, 0 warnings.
+
 ### Changed (2026-04-08)
 
 - **Phase 13 — Subdirectory restructure**: Moved 15 `PeanoNat*.lean` files into

@@ -25,7 +25,7 @@
 | 11 | Warning Cleanup | ✅ Complete |
 | 12 | Update REFERENCE.md with new names | ❌ Pending |
 | 13 | Subdirectory restructure PeanoNat/ | ✅ Complete |
-| 14 | Extract Prelim.lean (shared infrastructure) | ❌ Pending |
+| 14 | Extract Prelim.lean (shared infrastructure) | ✅ Complete |
 | 15 | Create Isomorph.lean (Nat↔ℕ₀ reexport) | ❌ Pending |
 | 16 | Factor Decidable module | ❌ Pending |
 | 17 | Factor Combinatorics subdirectory | ❌ Pending |

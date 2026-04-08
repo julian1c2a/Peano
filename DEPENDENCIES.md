@@ -43,6 +43,7 @@ graph TD;
         Order --> StrictOrder;
         StrictOrder --> Axioms;
         Axioms --> PeanoNat;
+        PeanoNat --> Prelim;
     end
 ```
 
@@ -54,7 +55,8 @@ graph TD;
 
 | Módulo | Ruta | Importa directamente |
 |---|---|---|
-| `PeanoNat` | `Peano/PeanoNat.lean` | `Init.Classical` |
+| `Prelim` | `Peano/Prelim.lean` | `Init.Classical` |
+| `PeanoNat` | `Peano/PeanoNat.lean` | `Prelim` |
 | `Axioms` | `Peano/PeanoNat/Axioms.lean` | `PeanoNat` |
 | `StrictOrder` | `Peano/PeanoNat/StrictOrder.lean` | `PeanoNat`, `Axioms` |
 | `Order` | `Peano/PeanoNat/Order.lean` | `…StrictOrder` |

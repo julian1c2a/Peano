@@ -481,7 +481,7 @@ namespace Peano
     | succ n' ih =>
       cases m with
       | zero =>
-        simp [Nat.sub, Λ, sub_zero]
+        simp [Λ, sub_zero]
       | succ m' =>
         calc
           Λ (Nat.sub (Nat.succ n') (Nat.succ m'))

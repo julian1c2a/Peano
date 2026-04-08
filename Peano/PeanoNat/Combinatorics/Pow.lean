@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNatPow.lean
+-- Peano/PeanoNat/Combinatorics/Pow.lean
 -- Potenciación de naturales por naturales.
 
 import Peano.PeanoNat

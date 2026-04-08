@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNatFactorial.lean
+-- Peano/PeanoNat/Combinatorics/Factorial.lean
 -- Factorial de naturales de Peano.
 -- Nota: la notación n! no se define aquí porque en Lean 4 el lexer
 -- trata `n!` como identificador único. Se usa `factorial n` directamente.

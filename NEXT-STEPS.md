@@ -28,7 +28,7 @@
 | 14 | Extract Prelim.lean (shared infrastructure) | ✅ Complete |
 | 15 | Create Isomorph.lean (Nat↔ℕ₀ reexport) | ✅ Complete |
 | 16 | Factor Decidable module | ✅ Complete |
-| 17 | Factor Combinatorics subdirectory | ❌ Pending |
+| 17 | Factor Combinatorics subdirectory | ✅ Complete |
 
 ---
 

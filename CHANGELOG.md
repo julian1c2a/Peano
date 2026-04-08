@@ -4,6 +4,12 @@
 
 ### Changed (2026-04-10)
 
+- **Phase 17 — Factor Combinatorics subdirectory**: Moved `Pow.lean`,
+  `Factorial.lean`, `Binom.lean`, `NewtonBinom.lean` into
+  `Peano/PeanoNat/Combinatorics/`. All internal cross-imports updated.
+  - `Peano.lean` imports updated to `Peano.PeanoNat.Combinatorics.*`.
+  - Build: 22/22 jobs, 0 sorry, 0 warnings.
+
 - **Phase 16 — Factor Decidable module**: New reexport module
   `Peano/PeanoNat/Decidable.lean` that collects all Decidable instances
   (`decidableLt`, `decidableGt`, `decidableLe`, `decidableGe`), boolean

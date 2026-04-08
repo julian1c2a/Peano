@@ -21,10 +21,10 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Primes
-import Peano.PeanoNat.Pow
-import Peano.PeanoNat.Factorial
-import Peano.PeanoNat.Binom
-import Peano.PeanoNat.NewtonBinom
+import Peano.PeanoNat.Combinatorics.Pow
+import Peano.PeanoNat.Combinatorics.Factorial
+import Peano.PeanoNat.Combinatorics.Binom
+import Peano.PeanoNat.Combinatorics.NewtonBinom
 import Peano.PeanoNat.Isomorph
 import Peano.PeanoNat.Decidable
 

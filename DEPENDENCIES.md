@@ -68,10 +68,10 @@ graph TD;
 | `Div` | `Peano/PeanoNat/Div.lean` | `…Mul` |
 | `Arith` | `Peano/PeanoNat/Arith.lean` | `…Div`, `Init.Classical` |
 | `Primes` | `Peano/PeanoNat/Primes.lean` | `…Arith` |
-| `Pow` | `Peano/PeanoNat/Pow.lean` | `…Div` |
-| `Factorial` | `Peano/PeanoNat/Factorial.lean` | `…Add`, `…Mul` |
-| `Binom` | `Peano/PeanoNat/Binom.lean` | `…Factorial`, `…Sub`, `…Mul` |
-| `NewtonBinom` | `Peano/PeanoNat/NewtonBinom.lean` | `…Binom`, `…Factorial`, `…Pow` |
+| `Pow` | `Peano/PeanoNat/Combinatorics/Pow.lean` | `…Div` |
+| `Factorial` | `Peano/PeanoNat/Combinatorics/Factorial.lean` | `…Add`, `…Mul` |
+| `Binom` | `Peano/PeanoNat/Combinatorics/Binom.lean` | `…Factorial`, `…Sub`, `…Mul` |
+| `NewtonBinom` | `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `…Binom`, `…Factorial`, `…Pow` |
 | `Decidable` | `Peano/PeanoNat/Decidable.lean` | `…Order` (reexport only) |
 | `Isomorph` | `Peano/PeanoNat/Isomorph.lean` | `…Sub` (reexport only) |
 | `Peano.lean` | `Peano.lean` | todos los anteriores |

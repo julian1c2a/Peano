@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNatBinom.lean
+-- Peano/PeanoNat/Combinatorics/Binom.lean
 -- Coeficientes binomiales vía el triángulo de Pascal.
 -- Preparación para el Teorema del Binomio de Newton.
 
@@ -15,7 +15,7 @@ import Peano.PeanoNat.Order
 import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
-import Peano.PeanoNat.Factorial
+import Peano.PeanoNat.Combinatorics.Factorial
 
 /-!
 Paso 1: El Caso Base (n=0)

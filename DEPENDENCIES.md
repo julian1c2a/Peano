@@ -72,4 +72,5 @@ graph TD;
 | `Factorial` | `Peano/PeanoNat/Factorial.lean` | `…Add`, `…Mul` |
 | `Binom` | `Peano/PeanoNat/Binom.lean` | `…Factorial`, `…Sub`, `…Mul` |
 | `NewtonBinom` | `Peano/PeanoNat/NewtonBinom.lean` | `…Binom`, `…Factorial`, `…Pow` |
+| `Isomorph` | `Peano/PeanoNat/Isomorph.lean` | `…Sub` (reexport only) |
 | `Peano.lean` | `Peano.lean` | todos los anteriores |

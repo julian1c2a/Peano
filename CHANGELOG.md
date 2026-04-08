@@ -4,6 +4,14 @@
 
 ### Changed (2026-04-10)
 
+- **Phase 15 — Create Isomorph.lean**: New reexport module
+  `Peano/PeanoNat/Isomorph.lean` that collects all 30 Nat↔ℕ₀ isomorphism
+  theorems (Λ/Ψ injectivity, bijectivity, composition, commutativity with
+  σ/τ, and operation-level isomorphisms for lt/le/max/min/add/sub) from
+  6 source modules into a single import point.
+  - `Peano.lean` updated with `import Peano.PeanoNat.Isomorph`.
+  - Build: 21/21 jobs, 0 sorry, 0 warnings.
+
 - **Phase 14 — Extract Prelim.lean**: Extracted `ExistsUnique`, `choose`,
   `choose_spec`, `choose_unique`, `choose_spec_unique`, `choose_uniq` and
   `∃¹` syntax macros from `PeanoNat.lean` into new `Peano/Prelim.lean`.

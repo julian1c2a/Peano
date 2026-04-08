@@ -1,42 +1,25 @@
+# Build artifacts
 /.lake
 .lake
+
+# Editor / IDE
 /.vscode
 .vscode
-/.toml
-.toml
-/.txt
-.txt
-/.json
-.json
-lake-manifest.json
-/lake-manifest.json
+/.idea
+.idea
+nppBackup
+/.nppBackup
+
+# Notepad++ backups
+txtcopies/
+
+# Old temporary I/O files
 fwIn.txt
 fwOut.txt
 wdErr.txt
 wdOut.txt
 wdIn.txt
-/.git
-.git
-/.github
-.github
-/.idea
-.idea
-/lean-toolchain
-lean-toolchain
-/.lake-leanpkg
-.lake-leanpkg
-nppBackup
-/.nppBackup
-txtcopies
-/txtcopies
-txtcopies/PeanoNatAdd.lean.txt
-txtcopies/PeanoNatAxioms.lean.txt
-txtcopies/PeanoNatDiv.lean.txt
-txtcopies/PeanoNatLib.lean.txt
-txtcopies/PeanoNatMaxMin.lean.txt
-txtcopies/PeanoNatMul.lean.txt
-txtcopies/PeanoNatOrder.lean.txt
-txtcopies/PeanoNatStrictOrder.lean.txt
-txtcopies/PeanoNatSub.lean.txt
+
+# AI tools
 .aider*
 .env

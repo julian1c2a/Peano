@@ -1,0 +1,21 @@
+# Locked files — write-protected during development sessions
+# Use: bash git-lock.bash lock/unlock <file>
+# See AI-GUIDE.md §20 for the session locking protocol.
+
+Peano.lean
+PeanoNatLib/PeanoNatLib.lean
+PeanoNatLib/PeanoNatAxioms.lean
+PeanoNatLib/PeanoNatStrictOrder.lean
+PeanoNatLib/PeanoNatOrder.lean
+PeanoNatLib/PeanoNatMaxMin.lean
+PeanoNatLib/PeanoNatWellFounded.lean
+PeanoNatLib/PeanoNatAdd.lean
+PeanoNatLib/PeanoNatSub.lean
+PeanoNatLib/PeanoNatMul.lean
+PeanoNatLib/PeanoNatDiv.lean
+PeanoNatLib/PeanoNatArith.lean
+PeanoNatLib/PeanoNatPrimes.lean
+PeanoNatLib/PeanoNatPow.lean
+PeanoNatLib/PeanoNatFactorial.lean
+PeanoNatLib/PeanoNatBinom.lean
+PeanoNatLib/PeanoNatNewtonBinom.lean

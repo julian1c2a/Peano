@@ -40,11 +40,11 @@ export Peano (
   ℕ₂
   idℕ₀
   idNat
-  EqFnGen
-  Comp
-  EqFn
-  EqFn2
-  EqFnNat
+  eqFnGen
+  comp
+  eqFn
+  eqFn2
+  eqFnNat
   cero
   one
   two
@@ -57,36 +57,36 @@ export Peano (
 -- namespace Peano.Axioms  (PeanoNatAxioms.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Axioms (
-  is_zero
-  is_succ
-  return_branch
+  isZero
+  isSucc
+  returnBranch
   noConfusion
-  AXIOM_zero_is_an_PeanoNat
-  AXIOM_succ_is_an_PeanoNat
+  isNat_zero
+  isNat_succ
   cero_neq_succ
-  AXIOM_cero_neq_succ
-  AXIOM_succ_is_funct_forall_n_in_PeanoNat
-  AXIOM_uniqueness_on_image
-  AXIOM_succ_inj
+  zero_ne_succ
+  succ_isNat
+  succ_congr
+  succ_injective
   succ_inj
   succ_inj_wp
   succ_inj_neg
   succ_inj_pos_wp
   succ_neq_zero
   AXIOM_zero_notin_ima_succ
-  AXIOM_induction_on_PeanoNat
+  induction_principle
   BIs_zero
   BIs_succ
   category_by_constructor
   neq_succ
-  is_zero_or_is_succ
-  is_zero_xor_is_succ
-  Comp_Λ_eq_Ψ
-  Comp_Ψ_eq_Λ
-  EqFn_induction
-  EqFn_refl
-  EqFn_symm
-  EqFn_trans
+  isZero_or_isSucc
+  isZero_xor_isSucc
+  comp_Λ_eq_Ψ
+  comp_Ψ_eq_Λ
+  eqFn_induction
+  eqFn_refl
+  eqFn_symm
+  eqFn_trans
   isomorph_0_Λ
   isomorph_0_Ψ
   isomorph_σ_Λ
@@ -103,19 +103,19 @@ export Peano.Axioms (
 -- ─────────────────────────────────────────────────────────────────
 export Peano.StrictOrder (
   Lt
-  BLt
+  blt
   Gt
-  BGt
+  bgt
   lt_then_lt_succ
   lt_then_lt_succ_wp
   lt_iff_lt_σ_σ
   lt_iff_lt_τ_τ
   nlt_self
-  nlt_0_0
+  not_lt_zero
   nlt_n_0
   nlt_n_0_false
-  lt_0_n
-  lt_then_neq
+  pos_of_ne_zero
+  ne_of_lt
   neq_then_lt_or_gt
   lt_nor_gt_then_eq
   lt_succ_self
@@ -136,11 +136,11 @@ export Peano.StrictOrder (
   exists_greater_nat
   nexists_greater_forall
   lt_succ_iff_lt_or_eq
-  BLt_iff_Lt
-  BLt_then_Lt_wp
-  BGt_iff_Gt
-  nBLt_iff_nLt
-  nBGt_iff_nGt
+  blt_iff_Lt
+  blt_then_Lt_wp
+  bgt_iff_Gt
+  nblt_iff_nLt
+  nbgt_iff_nGt
   isomorph_Λ_lt
   isomorph_Ψ_lt
   decidableLt
@@ -177,9 +177,9 @@ export Peano.StrictOrder (
 export Peano.Order (
   Le
   Ge
-  Le'
-  BLe
-  BGe
+  le'
+  ble
+  bge
   zero_le
   succ_le_succ_iff
   succ_le_succ_iff_wp
@@ -189,17 +189,17 @@ export Peano.Order (
   succ_le_succ_if_wp
   succ_le_succ'_then_wp
   le_then_le_succ
-  Le_iff_Le'
+  Le_iff_le'
   le_zero_eq
   le_zero_eq_wp
   not_succ_le_zero
-  BLe_iff_Le
+  ble_iff_Le
   decidableLe
   le_of_eq
   le_of_eq_wp
   le_self_of_eq_self
   le_0_of_eq_0
-  BGe_iff_Ge
+  bge_iff_Ge
   decidableGe
   le_refl
   lt_imp_le
@@ -292,7 +292,7 @@ export Peano.MaxMin (
   min_0_abs
   max_not_0
   max_0_not
-  eq_max_min_then_eq
+  eq_of_max_eq_min
   eq_then_eq_max_min
   eq_iff_eq_max_min
   min_of_min_max
@@ -304,14 +304,14 @@ export Peano.MaxMin (
   min_eq_of_gt
   max_eq_of_lt
   max_eq_of_gt
-  if_neq_then_max_xor
+  max_ne_min_of_ne
   if_neq_then_min_xor
-  neq_args_then_lt_min_max
+  lt_max_of_ne
   max_comm
   min_comm
   le_then_max_eq_right
   le_then_max_eq_left
-  Lt_of_not_le
+  lt_of_not_le
   le_max_left
   le_max_right
   max_le
@@ -322,7 +322,7 @@ export Peano.MaxMin (
   min_le_right
   le_min
   min_assoc
-  nexists_max_abs
+  not_exists_max
   min_eq_right
   min_eq_left
   max_eq_right
@@ -385,7 +385,7 @@ export Peano.Add (
   lt_self_add_l
   lt_self_add_l_forall
   add_lt
-  add_cancelation
+  add_cancel
   cancelation_add
   add_lt_cancelation
   add_le_cancelation
@@ -513,13 +513,13 @@ export Peano.Mul (
   mul_three
   three_mul
   mul_comm
-  mul_ldistr
-  mul_rdistr
+  mul_add
+  add_mul
   mul_cancelation_left
   mul_cancelation_right
   mul_assoc
   mul_eq_zero
-  mul_eq_zero_wp
+  eq_zero_of_mul_eq_zero
   obvio_1
   le_n_mul_n_σn
   mul_le_right
@@ -537,7 +537,7 @@ export Peano.Mul (
   lt_of_lt_of_le
   archimedean_property
   exists_unique_mul_le_and_lt_succ_mul
-  mul_le_then_exists_max_factor
+  exists_factor_of_mul_le
   le_le_mul_le_compat
   mul_pos
   lt_lt_mul_lt_compat
@@ -553,15 +553,15 @@ export Peano.Div (
   divMod
   div
   mod
-  divMod_eq
-  mod_lt_divisor
+  divMod_spec
+  mod_lt
   div_le_self
   gt_imp_neq_zero_one
   div_lt_self
   div_of_lt
   mod_of_lt
   div_of_lt_fst_interval
-  div_of_lt_snd_interval
+  div_eq_two
   le___mul__div_a_b__b____a
   div_of_lt_nth_interval
   mod_of_lt_fst_interval
@@ -623,7 +623,7 @@ export Peano.Arith (
   gcd₁_divides_right
   gcd₁_divides_both
   mod_eq_zero_iff_divides
-  Factors_of
+  factorsOf
   dividesb
   range_from_one
 )

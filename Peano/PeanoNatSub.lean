@@ -996,7 +996,7 @@ namespace Peano
       Lt 𝟘 (sub b a)
           := by
     have h_le : Le a b := lt_imp_le a b h_lt
-    have h_neq : a ≠ b := lt_then_neq a b h_lt
+    have h_neq : a ≠ b := ne_of_lt a b h_lt
     rw [sub]
     simp only [dif_pos h_le]
     induction b generalizing a with
@@ -1011,7 +1011,7 @@ namespace Peano
       | succ a' =>
         have h_lt_a'_b' : Lt a' b' := (lt_of_succ_lt_succ a' b').mp h_lt
         have h_le_a'_b' : Le a' b' := lt_imp_le a' b' h_lt_a'_b'
-        have h_neq_a'_b' : a' ≠ b' := lt_then_neq a' b' h_lt_a'_b'
+        have h_neq_a'_b' : a' ≠ b' := ne_of_lt a' b' h_lt_a'_b'
         have h_sub_eq : subₕₖ (σ b') (σ a') h_le = subₕₖ b' a' h_le_a'_b' := by
           simp only [subₕₖ]
         rw [h_sub_eq]

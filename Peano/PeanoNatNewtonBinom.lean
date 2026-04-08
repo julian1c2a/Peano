@@ -74,14 +74,14 @@ namespace Peano
         finSum (fun k => mul c (f k)) n = mul c (finSum f n) := by
       induction n with
       | zero    => rfl
-      | succ n' ih => rw [finSum_succ, finSum_succ, ih, mul_ldistr]
+      | succ n' ih => rw [finSum_succ, finSum_succ, ih, mul_add]
 
     /- Distribución a derecha: (Σ f) · c = Σ (f · c). -/
     theorem finSum_mul_const_right (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
         mul (finSum f n) c = finSum (fun k => mul (f k) c) n := by
       induction n with
       | zero    => rfl
-      | succ n' ih => rw [finSum_succ, finSum_succ, mul_rdistr, ← ih]
+      | succ n' ih => rw [finSum_succ, finSum_succ, add_mul, ← ih]
 
     /- Monotonía: si f ≤ g puntualmente entonces Σ f ≤ Σ g. -/
     theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) :
@@ -203,7 +203,7 @@ namespace Peano
           (sub_succ_succ_eq n k).trans (sub_succ n (σ k) h)
         rw [h_sub_eq, pow_succ]
         -- LHS: (C1+C2)·(A·a)·(B·b)  RHS: C1·A·(B·b)·a + C2·(A·a)·B·b
-        rw [mul_rdistr, mul_rdistr]
+        rw [add_mul, add_mul]
         congr 1
         · -- C1·(A·a)·(B·b) = (C1·A)·(B·b)·a
           rw [← mul_assoc (pow a k) C(n, k) a,
@@ -234,7 +234,7 @@ namespace Peano
       | zero =>
           rw [pow_zero, finSum_zero, binomTerm_zero, pow_zero]
       | succ n' ih =>
-          rw [pow_succ, ih, mul_ldistr]
+          rw [pow_succ, ih, mul_add]
           -- Meta: add (mul (finSum (binomTerm a b n') n') a)
           --           (mul (finSum (binomTerm a b n') n') b)
           --     = finSum (binomTerm a b (σ n')) (σ n')
@@ -256,7 +256,7 @@ namespace Peano
           -- Auxiliar 3: Σ (T(n',k)·b) = b^{σn'} + Σ (T(n',σk)·b)
           have h_b_sum : finSum (fun k => mul (binomTerm a b n' k) b) n' =
               add (pow b (σ n')) (finSum (fun k => mul (binomTerm a b n' (σ k)) b) n') := by
-            rw [← finSum_mul_const_right, h_shift, mul_rdistr,
+            rw [← finSum_mul_const_right, h_shift, add_mul,
                 finSum_mul_const_right b (fun k => binomTerm a b n' (σ k)) n', ← pow_succ]
 
           -- Paso: expandir (Σ T)·a y (Σ T)·b como sumatorios
@@ -317,7 +317,7 @@ namespace Peano
           -- k = σ(σ k''), HI: Le 𝟙 (σ k'') → Lt (add 𝟚 (σ k'')) (mul 𝟚 (pow 𝟚 (σ k'')))
           have h_le_1_sk : Le 𝟙 (σ k'') := succ_le_succ_if_wp (zero_le k'')
           have ih_k := ih h_le_1_sk
-          rw [add_succ, pow_succ, mul_two (pow 𝟚 (σ k'')), mul_ldistr]
+          rw [add_succ, pow_succ, mul_two (pow 𝟚 (σ k'')), mul_add]
           -- Meta: Lt (σ(add 𝟚 (σ k''))) (add (mul 𝟚 (pow 𝟚 (σ k''))) (mul 𝟚 (pow 𝟚 (σ k''))))
           have h_pow_pos : Lt 𝟘 (pow 𝟚 (σ k'')) :=
             pow_gt (lt_trans 𝟘 𝟙 𝟚 (lt_succ_self 𝟘) (lt_succ_self 𝟙)) (zero_lt_succ k'')

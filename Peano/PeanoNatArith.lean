@@ -113,7 +113,7 @@ namespace Peano
     def dividesb (d n : ℕ₀) : Bool :=
       decide ((n % d) = 𝟘)
 
-    def Factors_of (n : ℕ₁) : DList ℕ₀ :=
+    def factorsOf (n : ℕ₁) : DList ℕ₀ :=
       let n0 := n.val
       DList.filter (fun d => dividesb d n0) (range_from_one n0)
 
@@ -191,7 +191,7 @@ namespace Peano
       rcases h_ab with ⟨k, hk⟩
       rcases h_ac with ⟨l, hl⟩
       refine ⟨add k l, ?_⟩
-      rw [hk, hl, ← mul_ldistr a k l]
+      rw [hk, hl, ← mul_add a k l]
 
     theorem divides_le {a b : ℕ₀} :
       a ∣ b → b ≠ 𝟘 → a ≤ b
@@ -244,7 +244,7 @@ namespace Peano
       -- Goal: sizeOf (a % b) < sizeOf b under the else branch (b ≠ 𝟘)
       -- Convert Lt to sizeOf ordering
       apply Peano.Div.lt_sizeOf
-      exact Peano.Div.mod_lt_divisor a b (by assumption)
+      exact Peano.Div.mod_lt a b (by assumption)
 
     def lcm (a b : ℕ₀) : ℕ₀ :=
       (mul a b) / (gcd a b)
@@ -271,7 +271,7 @@ namespace Peano
     decreasing_by
       simp_wf
       apply Peano.Div.lt_sizeOf
-      exact Peano.Div.mod_lt_divisor a.val b.val b.property
+      exact Peano.Div.mod_lt a.val b.val b.property
 
     -- Coprimalidad para ℕ₁
     def Coprime₁ (a b : ℕ₁) : Prop :=
@@ -289,7 +289,7 @@ namespace Peano
       simp
       exact ⟨divides_refl a, divides_zero a⟩
     · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+      have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
       let ih_call := ih (a % b) h_mod_lt_b
       let ih_specific := ih_call b
       rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
@@ -299,7 +299,7 @@ namespace Peano
         have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
           divides_add h_div_prod h_gcd_div_mod
         unfold div mod at h_div_sum
-        rw [← divMod_eq a b h_b_is_zero] at h_div_sum
+        rw [← divMod_spec a b h_b_is_zero] at h_div_sum
         exact h_div_sum
       exact ⟨h_gcd_div_a, h_gcd_div_b⟩
   exact (H b a).1
@@ -316,7 +316,7 @@ namespace Peano
       simp
       exact ⟨divides_refl a, divides_zero a⟩
     · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+      have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
       let ih_call := ih (a % b) h_mod_lt_b
       let ih_specific := ih_call b
       rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
@@ -326,7 +326,7 @@ namespace Peano
         have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
           divides_add h_div_prod h_gcd_div_mod
         unfold div mod at h_div_sum
-        rw [← divMod_eq a b h_b_is_zero] at h_div_sum
+        rw [← divMod_spec a b h_b_is_zero] at h_div_sum
         exact h_div_sum
       exact ⟨h_gcd_div_a, h_gcd_div_b⟩
   exact (H b a).2
@@ -368,7 +368,7 @@ namespace Peano
       by_cases hmod : (a % b) = 𝟘
       · rw [hmod]; exact divides_zero c
       · -- a%b ≠ 0, luego (a/b)*b < a
-        have h_eq : a = add (mul (a / b) b) (a % b) := divMod_eq a b hb0
+        have h_eq : a = add (mul (a / b) b) (a % b) := divMod_spec a b hb0
         have h1 : c ∣ mul (a / b) b := divides_mul_left hb
         have h_lt : Lt (mul (a / b) b) a := by
           have h_lt' : Lt (mul (a / b) b) (add (mul (a / b) b) (a % b)) :=
@@ -398,7 +398,7 @@ namespace Peano
         rw [h_b_is_zero]; simp; exact h_div_a
       · -- gcd a b = gcd b (a%b), inducción sobre (a%b) < b
         simp [if_neg h_b_is_zero]
-        have h_mod_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_is_zero
+        have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
         exact ih (a % b) h_mod_lt_b b h_div_b (divides_mod h_div_a h_div_b)
     intro ⟨h_a, h_b⟩
     exact H b a h_a h_b
@@ -447,7 +447,7 @@ namespace Peano
           have h4 : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
             divides_add h3 h2
           unfold div mod at h4
-          rw [← divMod_eq a b hb] at h4
+          rw [← divMod_spec a b hb] at h4
           exact h4
         · exact gcd_divides_first b (a % b)
 
@@ -477,7 +477,7 @@ namespace Peano
         have h_gcd_a0 : gcd a 𝟘 = a := by unfold gcd; rw [if_pos rfl]
         exact ⟨𝟘, 𝟙, Or.inl (by rw [h_gcd_a0, zero_mul, add_zero, one_mul, max_0_not])⟩
       · -- b ≠ 0: gcd(a,b) = gcd(b, a%b), IH sobre (a%b < b)
-        have h_mod_lt : Lt (a % b) b := mod_lt_divisor a b hb0
+        have h_mod_lt : Lt (a % b) b := mod_lt a b hb0
         -- IH sobre (b, a%b): gcd(b,a%b) + n'*min(b,a%b) = m'*max(b,a%b)
         -- Como a%b < b: max(b,a%b)=b, min(b,a%b)=a%b
         obtain ⟨n', m', ih_eq⟩ := ih (a % b) h_mod_lt b
@@ -522,7 +522,7 @@ namespace Peano
           rw [h_max, h_min]
           -- División: a = q*b + (a%b)
           let q := a / b
-          have h_div_eq : a = add (mul q b) (a % b) := divMod_eq a b hb0
+          have h_div_eq : a = add (mul q b) (a % b) := divMod_spec a b hb0
           -- q*b ≤ a
           have h_qb_le_a : Le (mul q b) a := by
             rw [h_div_eq]; exact le_self_add (mul q b) (a % b)
@@ -549,7 +549,7 @@ namespace Peano
             have h_expand : mul q b = add (mul (sub q 𝟙) b) b := by
               have h3 : add (mul (sub q 𝟙) b) b = add (mul (sub q 𝟙) b) (mul 𝟙 b) :=
                 by rw [one_mul]
-              rw [h3, ← mul_rdistr (sub q 𝟙) 𝟙 b, sub_k_add_k q 𝟙 hq_ge1]
+              rw [h3, ← add_mul (sub q 𝟙) 𝟙 b, sub_k_add_k q 𝟙 hq_ge1]
             exact h_expand.symm.trans h_a_eq.symm
           · -- a%b ≠ 0: IH (Or) da:
             --   Or.inl: G + n'*(a%b) = m'*b  → derivar G + n'*a = (m'+n'*q)*b → Or.inr
@@ -589,7 +589,7 @@ namespace Peano
               have h_move : add (gcd b (a % b)) (mul n' a) =
                   mul (add m' (mul n' q)) b := by
                 rw [← sub_k_add_k (mul n' a) (mul (mul n' q) b) h_le_mul,
-                    add_assoc, ih_eq, ← mul_rdistr]
+                    add_assoc, ih_eq, ← add_mul]
               exact ⟨n', add m' (mul n' q), Or.inr h_move⟩
             · -- Or.inr: G + n'*b = m'*(a%b)
               -- Reescribir con mul_mod m': m'*(a%b) = m'*a - (m'*q)*b
@@ -600,7 +600,7 @@ namespace Peano
               have h_le_m : Le (mul (mul m' q) b) (mul m' a) := le_cq_ca m'
               have h_move2 : add (gcd b (a % b)) (mul (add n' (mul m' q)) b) =
                   mul m' a := by
-                rw [mul_rdistr, add_assoc, ih_eq]
+                rw [add_mul, add_assoc, ih_eq]
                 exact sub_k_add_k (mul m' a) (mul (mul m' q) b) h_le_m
               exact ⟨add n' (mul m' q), m', Or.inl h_move2⟩
 
@@ -651,7 +651,7 @@ namespace Peano
         rw [h_eq]
         exact h_right
       · -- If ¬(a ≤ b), then b < a and max a b = a
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.Lt_of_not_le h
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.lt_of_not_le h
         have h_le : Le b a := Or.inl h_lt
         have h_eq := Peano.MaxMin.le_then_max_eq_left a b h_le
         rw [h_eq]
@@ -667,7 +667,7 @@ namespace Peano
         rw [h_eq]
         exact h_left
       · -- If ¬(a ≤ b), then b < a and min a b = b
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.Lt_of_not_le h
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.lt_of_not_le h
         have h_le : Le b a := Or.inl h_lt
         have h_eq := Peano.MaxMin.le_then_min_eq_right a b h_le
         rw [h_eq]
@@ -709,7 +709,7 @@ namespace Peano
       · -- Dirección →: a % b = 0 → ∃ k, a = b * k
         intro h_mod
         have h_eq : a.val = add (mul (a.val / b.val) b.val) (a.val % b.val) :=
-          divMod_eq a.val b.val b.property
+          divMod_spec a.val b.val b.property
         rw [h_mod, add_zero] at h_eq
         exact ⟨a.val / b.val, h_eq.trans (mul_comm _ _)⟩
       · -- Dirección ←: ∃ k, a = b * k → a % b = 0
@@ -718,7 +718,7 @@ namespace Peano
         have h_div_mod : b.val ∣ (a.val % b.val) :=
           divides_mod h_div_a (divides_refl b.val)
         have h_mod_lt : Lt (a.val % b.val) b.val :=
-          mod_lt_divisor a.val b.val b.property
+          mod_lt a.val b.val b.property
         cases Classical.em ((a.val % b.val) = 𝟘) with
         | inl h => exact h
         | inr h => exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h))
@@ -742,7 +742,7 @@ namespace Peano
         rw [dif_neg hr]
         -- goal: (gcd₁ b ⟨a.val % b.val, hr⟩).val = gcd a.val b.val
         have h_r_lt_bv : Lt (a.val % b.val) bv :=
-          hb ▸ mod_lt_divisor a.val b.val b.property
+          hb ▸ mod_lt a.val b.val b.property
         rw [ih (a.val % b.val) h_r_lt_bv b ⟨a.val % b.val, hr⟩ rfl,
             ← gcd_step a.val b.val b.property]
 
@@ -791,7 +791,7 @@ export Peano.Arith (
   mem_append
   range_from_one
   dividesb
-  Factors_of
+  factorsOf
   one_divides
   divisorslist_one_mem
   divisorslist_self_mem

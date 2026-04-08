@@ -20,8 +20,8 @@
 | 6 | Export/Glob Architecture | ✅ Complete |
 | 7 | Directory rename PeanoNatLib → Peano | ✅ Complete |
 | 8 | File rename PeanoNatLib.lean → PeanoNat.lean | ✅ Complete |
-| 9 | Namespace Migration | ❌ Pending |
-| 10 | Identifier Naming Migration | ❌ Pending |
+| 9 | Namespace Migration | ✅ Complete (no-op) |
+| 10 | Identifier Naming Migration | ✅ Complete |
 | 11 | Warning Cleanup | ❌ Pending |
 | 12 | Update REFERENCE.md with new names | ❌ Pending |
 
@@ -138,7 +138,7 @@ the old directory name and should be `PeanoNat.lean` for consistency.
 ## Phase 10: Identifier Naming Migration
 
 **Objective**: Ensure all public identifiers follow Mathlib4 naming conventions.
-**Status**: ❌ Pending
+**Status**: ✅ Complete
 **Dependencies**: Phase 8 complete (Phase 9 is a no-op)
 **Reference**: [NAMING-CONVENTIONS.md](NAMING-CONVENTIONS.md) — all 12 rules
 
@@ -321,6 +321,16 @@ git commit -m "naming: migrate Module.lean to Mathlib conventions"
 - **Downstream breakage**: renaming an identifier in module N requires updating modules N+1…16
 - **Dependency chain**: migrate bottom-up to minimize cascading renames
 - **Rollback**: each commit is atomic per module — easy `git revert`
+
+### 10.5. Execution deviations (2026-04-09)
+
+| Planned name | Actual name | Reason |
+|-------------|-------------|--------|
+| `AXIOM_uniqueness_on_image → succ_inj` | `succ_congr` | Theorem is congruence (n=m → σn=σm), not injectivity. `succ_inj` already existed as wrapper for the true injectivity theorem. |
+| `lt_0_n → zero_lt_succ` | `pos_of_ne_zero` | `zero_lt_succ` already existed in PeanoNatStrictOrder.lean (line 923) with different signature (Lt 𝟘 (σ n)). `pos_of_ne_zero` follows Mathlib convention for `n ≠ 0 → 0 < n`. |
+| `mul_ldistr → mul_add_left` | `mul_add` | Standard Mathlib4 name for left distributivity. |
+| `mul_rdistr → mul_add_right` | `add_mul` | Standard Mathlib4 name for right distributivity. |
+| `div_of_lt_snd_interval → div_of_lt` | `div_eq_two` | `div_of_lt` already existed. `div_eq_two` describes the conclusion. |
 
 ---
 

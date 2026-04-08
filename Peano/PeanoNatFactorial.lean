@@ -53,7 +53,7 @@ namespace Peano
       | zero    => rw [factorial_zero]; exact lt_succ_self 𝟘
       | succ n' ih =>
           rw [factorial_succ]
-          exact mul_pos ih (lt_0_n (σ n') (succ_neq_zero n'))
+          exact mul_pos ih (pos_of_ne_zero (σ n') (succ_neq_zero n'))
 
     theorem factorial_ne_zero (n : ℕ₀) : factorial n ≠ 𝟘 := by
       intro h
@@ -70,7 +70,7 @@ namespace Peano
     theorem factorial_le_succ (n : ℕ₀) : Le (factorial n) (factorial (σ n)) := by
       rw [factorial_succ]
       have h_ge1 : Le 𝟙 (σ n) := by
-        rcases lt_0n_then_le_1n_wp (lt_0_n (σ n) (succ_neq_zero n)) with h | h
+        rcases lt_0n_then_le_1n_wp (pos_of_ne_zero (σ n) (succ_neq_zero n)) with h | h
         · exact Or.inl h
         · exact Or.inr h
       have h := mul_le_mono_right (factorial n) h_ge1

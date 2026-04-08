@@ -135,7 +135,7 @@ namespace Peano
       | zero => rw [mul_zero, zero_mul]
       | succ m' ih => simp [mul]; rw [ih]; rw [succ_mul m' n]
 
-    theorem mul_ldistr (m n k : ℕ₀) :
+    theorem mul_add (m n k : ℕ₀) :
       mul m (add n k) = add (mul m n) (mul m k)
         := by
       induction k with
@@ -144,7 +144,7 @@ namespace Peano
       | succ k' ih =>
         rw [add_succ, mul_succ, ih, mul_succ, add_assoc (mul m n) (mul m k') m]
 
-    theorem mul_rdistr (m n k : ℕ₀) :
+    theorem add_mul (m n k : ℕ₀) :
       mul (add m n) k = add (mul m k) (mul n k)
         := by
       induction k with
@@ -154,7 +154,7 @@ namespace Peano
         calc
           mul (add m n) (σ k')
             = mul (σ k') (add m n) := by rw [mul_comm]
-          _ = add (mul (σ k') m) (mul (σ k') n) := by rw [mul_ldistr]
+          _ = add (mul (σ k') m) (mul (σ k') n) := by rw [mul_add]
           _ = add (mul m (σ k')) (mul n (σ k')) := by rw [mul_comm (σ k') m, mul_comm (σ k') n]
 
     theorem mul_cancelation_left (n m k : ℕ₀) :
@@ -211,9 +211,9 @@ namespace Peano
       | succ n' ih =>
         rw [succ_mul]
         rw [mul_succ]
-        rw [mul_rdistr]
+        rw [add_mul]
         rw [ih]
-        rw [mul_ldistr]
+        rw [mul_add]
 
     theorem mul_eq_zero (n m : ℕ₀) :
       mul n m = 𝟘 ↔ n = 𝟘 ∨ m = 𝟘
@@ -238,7 +238,7 @@ namespace Peano
           | inl h_n_zero => exact ⟨Or.inl h_n_zero, h_n_zero⟩
           | inr h_succ_zero => exact False.elim (succ_neq_zero m' h_succ_zero)
 
-    theorem mul_eq_zero_wp {n m : ℕ₀} (h_n_neq_0 : n ≠ 𝟘) (h_m_neq_0 : m ≠ 𝟘) :
+    theorem eq_zero_of_mul_eq_zero {n m : ℕ₀} (h_n_neq_0 : n ≠ 𝟘) (h_m_neq_0 : m ≠ 𝟘) :
         mul n m ≠ 𝟘
             := by
       intro h_mul_eq_zero
@@ -465,7 +465,7 @@ namespace Peano
       Le (mul n k) (mul m k)
         := by
       cases (le_iff_exists_add n m).mp h_le with | intro d hd =>
-      rw [hd, mul_rdistr]
+      rw [hd, add_mul]
       exact add_le (mul n k) (mul n k) (mul d k) (le_refl (mul n k))
 
     theorem lt_σn_mul_σn_σσm (n m : ℕ₀):
@@ -632,7 +632,7 @@ namespace Peano
             exact h_j_is_minimal (σ k') h_sk'_lt_j h_P_sk'
         exact le_antisymm k' k h_le_k'_k h_le_k_k'
 
-    theorem mul_le_then_exists_max_factor {n m : ℕ₀} (h_neq_0 : n ≠ 𝟘):
+    theorem exists_factor_of_mul_le {n m : ℕ₀} (h_neq_0 : n ≠ 𝟘):
       ∃ (k : ℕ₀), Le (mul k n) m ∧ ∀ (k' : ℕ₀), Le (mul k' n) m → Le k' k
         := by
       have h_n_pos : Lt 𝟘 n := neq_0_then_lt_0 h_neq_0
@@ -672,7 +672,7 @@ namespace Peano
     theorem mul_pos {n m : ℕ₀} (h_n_pos : Lt 𝟘 n) (h_m_pos : Lt 𝟘 m) : Lt 𝟘 (mul n m) := by
       have h_n_neq_0 : n ≠ 𝟘 := lt_0_then_neq_0 h_n_pos
       have h_m_neq_0 : m ≠ 𝟘 := lt_0_then_neq_0 h_m_pos
-      exact neq_0_then_lt_0 (mul_eq_zero_wp h_n_neq_0 h_m_neq_0)
+      exact neq_0_then_lt_0 (eq_zero_of_mul_eq_zero h_n_neq_0 h_m_neq_0)
 
     theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
       Lt (mul n k) (mul m l)
@@ -682,7 +682,7 @@ namespace Peano
 
       have h_nk_lt_mk : Lt (mul n k) (mul m k) := by
         cases (lt_iff_exists_add_succ n m).mp h_lt_n_m with | intro d hd =>
-        rw [hd, mul_rdistr]
+        rw [hd, add_mul]
         apply lt_add_of_pos_right
         have h_k_pos : Lt 𝟘 k := neq_0_then_lt_0 h_k_neq_0
         have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
@@ -690,7 +690,7 @@ namespace Peano
 
       have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
         cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
-        rw [hd, mul_ldistr]
+        rw [hd, mul_add]
         apply lt_add_of_pos_right
         have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
         have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
@@ -709,7 +709,7 @@ namespace Peano
         intro h_eq
         have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
           cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
-          rw [hd, mul_ldistr]
+          rw [hd, mul_add]
           apply lt_add_of_pos_right
           have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
           have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
@@ -719,7 +719,7 @@ namespace Peano
           cases h_nk_le_mk with
           | inl h_lt_nk_mk => exact lt_trans (mul n k) (mul m k) (mul m l) h_lt_nk_mk h_mk_lt_ml
           | inr h_eq_nk_mk => rw [h_eq_nk_mk]; exact h_mk_lt_ml
-        exact (lt_then_neq (mul n k) (mul m l) h_lt) h_eq
+        exact (ne_of_lt (mul n k) (mul m l) h_lt) h_eq
       exact lt_of_le_of_ne (mul n k) (mul m l) h_le_mul_compat h_neq
 
     /--
@@ -734,7 +734,7 @@ namespace Peano
       have h_mul_expand : mul c a = add (mul c (sub a b)) (mul c b) :=
         calc mul c a
             = mul c (add (sub a b) b) := by rw [h_add_sub]
-          _ = add (mul c (sub a b)) (mul c b) := mul_ldistr c (sub a b) b
+          _ = add (mul c (sub a b)) (mul c b) := mul_add c (sub a b) b
       -- sub (c*a) (c*b) = sub (c*(sub a b) + c*b) (c*b) = c*(sub a b)
       -- add_k_sub_k : sub (add k n) k = n
       have h_result : sub (mul c a) (mul c b) = mul c (sub a b) := by
@@ -759,13 +759,13 @@ export Peano.Mul(
   mul_three
   three_mul
   mul_comm
-  mul_ldistr
-  mul_rdistr
+  mul_add
+  add_mul
   mul_cancelation_left
   mul_cancelation_right
   mul_assoc
   mul_eq_zero
-  mul_eq_zero_wp
+  eq_zero_of_mul_eq_zero
   mul_le_right
   mul_le_left
   mul_le_full_right
@@ -776,7 +776,7 @@ export Peano.Mul(
   lt_σn_mul_σn_σσm
   archimedean_property
   exists_unique_mul_le_and_lt_succ_mul
-  mul_le_then_exists_max_factor
+  exists_factor_of_mul_le
   mul_le_mono_right
   le_le_mul_le_compat
   lt_lt_mul_lt_compat

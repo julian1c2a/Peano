@@ -17,52 +17,52 @@ namespace Peano
   namespace Axioms
       open Axioms
 
-  def is_zero : ℕ₀ -> Prop :=
+  def isZero : ℕ₀ -> Prop :=
     fun n =>
       match n with
       | ℕ₀.zero   => True
       | ℕ₀.succ _ => False
 
-  def is_succ : ℕ₀ -> Prop :=
+  def isSucc : ℕ₀ -> Prop :=
     fun n =>
       match n with
       | ℕ₀.zero => False
       | ℕ₀.succ _ => True
 
-  def return_branch : ℕ₀ -> Prop :=
+  def returnBranch : ℕ₀ -> Prop :=
     fun n =>
       match n with
-      | ℕ₀.zero   => is_zero n
-      | ℕ₀.succ _ => is_succ n
+      | ℕ₀.zero   => isZero n
+      | ℕ₀.succ _ => isSucc n
 
   theorem noConfusion (n: ℕ₀) :
-    (is_zero n → ¬ is_succ n) ∧ (is_succ n → ¬ is_zero n)
+    (isZero n → ¬ isSucc n) ∧ (isSucc n → ¬ isZero n)
       := by
     constructor
-    · intro h_is_zero_n h_is_succ_n
+    · intro h_isZero_n h_isSucc_n
       cases n with
       | zero =>
-        unfold is_succ at h_is_succ_n
+        unfold isSucc at h_isSucc_n
         contradiction
       | succ k =>
-        unfold is_zero at h_is_zero_n
+        unfold isZero at h_isZero_n
         contradiction
-    · intro h_is_succ_n h_is_zero_n
+    · intro h_isSucc_n h_isZero_n
       cases n with
       | zero =>
-        unfold is_succ at h_is_succ_n
+        unfold isSucc at h_isSucc_n
         contradiction
       | succ k =>
-        unfold is_zero at h_is_zero_n
+        unfold isZero at h_isZero_n
         contradiction
 
   /--!
       EL SIGUIENTE AXIOMA SE DA POR QUE IS_ZERO INDICA
       QUE ES UNA RAMA DEL CONSTRUCTOR DE PEANONAT
      !-/
-  theorem AXIOM_zero_is_an_PeanoNat :
-      is_zero 𝟘 := by
-        unfold is_zero
+  theorem isNat_zero :
+      isZero 𝟘 := by
+        unfold isZero
         trivial
 
 
@@ -70,9 +70,9 @@ namespace Peano
       EL SIGUIENTE AXIOMA SE DA POR QUE IS_SUCC INDICA
       QUE ES UNA RAMA DEL CONSTRUCTOR DE PEANONAT
      !-/
-  theorem AXIOM_succ_is_an_PeanoNat(n : ℕ₀) :
-      is_succ (σ n) := by
-        unfold is_succ
+  theorem isNat_succ(n : ℕ₀) :
+      isSucc (σ n) := by
+        unfold isSucc
         trivial
 
 
@@ -98,7 +98,7 @@ namespace Peano
           | succ n' =>
               apply ℕ₀.noConfusion
 
-  theorem AXIOM_cero_neq_succ :
+  theorem zero_ne_succ :
           ∀ (k : ℕ₀), 𝟘 ≠ σ k
               := by
                   intro k
@@ -116,7 +116,7 @@ namespace Peano
       FUNCIÓN DE TIPO PARCIAL, NO TOTAL, PARA QUE NO OCURRIERA
       ASÍ
      !-/
-  theorem AXIOM_succ_is_funct_forall_n_in_PeanoNat:
+  theorem succ_isNat:
       ∀ (n : ℕ₀), ∃ (k : ℕ₀), k = σ n
           := by
               intro n
@@ -128,7 +128,7 @@ namespace Peano
       TANTO SIEMPRE VAN A DAR EL MISMO RESULTADO CON ENTRADAS IGUALES
       (NO SE PUEDE HACER UNA FUNCIÓN QUE NO SEA DETERMINISTA)
      !-/
-  theorem AXIOM_uniqueness_on_image(n m: ℕ₀) :
+  theorem succ_congr(n m: ℕ₀) :
       n = m → σ n = σ m
           := by
               intro h_eq
@@ -143,13 +143,13 @@ namespace Peano
 
       POR LA FORMA DE LOS TIPOS INDUCTIVO NOS LEAN4 ASEGURA QUE LOS BRAZOS DEL MATCH SON VALORES DISTINTOS DEL TIPO, Y LAS FUNCIONES EN LOS BRAZOS SON INYECTIVAS PARA SEGUIR PRODUCIENDO VALORES DIFERENTES.
      !-/
-  theorem AXIOM_succ_inj(n m : ℕ₀):
+  theorem succ_injective(n m : ℕ₀):
       σ n = σ m → n = m
           := by
               intro h_eq
               injection h_eq with h_n_eq_m
 
-  def succ_inj(n m : ℕ₀) := AXIOM_succ_inj n m
+  def succ_inj(n m : ℕ₀) := succ_injective n m
 
   theorem succ_inj_wp {n m : ℕ₀} (h_neq: ¬ n = m) :
       σ n ≠ σ m
@@ -167,7 +167,7 @@ namespace Peano
   theorem succ_inj_pos_wp {n m : ℕ₀} (h_succeq: σ n = σ m) :
       n = m
           := by
-      exact AXIOM_succ_inj n m h_succeq
+      exact succ_injective n m h_succeq
 
   /--!
       AXIOMA DE PEANO:
@@ -195,7 +195,7 @@ namespace Peano
       EN LEAN4 ESTO VIENE DADO POR EL TIPO INDUCTIVO
       QUE TIENE LA PROPIEDAD NOCONFUSION
      !-/
-  theorem AXIOM_induction_on_PeanoNat
+  theorem induction_principle
       (P : ℕ₀ -> Prop)
       (h_0 : P 𝟘)
       (h_succ : ∀ n, P n → P (σ n)) :
@@ -222,8 +222,8 @@ namespace Peano
 
   def category_by_constructor (n : ℕ₀) : ℕ₀ -> Prop :=
     match n with
-    | ℕ₀.zero   => is_zero
-    | ℕ₀.succ _ => is_succ
+    | ℕ₀.zero   => isZero
+    | ℕ₀.succ _ => isSucc
 
   theorem neq_succ (k : ℕ₀) : k ≠ σ k := by
     induction k with
@@ -232,34 +232,34 @@ namespace Peano
       exact succ_neq_zero 𝟘 h_eq_zero_succ_zero.symm
     | succ k' ih_k' =>
       intro h_eq_succ_k_succ_succ_k
-      have h_k_eq_succ_k : k' = σ k' := AXIOM_succ_inj k' (σ k') h_eq_succ_k_succ_succ_k
+      have h_k_eq_succ_k : k' = σ k' := succ_injective k' (σ k') h_eq_succ_k_succ_succ_k
       exact ih_k' h_k_eq_succ_k
 
-  theorem is_zero_or_is_succ (n : ℕ₀) :
-      is_zero n ∨ is_succ n
+  theorem isZero_or_isSucc (n : ℕ₀) :
+      isZero n ∨ isSucc n
           := by
               cases n with
               | zero =>
-                  unfold is_zero
+                  unfold isZero
                   dsimp
-                  unfold is_succ
+                  unfold isSucc
                   dsimp
                   rw [true_or]
                   trivial
               | succ a =>
-                  unfold is_zero
+                  unfold isZero
                   dsimp
-                  unfold is_succ
+                  unfold isSucc
                   dsimp
                   rw [or_true]
                   trivial
 
-  theorem is_zero_xor_is_succ (n : ℕ₀) :
-      (is_zero n ∧ ¬is_succ n) ∨ (¬is_zero n ∧ is_succ n)
+  theorem isZero_xor_isSucc (n : ℕ₀) :
+      (isZero n ∧ ¬isSucc n) ∨ (¬isZero n ∧ isSucc n)
           := by
               cases n with
               | zero =>
-                  unfold is_zero is_succ
+                  unfold isZero isSucc
                   dsimp
                   rw [not_false_eq_true]
                   rw [and_self]
@@ -268,7 +268,7 @@ namespace Peano
                   rw [or_false]
                   trivial
               | succ a =>
-                  unfold is_zero is_succ
+                  unfold isZero isSucc
                   dsimp
                   rw [not_true_eq_false]
                   rw [and_self]
@@ -381,8 +381,8 @@ namespace Peano
         · -- Prueba de (k = Ψ (Λ k))
           apply Ψ_surj
 
-  theorem Comp_Λ_eq_Ψ :
-    Comp (Λ : Nat -> ℕ₀) (Ψ : ℕ₀ -> Nat)
+  theorem comp_Λ_eq_Ψ :
+    comp (Λ : Nat -> ℕ₀) (Ψ : ℕ₀ -> Nat)
         := by
         intro n
         induction n with
@@ -396,8 +396,8 @@ namespace Peano
             _ = Nat.succ (Ψ (Λ k)) := by rfl
             _ = Nat.succ k := by rw [ih]
 
-  theorem Comp_Ψ_eq_Λ :
-    Comp (Ψ : ℕ₀ -> Nat) (Λ : Nat -> ℕ₀)
+  theorem comp_Ψ_eq_Λ :
+    comp (Ψ : ℕ₀ -> Nat) (Λ : Nat -> ℕ₀)
         := by
         intro n
         induction n with
@@ -410,7 +410,7 @@ namespace Peano
             Λ (Ψ (σ k)) = σ (Λ (Ψ k)) := by rfl
             _ = σ k := by rw [ih]
 
-  theorem EqFn_induction {α} (f : ℕ₀ -> α)(g : ℕ₀ -> α) :
+  theorem eqFn_induction {α} (f : ℕ₀ -> α)(g : ℕ₀ -> α) :
     (
       (f 𝟘 = g 𝟘)
       ∧
@@ -418,7 +418,7 @@ namespace Peano
         ∀ (n: ℕ₀),
         (f n = g n) → (f (σ n) = g (σ n))
       )
-    ) → (EqFn f g) := by
+    ) → (eqFn f g) := by
             intro h
             let h_0 := h.left
             let h_step := h.right
@@ -434,7 +434,7 @@ namespace Peano
       DE COMO UTILIZAR EqFun Y EqFun_induction
      !-/
     theorem id_eq_id_lambda:
-      EqFn id (λ (n : ℕ₀) => n)
+      eqFn id (λ (n : ℕ₀) => n)
           :=  by
               intro n
               rfl
@@ -443,21 +443,21 @@ namespace Peano
       LA IGUALDAD DE FUNCIONES ES UNA RELACIÓN DE EQUIVALENCIA
       (REFLEXIVA, SIMÉRICA Y TRANSITIVA)
      !-/
-  theorem EqFn_refl {α} (f : ℕ₀ -> α) :
-    EqFn f f := by
+  theorem eqFn_refl {α} (f : ℕ₀ -> α) :
+    eqFn f f := by
         intro n
         rfl
 
-  theorem EqFn_symm {α} (f : ℕ₀ -> α)(g : ℕ₀ -> α) :
-    EqFn f g → EqFn g f := by
+  theorem eqFn_symm {α} (f : ℕ₀ -> α)(g : ℕ₀ -> α) :
+    eqFn f g → eqFn g f := by
         intro h n
         exact (h n).symm
 
-  theorem EqFn_trans {α}
+  theorem eqFn_trans {α}
     (f : ℕ₀ -> α)
     (g : ℕ₀ -> α)
     (h : ℕ₀ -> α) :
-    EqFn f g → EqFn g h → EqFn f h := by
+    eqFn f g → eqFn g h → eqFn f h := by
         intro h_fg h_gh n
         exact (h_fg n).trans (h_gh n)
 
@@ -550,7 +550,7 @@ namespace Peano
                 rw [ih]
 
   theorem ΨΛ_eq_id :
-      EqFnNat (Ψ ∘ Λ) idNat
+      eqFnNat (Ψ ∘ Λ) idNat
           := by
               intro n
               exact ΨΛ   n
@@ -568,7 +568,7 @@ namespace Peano
       rw [ih]
 
     theorem Λψ_eq_id :
-      EqFn (Λ ∘ Ψ) id
+      eqFn (Λ ∘ Ψ) id
           := by
               intro n
               exact ΛΨ n
@@ -588,7 +588,7 @@ namespace Peano
                 _ = Nat.succ (Nat.succ (Ψ k')) := by rw [ih]
 
     theorem Ψ_σ_eq_σ_Λ_eqfn:
-      EqFn ( Ψ ∘ ℕ₀.succ ) ( Nat.succ ∘ Ψ )
+      eqFn ( Ψ ∘ ℕ₀.succ ) ( Nat.succ ∘ Ψ )
           := by
               intro n
               exact Ψ_σ_eq_σ_Λ n
@@ -607,7 +607,7 @@ namespace Peano
               _ = σ (σ (Λ k)) := by rw[ih]
 
         theorem Λ_σ_eq_σ_Ψ_eqfn:
-          EqFnNat (Λ ∘ Nat.succ) (ℕ₀.succ ∘ Λ)
+          eqFnNat (Λ ∘ Nat.succ) (ℕ₀.succ ∘ Λ)
               := by
                   intro n
                   exact Λ_σ_eq_σ_Ψ n
@@ -630,7 +630,7 @@ namespace Peano
                         := by rw [Ψ_σ_eq_σ_Λ k']
 
         theorem Ψ_τ_eq_τ_Λ_eqfn:
-          EqFn ( Ψ ∘ τ ) ( Nat.pred ∘ Ψ )
+          eqFn ( Ψ ∘ τ ) ( Nat.pred ∘ Ψ )
               := by
                   intro n
                   exact Ψ_τ_eq_τ_Λ n
@@ -743,26 +743,26 @@ end Peano
 export Peano.Axioms (
   Λ_inj Λ_surj Λ_bij
   Ψ_inj Ψ_surj Ψ_bij
-  is_zero
-  is_succ
-  return_branch
-  AXIOM_zero_is_an_PeanoNat
-  AXIOM_succ_is_an_PeanoNat
-  AXIOM_cero_neq_succ
-  AXIOM_succ_is_funct_forall_n_in_PeanoNat
-  AXIOM_uniqueness_on_image
-  AXIOM_succ_inj
+  isZero
+  isSucc
+  returnBranch
+  isNat_zero
+  isNat_succ
+  zero_ne_succ
+  succ_isNat
+  succ_congr
+  succ_injective
   succ_inj_neg
   AXIOM_zero_notin_ima_succ
-  AXIOM_induction_on_PeanoNat
+  induction_principle
   BIs_zero BIs_succ
   category_by_constructor
   neq_succ
-  is_zero_or_is_succ
-  is_zero_xor_is_succ
-  EqFn_refl EqFn_symm EqFn_trans
-  EqFn_induction
-  Comp_Λ_eq_Ψ Comp_Ψ_eq_Λ
+  isZero_or_isSucc
+  isZero_xor_isSucc
+  eqFn_refl eqFn_symm eqFn_trans
+  eqFn_induction
+  comp_Λ_eq_Ψ comp_Ψ_eq_Λ
   id_eq_id_lambda
   τ_σ_eq_self
   σ_ρ_eq_self

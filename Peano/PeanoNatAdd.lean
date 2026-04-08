@@ -361,7 +361,7 @@ namespace Peano
           rw [add_succ]
           exact lt_succ n (add m k') ih
 
-    theorem add_cancelation (n m k : ℕ₀) :
+    theorem add_cancel (n m k : ℕ₀) :
       add n m = add n k → m = k
         := by
           intro h_eq
@@ -1099,7 +1099,7 @@ namespace Peano
       · intro c' h_eq'
         have h_add_eq : add a c = add a c' := by
           rw [← h_eq, h_eq']
-        exact (add_cancelation a c c' h_add_eq).symm
+        exact (add_cancel a c c' h_add_eq).symm
 
     theorem linear_inequation_left (a b : ℕ₀) (h_le_ab: Le a b):
       ∃ (c: ℕ₀), Le (add a c) b ∧ ∀ (c': ℕ₀), Le (add a c') b → Le c' c
@@ -1220,7 +1220,7 @@ export Peano.Add(
   add_le
   add_le_r
   add_lt
-  add_cancelation
+  add_cancel
   cancelation_add
   add_lt_cancelation
   add_le_cancelation

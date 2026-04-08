@@ -56,11 +56,11 @@ namespace Peano
         exact lt_then_lt_succ n m h_lt
 
 
-    def BLt (n m : ℕ₀) : Bool :=
+    def blt (n m : ℕ₀) : Bool :=
         match n, m with
         | _        , ℕ₀.zero   => false
         | ℕ₀.zero  , σ _       => true
-        | σ n'     , σ m'      => BLt n' m'
+        | σ n'     , σ m'      => blt n' m'
 
     def Gt (n m : ℕ₀) : Prop :=
         match n, m with
@@ -68,11 +68,11 @@ namespace Peano
         | σ _     , ℕ₀.zero    => True
         | σ n'    , σ m'       => Gt n' m'
 
-    def BGt (n m : ℕ₀) : Bool :=
+    def bgt (n m : ℕ₀) : Bool :=
         match n, m with
         | ℕ₀.zero , _          => false
         | σ _     , ℕ₀.zero    => true
-        | σ n'    , σ m'       => BGt n' m'
+        | σ n'    , σ m'       => bgt n' m'
 
     theorem lt_iff_lt_σ_σ (n m : ℕ₀) :
         Lt n m ↔ Lt (σ n) (σ m)
@@ -121,7 +121,7 @@ namespace Peano
               unfold Lt
               simp [ih_n']
 
-    theorem nlt_0_0:
+    theorem not_lt_zero:
         ¬(Lt 𝟘 𝟘)
           := by
             exact nlt_self 𝟘
@@ -148,7 +148,7 @@ namespace Peano
                 unfold Lt
                 trivial
 
-    theorem lt_0_n(n : ℕ₀):
+    theorem pos_of_ne_zero(n : ℕ₀):
         n ≠ 𝟘 → Lt 𝟘 n
           := by
             intro h_neq
@@ -160,7 +160,7 @@ namespace Peano
                 unfold Lt
                 trivial
 
-    theorem lt_then_neq(n m : ℕ₀) :
+    theorem ne_of_lt(n m : ℕ₀) :
         Lt n m → n ≠ m
             := by
                 intro h
@@ -168,7 +168,7 @@ namespace Peano
                 | zero =>
                     intro heq
                     rw [Eq.symm heq] at h
-                    exact (nlt_0_0 h)
+                    exact (not_lt_zero h)
                 | succ n' =>
                     intro heq
                     rw [Eq.symm heq] at h
@@ -716,84 +716,84 @@ namespace Peano
                 rw [h_eq]
                 exact lt_succ_self m
 
-    theorem BLt_iff_Lt (n m : ℕ₀) :
-        BLt n m = true ↔ Lt n m
+    theorem blt_iff_Lt (n m : ℕ₀) :
+        blt n m = true ↔ Lt n m
         := by
           induction n generalizing m with
           | zero =>
             cases m with
             | zero =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
             | succ m' =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
           | succ n' ih_n' =>
             cases m with
             | zero =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
             | succ m' =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
               exact ih_n' m'
 
-    theorem BLt_then_Lt_wp {n m : ℕ₀} (h : BLt n m = true) :
+    theorem blt_then_Lt_wp {n m : ℕ₀} (h : blt n m = true) :
         Lt n m
         := by
-          have h_iff := BLt_iff_Lt n m
+          have h_iff := blt_iff_Lt n m
           rw [h_iff] at h
           exact h
 
-    theorem BGt_iff_Gt (n m : ℕ₀) :
-        BGt n m = true ↔ Gt n m
+    theorem bgt_iff_Gt (n m : ℕ₀) :
+        bgt n m = true ↔ Gt n m
         := by
           induction n generalizing m with
           | zero =>
             cases m with
             | zero =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
             | succ m' =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
           | succ n' ih_n' =>
             cases m with
             | zero =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
             | succ m' =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
               exact ih_n' m'
 
 
-    theorem nBLt_iff_nLt (n m : ℕ₀) :
-        BLt n m = false ↔ ¬ (Lt n m)
+    theorem nblt_iff_nLt (n m : ℕ₀) :
+        blt n m = false ↔ ¬ (Lt n m)
         := by
           induction n generalizing m with
           | zero =>
             cases m with
             | zero =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
             | succ m' =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
           | succ n' ih_n' =>
             cases m with
             | zero =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
             | succ m' =>
-              simp [BLt, Lt]
+              simp [blt, Lt]
               exact ih_n' m'
 
-    theorem nBGt_iff_nGt (n m : ℕ₀) :
-        BGt n m = false ↔ ¬ (Gt n m)
+    theorem nbgt_iff_nGt (n m : ℕ₀) :
+        bgt n m = false ↔ ¬ (Gt n m)
         := by
           induction n generalizing m with
           | zero =>
             cases m with
             | zero =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
             | succ m' =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
           | succ n' ih_n' =>
             cases m with
             | zero =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
             | succ m' =>
-              simp [BGt, Gt]
+              simp [bgt, Gt]
               exact ih_n' m'
 
     /--! def Λ(n : Nat) : ℕ₀  de_Nat_a_Pea
@@ -900,24 +900,24 @@ namespace Peano
 
     instance decidableLt (n m : ℕ₀) :
       Decidable (Lt n m) :=
-      if h_blt_is_true : BLt n m then
-        isTrue ((BLt_iff_Lt n m).mp h_blt_is_true)
+      if h_blt_is_true : blt n m then
+        isTrue ((blt_iff_Lt n m).mp h_blt_is_true)
       else
         isFalse (fun h_lt_nm : Lt n m =>
-            have proof_blt_should_be_true : BLt n m = true
-                := (BLt_iff_Lt n m).mpr h_lt_nm
+            have proof_blt_should_be_true : blt n m = true
+                := (blt_iff_Lt n m).mpr h_lt_nm
             h_blt_is_true proof_blt_should_be_true)
 
     instance : LT ℕ₀ := ⟨Lt⟩
 
     instance decidableGt (n m : ℕ₀) :
       Decidable (Gt n m) :=
-      if h_bgt_is_true : BGt n m then
-        isTrue ((BGt_iff_Gt n m).mp h_bgt_is_true)
+      if h_bgt_is_true : bgt n m then
+        isTrue ((bgt_iff_Gt n m).mp h_bgt_is_true)
       else
         isFalse (fun h_gt_nm : Gt n m =>
-            have proof_bgt_should_be_true : BGt n m = true
-                := (BGt_iff_Gt n m).mpr h_gt_nm
+            have proof_bgt_should_be_true : bgt n m = true
+                := (bgt_iff_Gt n m).mpr h_gt_nm
             h_bgt_is_true proof_bgt_should_be_true)
 
     theorem zero_lt_succ (n : ℕ₀) :
@@ -1183,7 +1183,7 @@ namespace Peano
     theorem lt_1_b_then_b_neq_1 {b : ℕ₀} (h_lt_1_b : 𝟙 < b) :
       b ≠ 𝟙
         := by
-          exact Ne.symm (lt_then_neq 𝟙 b h_lt_1_b)
+          exact Ne.symm (ne_of_lt 𝟙 b h_lt_1_b)
 
     theorem lt_sn_m_then_lt_n_m_wp {n m : ℕ₀} (h_lt : Lt (σ n) m):
       Lt n m
@@ -1194,7 +1194,7 @@ namespace Peano
           b ≠ 𝟘
           := by
               have h_lt_0_b : Lt 𝟘 b := by exact lt_trans_wp lt_0_1 h_lt_1_b
-              exact Ne.symm (lt_then_neq 𝟘 b h_lt_0_b)
+              exact Ne.symm (ne_of_lt 𝟘 b h_lt_0_b)
 
     theorem lt_b_1_then_b_eq_0 {b : ℕ₀} (h_lt_b_1 : b < 𝟙) :
           b = 𝟘
@@ -1273,15 +1273,15 @@ end Peano
 
 export Peano.StrictOrder (
     Lt
-    BLt
+    blt
     Gt
-    BGt
+    bgt
     lt_iff_lt_σ_σ
     nlt_self
-    nlt_0_0
+    not_lt_zero
     nlt_n_0
-    lt_0_n
-    lt_then_neq
+    pos_of_ne_zero
+    ne_of_lt
     neq_then_lt_or_gt
     lt_nor_gt_then_eq
     trichotomy
@@ -1292,10 +1292,10 @@ export Peano.StrictOrder (
     lt_equiv_exists_σ
     lt_self_σ_self
     lt_iff_lt_τ_τ
-    BLt_iff_Lt
-    BGt_iff_Gt
-    nBLt_iff_nLt
-    nBGt_iff_nGt
+    blt_iff_Lt
+    bgt_iff_Gt
+    nblt_iff_nLt
+    nbgt_iff_nGt
     isomorph_Λ_lt
     isomorph_Ψ_lt
     zero_lt_succ
@@ -1317,7 +1317,7 @@ export Peano.StrictOrder (
     lt_then_lt_succ_forall
     lt_succ_then_lt_forall
     nlt_n_0_false
-    BLt_then_Lt_wp
+    blt_then_Lt_wp
     lt_then_lt_succ
     succ_lt_succ_then
     lt_then_lt_succ

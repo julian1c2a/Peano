@@ -25,21 +25,21 @@ namespace Peano
 
     /--
       Definición de "menor o igual que" para ℕ₀ utilizando
-      recursión estructural. Demostraremos que Le y Le' son
+      recursión estructural. Demostraremos que Le y le' son
       equivalentes.
     -/
-    def Le' (n m : ℕ₀) : Prop :=
+    def le' (n m : ℕ₀) : Prop :=
       match n, m with
       |   𝟘    ,     _    =>  True
       | σ _    ,     𝟘    =>  False
-      | σ n'   ,   σ m'   =>  Le' n' m'
+      | σ n'   ,   σ m'   =>  le' n' m'
 
     theorem zero_le (n : ℕ₀) :
       Le 𝟘 n
       :=
       match n with
       | 𝟘    => Or.inr rfl
-      | σ n' => Or.inl (lt_0_n (σ n') (succ_neq_zero n'))
+      | σ n' => Or.inl (pos_of_ne_zero (σ n') (succ_neq_zero n'))
 
     theorem succ_le_succ_iff (n m : ℕ₀) :
       Le (σ n) (σ m) ↔ Le n m
@@ -159,11 +159,11 @@ namespace Peano
         apply Or.inr
         exact h_eq ▸ rfl
 
-    theorem Le_iff_Le' (n m : ℕ₀) :
-      Le' n m ↔ Le n m
+    theorem Le_iff_le' (n m : ℕ₀) :
+      le' n m ↔ Le n m
       := by
         constructor
-        · -- Prueba de Le' n m → Le n m
+        · -- Prueba de le' n m → Le n m
           intro h_le'_nm
           induction n generalizing m with
           | zero => -- Caso n = 𝟘
@@ -171,19 +171,19 @@ namespace Peano
           | succ n' ih_n' => -- Caso n = σ n'
             cases m with
             | zero => -- Caso m = 𝟘
-              exfalso; simp [Le'] at h_le'_nm
+              exfalso; simp [le'] at h_le'_nm
             | succ m' => -- Caso m = σ m'
               have h_le_n'_m' : Le n' m' := ih_n' m' h_le'_nm
               exact (succ_le_succ_iff n' m').mpr h_le_n'_m'
-        · -- Prueba de Le n m → Le' n m
+        · -- Prueba de Le n m → le' n m
           intro h_le_nm
           induction n generalizing m with
           | zero => -- Caso n = 𝟘
-            simp [Le']
+            simp [le']
           | succ n' ih_n' => -- Caso n = σ n'
             cases m with
             | zero => -- Caso m = 𝟘
-              simp [Le'] -- El objetivo se convierte en False.
+              simp [le'] -- El objetivo se convierte en False.
               rcases h_le_nm with h_lt | h_eq
               · exact (nlt_n_0 (σ n') h_lt).elim
               · exact (succ_neq_zero n' h_eq).elim
@@ -194,26 +194,26 @@ namespace Peano
                       (
                         succ_le_succ_iff n' m'
                       ).mp h_le_nm
-              simp [Le']
+              simp [le']
               exact ih_n' m' h_le_n'_m'
 
     /--
     Función de ayuda para Le con repuesta buleana
     -/
-    def BLe (n m : ℕ₀) : Bool :=
+    def ble (n m : ℕ₀) : Bool :=
       match n , m with
       | 𝟘 , _ => true
       | _ , 𝟘 => false
-      | σ n' , σ m' => BLe n' m'
+      | σ n' , σ m' => ble n' m'
 
     /--
     Función de ayuda para Ge con repuesta buleana
     -/
-    def BGe (n m : ℕ₀) : Bool :=
+    def bge (n m : ℕ₀) : Bool :=
       match n , m with
       |   _    ,   𝟘  => true
       |   𝟘    ,   _  => false
-      | σ n'   , σ m' => BGe n' m'
+      | σ n'   , σ m' => bge n' m'
 
     theorem le_zero_eq (n : ℕ₀) :
       Le n 𝟘 → n = 𝟘
@@ -247,40 +247,40 @@ namespace Peano
 
 
     /--!
-    -- El teorema BLe_iff_Le se mueve aquí porque se usa
+    -- El teorema ble_iff_Le se mueve aquí porque se usa
     -- en decidableLe.
     !--/
 
-    theorem BLe_iff_Le (n m : ℕ₀) :
-      BLe n m = true ↔ Le n m
+    theorem ble_iff_Le (n m : ℕ₀) :
+      ble n m = true ↔ Le n m
       := by
       constructor
       · intro h_ble_true
         induction n generalizing m with
-        | zero => -- n = 𝟘. BLe 𝟘 m = true. Goal: Le 𝟘 m.
-          rw [BLe] at h_ble_true -- Simplifica BLe 𝟘 m a true,   h_ble_true : true = true
+        | zero => -- n = 𝟘. ble 𝟘 m = true. Goal: Le 𝟘 m.
+          rw [ble] at h_ble_true -- Simplifica ble 𝟘 m a true,   h_ble_true : true = true
           exact zero_le m
         | succ n' ih_n' => -- n = σ n'.
           cases m with
           | zero =>
-            simp [BLe] at h_ble_true
+            simp [ble] at h_ble_true
           | succ m' =>
-            simp [BLe] at h_ble_true
+            simp [ble] at h_ble_true
             have h_le_n'_m' : Le n' m' := ih_n' m' h_ble_true
             exact (succ_le_succ_iff n' m').mpr h_le_n'_m'
       · intro h_le_nm
         induction n generalizing m with
         | zero =>
-          simp [BLe]
+          simp [ble]
         | succ n' ih_n' => -- n = σ n'.
           cases m with
           | zero =>
-            simp [BLe] -- El objetivo es ahora `false = true`.
+            simp [ble] -- El objetivo es ahora `false = true`.
             exact (not_succ_le_zero n' h_le_nm).elim
           | succ m' => -- m = σ m', n = σ n'. h_le_nm: Le (σ n')   (σ m').
-            -- Goal: BLe (σ n') (σ m') = true, que es BLe n' m' =   true.
-            -- IH: Le n' m' → BLe n' m' = true.
-            simp [BLe] -- El objetivo es ahora BLe n' m' = true.
+            -- Goal: ble (σ n') (σ m') = true, que es ble n' m' =   true.
+            -- IH: Le n' m' → ble n' m' = true.
+            simp [ble] -- El objetivo es ahora ble n' m' = true.
             apply ih_n'
             exact (succ_le_succ_iff n' m').mp h_le_nm
 
@@ -327,13 +327,13 @@ namespace Peano
       rw [h_eq]
       exact Or.inr rfl
 
-    theorem BGe_iff_Ge (n m : ℕ₀) :
-        BGe n m = true ↔ Ge n m
+    theorem bge_iff_Ge (n m : ℕ₀) :
+        bge n m = true ↔ Ge n m
         := by
         constructor
-        · -- Dirección →: BGe n m = true → Ge n m
+        · -- Dirección →: bge n m = true → Ge n m
           intro h_bge_true
-          unfold BGe at h_bge_true
+          unfold bge at h_bge_true
           cases n with
           | zero =>
             cases m with
@@ -346,25 +346,25 @@ namespace Peano
             cases m with
             | zero =>
               apply Or.inl
-              exact lt_0_n (σ n') (succ_neq_zero n')
+              exact pos_of_ne_zero (σ n') (succ_neq_zero n')
             | succ m' =>
               have h_ge_n'_m' :
                   Ge n' m' :=
                       (
-                        BGe_iff_Ge n' m'
+                        bge_iff_Ge n' m'
                       ).mp h_bge_true
               rcases h_ge_n'_m' with h_lt_m'_n' | h_eq_n'_m'
               · apply Or.inl
                 exact (lt_iff_lt_σ_σ m' n').mp h_lt_m'_n'
               · apply Or.inr
                 exact h_eq_n'_m' ▸ rfl
-        · -- Dirección ←: Ge n m → BGe n m = true
+        · -- Dirección ←: Ge n m → bge n m = true
           intro h_ge_nm
           induction n generalizing m with
           | zero =>
             cases m with
             | zero =>
-              simp [BGe]
+              simp [bge]
             | succ m' =>
               unfold Ge at h_ge_nm
               rcases h_ge_nm with h_lt_succ_zero | h_eq_zero_succ
@@ -373,9 +373,9 @@ namespace Peano
           | succ n' ih =>
             cases m with
             | zero =>
-              simp [BGe]
+              simp [bge]
             | succ m' =>
-              simp [BGe]
+              simp [bge]
               apply ih
               unfold Ge at h_ge_nm ⊢
               rcases h_ge_nm with h_lt_succ_succ | h_eq_succ_succ
@@ -863,7 +863,7 @@ namespace Peano
             constructor
             · exact And.left
             · intro h_lt
-              exact ⟨h_lt, (lt_then_neq m n h_lt).symm⟩
+              exact ⟨h_lt, (ne_of_lt m n h_lt).symm⟩
 
     theorem nle_then_gt (n m : ℕ₀) :
       ¬(Le n m) → Lt m n
@@ -1447,12 +1447,12 @@ namespace Peano
 end Peano
 
 export Peano.Order (
-  Le Ge Le' BLe BGe
+  Le Ge le' ble bge
   zero_le
   succ_le_succ_iff
   succ_le_succ_then
-  Le_iff_Le'
-  BGe_iff_Ge
+  Le_iff_le'
+  bge_iff_Ge
   le_of_eq
   decidableLe decidableGe
   le_refl

@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Changed (2026-04-09)
+
+- **Fase 10 — Migración de nombres de identificadores**: Todos los identificadores
+  públicos migrados a convenciones Mathlib4 (NAMING-CONVENTIONS.md).
+  - **PeanoNat.lean**: `EqFnGen`→`eqFnGen`, `Comp`→`comp`, `EqFn`→`eqFn`,
+    `EqFn2`→`eqFn2`, `EqFnNat`→`eqFnNat`.
+  - **PeanoNatAxioms.lean**: `AXIOM_*` prefijos eliminados (→ `isNat_zero`,
+    `isNat_succ`, `zero_ne_succ`, `succ_isNat`, `succ_congr`, `succ_injective`,
+    `induction_principle`), `is_zero`→`isZero`, `is_succ`→`isSucc`,
+    `return_branch`→`returnBranch`.
+  - **PeanoNatStrictOrder.lean**: `BLt`→`blt`, `BGt`→`bgt`, `nlt_0_0`→`not_lt_zero`,
+    `lt_0_n`→`pos_of_ne_zero`, `lt_then_neq`→`ne_of_lt`.
+  - **PeanoNatOrder.lean**: `BLe`→`ble`, `BGe`→`bge`, `Le'`→`le'`.
+  - **PeanoNatMaxMin.lean**: `Lt_of_not_le`→`lt_of_not_le`, `eq_max_min_then_eq`→
+    `eq_of_max_eq_min`, `if_neq_then_max_xor`→`max_ne_min_of_ne`,
+    `neq_args_then_lt_min_max`→`lt_max_of_ne`, `nexists_max_abs`→`not_exists_max`.
+  - **PeanoNatAdd.lean**: `add_cancelation`→`add_cancel`.
+  - **PeanoNatMul.lean**: `mul_ldistr`→`mul_add`, `mul_rdistr`→`add_mul`,
+    `mul_eq_zero_wp`→`eq_zero_of_mul_eq_zero`,
+    `mul_le_then_exists_max_factor`→`exists_factor_of_mul_le`.
+  - **PeanoNatDiv.lean**: `divMod_eq`→`divMod_spec`, `mod_lt_divisor`→`mod_lt`,
+    `div_of_lt_snd_interval`→`div_eq_two`.
+  - **PeanoNatArith.lean**: `Factors_of`→`factorsOf`.
+  - Peano.lean export blocks actualizados.
+  - Build verificado: 19/19 jobs, 0 sorry.
+
 ### Changed (2026-04-08)
 
 - **Fase 8 — Archivo renombrado**: `Peano/PeanoNatLib.lean` → `Peano/PeanoNat.lean`.

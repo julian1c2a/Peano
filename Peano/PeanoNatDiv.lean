@@ -89,7 +89,7 @@ namespace Peano
     /--
       Teorema general de la división euclídea.
     -/
-    theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2 := by
+    theorem divMod_spec (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (divMod a b).1 b) (divMod a b).2 := by
       intro h_b_neq_0
       induction a using well_founded_lt.induction
       rename_i a ih
@@ -134,7 +134,7 @@ namespace Peano
     /--
       El resto de la división siempre es menor que el divisor.
     -/
-    theorem mod_lt_divisor (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
+    theorem mod_lt (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
       Lt (a % b) b := by
       induction a using well_founded_lt.induction
       rename_i a ih
@@ -177,7 +177,7 @@ namespace Peano
     theorem div_le_self (a b : ℕ₀) (h_b_neq_0 : b ≠ 𝟘) :
       Le (a / b) a := by
       let q := a / b
-      have h_eq := divMod_eq a b h_b_neq_0
+      have h_eq := divMod_spec a b h_b_neq_0
       have h_qb_le_a : Le (mul q b) a := by
         rw [h_eq]
         exact le_self_add_r (mul q b) (a % b)
@@ -205,7 +205,7 @@ namespace Peano
       apply lt_of_le_of_ne (a / b) a h_div_le_a
       intro h_eq_div_a
       have h_div_eq : a = add (mul (a / b) b) (a % b) := by
-        simpa [div, mod] using (divMod_eq a b h_b_neq_0)
+        simpa [div, mod] using (divMod_spec a b h_b_neq_0)
       have h_mul_lt : Lt a (mul a b) := mul_lt_left a b h_a_neq_0 h_b_gt_1
       have h_mul_le : Le (mul a b) a := by
         rw [h_eq_div_a] at h_div_eq
@@ -279,8 +279,8 @@ namespace Peano
         exact (nlt_n_0 a h_a_lt_2b).elim
       let q := a / b
       have h_a_eq_qbr : a = add (mul q b) (a % b) := by
-        simpa [div, mod, q] using (divMod_eq a b h_b_neq_0)
-      have h_r_lt_b : Lt (a % b) b := mod_lt_divisor a b h_b_neq_0
+        simpa [div, mod, q] using (divMod_spec a b h_b_neq_0)
+      have h_r_lt_b : Lt (a % b) b := mod_lt a b h_b_neq_0
       -- Probamos `q ≥ 1`
       have h_q_ge_1 : Le 𝟙 q := by
         cases h_q : q with
@@ -312,7 +312,7 @@ namespace Peano
     /--
       Si `2 * b ≤ a < 3 * b`, el cociente es 2.
     -/
-    theorem div_of_lt_snd_interval (a b : ℕ₀) (h_le : Le (add b b) a) (h_a_lt_3b : Lt a (add (add b b) b)) :
+    theorem div_eq_two (a b : ℕ₀) (h_le : Le (add b b) a) (h_a_lt_3b : Lt a (add (add b b) b)) :
       (a / b) = 𝟚 := by
       have h_b_neq_0 : b ≠ 𝟘 := by
         intro h_b_zero
@@ -321,8 +321,8 @@ namespace Peano
       let q := a / b
       let r := a % b
       have h_a_eq_qbr : a = add (mul q b) r := by
-        simpa [div, mod, q, r] using (divMod_eq a b h_b_neq_0)
-      have h_r_lt_b : Lt r b := mod_lt_divisor a b h_b_neq_0
+        simpa [div, mod, q, r] using (divMod_spec a b h_b_neq_0)
+      have h_r_lt_b : Lt r b := mod_lt a b h_b_neq_0
       -- Probamos `q ≥ 2`
       have h_q_ge_2 : Le 𝟚 q := by
         have h_q_gt_1 : Lt 𝟙 q := by
@@ -370,7 +370,7 @@ namespace Peano
       Le (mul (div a b) b) a
         := by
       have h_eq : a = add (mul (div a b) b) (a % b) := by
-        simpa [div, mod] using (divMod_eq a b h_b_neq_0)
+        simpa [div, mod] using (divMod_spec a b h_b_neq_0)
       have h_le_sum : Le (mul (div a b) b) (add (mul (div a b) b) (a % b)) :=
         le_self_add_r (mul (div a b) b) (a % b)
       have h_sum_le_a : Le (add (mul (div a b) b) (a % b)) a :=
@@ -390,8 +390,8 @@ namespace Peano
         exact (nlt_n_0 b h_lt).elim
       let q := b / a
       have h_div_eq : b = add (mul q a) (b % a) := by
-        simpa [div, mod, q] using (divMod_eq b a h_a_neq_0)
-      have h_r_lt_a : Lt (b % a) a := mod_lt_divisor b a h_a_neq_0
+        simpa [div, mod, q] using (divMod_spec b a h_a_neq_0)
+      have h_r_lt_a : Lt (b % a) a := mod_lt b a h_a_neq_0
 
       have h_q_le_n : Le q n := by
         by_cases h_q_le_n : Le q n
@@ -417,7 +417,7 @@ namespace Peano
             rw [h_div_eq]
             exact (add_lt_add_left_iff (mul q a) (b % a) a).mpr h_r_lt_a
           have h_add_le_mul_n : Le (add (mul q a) a) (mul n a) := by
-            rw [h_n_eq, mul_rdistr]
+            rw [h_n_eq, add_mul]
             have h_a_le_mul : Le a (mul (σ d) a) := by
               have h_a_le_mul' : Le a (mul a (σ d)) :=
                 mul_le_right a (σ d) (succ_neq_zero d)
@@ -443,7 +443,7 @@ namespace Peano
         exact (nlt_n_0 a h_a_lt_2b).elim
       let r := a % b
       have h_div_eq : a = add (mul (a / b) b) (a % b) := by
-        simpa [div, mod] using (divMod_eq a b h_b_neq_0)
+        simpa [div, mod] using (divMod_spec a b h_b_neq_0)
       have h_div_eq' : a = add b r := by
         rw [div_of_lt_fst_interval a b h_le h_a_lt_2b] at h_div_eq
         simpa [one_mul, r] using h_div_eq
@@ -464,9 +464,9 @@ namespace Peano
         exact (nlt_n_0 a h_a_lt_3b).elim
       let r := a % b
       have h_div_eq : a = add (mul (a / b) b) (a % b) := by
-        simpa [div, mod] using (divMod_eq a b h_b_neq_0)
+        simpa [div, mod] using (divMod_spec a b h_b_neq_0)
       have h_div_eq' : a = add (add b b) r := by
-        rw [div_of_lt_snd_interval a b h_le h_a_lt_3b] at h_div_eq
+        rw [div_eq_two a b h_le h_a_lt_3b] at h_div_eq
         simpa [two_mul, r] using h_div_eq
       have h_sub : sub (add (add b b) r) (add b b) = r := by
         simpa [r] using (add_k_sub_k r (add b b))
@@ -487,7 +487,7 @@ namespace Peano
         exact (nlt_n_0 b h_lt).elim
       let r := b % a
       have h_div_eq : b = add (mul (b / a) a) (b % a) := by
-        simpa [div, mod] using (divMod_eq b a h_a_neq_0)
+        simpa [div, mod] using (divMod_spec b a h_a_neq_0)
       have h_div_eq' : b = add (mul a n) r := by
         rw [div_of_lt_nth_interval a b n h_le h_lt] at h_div_eq
         simpa [mul_comm, r] using h_div_eq
@@ -505,14 +505,14 @@ export Peano.Div (
   divMod
   div
   mod
-  divMod_eq
-  mod_lt_divisor
+  divMod_spec
+  mod_lt
   div_le_self
   div_lt_self
   mod_of_lt
   div_of_lt
   mod_of_lt_fst_interval
-  div_of_lt_snd_interval
+  div_eq_two
   mod_of_lt_snd_interval
   div_of_lt_nth_interval
   mod_of_lt_nth_interval

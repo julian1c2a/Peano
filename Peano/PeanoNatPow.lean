@@ -93,7 +93,7 @@ namespace Peano
         exact lt_succ_self 𝟘          -- Lt 𝟘 (σ 𝟘) = Lt 𝟘 𝟙
       | succ m'' =>
         -- IH: σ m'' > 𝟘 → n ^ (σ m'') > 𝟘
-        exact ih (lt_0_n _ (succ_neq_zero m''))
+        exact ih (pos_of_ne_zero _ (succ_neq_zero m''))
 
   theorem pow_ge_one {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) :
     n ^ m ≥ 𝟙
@@ -128,7 +128,7 @@ namespace Peano
       exact lt_succ_self n
     | succ m'' ih =>
       simp only [pow_succ]
-      have h_n_gt_0 := lt_0_n n h_n_ne_0
+      have h_n_gt_0 := pos_of_ne_zero n h_n_ne_0
       have h_pow_ge_1 : Le 𝟙 (n ^ σ m'') := pow_ge_one h_n_gt_0
       -- Aplicar ih a su argumento antes de pasarlo a lt_imp_le:
       have h_m''_ne_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
@@ -230,7 +230,7 @@ namespace Peano
     cases m with
     | zero    => rw [pow_zero]; exact succ_neq_zero 𝟘
     | succ m' =>
-      have h_gt := pow_gt (lt_0_n n h) (lt_0_n (σ m') (succ_neq_zero m'))
+      have h_gt := pow_gt (pos_of_ne_zero n h) (pos_of_ne_zero (σ m') (succ_neq_zero m'))
       intro heq
       rw [heq] at h_gt
       exact lt_zero 𝟘 h_gt
@@ -276,7 +276,7 @@ namespace Peano
       cases m with
       | zero    => exact Or.inr rfl
       | succ m' =>
-        rcases lt_0n_then_le_1n_wp (lt_0_n n h_n_ne_0) with h_gt1 | h_eq1
+        rcases lt_0n_then_le_1n_wp (pos_of_ne_zero n h_n_ne_0) with h_gt1 | h_eq1
         · exfalso
           have hlt := one_lt_pow h_gt1 (succ_neq_zero m')
           rw [h] at hlt

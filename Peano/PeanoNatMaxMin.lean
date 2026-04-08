@@ -31,7 +31,7 @@ namespace Peano
         | σ n' , σ m' =>
             if n' = m' then
                 σ m'
-            else if BLt n' m' then
+            else if blt n' m' then
                 σ m'
             else
                 σ n'
@@ -45,7 +45,7 @@ namespace Peano
         | σ n' , σ m' =>
             if n' = m' then
                 σ n'
-            else if BLt n' m' then
+            else if blt n' m' then
                 σ n'
             else
                 σ m'
@@ -59,7 +59,7 @@ namespace Peano
         | σ n' , σ m' =>
             if n' = m' then
                 (σ n' , σ n')
-            else if BLt n' m' then
+            else if blt n' m' then
                 (σ n' , σ m')
             else
                 (σ m' , σ n')
@@ -73,7 +73,7 @@ namespace Peano
         | σ n' , σ m' =>
             if n' = m' then
                 (σ n' , σ n')
-            else if BLt n' m' then
+            else if blt n' m' then
                 (σ m' , σ n')
             else
                 (σ n' , σ m')
@@ -120,7 +120,7 @@ theorem max_0_not(n : ℕ₀) : max n 𝟘 = n := by
   | succ n' n_ih =>
     simp [max]
 
-theorem eq_max_min_then_eq(n m : ℕ₀) :
+theorem eq_of_max_eq_min(n m : ℕ₀) :
     (max n m = min n m) → (n = m)
         := by
     by_cases h_eq_or_neq : (n = m)
@@ -148,13 +148,13 @@ theorem eq_max_min_then_eq(n m : ℕ₀) :
             apply h_eq_or_neq
             rw [h_preds_eq_contra]
           simp [max, min, if_neg h_neq_preds] at h_max_eq_min_hyp
-          by_cases h_blt_eval : BLt n' m'
-          · -- Caso BLt n' m' = true
+          by_cases h_blt_eval : blt n' m'
+          · -- Caso blt n' m' = true
             simp [h_blt_eval] at h_max_eq_min_hyp
             have h_preds_eq_from_hyp : m' = n' :=
               h_max_eq_min_hyp
             exact h_neq_preds (Eq.symm h_preds_eq_from_hyp)
-          · -- Caso BLt n' m' = false
+          · -- Caso blt n' m' = false
             simp [h_blt_eval] at h_max_eq_min_hyp
             have h_preds_eq_from_sigma_inj : n' = m' :=
               h_max_eq_min_hyp
@@ -177,7 +177,7 @@ theorem eq_iff_eq_max_min(n m : ℕ₀) :
           exact eq_then_eq_max_min n m h_eq_args
         · -- Caso max n m = min n m → n = m
           intro h_hyp_max_eq_min
-          exact eq_max_min_then_eq n m h_hyp_max_eq_min
+          exact eq_of_max_eq_min n m h_hyp_max_eq_min
 
 theorem min_of_min_max(n m : ℕ₀) :
     min n m = min (max n m) (min n m)
@@ -198,10 +198,10 @@ theorem min_of_min_max(n m : ℕ₀) :
                 · -- Caso: n' = m'
                   simp [min, max, h_eq_preds]
                 · -- Caso: n' ≠ m'
-                  by_cases h_blt_bool : (BLt n' m')
-                  · -- Caso: BLt n' m' = true
+                  by_cases h_blt_bool : (blt n' m')
+                  · -- Caso: blt n' m' = true
                     have h_lt_n_prime_m_prime : Lt n' m' := by
-                      rw [← BLt_iff_Lt]
+                      rw [← blt_iff_Lt]
                       exact h_blt_bool
                     have h_not_lt_m_prime_n_prime :
                         ¬ (Lt m' n')
@@ -209,11 +209,11 @@ theorem min_of_min_max(n m : ℕ₀) :
                               apply lt_asymm
                               exact h_lt_n_prime_m_prime
                     have h_blt_m_prime_n_prime_is_false :
-                      BLt m' n' = false
+                      blt m' n' = false
                       := by
                          rw [← Bool.not_eq_true]
-                         --   Meta: ¬ (BLt m' n' = true)
-                         rw [BLt_iff_Lt]
+                         --   Meta: ¬ (blt m' n' = true)
+                         rw [blt_iff_Lt]
                          --   Meta: ¬ (Lt m' n')
                          exact h_not_lt_m_prime_n_prime
                     have h_m'_ne_n' : ¬m' = n' := by
@@ -227,7 +227,7 @@ theorem min_of_min_max(n m : ℕ₀) :
                           h_blt_bool, h_blt_m_prime_n_prime_is_false,
                           h_m'_ne_n'
                     ]
-                  · -- Caso: ¬ (BLt n' m')
+                  · -- Caso: ¬ (blt n' m')
                     simp [
                             min,
                             max,
@@ -254,10 +254,10 @@ theorem max_of_min_max(n m : ℕ₀) :
                 · -- Caso: n' = m'
                   simp [min, max, h_eq_preds]
                 · -- Caso: n' ≠ m'
-                  by_cases h_blt_bool : (BLt n' m')
-                  · -- Caso: BLt n' m' = true
+                  by_cases h_blt_bool : (blt n' m')
+                  · -- Caso: blt n' m' = true
                     have h_lt_n_prime_m_prime : Lt n' m' := by
-                      rw [← BLt_iff_Lt]
+                      rw [← blt_iff_Lt]
                       exact h_blt_bool
                     have h_not_lt_m_prime_n_prime :
                         ¬ (Lt m' n')
@@ -265,31 +265,31 @@ theorem max_of_min_max(n m : ℕ₀) :
                                 apply lt_asymm
                                 exact h_lt_n_prime_m_prime
                     have h_blt_m_prime_n_prime_is_false :
-                      BLt m' n' = false
+                      blt m' n' = false
                       := by
                          rw [← Bool.not_eq_true]
-                         rw [BLt_iff_Lt]
+                         rw [blt_iff_Lt]
                          exact h_not_lt_m_prime_n_prime
                     simp [
                       min, max, h_eq_preds,
                       h_blt_bool
                     ]
-                  · -- Caso: ¬ (BLt n' m')
+                  · -- Caso: ¬ (blt n' m')
                     have h_blt_m_n_is_true :
-                      BLt m' n' = true
+                      blt m' n' = true
                       := by
                       rcases trichotomy n' m' with
                         h_lt_n_m | h_eq_n_m | h_lt_m_n
                       ·
                         exfalso
                         apply h_blt_bool
-                        rw [BLt_iff_Lt]
+                        rw [blt_iff_Lt]
                         exact h_lt_n_m
                       · -- Caso n' = m', contradice h_eq_preds
                         exfalso
                         exact h_eq_preds h_eq_n_m
                       ·
-                        rw [BLt_iff_Lt]
+                        rw [blt_iff_Lt]
                         exact h_lt_m_n
                     simp [
                       min,
@@ -319,7 +319,7 @@ theorem max_is_any(n m : ℕ₀) :
                 rw [h_eq_cond]
               ·
                 rw [if_neg h_eq_cond]
-                by_cases h_blt_cond : (BLt n' m')
+                by_cases h_blt_cond : (blt n' m')
                 ·
                   rw [if_pos h_blt_cond]
                   right
@@ -349,7 +349,7 @@ theorem min_is_any(n m : ℕ₀) :
                 rfl
               ·
                 rw [if_neg h_eq_cond]
-                by_cases h_blt_cond : (BLt n' m')
+                by_cases h_blt_cond : (blt n' m')
                 ·
                   rw [if_pos h_blt_cond]
                   left
@@ -375,9 +375,9 @@ theorem lt_then_min (a b : ℕ₀) :
           have h_lt_a'_b' : Lt a' b' := by
               simp [Lt] at h_lt; exact h_lt
           have h_a'_ne_b' : a' ≠ b' :=
-              lt_then_neq a' b' h_lt_a'_b'
+              ne_of_lt a' b' h_lt_a'_b'
           simp [min, if_neg h_a'_ne_b']
-          rw [(BLt_iff_Lt a' b').mpr h_lt_a'_b']
+          rw [(blt_iff_Lt a' b').mpr h_lt_a'_b']
           simp
 
 theorem min_then_le (a b : ℕ₀) :
@@ -402,17 +402,17 @@ theorem min_then_le (a b : ℕ₀) :
             exact Or.inr rfl -- Le X X es X = X, que es rfl.
           · -- Caso ¬ h_eq_preds : a' ≠ b'
             simp only [min, if_neg h_eq_preds] at h_min_eq
-            have h_blt_a'_b' : BLt a' b' = true := by
-              by_cases h_blt_eval : BLt a' b'
+            have h_blt_a'_b' : blt a' b' = true := by
+              by_cases h_blt_eval : blt a' b'
               ·
                 exact h_blt_eval
               ·
                 simp only [h_blt_eval] at h_min_eq
                 have h_b'_eq_a' : b' = a' :=
-                    AXIOM_succ_inj b' a' h_min_eq
+                    succ_injective b' a' h_min_eq
                 exact False.elim (h_eq_preds h_b'_eq_a'.symm)
             have h_lt_a'_b' : Lt a' b' :=
-                (BLt_iff_Lt a' b').mp h_blt_a'_b'
+                (blt_iff_Lt a' b').mp h_blt_a'_b'
             rw [Peano.Order.succ_le_succ_iff]
             exact lt_imp_le a' b' h_lt_a'_b'
 
@@ -430,13 +430,13 @@ theorem min_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
           have h_lt_b'_a' : Lt b' a' := by
               simp [Lt] at h_gt; exact h_gt
           have h_b'_ne_a' : b' ≠ a' :=
-              lt_then_neq b' a' h_lt_b'_a'
+              ne_of_lt b' a' h_lt_b'_a'
           have h_not_lt_a'_b' :
               ¬(Lt a' b') :=
                   lt_asymm b' a' h_lt_b'_a'
           have h_blt_a'_b'_is_false :
-              BLt a' b' = false :=
-                  (nBLt_iff_nLt a' b').mpr h_not_lt_a'_b'
+              blt a' b' = false :=
+                  (nblt_iff_nLt a' b').mpr h_not_lt_a'_b'
           simp only [min, if_neg h_b'_ne_a'.symm]
           rw [h_blt_a'_b'_is_false]
           simp
@@ -455,11 +455,11 @@ theorem max_eq_of_lt {a b : ℕ₀} (h_lt : Lt a b) :
           have h_lt_preds : Lt a' b' := by
               simp [Lt] at h_lt; exact h_lt
           have h_a'_ne_b' : a' ≠ b' :=
-              lt_then_neq a' b' h_lt_preds
+              ne_of_lt a' b' h_lt_preds
           simp [max, if_neg h_a'_ne_b']
           have h_blt_a'_b'_is_true :
-              BLt a' b' = true
-                  := (BLt_iff_Lt a' b').mpr h_lt_preds
+              blt a' b' = true
+                  := (blt_iff_Lt a' b').mpr h_lt_preds
           rw [h_blt_a'_b'_is_true]
           simp
 
@@ -479,18 +479,18 @@ theorem max_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
               := (lt_iff_lt_σ_σ b' a').mp h_gt
           have h_b'_ne_a' :
               b' ≠ a'
-              := lt_then_neq b' a' h_lt_b'_a'
+              := ne_of_lt b' a' h_lt_b'_a'
           have h_not_lt_a'_b' :
               ¬(Lt a' b')
               := lt_asymm b' a' h_lt_b'_a'
           have h_blt_a'_b'_is_false :
-              BLt a' b' = false
-              := (nBLt_iff_nLt a' b').mpr h_not_lt_a'_b'
+              blt a' b' = false
+              := (nblt_iff_nLt a' b').mpr h_not_lt_a'_b'
           simp only [max, if_neg h_b'_ne_a'.symm]
           rw [h_blt_a'_b'_is_false]
           simp
 
-theorem if_neq_then_max_xor(n m : ℕ₀) :
+theorem max_ne_min_of_ne(n m : ℕ₀) :
     n ≠ m ↔
     ((max n m = n) ∧ ¬(max n m = m))
     ∨
@@ -625,7 +625,7 @@ theorem if_neq_then_min_xor(n m : ℕ₀) :
                       exact min_idem m
           exact h_not_min_eq_n h_min_n_m_eq_n_true
 
-theorem neq_args_then_lt_min_max(n m : ℕ₀) :
+theorem lt_max_of_ne(n m : ℕ₀) :
     n ≠ m ↔ Lt (min n m) (max n m)
     := by
       constructor
@@ -688,19 +688,19 @@ theorem max_comm(n m : ℕ₀) :
                       if_neg (Ne.symm h_eq_preds)
                     ]
                     by_cases h_blt_n_m_is_true :
-                        (BLt n' m' = true)
+                        (blt n' m' = true)
                     ·
                       rw [if_pos h_blt_n_m_is_true]
                       have h_lt_n_m :
                           Lt n' m'
-                              := (BLt_iff_Lt n' m').mp
+                              := (blt_iff_Lt n' m').mp
                                  h_blt_n_m_is_true
                       have h_not_lt_m_n :
                           ¬ (Lt m' n')
                               := lt_asymm n' m' h_lt_n_m
                       have h_blt_m_n_is_false :
-                          BLt m' n' = false
-                              := (nBLt_iff_nLt m' n').mpr
+                          blt m' n' = false
+                              := (nblt_iff_nLt m' n').mpr
                                   h_not_lt_m_n
                       rw [h_blt_m_n_is_false]
                       simp -- Evalúa el if
@@ -709,7 +709,7 @@ theorem max_comm(n m : ℕ₀) :
                       have h_not_lt_n_m : ¬ (Lt n' m') := by
                         intro h_lt_n_m_contra
                         apply h_blt_n_m_is_true
-                        rw [BLt_iff_Lt]
+                        rw [blt_iff_Lt]
                         exact h_lt_n_m_contra
                       have h_lt_m_n : Lt m' n' := by
                         cases trichotomy n' m' with
@@ -724,10 +724,10 @@ theorem max_comm(n m : ℕ₀) :
                           | inr h_lt_m_n_tri =>
                             exact h_lt_m_n_tri
                       have h_blt_m_n_is_true :
-                          BLt m' n' = true
+                          blt m' n' = true
                               :=
                               (
-                                BLt_iff_Lt m' n'
+                                blt_iff_Lt m' n'
                               ).mpr h_lt_m_n
                       rw [if_pos h_blt_m_n_is_true]
 
@@ -757,22 +757,22 @@ theorem min_comm(n m : ℕ₀) :
                           if_neg (Ne.symm h_eq_preds)
                     ]
                     by_cases h_blt_n_m_is_true :
-                        (BLt n' m' = true)
-                    · -- Subcase: BLt n' m' = true (i.e., Lt n' m')
+                        (blt n' m' = true)
+                    · -- Subcase: blt n' m' = true (i.e., Lt n' m')
                       rw [if_pos h_blt_n_m_is_true]
                       have h_lt_n_m : Lt n' m'
-                          := (BLt_iff_Lt n' m').mp h_blt_n_m_is_true
+                          := (blt_iff_Lt n' m').mp h_blt_n_m_is_true
                       have h_not_lt_m_n : ¬ (Lt m' n')
                           := lt_asymm n' m' h_lt_n_m
-                      have h_blt_m_n_is_false : BLt m' n' = false
-                          := (nBLt_iff_nLt m' n').mpr h_not_lt_m_n
+                      have h_blt_m_n_is_false : blt m' n' = false
+                          := (nblt_iff_nLt m' n').mpr h_not_lt_m_n
                       rw [h_blt_m_n_is_false]
                       simp
                     ·
                       rw [if_neg h_blt_n_m_is_true]
                       have h_not_lt_n_m : ¬(Lt n' m')
                         :=
-                          (nBLt_iff_nLt n' m').mp
+                          (nblt_iff_nLt n' m').mp
                           (eq_false_of_ne_true h_blt_n_m_is_true)
                       have h_lt_m_n : Lt m' n' := by
                         cases trichotomy n' m' with
@@ -785,8 +785,8 @@ theorem min_comm(n m : ℕ₀) :
                           | inr h_gt_n_m =>
                             exact h_gt_n_m
                       have h_blt_m_n_is_true :
-                          BLt m' n' = true
-                              := (BLt_iff_Lt m' n').mpr h_lt_m_n
+                          blt m' n' = true
+                              := (blt_iff_Lt m' n').mpr h_lt_m_n
                       rw [h_blt_m_n_is_true]
                       simp
 
@@ -806,7 +806,7 @@ theorem le_then_max_eq_left (n m : ℕ₀) (h_le : Le m n) :
     rw [max_comm n m] -- El objetivo es max m n = n
     exact le_then_max_eq_right m n h_le
 
-theorem Lt_of_not_le {n m : ℕ₀} (h_not_le : ¬ Le n m) :
+theorem lt_of_not_le {n m : ℕ₀} (h_not_le : ¬ Le n m) :
   Lt m n
   := by
   rcases trichotomy n m with h_lt_n_m | h_eq_n_m | h_lt_m_n
@@ -829,7 +829,7 @@ theorem le_max_left (n m : ℕ₀) :
     rw [le_then_max_eq_right n m h_le_n_m]
     exact h_le_n_m
   ·
-    have h_lt_m_n : Lt m n := Lt_of_not_le h_le_n_m
+    have h_lt_m_n : Lt m n := lt_of_not_le h_le_n_m
     rw [le_then_max_eq_left n m (Or.inl h_lt_m_n)]
     exact le_refl n
 
@@ -931,7 +931,7 @@ theorem min_le_left (n m : ℕ₀) :
     exact le_refl n
   · -- Caso: ¬ (Le n m)
     have h_lt_m_n : Lt m n
-      := Lt_of_not_le h_le_n_m -- Entonces Lt m n
+      := lt_of_not_le h_le_n_m -- Entonces Lt m n
     rw [min_eq_of_gt h_lt_m_n] -- Entonces min n m = m
     exact Or.inl h_lt_m_n
 
@@ -980,7 +980,7 @@ theorem min_assoc(n m k : ℕ₀) :
             ·
               exact le_trans (min n (min m k)) (min m k) k (min_le_right n (min m k)) (min_le_right m k)
 
-theorem nexists_max_abs:
+theorem not_exists_max:
     ∀ (k: ℕ₀), ∃ (n: ℕ₀) , max n k = n ∧ n ≠ k
         := by
           intro k
@@ -1021,14 +1021,14 @@ theorem nexists_max_abs:
             simp [min]
             cases h_b'_le_a' with
             | inl h_lt =>
-              have h_blt_true : BLt b' a' = true := by
-                rw [BLt_iff_Lt]
+              have h_blt_true : blt b' a' = true := by
+                rw [blt_iff_Lt]
                 exact h_lt
-              -- Necesitamos mostrar que BLt a' b' = false
+              -- Necesitamos mostrar que blt a' b' = false
               have h_not_lt_a'_b' : ¬(Lt a' b') := by
                 exact lt_asymm b' a' h_lt
-              have h_blt_a'_b'_false : BLt a' b' = false := by
-                rw [← Bool.not_eq_true, BLt_iff_Lt]
+              have h_blt_a'_b'_false : blt a' b' = false := by
+                rw [← Bool.not_eq_true, blt_iff_Lt]
                 exact h_not_lt_a'_b'
               -- Ahora simplificamos la expresión condicional
               simp only [h_blt_a'_b'_false]
@@ -1065,8 +1065,8 @@ theorem nexists_max_abs:
             simp [min, if_neg h_eq]
             cases h_a'_le_b' with
             | inl h_lt =>
-              have h_blt_true : BLt a' b' = true := by
-                rw [BLt_iff_Lt]
+              have h_blt_true : blt a' b' = true := by
+                rw [blt_iff_Lt]
                 exact h_lt
               rw [h_blt_true]
               simp
@@ -1102,8 +1102,8 @@ theorem nexists_max_abs:
             simp [max, if_neg h_eq]
             cases h_a'_le_b' with
             | inl h_lt =>
-              have h_blt_true : BLt a' b' = true := by
-                rw [BLt_iff_Lt]
+              have h_blt_true : blt a' b' = true := by
+                rw [blt_iff_Lt]
                 exact h_lt
               rw [h_blt_true]
               simp
@@ -1139,11 +1139,11 @@ theorem max_eq_left {a b : ℕ₀} (h : b ≤ a) :
           simp [max, if_neg h_eq]
           cases h_b'_le_a' with
           | inl h_lt =>
-            -- h_lt : Lt b' a', necesitamos mostrar que BLt a' b' = false
+            -- h_lt : Lt b' a', necesitamos mostrar que blt a' b' = false
             have h_not_lt_a'_b' : ¬(Lt a' b') := by
               exact lt_asymm b' a' h_lt
-            have h_blt_a'_b'_false : BLt a' b' = false := by
-              rw [← Bool.not_eq_true, BLt_iff_Lt]
+            have h_blt_a'_b'_false : blt a' b' = false := by
+              rw [← Bool.not_eq_true, blt_iff_Lt]
               exact h_not_lt_a'_b'
             rw [h_blt_a'_b'_false]
             simp
@@ -1199,7 +1199,7 @@ theorem min_distrib_max(n m k : ℕ₀) :
       rw [max_idem n]
     · -- Si ¬(n ≤ m), entonces m < n
       have h_m_lt_n : Lt m n
-          := Lt_of_not_le h_n_le_m
+          := lt_of_not_le h_n_le_m
       have h_min_nm_eq_m : min n m = m
           := min_eq_of_gt h_m_lt_n
       by_cases h_n_le_k : Le n k
@@ -1212,7 +1212,7 @@ theorem min_distrib_max(n m k : ℕ₀) :
         rw [le_then_max_eq_right m n h_m_le_n]
       · -- Si ¬(n ≤ k), entonces k < n y min n k = k
         have h_k_lt_n : Lt k n
-            := Lt_of_not_le h_n_le_k
+            := lt_of_not_le h_n_le_k
         have h_min_nk_eq_k : min n k = k
             := min_eq_of_gt h_k_lt_n
         rw [h_min_nm_eq_m, h_min_nk_eq_k]
@@ -1234,7 +1234,7 @@ theorem min_distrib_max(n m k : ℕ₀) :
       rw [max_idem n]
     · -- Si ¬(n ≤ k), entonces k < n
       have h_k_lt_n : Lt k n
-          := Lt_of_not_le h_n_le_k
+          := lt_of_not_le h_n_le_k
       have h_min_nk_eq_k : min n k = k
           := min_eq_of_gt h_k_lt_n
       by_cases h_n_le_m : Le n m
@@ -1249,7 +1249,7 @@ theorem min_distrib_max(n m k : ℕ₀) :
         rw [le_then_max_eq_left n k h_k_le_n]
       · -- Si ¬(n ≤ m), entonces m < n y min n m = m
         have h_m_lt_n : Lt m n
-            := Lt_of_not_le h_n_le_m
+            := lt_of_not_le h_n_le_m
         have h_min_nm_eq_m : min n m = m
             := min_eq_of_gt h_m_lt_n
         rw [h_min_nm_eq_m, h_min_nk_eq_k]
@@ -1510,7 +1510,7 @@ export Peano.MaxMin (
   min_0_abs
   max_not_0
   max_0_not
-  eq_max_min_then_eq
+  eq_of_max_eq_min
   eq_then_eq_max_min
   eq_iff_eq_max_min
   min_of_min_max
@@ -1521,9 +1521,9 @@ export Peano.MaxMin (
   min_then_le
   min_eq_of_gt
   max_eq_of_lt
-  if_neq_then_max_xor
+  max_ne_min_of_ne
   if_neq_then_min_xor
-  neq_args_then_lt_min_max
+  lt_max_of_ne
   max_comm
   min_comm
   le_then_max_eq_right
@@ -1538,7 +1538,7 @@ export Peano.MaxMin (
   min_le_right
   le_min
   min_assoc
-  nexists_max_abs
+  not_exists_max
   max_distrib_min
   min_distrib_max
   isomorph_Λ_max

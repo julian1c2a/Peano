@@ -181,7 +181,7 @@ namespace Peano
         have h_na_c : mul (mul n a) c = add (mul (mul m b) c) c := by
           have h_sk := sub_k_add_k (mul n a) (mul m b) (lt_imp_le_wp h_lt)
           rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m b) = mul n a
-          rw [h_sk.symm, mul_rdistr, one_mul]
+          rw [h_sk.symm, add_mul, one_mul]
           exact add_comm c (mul (mul m b) c)
         have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by
           rw [h_na_c]
@@ -201,7 +201,7 @@ namespace Peano
         have h_nb_c : mul (mul n b) c = add (mul (mul m a) c) c := by
           have h_sk := sub_k_add_k (mul n b) (mul m a) (lt_imp_le_wp h_lt)
           rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m a) = mul n b
-          rw [h_sk.symm, mul_rdistr, one_mul]
+          rw [h_sk.symm, add_mul, one_mul]
           exact add_comm c (mul (mul m a) c)
         have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by
           rw [h_nb_c]
@@ -345,7 +345,7 @@ namespace Peano
         -- El testigo k = p / gcd(p,a); la igualdad requiere un lema de Div:
         --   p = gcd(p,a) · (p / gcd(p,a)) + (p % gcd(p,a))
         -- y gcd(p,a) ∣ p → p % gcd(p,a) = 0 → p = gcd(p,a) · (p / gcd(p,a))
-        -- Esto es: divMod_eq + mod_eq_zero_iff_divides (de PeanoNatArith ℕ₁)
+        -- Esto es: divMod_spec + mod_eq_zero_iff_divides (de PeanoNatArith ℕ₁)
         -- Por ahora sorry este paso auxiliar:
         have h_factor : ∃ k, p = mul (gcd p a) k := by
           rcases hg_p with ⟨k, hk⟩; exact ⟨k, hk⟩

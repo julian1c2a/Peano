@@ -275,8 +275,8 @@ namespace Peano
                 have term2_rw : mul (mul (C(n', σ k')) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (sub n' k') := by
                   rw [factorial_sub_succ h_lt, ←mul_assoc, ih h_le_sk']
                 -- ensamblamos: Pascal + distribución + HI + factorial_succ
-                rw [binom_pascal, mul_rdistr, ←sub_succ_succ_eq, mul_rdistr,
-                    term1_rw, term2_rw, ←mul_ldistr, add_succ_sub_self h_le_k', factorial_succ]
+                rw [binom_pascal, add_mul, ←sub_succ_succ_eq, add_mul,
+                    term1_rw, term2_rw, ←mul_add, add_succ_sub_self h_le_k', factorial_succ]
               · -- Caso k' = n'
                 subst h_eq
                 rw [binom_self (σ k'), one_mul, sub_self, factorial_zero, mul_one]

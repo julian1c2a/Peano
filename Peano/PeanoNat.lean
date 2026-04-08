@@ -68,19 +68,19 @@ namespace Peano
 
   def idℕ₀ (n : ℕ₀) : ℕ₀ := n
   def idNat (n : Nat) : Nat := n
-  def EqFnGen {α β : Type} (f : α → β) (g : α → β) :
+  def eqFnGen {α β : Type} (f : α → β) (g : α → β) :
       Prop :=
           ∀ (x : α), f x = g x
-  def Comp {α β : Type} (f : α → β) (g : β → α) :
+  def comp {α β : Type} (f : α → β) (g : β → α) :
       Prop :=
           ∀ (x : α), g (f x) = x
-  def EqFn {α : Type}
+  def eqFn {α : Type}
           (f : ℕ₀ -> α)(g : ℕ₀ -> α) : Prop :=
     ∀ (x : ℕ₀), f x = g x
-  def EqFn2 {α : Type}
+  def eqFn2 {α : Type}
           (f : ℕ₀ × ℕ₀ -> α)(g : ℕ₀ × ℕ₀ -> α) : Prop :=
     ∀ (x : ℕ₀), ∀ (y : ℕ₀), f (x, y) = g (x, y)
-  def EqFnNat {α : Type}
+  def eqFnNat {α : Type}
           (f : Nat -> α)(g : Nat -> α) : Prop :=
     ∀ (x : Nat), f x = g x
 
@@ -197,11 +197,11 @@ export Peano (
   ℕ₀ ℕ₁ ℕ₂
   idℕ₀
   idNat
-  EqFnGen
-  Comp
-  EqFn
-  EqFn2
-  EqFnNat
+  eqFnGen
+  comp
+  eqFn
+  eqFn2
+  eqFnNat
   Λ Ψ τ ρ
   Tuple
   emptyTuple

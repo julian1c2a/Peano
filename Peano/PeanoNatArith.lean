@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- PeanoNatLib/PeanoNatArith.lean
+-- Peano/PeanoNatArith.lean
 import Init.Classical
 import Peano.PeanoNatLib
 import Peano.PeanoNatAxioms

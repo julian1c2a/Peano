@@ -5,7 +5,7 @@ License: MIT
 -/
 
 -- Peano.lean
--- Módulo raíz: importa todos los módulos de PeanoNatLib y re-exporta
+-- Módulo raíz: importa todos los módulos de Peano/ y re-exporta
 -- sus declaraciones públicas para consumo sin calificación.
 
 import Peano.PeanoNatLib

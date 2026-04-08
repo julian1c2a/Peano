@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- PeanoNatLib/PeanoNatPrimes.lean
+-- Peano/PeanoNatPrimes.lean
 -- Teorema Fundamental de la Aritmética para los naturales de Peano.
 --
 -- § 0. Lemas internos de gcd (re-derivados, privados en PeanoNatArith)

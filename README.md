@@ -5,7 +5,7 @@
 Formalización de la aritmética de Peano en **Lean 4**, construida desde los axiomas inductivos de `ℕ₀` sin depender de Mathlib.
 
 > **Autor:** Julián Calderón Almendros
-> **Lean:** `leanprover/lean4:v4.23.0`
+> **Lean:** `leanprover/lean4:v4.29.0`
 > **Licencia:** MIT
 
 ---
@@ -202,14 +202,17 @@ Ver [`REFERENCE.md`](REFERENCE.md) para la referencia completa de definiciones, 
 ## Créditos y Reconocimientos
 
 **Recursos Educativos:**
+
 - "Razonando con Lean" - José A. Alonso (YouTube)
 - Adrián GQ (@conjuntos_y_logica) - YouTube
 
 **Referencias Bibliográficas:**
+
 - "Axiomatic Set Theory" - Patrick Suppes (1960/1972)
 - "Axiomatic Set Theory" - Paul Bernays (1958)
 
 **Herramientas de IA:**
+
 - Claude Code AI (Anthropic)
 - Gemini AI (Google)
 

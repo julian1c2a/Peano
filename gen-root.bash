@@ -3,7 +3,7 @@
 #
 # Usage: bash gen-root.bash
 #
-# Scans PeanoNatLib/ for all .lean files (excluding _template.lean and test files).
+# Scans Peano/ for all .lean files (excluding _template.lean and test files).
 # If a subdirectory has a barrel file (e.g., Foo.lean for Foo/), the root
 # imports only the barrel instead of listing each sub-module individually.
 # This follows the export/glob pattern defined in AI-GUIDE.md §23, §30–33.
@@ -23,7 +23,7 @@ if [ -z "$PROJECT_NAME" ]; then
     exit 1
 fi
 
-# Detect module directory from globs line (e.g., Glob.submodules `PeanoNatLib)
+# Detect module directory from globs line (e.g., Glob.submodules `Peano)
 MODULE_DIR=$(grep -oE 'Glob\.submodules\s+`(\w+)' lakefile.lean 2>/dev/null | sed 's/.*`//' | head -1)
 if [ -z "$MODULE_DIR" ]; then
     MODULE_DIR="${PROJECT_NAME}"

@@ -5,7 +5,7 @@
 #   bash new-module.bash ModuleName
 #   bash new-module.bash SubDir/ModuleName
 #
-# Creates:  PeanoNatLib/ModuleName.lean  (from _template.lean)
+# Creates:  Peano/ModuleName.lean  (from _template.lean)
 # Updates:  Peano.lean                   (adds import line)
 # Unlocks:  Peano.lean for editing (re-locks after update)
 
@@ -65,7 +65,7 @@ sed \
     -e "s/Copyright (c) 2026/Copyright (c) ${YEAR}/" \
     -e "s/Author: Julián Calderón Almendros/Author: ${AUTHOR}/" \
     -e "s/Peano\.ModuleName/${NAMESPACE_NAME}/g" \
-    -e "s/import PeanoNatLib\.PeanoNatLib/import ${MODULE_DIR}.PeanoNatLib/" \
+    -e "s/import Peano\.PeanoNatLib/import ${MODULE_DIR}.PeanoNatLib/" \
     "$TEMPLATE" > "$TARGET_FILE"
 
 echo "✅ Created: $TARGET_FILE"

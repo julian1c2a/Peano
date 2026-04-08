@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- PeanoNatLib/PeanoNatNewtonBinom.lean
+-- Peano/PeanoNatNewtonBinom.lean
 -- Sumatorios finitos, Teorema del Binomio de Newton y crecimiento comparado.
 -- REFERENCE.md: proyectar este archivo en la sección 17 de REFERENCE.md.
 

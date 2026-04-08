@@ -18,5 +18,5 @@ lean_lib «Peano» where
 --  "https://github.com/leanprover-community/mathlib4.git"
 
 -- Opcional: si tuvieras un ejecutable
--- lean_exe «peanonatlib» where
+-- lean_exe «peano» where
 --   root := `Main -- Si tuvieras un Main.lean

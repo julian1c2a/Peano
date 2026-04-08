@@ -1,3 +1,11 @@
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano/PeanoNatAxioms.lean
+
 import Peano.PeanoNatLib
 
 namespace Peano

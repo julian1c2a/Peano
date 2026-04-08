@@ -1,4 +1,10 @@
--- PeanoNatLib/PeanoNatMul.lean
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano/PeanoNatMul.lean
 
 import Peano.PeanoNatLib
 import Peano.PeanoNatAxioms

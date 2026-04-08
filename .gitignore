@@ -27,3 +27,6 @@ wdIn.txt
 # AI tools
 .aider*
 .env
+
+# LSP logs
+LSP_*.log

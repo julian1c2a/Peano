@@ -1,4 +1,10 @@
--- PeanoNatLib/PeanoNatStrictOrder.lean
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano/PeanoNatStrictOrder.lean
 
 import Peano.PeanoNatLib
 import Peano.PeanoNatAxioms

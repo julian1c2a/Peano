@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- PeanoNatLib/PeanoNatBinom.lean
+-- Peano/PeanoNatBinom.lean
 -- Coeficientes binomiales vía el triángulo de Pascal.
 -- Preparación para el Teorema del Binomio de Newton.
 

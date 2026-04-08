@@ -1,4 +1,10 @@
--- PeanoNatLib/PeanoNatLib.lean
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano/PeanoNatLib.lean
 
 import Init.Classical
 
@@ -117,7 +123,7 @@ namespace Peano
     | ℕ₀.succ k => k
 
   -- Tuplas de dimensión finita sobre ℕ₀
-  
+
   def Tuple : ℕ₀ → Type
     | 𝟘 => Unit
     | σ n => ℕ₀ × Tuple n
@@ -140,7 +146,7 @@ namespace Peano
   -- Notación para tuplas
   notation "⟨⟩" => emptyTuple
   notation "⟨" x "⟩" => consTuple x emptyTuple
-  
+
   -- Igualdad decidible para tuplas
   instance tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)
     | 𝟘 => fun _ _ => isTrue rfl

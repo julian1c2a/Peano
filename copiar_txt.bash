@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directorio de origen y destino
-ORIGEN="./PeanoNatLib"
+ORIGEN="./Peano"
 DESTINO="./txtcopies"
 
 # 1. Crear el directorio de destino si no existe.

@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### Changed (2026-04-08)
+
+- **Directorio renombrado**: `PeanoNatLib/` → `Peano/` — todos los imports, scripts y documentación actualizados.
+- **Copyright headers**: Añadidos a los 9 módulos que no los tenían (AI-GUIDE §19).
+- **Comentarios de ruta**: `PeanoNatLib/` → `Peano/` en las cabeceras de los 16 módulos.
+- **Scripts**: `gen-root.bash`, `new-module.bash`, `git-lock.bash`, `copiar_txt.bash` — referencias actualizadas.
+- **lakefile.lean** y **Peano.lean**: Comentarios actualizados.
+- **.gitignore**: Añadido `LSP_*.log`.
+- **README.md**: Versión de Lean corregida `v4.23.0` → `v4.29.0`.
+- **CURRENT-STATUS-PROJECT.md**: Añadidos 6 módulos faltantes (Pow, Factorial, Binom, NewtonBinom, Primes, PeanoNatLib), actualizada a 19 jobs.
+- **NEXT-STEPS.md**: Reescrito con Fases 7–10 detalladas (plan de renombrado de archivo, namespaces, migración de identificadores).
+- Build verificado: 19/19 jobs, 0 sorry.
+
 ### Added (2026-03-16)
 
 - **`Peano/PeanoNatPrimes.lean`** — módulo completamente demostrado, **cero `sorry`**.

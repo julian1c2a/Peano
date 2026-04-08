@@ -1,4 +1,10 @@
--- PeanoNatLib/PeanoNatWellFounded.lean
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano/PeanoNatWellFounded.lean
 --
 -- Este fichero contiene la prueba de que el orden estricto '<'
 -- en ℕ₀ es una relación bien fundada. La demostración se construye

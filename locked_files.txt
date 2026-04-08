@@ -3,7 +3,7 @@
 # See AI-GUIDE.md §20 for the session locking protocol.
 
 Peano.lean
-Peano/PeanoNatLib.lean
+Peano/PeanoNat.lean
 Peano/PeanoNatAxioms.lean
 Peano/PeanoNatStrictOrder.lean
 Peano/PeanoNatOrder.lean

@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNatLib.lean
+-- Peano/PeanoNat.lean
 
 import Init.Classical
 
@@ -210,4 +210,4 @@ export Peano (
   tailTuple
   mkTuple
 )
--- PeanoNatLib/PeanoNatDiv.lean
+-- (legacy comment removed)

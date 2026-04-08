@@ -4,6 +4,11 @@
 
 ### Changed (2026-04-08)
 
+- **Fase 8 — Archivo renombrado**: `Peano/PeanoNatLib.lean` → `Peano/PeanoNat.lean`.
+  - Imports actualizados en los 15 módulos dependientes + `Peano.lean` + `_template.lean`.
+  - `frozen_files.txt`, `locked_files.txt`, `new-module.bash` actualizados.
+  - Documentación actualizada (README, CURRENT-STATUS-PROJECT, NEXT-STEPS).
+  - Build verificado: 19/19 jobs, 0 sorry.
 - **Directorio renombrado**: `PeanoNatLib/` → `Peano/` — todos los imports, scripts y documentación actualizados.
 - **Copyright headers**: Añadidos a los 9 módulos que no los tenían (AI-GUIDE §19).
 - **Comentarios de ruta**: `PeanoNatLib/` → `Peano/` en las cabeceras de los 16 módulos.

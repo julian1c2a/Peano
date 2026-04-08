@@ -8,7 +8,7 @@ License: MIT
 -- Coeficientes binomiales vía el triángulo de Pascal.
 -- Preparación para el Teorema del Binomio de Newton.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

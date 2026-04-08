@@ -18,10 +18,11 @@
 | 4 | Advanced Number Theory | ✅ Complete |
 | 5 | Infrastructure Modernization | ✅ Complete |
 | 6 | Export/Glob Architecture | ✅ Complete |
-| 7 | Directory rename PeanoNatLib → Peano | 🔄 In progress |
-| 8 | File rename PeanoNatLib.lean → PeanoNat.lean | ❌ Pending |
+| 7 | Directory rename PeanoNatLib → Peano | ✅ Complete |
+| 8 | File rename PeanoNatLib.lean → PeanoNat.lean | ✅ Complete |
 | 9 | Namespace Migration | ❌ Pending |
 | 10 | Identifier Naming Migration | ❌ Pending |
+| 11 | Warning Cleanup | ❌ Pending |
 
 ---
 
@@ -49,10 +50,10 @@
 
 ---
 
-## Phase 7: Directory Rename PeanoNatLib → Peano (CURRENT)
+## Phase 7: Directory Rename PeanoNatLib → Peano
 
 **Objective**: Complete the directory rename and update all references.
-**Status**: 🔄 In progress
+**Status**: ✅ Complete
 
 **Steps**:
 
@@ -68,14 +69,14 @@
 - [x] Update CURRENT-STATUS-PROJECT.md (add Pow, Factorial, Binom, NewtonBinom, Primes)
 - [x] Update timestamps in all docs
 - [x] `lake clean && lake build` — verify compilation
-- [ ] Commit
+- [x] Commit
 
 ---
 
 ## Phase 8: File Rename PeanoNatLib.lean → PeanoNat.lean
 
 **Objective**: Rename the base definitions file to match the module naming pattern.
-**Status**: ❌ Pending
+**Status**: ✅ Complete
 **Dependencies**: Phase 7 complete
 
 The file `Peano/PeanoNatLib.lean` is the foundational module containing `ℕ₀`,
@@ -322,6 +323,34 @@ git commit -m "naming: migrate Module.lean to Mathlib conventions"
 
 ---
 
+## Phase 11: Warning Cleanup
+
+**Objective**: Eliminate all compiler/linter warnings so that `lake build` produces zero warnings.
+**Status**: ❌ Pending
+**Dependencies**: Phase 10 complete (or can be done independently)
+
+### 11.1. Current warnings (as of 2026-04-08)
+
+| File | Line | Warning | Linter | Fix |
+|------|------|---------|--------|-----|
+| `PeanoNatSub.lean` | 484 | Unused simp argument `Nat.sub` | `linter.unusedSimpArgs` | Remove `Nat.sub` from `simp [Nat.sub, Λ, sub_zero]` → `simp [Λ, sub_zero]` |
+
+### 11.2. Protocol
+
+1. **Audit**: Run `lake build 2>&1` and collect all lines containing `warning:`.
+2. **Fix** each warning individually:
+   - `unusedSimpArgs`: Remove the flagged argument from the `simp` call. Verify the proof still closes.
+   - `unusedVariables`: Prefix with `_` or remove if truly unused.
+   - `deprecated`: Replace with the recommended replacement.
+3. **Verify**: `lake build 2>&1 | Select-String "warning"` must produce **no output**.
+4. **Commit**: `git commit -m "chore: fix all build warnings"`
+
+### 11.3. Policy going forward
+
+After this phase, **zero warnings** is a project invariant. Any new warning introduced by a commit must be fixed before merging.
+
+---
+
 ## Future Phases
 
 ### Phase N: Integer Extension (ℤ)
@@ -333,5 +362,5 @@ git commit -m "naming: migrate Module.lean to Mathlib conventions"
 - [ ] `Peano/Integer/Basic.lean` — ℤ definition
 - [ ] `Peano/Integer/Arithmetic.lean` — ℤ operations
 
-**Dependencies**: Phase 10 complete
+**Dependencies**: Phase 11 complete
 **Complexity**: Complex

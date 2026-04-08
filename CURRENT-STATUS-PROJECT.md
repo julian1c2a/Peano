@@ -26,7 +26,7 @@ warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
 
 | Archivo | Namespace | Contenido principal | Estado |
 |---|---|---|---|
-| `PeanoNatLib.lean` | `Peano` | `ℕ₀`, `ExistsUnique`, `choose`, constantes, isomorfismos | ✅ Completo |
+| `PeanoNat.lean` | `Peano` | `ℕ₀`, `ExistsUnique`, `choose`, constantes, isomorfismos | ✅ Completo |
 | `PeanoNatAxioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
 | `PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
 | `PeanoNatOrder.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans` | ✅ Completo |
@@ -70,7 +70,7 @@ warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
 
 ## Próximos objetivos
 
-- **Fase 8**: Renombrar `PeanoNatLib.lean` → `PeanoNat.lean` (ver NEXT-STEPS.md).
+- **Fase 8**: Renombrar `PeanoNatLib.lean` → `PeanoNat.lean` — ✅ completado.
 - **Fase 10**: Migración de nombres de identificadores a convenciones Mathlib4.
 - **Futuro**: Extensión a enteros ℤ (pares de equivalencia).
 

@@ -23,7 +23,7 @@ Toda la biblioteca está **computacionalmente realizada**: las operaciones produ
 ```
 Peano.lean                           ← entrada; importa toda la librería
 └─ Peano/
-   ├─ Peano.lean               namespace Peano
+   ├─ PeanoNat.lean               namespace Peano
    ├─ PeanoNatAxioms.lean            namespace Peano.Axioms
    ├─ PeanoNatStrictOrder.lean       namespace Peano.StrictOrder
    ├─ PeanoNatOrder.lean             namespace Peano.Order

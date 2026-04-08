@@ -65,7 +65,7 @@ sed \
     -e "s/Copyright (c) 2026/Copyright (c) ${YEAR}/" \
     -e "s/Author: Julián Calderón Almendros/Author: ${AUTHOR}/" \
     -e "s/Peano\.ModuleName/${NAMESPACE_NAME}/g" \
-    -e "s/import Peano\.PeanoNatLib/import ${MODULE_DIR}.PeanoNatLib/" \
+    -e "s/import Peano\.PeanoNat/import ${MODULE_DIR}.PeanoNat/" \
     "$TEMPLATE" > "$TARGET_FILE"
 
 echo "✅ Created: $TARGET_FILE"

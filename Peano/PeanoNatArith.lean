@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNatArith.lean
 import Init.Classical
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatOrder
 import Peano.PeanoNatStrictOrder

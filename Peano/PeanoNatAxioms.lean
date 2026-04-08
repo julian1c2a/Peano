@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNatAxioms.lean
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 
 namespace Peano
     open Peano

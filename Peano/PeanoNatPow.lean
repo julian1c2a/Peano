@@ -7,7 +7,7 @@ License: MIT
 -- Peano/PeanoNatPow.lean
 -- Potenciación de naturales por naturales.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

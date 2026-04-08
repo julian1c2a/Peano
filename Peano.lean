@@ -8,7 +8,7 @@ License: MIT
 -- Módulo raíz: importa todos los módulos de Peano/ y re-exporta
 -- sus declaraciones públicas para consumo sin calificación.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder
@@ -26,7 +26,7 @@ import Peano.PeanoNatBinom
 import Peano.PeanoNatNewtonBinom
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano  (PeanoNatLib.lean)
+-- namespace Peano  (PeanoNat.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano (
   ExistsUnique

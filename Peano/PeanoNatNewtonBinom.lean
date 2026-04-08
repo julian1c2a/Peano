@@ -8,7 +8,7 @@ License: MIT
 -- Sumatorios finitos, Teorema del Binomio de Newton y crecimiento comparado.
 -- REFERENCE.md: proyectar este archivo en la sección 17 de REFERENCE.md.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

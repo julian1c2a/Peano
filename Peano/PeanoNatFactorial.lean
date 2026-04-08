@@ -9,7 +9,7 @@ License: MIT
 -- Nota: la notación n! no se define aquí porque en Lean 4 el lexer
 -- trata `n!` como identificador único. Se usa `factorial n` directamente.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

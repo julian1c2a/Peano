@@ -4,7 +4,7 @@
 # See AI-GUIDE.md §21 for the freeze protocol.
 
 Peano.lean
-Peano/PeanoNatLib.lean
+Peano/PeanoNat.lean
 Peano/PeanoNatAxioms.lean
 Peano/PeanoNatStrictOrder.lean
 Peano/PeanoNatOrder.lean

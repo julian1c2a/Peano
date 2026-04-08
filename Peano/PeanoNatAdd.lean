@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNatAdd.lean
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

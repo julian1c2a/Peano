@@ -8,11 +8,11 @@ License: MIT
 -- See AI-GUIDE.md §12 for the "proyectar" protocol.
 -- See NAMING-CONVENTIONS.md for naming rules.
 --
--- Dependencies: PeanoNatLib.PeanoNatLib (add more as needed)
+-- Dependencies: Peano.PeanoNat (add more as needed)
 -- @axiom_system: Peano
 -- @importance: medium
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 -- import Peano.PeanoNatAxioms
 
 namespace Peano.ModuleName

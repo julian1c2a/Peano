@@ -13,7 +13,7 @@ License: MIT
 
 -- También demostramos que el orden estricto '<' en ℕ₀ es un buen orden.
 
-import Peano.PeanoNatLib
+import Peano.PeanoNat
 import Peano.PeanoNatAxioms
 import Peano.PeanoNatStrictOrder
 import Peano.PeanoNatOrder

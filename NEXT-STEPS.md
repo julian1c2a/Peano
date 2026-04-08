@@ -434,6 +434,7 @@ Separates computational (boolean) decision procedures from pure mathematical the
 **Dependencies**: Phase 16 complete
 
 Structure:
+
 ```
 PeanoNat/Combinatorics/
 ├── Pow.lean

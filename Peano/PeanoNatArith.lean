@@ -6,15 +6,15 @@ License: MIT
 
 -- PeanoNatLib/PeanoNatArith.lean
 import Init.Classical
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatMul
-import PeanoNatLib.PeanoNatSub
-import PeanoNatLib.PeanoNatDiv
-import PeanoNatLib.PeanoNatMaxMin
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatOrder
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatAdd
+import Peano.PeanoNatMul
+import Peano.PeanoNatSub
+import Peano.PeanoNatDiv
+import Peano.PeanoNatMaxMin
 
 
 namespace Peano

@@ -60,14 +60,14 @@ Each entry records *what* was decided and *why*, for future reference.
 
 ---
 
-## ADR-005: Module directory = PeanoNatLib
+## ADR-005: Module directory = Peano
 
 **Date**: 2025-01-01
 **Status**: Accepted
 
-**Decision**: Source modules live in `PeanoNatLib/` while the lean_lib name is `Peano` and the root file is `Peano.lean`. Imports use `PeanoNatLib.` prefix. Namespaces use `Peano.` prefix.
+**Decision**: Source modules live in `Peano/` while the lean_lib name is `Peano` and the root file is `Peano.lean`. Imports use `Peano.` prefix. Namespaces use `Peano.` prefix.
 
-**Rationale**: Historical architecture from the project's inception. The `PeanoNatLib` directory name reflects the library's content, while `Peano` is the public-facing namespace.
+**Rationale**: Historical architecture from the project's inception. The `Peano` directory name reflects the library's content, while `Peano` is the public-facing namespace.
 
 **Consequences**: Scripts (gen-root.bash, new-module.bash) detect the module directory from `Glob.submodules` in lakefile.lean. The namespace/import prefix mismatch requires awareness.
 

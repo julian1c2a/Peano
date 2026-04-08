@@ -33,7 +33,7 @@ session-based locking.
 ## Open Questions
 
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
-- [ ] Is the PeanoNatLib/ vs Peano namespace mismatch worth resolving?
+- [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
 
 ---
 

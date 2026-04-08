@@ -1,7 +1,7 @@
 -- PeanoNatLib/PeanoNatStrictOrder.lean
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
 import Init.Prelude
 import Init.WF
 import Init.Data.Nat.Basic

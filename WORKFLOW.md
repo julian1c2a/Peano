@@ -16,7 +16,7 @@ Complete guide for working on this Peano arithmetic formalization project.
 bash git-lock.bash list
 
 # If more than one file is unlocked from a previous session, lock all:
-# bash git-lock.bash lock PeanoNatLib/SomeModule.lean
+# bash git-lock.bash lock Peano/SomeModule.lean
 
 # 2. Check current sorry status
 make sorry
@@ -25,7 +25,7 @@ make sorry
 ### Creating a new module
 
 ```bash
-# Creates PeanoNatLib/ModuleName.lean from _template.lean
+# Creates Peano/ModuleName.lean from _template.lean
 # and adds the import to Peano.lean
 make new NAME=ModuleName
 
@@ -36,19 +36,19 @@ make new NAME=Algebra/Ring
 Then edit the generated file. When done:
 
 ```bash
-bash git-lock.bash lock PeanoNatLib/ModuleName.lean
+bash git-lock.bash lock Peano/ModuleName.lean
 ```
 
 ### Editing an existing module
 
 ```bash
 # 1. Unlock the file
-bash git-lock.bash unlock PeanoNatLib/PeanoNatAdd.lean
+bash git-lock.bash unlock Peano/PeanoNatAdd.lean
 
 # 2. Edit...
 
 # 3. Lock when done
-bash git-lock.bash lock PeanoNatLib/PeanoNatAdd.lean
+bash git-lock.bash lock Peano/PeanoNatAdd.lean
 ```
 
 ### The one-file rule
@@ -58,8 +58,8 @@ bash git-lock.bash lock PeanoNatLib/PeanoNatAdd.lean
 If you need to switch to a different file mid-session:
 
 ```bash
-bash git-lock.bash lock PeanoNatLib/CurrentModule.lean
-bash git-lock.bash unlock PeanoNatLib/NextModule.lean
+bash git-lock.bash lock Peano/CurrentModule.lean
+bash git-lock.bash unlock Peano/NextModule.lean
 ```
 
 ### Building
@@ -98,7 +98,7 @@ make sorry
 
 ```bash
 # Stage specific files (avoid git add -A to prevent accidents)
-git add PeanoNatLib/ModuleName.lean REFERENCE.md CHANGELOG.md
+git add Peano/ModuleName.lean REFERENCE.md CHANGELOG.md
 
 git commit -m "feat: add ModuleName with N definitions and M theorems"
 ```
@@ -106,7 +106,7 @@ git commit -m "feat: add ModuleName with N definitions and M theorems"
 ### After committing — lock all modified .lean files
 
 ```bash
-bash git-lock.bash lock PeanoNatLib/ModuleName.lean
+bash git-lock.bash lock Peano/ModuleName.lean
 
 # Commit the updated locked_files.txt
 git add locked_files.txt
@@ -143,7 +143,7 @@ If you add/remove modules manually without using `new-module.bash`:
 bash gen-root.bash
 ```
 
-This scans `PeanoNatLib/` for all `.lean` files (excluding `_template.lean`) and
+This scans `Peano/` for all `.lean` files (excluding `_template.lean`) and
 regenerates the import section of `Peano.lean`, preserving any export blocks after
 the last import line.
 
@@ -162,8 +162,8 @@ Key commands to tell the AI:
 
 ```
 bash git-lock.bash list                        # what is currently unlocked?
-bash git-lock.bash unlock PeanoNatLib/File.lean # unlock for editing
-bash git-lock.bash lock PeanoNatLib/File.lean   # lock after completion
+bash git-lock.bash unlock Peano/File.lean # unlock for editing
+bash git-lock.bash lock Peano/File.lean   # lock after completion
 make sorry                                     # any sorry left?
 ```
 

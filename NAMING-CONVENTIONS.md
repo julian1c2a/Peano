@@ -210,7 +210,7 @@ The name describes **what is proved**, not how. Hypotheses are added with `_of_`
 During development, names are renamed progressively following these conventions.
 Priority order for migration:
 
-1. Base modules (axioms): `PeanoNatLib`, `PeanoNatAxioms`
+1. Base modules (axioms): `Peano`, `PeanoNatAxioms`
 2. Order: `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`
 3. Arithmetic: `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`, `PeanoNatArith`
 4. Advanced: `PeanoNatPrimes`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`, `PeanoNatNewtonBinom`

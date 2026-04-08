@@ -1,13 +1,13 @@
 -- PeanoNatLib/PeanoNatMul.lean
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatMaxMin
-import PeanoNatLib.PeanoNatWellFounded
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatSub
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
+import Peano.PeanoNatMaxMin
+import Peano.PeanoNatWellFounded
+import Peano.PeanoNatAdd
+import Peano.PeanoNatSub
 
 
 namespace Peano

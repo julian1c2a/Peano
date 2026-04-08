@@ -4,19 +4,19 @@
 # See AI-GUIDE.md §21 for the freeze protocol.
 
 Peano.lean
-PeanoNatLib/PeanoNatLib.lean
-PeanoNatLib/PeanoNatAxioms.lean
-PeanoNatLib/PeanoNatStrictOrder.lean
-PeanoNatLib/PeanoNatOrder.lean
-PeanoNatLib/PeanoNatMaxMin.lean
-PeanoNatLib/PeanoNatWellFounded.lean
-PeanoNatLib/PeanoNatAdd.lean
-PeanoNatLib/PeanoNatSub.lean
-PeanoNatLib/PeanoNatMul.lean
-PeanoNatLib/PeanoNatDiv.lean
-PeanoNatLib/PeanoNatArith.lean
-PeanoNatLib/PeanoNatPrimes.lean
-PeanoNatLib/PeanoNatPow.lean
-PeanoNatLib/PeanoNatFactorial.lean
-PeanoNatLib/PeanoNatBinom.lean
-PeanoNatLib/PeanoNatNewtonBinom.lean
+Peano/PeanoNatLib.lean
+Peano/PeanoNatAxioms.lean
+Peano/PeanoNatStrictOrder.lean
+Peano/PeanoNatOrder.lean
+Peano/PeanoNatMaxMin.lean
+Peano/PeanoNatWellFounded.lean
+Peano/PeanoNatAdd.lean
+Peano/PeanoNatSub.lean
+Peano/PeanoNatMul.lean
+Peano/PeanoNatDiv.lean
+Peano/PeanoNatArith.lean
+Peano/PeanoNatPrimes.lean
+Peano/PeanoNatPow.lean
+Peano/PeanoNatFactorial.lean
+Peano/PeanoNatBinom.lean
+Peano/PeanoNatNewtonBinom.lean

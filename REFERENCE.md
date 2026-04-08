@@ -15,30 +15,30 @@
 
 | Módulo (ruta) | Namespace | Docs | Depende de | Dependido por |
 |---|---|---|---|---|
-| `Peano.lean` | — | Sí | todos los módulos de `PeanoNatLib/` | — |
-| `PeanoNatLib/PeanoNatLib.lean` | `Peano` | Sí | `Init.Classical` | todos |
-| `PeanoNatLib/PeanoNatAxioms.lean` | `Peano.Axioms` | Sí | `PeanoNatLib` | `StrictOrder`, `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Sí | `PeanoNatLib`, `PeanoNatAxioms` | `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatOrder.lean` | `Peano.Order` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder` | `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatMaxMin.lean` | `Peano.MaxMin` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatWellFounded.lean` | `Peano.WellFounded` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatAdd.lean` | `Peano.Add` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded` | `Sub`, `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatSub.lean` | `Peano.Sub` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd` | `Mul`, `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatMul.lean` | `Peano.Mul` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub` | `Div`, `Arith` |
-| `PeanoNatLib/PeanoNatDiv.lean` | `Peano.Div` | Sí | `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith`, `Pow` |
-| `PeanoNatLib/PeanoNatPow.lean` | `Peano.Pow` | Sí | `PeanoNatLib`, ..., `PeanoNatDiv` (sin `Arith`) | `Peano.lean` |
-| `PeanoNatLib/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
-| `PeanoNatLib/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
-| `PeanoNatLib/PeanoNatPow.lean` | `Peano.Pow` | Sí | `PeanoNatLib`…`PeanoNatMul`, `PeanoNatDiv` | `Peano.lean` |
-| `PeanoNatLib/PeanoNatFactorial.lean` | `Peano.Factorial` | Sí | `PeanoNatLib`…`PeanoNatAdd`, `PeanoNatMul` | `PeanoNatBinom`, `PeanoNatNewtonBinom` |
-| `PeanoNatLib/PeanoNatBinom.lean` | `Peano.Binom` | Sí | `PeanoNatLib`…`PeanoNatMul`, `PeanoNatFactorial` | `PeanoNatNewtonBinom` |
-| `PeanoNatLib/PeanoNatNewtonBinom.lean` | `Peano.NewtonBinom` | Sí | `PeanoNatLib`…`PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom` | `Peano.lean` |
+| `Peano.lean` | — | Sí | todos los módulos de `Peano/` | — |
+| `Peano/Peano.lean` | `Peano` | Sí | `Init.Classical` | todos |
+| `Peano/PeanoNatAxioms.lean` | `Peano.Axioms` | Sí | `Peano` | `StrictOrder`, `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Sí | `Peano`, `PeanoNatAxioms` | `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatOrder.lean` | `Peano.Order` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder` | `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatMaxMin.lean` | `Peano.MaxMin` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatWellFounded.lean` | `Peano.WellFounded` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatAdd.lean` | `Peano.Add` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded` | `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatSub.lean` | `Peano.Sub` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd` | `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNatMul.lean` | `Peano.Mul` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub` | `Div`, `Arith` |
+| `Peano/PeanoNatDiv.lean` | `Peano.Div` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith`, `Pow` |
+| `Peano/PeanoNatPow.lean` | `Peano.Pow` | Sí | `Peano`, ..., `PeanoNatDiv` (sin `Arith`) | `Peano.lean` |
+| `Peano/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
+| `Peano/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
+| `Peano/PeanoNatPow.lean` | `Peano.Pow` | Sí | `Peano`…`PeanoNatMul`, `PeanoNatDiv` | `Peano.lean` |
+| `Peano/PeanoNatFactorial.lean` | `Peano.Factorial` | Sí | `Peano`…`PeanoNatAdd`, `PeanoNatMul` | `PeanoNatBinom`, `PeanoNatNewtonBinom` |
+| `Peano/PeanoNatBinom.lean` | `Peano.Binom` | Sí | `Peano`…`PeanoNatMul`, `PeanoNatFactorial` | `PeanoNatNewtonBinom` |
+| `Peano/PeanoNatNewtonBinom.lean` | `Peano.NewtonBinom` | Sí | `Peano`…`PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom` | `Peano.lean` |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
 
 | Namespace | Módulo | Sub-namespace de |
 |---|---|---|
-| `Peano` | `PeanoNatLib.lean` | — (raíz del proyecto) |
+| `Peano` | `Peano.lean` | — (raíz del proyecto) |
 | `Peano.Axioms` | `PeanoNatAxioms.lean` | `Peano` |
 | `Peano.StrictOrder` | `PeanoNatStrictOrder.lean` | `Peano` |
 | `Peano.Order` | `PeanoNatOrder.lean` | `Peano` |
@@ -59,12 +59,12 @@
 
 | Símbolo | Tipo | Prioridad | Namespace | Módulo |
 |---|---|---|---|---|
-| `σ n` | prefijo | `max` | `Peano` | `PeanoNatLib.lean` |
-| `𝟘` | constante | — | `Peano` | `PeanoNatLib.lean` |
-| `𝟙` | constante | — | `Peano` | `PeanoNatLib.lean` |
-| `𝟚` | constante | — | `Peano` | `PeanoNatLib.lean` |
-| `𝟛` | constante | — | `Peano` | `PeanoNatLib.lean` |
-| `∃¹ x, p x` | macro cuantificador (4 variantes) | — | `Peano` | `PeanoNatLib.lean` |
+| `σ n` | prefijo | `max` | `Peano` | `Peano.lean` |
+| `𝟘` | constante | — | `Peano` | `Peano.lean` |
+| `𝟙` | constante | — | `Peano` | `Peano.lean` |
+| `𝟚` | constante | — | `Peano` | `Peano.lean` |
+| `𝟛` | constante | — | `Peano` | `Peano.lean` |
+| `∃¹ x, p x` | macro cuantificador (4 variantes) | — | `Peano` | `Peano.lean` |
 | `n + m` | infijo, instancia `Add ℕ₀` | ~65 | `Peano.Add` | `PeanoNatAdd.lean` |
 | `a + b` (alias) | `notation a "+" b => Peano.Add.add a b` | — | `Peano.Add` | `PeanoNatAdd.lean` |
 | `a +l b` | `notation a "+l" b => Peano.Add.add_l a b` | — | `Peano.Add` | `PeanoNatAdd.lean` |
@@ -82,7 +82,7 @@
 
 ---
 
-## 1. PeanoNatLib.lean — `namespace Peano`
+## 1. Peano.lean — `namespace Peano`
 
 *Dependencias: `Init.Classical`*
 
@@ -207,7 +207,7 @@
 
 ## 2. PeanoNatAxioms.lean — `namespace Peano.Axioms`
 
-*Dependencias: `PeanoNatLib`*
+*Dependencias: `Peano`*
 
 Los axiomas de Peano se demuestran como teoremas a partir de la estructura inductiva de `ℕ₀`.
 
@@ -317,7 +317,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 3. PeanoNatStrictOrder.lean — `namespace Peano.StrictOrder`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`*
+*Dependencias: `Peano`, `PeanoNatAxioms`*
 
 ### 3.1. Definiciones
 
@@ -438,7 +438,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 4. PeanoNatOrder.lean — `namespace Peano.Order`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`*
 
 ### 4.1. Definiciones
 
@@ -562,7 +562,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 5. PeanoNatMaxMin.lean — `namespace Peano.MaxMin`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`*
 
 ### 5.1. Definiciones
 
@@ -661,7 +661,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 6. PeanoNatWellFounded.lean — `namespace Peano.WellFounded`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical`*
 
 ### 6.1. Definiciones
 
@@ -707,7 +707,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 7. PeanoNatAdd.lean — `namespace Peano.Add`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`*
 
 ### 7.1. Definiciones
 
@@ -790,7 +790,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 8. PeanoNatSub.lean — `namespace Peano.Sub`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`*
 
 ### 8.1. Definiciones
 
@@ -870,7 +870,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 9. PeanoNatMul.lean — `namespace Peano.Mul`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`*
 
 ### 9.1. Definiciones
 
@@ -957,7 +957,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 10. PeanoNatDiv.lean — `namespace Peano.Div`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`*
 
 ### 10.1. Definiciones
 
@@ -1569,7 +1569,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 13. PeanoNatPow.lean — `namespace Peano.Pow`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`*
 
 ### 13.1. Definiciones
 
@@ -1716,7 +1716,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 14. PeanoNatFactorial.lean — `namespace Peano.Factorial`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatMul`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatMul`*
 
 ### 14.1. Definiciones
 
@@ -1786,7 +1786,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 15. PeanoNatBinom.lean — `namespace Peano.Binom`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatFactorial`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatFactorial`*
 
 ### 15.1. Definiciones
 
@@ -1878,32 +1878,32 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 **Última actualización:** 2026-03-15 12:00
 
 *Archivo de entrada. No introduce definiciones ni teoremas propios.*
-*Importa y re-exporta todos los módulos de `PeanoNatLib/`*
+*Importa y re-exporta todos los módulos de `Peano/`*
 
 ```lean4
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatMaxMin
-import PeanoNatLib.PeanoNatWellFounded
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatSub
-import PeanoNatLib.PeanoNatMul
-import PeanoNatLib.PeanoNatDiv
-import PeanoNatLib.PeanoNatArith
-import PeanoNatLib.PeanoNatPrimes
-import PeanoNatLib.PeanoNatPow
-import PeanoNatLib.PeanoNatFactorial
-import PeanoNatLib.PeanoNatBinom
-import PeanoNatLib.PeanoNatNewtonBinom
+import Peano.Peano
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
+import Peano.PeanoNatMaxMin
+import Peano.PeanoNatWellFounded
+import Peano.PeanoNatAdd
+import Peano.PeanoNatSub
+import Peano.PeanoNatMul
+import Peano.PeanoNatDiv
+import Peano.PeanoNatArith
+import Peano.PeanoNatPrimes
+import Peano.PeanoNatPow
+import Peano.PeanoNatFactorial
+import Peano.PeanoNatBinom
+import Peano.PeanoNatNewtonBinom
 ```
 
 ---
 
 ## 17. PeanoNatNewtonBinom.lean — `namespace Peano.NewtonBinom`
 
-*Dependencias: `PeanoNatLib`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`*
+*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`*
 
 > **Estado:** Completamente demostrado, compilado sin errores ni `sorry`. Todos los teoremas del módulo están formalmente probados.
 

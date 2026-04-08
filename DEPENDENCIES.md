@@ -40,11 +40,11 @@ graph TD;
         PeanoNatMaxMin --> PeanoNatOrder;
         PeanoNatOrder --> PeanoNatStrictOrder;
         PeanoNatStrictOrder --> PeanoNatAxioms;
-        PeanoNatAxioms --> PeanoNatLib;
+        PeanoNatAxioms --> Peano;
     end
 ```
 
-**Nota**: Cada módulo también importa directamente los módulos de la cadena base (`PeanoNatLib`, `PeanoNatAxioms`, etc.) aunque no aparezcan todas las flechas. El gráfico muestra las dependencias directas más relevantes.
+**Nota**: Cada módulo también importa directamente los módulos de la cadena base (`Peano`, `PeanoNatAxioms`, etc.) aunque no aparezcan todas las flechas. El gráfico muestra las dependencias directas más relevantes.
 
 ---
 
@@ -52,9 +52,9 @@ graph TD;
 
 | Módulo | Importa directamente |
 |---|---|
-| `PeanoNatLib` | `Init.Classical` |
-| `PeanoNatAxioms` | `PeanoNatLib` |
-| `PeanoNatStrictOrder` | `PeanoNatLib`, `PeanoNatAxioms` |
+| `Peano` | `Init.Classical` |
+| `PeanoNatAxioms` | `Peano` |
+| `PeanoNatStrictOrder` | `Peano`, `PeanoNatAxioms` |
 | `PeanoNatOrder` | `…StrictOrder` |
 | `PeanoNatMaxMin` | `…Order` |
 | `PeanoNatWellFounded` | `…MaxMin`, `Init.Classical` |

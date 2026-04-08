@@ -4,14 +4,14 @@
 
 ### Added (2026-03-16)
 
-- **`PeanoNatLib/PeanoNatPrimes.lean`** — módulo completamente demostrado, **cero `sorry`**.
+- **`Peano/PeanoNatPrimes.lean`** — módulo completamente demostrado, **cero `sorry`**.
   - `unique_prime_factorization` — **TFA unicidad** completamente probado. Dos errores de compilación resueltos en las ramas `p = p₀` y `p ≠ p₀` del `by_cases` final: la rama positiva requería `simp [DList.filter, DList.length]` en lugar de `simp` simple; la rama negativa requería `simp [DList.filter, Ne.symm h_pp₀]` + `rw [filter_count_neq …]` (dirección directa) en lugar del `simp only` + `rw [← …]` insuficiente.
   - `coprime_dvd_of_dvd_mul` (**Lema de Gauss**) — demostración completa. Los `sorry` de aritmética con resta saturada se sustituyeron por `sub_k_add_k`, `add_k_sub_k`, `lt_self_add_r` y `sub_pos_iff_lt`.
   - `irreducible_imp_prime`, `prime_iff_irreducible`, `prime_iff_has_exactly_two_divisors` — demostradas sin `sorry`, dependiendo de `coprime_dvd_of_dvd_mul`.
   - Estado del módulo actualizado: el comentario de cabecera ya no indica ningún `sorry` legítimo.
 - **`REFERENCE.md`** — sección 12 actualizada: eliminados todos los marcadores ⚠️ sorry de T12.10, T12.11, T12.14, T12.19 y T12.28; estado del módulo corregido a "completamente demostrado".
 
-- **`PeanoNatLib/PeanoNatNewtonBinom.lean`** — módulo completado sin ningún `sorry`.
+- **`Peano/PeanoNatNewtonBinom.lean`** — módulo completado sin ningún `sorry`.
   - `finSum_succ_left (f n)` — desplazamiento a la izquierda: Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1).
   - `finSum_reverse (f n)` — invariancia por inversión del índice: Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n−k).
   - `sum_binom_eq_pow_two (n)` — **demostrado**: Σ_{k=0}^{n} C(n,k) = 2ⁿ. Prueba por inducción con `finSum_succ_left` y Pascal.
@@ -23,7 +23,7 @@
 
 ### Added (2026-03-15)
 
-- **`PeanoNatLib/PeanoNatNewtonBinom.lean`** — módulo nuevo, `namespace Peano.NewtonBinom`.
+- **`Peano/PeanoNatNewtonBinom.lean`** — módulo nuevo, `namespace Peano.NewtonBinom`.
   - `finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀` — sumatorio finito Σ_{k=0}^{n} f(k); computable, recursión estructural.
   - Propiedades demostradas: `finSum_zero`, `finSum_succ`, `finSum_zero_fn`, `finSum_add_fn` (linealidad), `finSum_mul_const`, `finSum_mul_const_right` (escalado), `finSum_le_of_le` (monotonía), `finSum_pos` (positividad), `finSum_const` (suma constante = (n+1)·c).
   - `binomTerm a b n k` = C(n,k)·aᵏ·b^(n−k) — término k-ésimo del binomio; con `binomTerm_zero` y `binomTerm_self`.

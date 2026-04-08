@@ -119,8 +119,8 @@ Tracking files:
 At most one `.lean` file unlocked at any time.
 
 ```bash
-bash git-lock.bash lock   PeanoNatLib/PeanoNatAdd.lean   # temporary lock
-bash git-lock.bash unlock PeanoNatLib/PeanoNatAdd.lean   # temporary unlock
+bash git-lock.bash lock   Peano/PeanoNatAdd.lean   # temporary lock
+bash git-lock.bash unlock Peano/PeanoNatAdd.lean   # temporary unlock
 bash git-lock.bash list                                  # show all locked and frozen files
 bash git-lock.bash init                                  # install/reinstall pre-commit hook
 ```
@@ -140,7 +140,7 @@ When a module reaches ✅ Complete status in REFERENCE.md, it must be **frozen**
 A frozen module is permanently immutable: it cannot be unlocked, only extended.
 
 ```bash
-bash git-lock.bash freeze PeanoNatLib/PeanoNatAdd.lean   # mark as permanently frozen
+bash git-lock.bash freeze Peano/PeanoNatAdd.lean   # mark as permanently frozen
 bash git-lock.bash list                                  # shows [frozen] vs [locked]
 ```
 
@@ -151,7 +151,7 @@ frozen files, distinguishing them from ordinary locked files.
 **Emergency only** — thawing a frozen module:
 
 ```bash
-bash git-lock.bash thaw PeanoNatLib/PeanoNatAdd.lean --confirm
+bash git-lock.bash thaw Peano/PeanoNatAdd.lean --confirm
 ```
 
 The `--confirm` flag is required. After thawing, update REFERENCE.md status
@@ -171,7 +171,7 @@ When a frozen module `Foo.lean` needs new content:
    Author: Julián Calderón Almendros
    License: MIT
    -/
-   import PeanoNatLib.Foo
+   import Peano.Foo
 
    namespace Peano   -- same namespace as Foo.lean
    -- new definitions and theorems here
@@ -286,7 +286,7 @@ The scheme follows Mathlib4 conventions.
 
 | Pattern | Example |
 | ------- | ------- |
-| `UpperCamelCase.lean` | `PeanoNatLib.lean`, `PeanoNatAxioms.lean`, `PeanoNatPrimes.lean` |
+| `UpperCamelCase.lean` | `Peano.lean`, `PeanoNatAxioms.lean`, `PeanoNatPrimes.lean` |
 
 - Root entry point: `Peano.lean` — imports and exports, no new definitions.
 - Template: `_template.lean` — underscore prefix marks non-imported utility files.
@@ -431,30 +431,30 @@ considering documentation complete and up to date.
 
 ### (22.) Module organization by subdirectory
 
-As the project grows, organize modules into **thematic subdirectories** inside `PeanoNatLib/`.
+As the project grows, organize modules into **thematic subdirectories** inside `Peano/`.
 Each subdirectory groups related modules and corresponds to a sub-namespace.
 
 Example structure:
 
 ```
-PeanoNatLib/
-├── PeanoNatLib.lean          # Level 0: foundations (ℕ₀, helpers)
+Peano/
+├── Peano.lean          # Level 0: foundations (ℕ₀, helpers)
 ├── PeanoNatAxioms.lean       # Peano axioms as theorems
 ├── _template.lean            # Template (not imported)
 ├── Algebra/
-│   ├── Ring.lean             # PeanoNatLib.Algebra.Ring
-│   └── Field.lean            # PeanoNatLib.Algebra.Field
+│   ├── Ring.lean             # Peano.Algebra.Ring
+│   └── Field.lean            # Peano.Algebra.Field
 └── Analysis/
-    └── Sequences.lean        # PeanoNatLib.Analysis.Sequences
+    └── Sequences.lean        # Peano.Analysis.Sequences
 ```
 
 Rules:
 
 - Subdirectory names: `UpperCamelCase`, matching the sub-namespace.
 - Each subdirectory may have a `Basic.lean` for foundational definitions of that area.
-- `new-module.bash` supports paths: `bash new-module.bash Algebra/Ring` creates `PeanoNatLib/Algebra/Ring.lean`.
+- `new-module.bash` supports paths: `bash new-module.bash Algebra/Ring` creates `Peano/Algebra/Ring.lean`.
 - `gen-root.bash` automatically scans subdirectories.
-- Namespace mirrors path: `PeanoNatLib/Algebra/Ring.lean` → `namespace Peano.Algebra.Ring`.
+- Namespace mirrors path: `Peano/Algebra/Ring.lean` → `namespace Peano.Algebra.Ring`.
 
 ### (23.) Barrel modules (mandatory for subdirectories)
 
@@ -467,9 +467,9 @@ The barrel file:
 - Serves as the **single import point** for the subdirectory.
 
 ```lean
--- PeanoNatLib/Algebra.lean (barrel file)
-import PeanoNatLib.Algebra.Ring
-import PeanoNatLib.Algebra.Field
+-- Peano/Algebra.lean (barrel file)
+import Peano.Algebra.Ring
+import Peano.Algebra.Field
 -- ... all production modules in Algebra/
 ```
 
@@ -478,9 +478,9 @@ sub-modules when a barrel exists:
 
 ```lean
 -- Peano.lean (root barrel)
-import PeanoNatLib.Algebra        -- barrel for Algebra/
-import PeanoNatLib.PeanoNatLib    -- top-level module
-import PeanoNatLib.PeanoNatAxioms -- top-level module
+import Peano.Algebra        -- barrel for Algebra/
+import Peano.Peano    -- top-level module
+import Peano.PeanoNatAxioms -- top-level module
 -- ...
 ```
 
@@ -522,7 +522,7 @@ export Peano.Add (myDef myTheorem)
 5. If a module contributes to multiple namespaces, use one `export` per namespace.
 6. `notation`, `macro`, `syntax` are NOT listed in `export` — they propagate automatically on `import`.
 
-**Effect:** After `import PeanoNatLib.PeanoNatAdd`, downstream code can write
+**Effect:** After `import Peano.PeanoNatAdd`, downstream code can write
 `add_comm` directly instead of `Peano.Add.add_comm`.
 
 ### (31.) Export block maintenance
@@ -541,10 +541,10 @@ handle their own exports. The barrel file's sole job is aggregation via `import`
 However, a barrel file **may** include a top-level comment cataloguing the public API:
 
 ```lean
--- PeanoNatLib/Algebra.lean
+-- Peano/Algebra.lean
 -- Public API: ring_add_comm, ring_mul_assoc, ...
-import PeanoNatLib.Algebra.Ring
-import PeanoNatLib.Algebra.Field
+import Peano.Algebra.Ring
+import Peano.Algebra.Field
 -- ...
 ```
 

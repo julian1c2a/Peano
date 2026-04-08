@@ -1,4 +1,4 @@
-import PeanoNatLib.PeanoNatLib
+import Peano.PeanoNatLib
 
 namespace Peano
     open Peano

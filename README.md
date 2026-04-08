@@ -22,8 +22,8 @@ Toda la biblioteca está **computacionalmente realizada**: las operaciones produ
 
 ```
 Peano.lean                           ← entrada; importa toda la librería
-└─ PeanoNatLib/
-   ├─ PeanoNatLib.lean               namespace Peano
+└─ Peano/
+   ├─ Peano.lean               namespace Peano
    ├─ PeanoNatAxioms.lean            namespace Peano.Axioms
    ├─ PeanoNatStrictOrder.lean       namespace Peano.StrictOrder
    ├─ PeanoNatOrder.lean             namespace Peano.Order
@@ -188,7 +188,7 @@ require peanolib from git
 Luego importa lo que necesites:
 
 ```lean
-import PeanoNatLib.PeanoNatArith   -- incluye todo lo anterior
+import Peano.PeanoNatArith   -- incluye todo lo anterior
 ```
 
 ---

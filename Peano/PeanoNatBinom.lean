@@ -8,14 +8,14 @@ License: MIT
 -- Coeficientes binomiales vía el triángulo de Pascal.
 -- Preparación para el Teorema del Binomio de Newton.
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatSub
-import PeanoNatLib.PeanoNatMul
-import PeanoNatLib.PeanoNatFactorial
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
+import Peano.PeanoNatAdd
+import Peano.PeanoNatSub
+import Peano.PeanoNatMul
+import Peano.PeanoNatFactorial
 
 /-!
 Paso 1: El Caso Base (n=0)

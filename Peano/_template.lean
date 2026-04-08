@@ -12,8 +12,8 @@ License: MIT
 -- @axiom_system: Peano
 -- @importance: medium
 
-import PeanoNatLib.PeanoNatLib
--- import PeanoNatLib.PeanoNatAxioms
+import Peano.PeanoNatLib
+-- import Peano.PeanoNatAxioms
 
 namespace Peano.ModuleName
 

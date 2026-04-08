@@ -7,16 +7,16 @@ License: MIT
 -- PeanoNatLib/PeanoNatPow.lean
 -- Potenciación de naturales por naturales.
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatMaxMin
-import PeanoNatLib.PeanoNatWellFounded
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatSub
-import PeanoNatLib.PeanoNatMul
-import PeanoNatLib.PeanoNatDiv
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
+import Peano.PeanoNatMaxMin
+import Peano.PeanoNatWellFounded
+import Peano.PeanoNatAdd
+import Peano.PeanoNatSub
+import Peano.PeanoNatMul
+import Peano.PeanoNatDiv
 
 
 namespace Peano

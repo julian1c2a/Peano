@@ -5,6 +5,10 @@
 # Editor / IDE
 /.vscode
 .vscode
+/.claude
+.claude
+/.github
+.github
 /.idea
 .idea
 nppBackup

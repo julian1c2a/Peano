@@ -27,14 +27,14 @@ status:
 	@echo "=== Sorry Status ==="
 	@bash check-sorry.bash || true
 
-## Lock a file: make lock FILE=PeanoNatLib/Module.lean
+## Lock a file: make lock FILE=Peano/Module.lean
 lock:
-	@[ -n "$(FILE)" ] || (echo "Usage: make lock FILE=PeanoNatLib/Module.lean" && exit 1)
+	@[ -n "$(FILE)" ] || (echo "Usage: make lock FILE=Peano/Module.lean" && exit 1)
 	@bash git-lock.bash lock $(FILE)
 
-## Unlock a file: make unlock FILE=PeanoNatLib/Module.lean
+## Unlock a file: make unlock FILE=Peano/Module.lean
 unlock:
-	@[ -n "$(FILE)" ] || (echo "Usage: make unlock FILE=PeanoNatLib/Module.lean" && exit 1)
+	@[ -n "$(FILE)" ] || (echo "Usage: make unlock FILE=Peano/Module.lean" && exit 1)
 	@bash git-lock.bash unlock $(FILE)
 
 ## List all locked files

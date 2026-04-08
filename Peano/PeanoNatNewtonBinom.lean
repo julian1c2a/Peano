@@ -8,16 +8,16 @@ License: MIT
 -- Sumatorios finitos, Teorema del Binomio de Newton y crecimiento comparado.
 -- REFERENCE.md: proyectar este archivo en la sección 17 de REFERENCE.md.
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
-import PeanoNatLib.PeanoNatAdd
-import PeanoNatLib.PeanoNatSub
-import PeanoNatLib.PeanoNatMul
-import PeanoNatLib.PeanoNatPow
-import PeanoNatLib.PeanoNatFactorial
-import PeanoNatLib.PeanoNatBinom
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
+import Peano.PeanoNatAdd
+import Peano.PeanoNatSub
+import Peano.PeanoNatMul
+import Peano.PeanoNatPow
+import Peano.PeanoNatFactorial
+import Peano.PeanoNatBinom
 
 namespace Peano
   open Peano

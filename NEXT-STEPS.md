@@ -44,7 +44,7 @@
 
 **Objective**: Add export blocks to all 16 leaf modules per AI-GUIDE.md §30–31.
 
-**Modules**: All PeanoNatLib/*.lean files
+**Modules**: All Peano/*.lean files
 
 **Steps**:
 
@@ -85,8 +85,8 @@
 
 **Modules**:
 
-- [ ] `PeanoNatLib/Integer/Basic.lean` — ℤ definition
-- [ ] `PeanoNatLib/Integer/Arithmetic.lean` — ℤ operations
+- [ ] `Peano/Integer/Basic.lean` — ℤ definition
+- [ ] `Peano/Integer/Arithmetic.lean` — ℤ operations
 
 **Dependencies**: Phase 7
 **Complexity**: Complex

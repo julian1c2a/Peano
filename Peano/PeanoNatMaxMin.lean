@@ -1,9 +1,9 @@
 -- PeanoNatLib/PeanoNatMaxMin.lean
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
-import PeanoNatLib.PeanoNatOrder
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
+import Peano.PeanoNatOrder
 import Init.Data.Nat.Lemmas
 import Init.Prelude
 

@@ -1,8 +1,8 @@
 -- PeanoNatLib/PeanoNatOrder.lean
 
-import PeanoNatLib.PeanoNatLib
-import PeanoNatLib.PeanoNatAxioms
-import PeanoNatLib.PeanoNatStrictOrder
+import Peano.PeanoNatLib
+import Peano.PeanoNatAxioms
+import Peano.PeanoNatStrictOrder
 import Init.Prelude
 
 namespace Peano

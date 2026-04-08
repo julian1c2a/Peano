@@ -1,41 +1,22 @@
-# Lista de archivos congelados en el proyecto Peano v1.0.0
-# Este archivo documenta qué archivos están protegidos contra commits accidentales
-#
-# Para congelar:   freeze_files.bat
-# Para descongelar: unfreeze_files.bat
-# Para verificar:  check_frozen.bat
-#
-# Última actualización: 2026-03-16
+# Frozen files — permanently immutable modules
+# Use: bash git-lock.bash freeze <file>
+# Emergency thaw: bash git-lock.bash thaw <file> --confirm
+# See AI-GUIDE.md §21 for the freeze protocol.
 
-## Documentación principal
-README.md
-REFERENCE.md
-CURRENT-STATUS-PROJECT.md
-CHANGELOG.md
-
-## Configuración del proyecto
-.gitignore
-.gitattributes
-lakefile.lean
-lean-toolchain
-
-## Módulos Lean 4
 Peano.lean
-PeanoNatLib\PeanoNatLib.lean
-PeanoNatLib\PeanoNatAxioms.lean
-PeanoNatLib\PeanoNatStrictOrder.lean
-PeanoNatLib\PeanoNatOrder.lean
-PeanoNatLib\PeanoNatMaxMin.lean
-PeanoNatLib\PeanoNatWellFounded.lean
-PeanoNatLib\PeanoNatAdd.lean
-PeanoNatLib\PeanoNatSub.lean
-PeanoNatLib\PeanoNatMul.lean
-PeanoNatLib\PeanoNatDiv.lean
-PeanoNatLib\PeanoNatArith.lean
-PeanoNatLib\PeanoNatPrimes.lean
-PeanoNatLib\PeanoNatPow.lean
-PeanoNatLib\PeanoNatFactorial.lean
-PeanoNatLib\PeanoNatBinom.lean
-PeanoNatLib\PeanoNatNewtonBinom.lean
-
-## Total: 25 archivos protegidos
+PeanoNatLib/PeanoNatLib.lean
+PeanoNatLib/PeanoNatAxioms.lean
+PeanoNatLib/PeanoNatStrictOrder.lean
+PeanoNatLib/PeanoNatOrder.lean
+PeanoNatLib/PeanoNatMaxMin.lean
+PeanoNatLib/PeanoNatWellFounded.lean
+PeanoNatLib/PeanoNatAdd.lean
+PeanoNatLib/PeanoNatSub.lean
+PeanoNatLib/PeanoNatMul.lean
+PeanoNatLib/PeanoNatDiv.lean
+PeanoNatLib/PeanoNatArith.lean
+PeanoNatLib/PeanoNatPrimes.lean
+PeanoNatLib/PeanoNatPow.lean
+PeanoNatLib/PeanoNatFactorial.lean
+PeanoNatLib/PeanoNatBinom.lean
+PeanoNatLib/PeanoNatNewtonBinom.lean

@@ -23,6 +23,7 @@
 | 9 | Namespace Migration | ❌ Pending |
 | 10 | Identifier Naming Migration | ❌ Pending |
 | 11 | Warning Cleanup | ❌ Pending |
+| 12 | Update REFERENCE.md with new names | ❌ Pending |
 
 ---
 
@@ -348,6 +349,21 @@ git commit -m "naming: migrate Module.lean to Mathlib conventions"
 ### 11.3. Policy going forward
 
 After this phase, **zero warnings** is a project invariant. Any new warning introduced by a commit must be fixed before merging.
+
+---
+
+## Phase 12: Update REFERENCE.md with New Names
+
+**Objective**: Regenerate REFERENCE.md to reflect all identifier renames from Phase 10.
+**Status**: ❌ Pending
+**Dependencies**: Phase 10 and 11 complete
+
+**Steps**:
+
+1. "Proyectar" each of the 16 modules into REFERENCE.md per AI-GUIDE §12.
+2. Verify all exported names match the actual `export` blocks.
+3. Update the module table and any cross-references.
+4. Commit: `git commit -m "docs: update REFERENCE.md with new naming conventions"`
 
 ---
 

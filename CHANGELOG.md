@@ -4,6 +4,13 @@
 
 ### Changed (2026-04-10)
 
+- **Phase 16 — Factor Decidable module**: New reexport module
+  `Peano/PeanoNat/Decidable.lean` that collects all Decidable instances
+  (`decidableLt`, `decidableGt`, `decidableLe`, `decidableGe`), boolean
+  comparison functions (`blt`, `bgt`, `ble`, `bge`), and their iff
+  equivalence theorems from StrictOrder and Order into a single import.
+  - Build: 22/22 jobs, 0 sorry, 0 warnings.
+
 - **Phase 15 — Create Isomorph.lean**: New reexport module
   `Peano/PeanoNat/Isomorph.lean` that collects all 30 Nat↔ℕ₀ isomorphism
   theorems (Λ/Ψ injectivity, bijectivity, composition, commutativity with

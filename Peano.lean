@@ -26,6 +26,7 @@ import Peano.PeanoNat.Factorial
 import Peano.PeanoNat.Binom
 import Peano.PeanoNat.NewtonBinom
 import Peano.PeanoNat.Isomorph
+import Peano.PeanoNat.Decidable
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (Prelim.lean)

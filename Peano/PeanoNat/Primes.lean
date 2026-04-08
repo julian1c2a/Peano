@@ -16,7 +16,7 @@ License: MIT
 -- § 6. Existencia de factorización prima (TFA — Existencia)
 -- § 7. Unicidad de la factorización prima  (TFA — Unicidad)
 
-import Peano.PeanoNatArith
+import Peano.PeanoNat.Arith
 
 namespace Peano
   open Peano

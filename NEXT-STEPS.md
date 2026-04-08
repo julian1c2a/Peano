@@ -22,8 +22,13 @@
 | 8 | File rename PeanoNatLib.lean → PeanoNat.lean | ✅ Complete |
 | 9 | Namespace Migration | ✅ Complete (no-op) |
 | 10 | Identifier Naming Migration | ✅ Complete |
-| 11 | Warning Cleanup | ❌ Pending |
+| 11 | Warning Cleanup | ✅ Complete |
 | 12 | Update REFERENCE.md with new names | ❌ Pending |
+| 13 | Subdirectory restructure PeanoNat/ | ✅ Complete |
+| 14 | Extract Prelim.lean (shared infrastructure) | ❌ Pending |
+| 15 | Create Isomorph.lean (Nat↔ℕ₀ reexport) | ❌ Pending |
+| 16 | Factor Decidable module | ❌ Pending |
+| 17 | Factor Combinatorics subdirectory | ❌ Pending |
 
 ---
 
@@ -337,28 +342,10 @@ git commit -m "naming: migrate Module.lean to Mathlib conventions"
 ## Phase 11: Warning Cleanup
 
 **Objective**: Eliminate all compiler/linter warnings so that `lake build` produces zero warnings.
-**Status**: ❌ Pending
-**Dependencies**: Phase 10 complete (or can be done independently)
+**Status**: ✅ Complete (2026-04-08)
+**Dependencies**: Phase 10 complete
 
-### 11.1. Current warnings (as of 2026-04-08)
-
-| File | Line | Warning | Linter | Fix |
-|------|------|---------|--------|-----|
-| `PeanoNatSub.lean` | 484 | Unused simp argument `Nat.sub` | `linter.unusedSimpArgs` | Remove `Nat.sub` from `simp [Nat.sub, Λ, sub_zero]` → `simp [Λ, sub_zero]` |
-
-### 11.2. Protocol
-
-1. **Audit**: Run `lake build 2>&1` and collect all lines containing `warning:`.
-2. **Fix** each warning individually:
-   - `unusedSimpArgs`: Remove the flagged argument from the `simp` call. Verify the proof still closes.
-   - `unusedVariables`: Prefix with `_` or remove if truly unused.
-   - `deprecated`: Replace with the recommended replacement.
-3. **Verify**: `lake build 2>&1 | Select-String "warning"` must produce **no output**.
-4. **Commit**: `git commit -m "chore: fix all build warnings"`
-
-### 11.3. Policy going forward
-
-After this phase, **zero warnings** is a project invariant. Any new warning introduced by a commit must be fixed before merging.
+Removed unused `Nat.sub` simp arg from `PeanoNat/Sub.lean:484`. Build: 19/19, 0 warnings.
 
 ---
 
@@ -374,6 +361,86 @@ After this phase, **zero warnings** is a project invariant. Any new warning intr
 2. Verify all exported names match the actual `export` blocks.
 3. Update the module table and any cross-references.
 4. Commit: `git commit -m "docs: update REFERENCE.md with new naming conventions"`
+
+---
+
+## Phase 13: Subdirectory Restructure PeanoNat/
+
+**Objective**: Move all `PeanoNat*.lean` modules into `Peano/PeanoNat/` subdirectory.
+**Status**: ✅ Complete (2026-04-08)
+**Dependencies**: Phase 11 complete
+
+Moved 15 files: `PeanoNatAxioms.lean → PeanoNat/Axioms.lean`, etc.
+Updated all imports: `Peano.PeanoNatXxx` → `Peano.PeanoNat.Xxx`.
+`PeanoNat.lean` remains at `Peano/PeanoNat.lean` as barrel/root module.
+Build: 19/19 OK, 0 warnings.
+
+---
+
+## Phase 14: Extract Prelim.lean (shared infrastructure)
+
+**Objective**: Extract `ExistsUnique` + choice infrastructure from `PeanoNat.lean` into `Peano/Prelim.lean`.
+**Status**: ❌ Pending
+**Dependencies**: Phase 13 complete
+
+### Content to extract
+
+| Definition | Type |
+|-----------|------|
+| `ExistsUnique` | Prop |
+| `∃¹` syntax macros (4 variants) | notation |
+| `choose` | noncomputable def |
+| `choose_spec` | theorem |
+| `ExistsUnique.exists` | def |
+| `choose_unique` | noncomputable def |
+| `choose_spec_unique` | theorem |
+| `choose_uniq` | theorem |
+
+### Steps
+
+1. Create `Peano/Prelim.lean` with extracted content + export block
+2. Update `PeanoNat.lean`: replace inline defs with `import Peano.Prelim`
+3. Update `Peano.lean`: add `import Peano.Prelim`
+4. `lake clean && lake build`
+5. Commit
+
+---
+
+## Phase 15: Create Isomorph.lean (Nat↔ℕ₀ reexport)
+
+**Objective**: Create `Peano/PeanoNat/Isomorph.lean` that re-exports all 26 bridge theorems.
+**Status**: ❌ Pending
+**Dependencies**: Phase 14 complete
+
+Isomorphism theorems remain in their original modules but are re-exported from a single file.
+Downstream code can `import Peano.PeanoNat.Isomorph` to get all Nat↔ℕ₀ bridges at once.
+
+---
+
+## Phase 16: Factor Decidable Module
+
+**Objective**: Extract `blt`/`bgt`/`ble`/`bge` and decidability instances into `PeanoNat/Decidable.lean`.
+**Status**: ❌ Pending
+**Dependencies**: Phase 15 complete
+
+Separates computational (boolean) decision procedures from pure mathematical theory.
+
+---
+
+## Phase 17: Factor Combinatorics Subdirectory
+
+**Objective**: Group `Pow`, `Factorial`, `Binom`, `NewtonBinom` under `PeanoNat/Combinatorics/`.
+**Status**: ❌ Pending
+**Dependencies**: Phase 16 complete
+
+Structure:
+```
+PeanoNat/Combinatorics/
+├── Pow.lean
+├── Factorial.lean
+├── Binom.lean
+└── NewtonBinom.lean
+```
 
 ---
 

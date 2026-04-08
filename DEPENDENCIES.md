@@ -1,6 +1,6 @@
 # Dependencias del Proyecto Peano
 
-**Última actualización:** 2026-03-16 18:00
+**Última actualización:** 2026-04-08 22:00
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -9,63 +9,65 @@
 
 Gráfico de dependencias entre los módulos `.lean` del proyecto (cadena principal):
 
+Los módulos residen en `Peano/PeanoNat/` e importan como `Peano.PeanoNat.<Module>`.
+
 ```mermaid
 graph TD;
     subgraph Peano Project Dependencies
-        Peano --> PeanoNatNewtonBinom;
-        Peano --> PeanoNatBinom;
-        Peano --> PeanoNatFactorial;
-        Peano --> PeanoNatPow;
-        Peano --> PeanoNatPrimes;
-        Peano --> PeanoNatArith;
+        Peano --> NewtonBinom;
+        Peano --> Binom;
+        Peano --> Factorial;
+        Peano --> Pow;
+        Peano --> Primes;
+        Peano --> Arith;
 
-        PeanoNatNewtonBinom --> PeanoNatBinom;
-        PeanoNatNewtonBinom --> PeanoNatFactorial;
-        PeanoNatNewtonBinom --> PeanoNatPow;
+        NewtonBinom --> Binom;
+        NewtonBinom --> Factorial;
+        NewtonBinom --> Pow;
 
-        PeanoNatBinom --> PeanoNatFactorial;
-        PeanoNatBinom --> PeanoNatMul;
+        Binom --> Factorial;
+        Binom --> Mul;
 
-        PeanoNatFactorial --> PeanoNatMul;
+        Factorial --> Mul;
 
-        PeanoNatPow --> PeanoNatDiv;
-        PeanoNatPrimes --> PeanoNatArith;
-        PeanoNatArith --> PeanoNatDiv;
+        Pow --> Div;
+        Primes --> Arith;
+        Arith --> Div;
 
-        PeanoNatDiv --> PeanoNatMul;
-        PeanoNatMul --> PeanoNatSub;
-        PeanoNatSub --> PeanoNatAdd;
-        PeanoNatAdd --> PeanoNatWellFounded;
-        PeanoNatWellFounded --> PeanoNatMaxMin;
-        PeanoNatMaxMin --> PeanoNatOrder;
-        PeanoNatOrder --> PeanoNatStrictOrder;
-        PeanoNatStrictOrder --> PeanoNatAxioms;
-        PeanoNatAxioms --> Peano;
+        Div --> Mul;
+        Mul --> Sub;
+        Sub --> Add;
+        Add --> WellFounded;
+        WellFounded --> MaxMin;
+        MaxMin --> Order;
+        Order --> StrictOrder;
+        StrictOrder --> Axioms;
+        Axioms --> PeanoNat;
     end
 ```
 
-**Nota**: Cada módulo también importa directamente los módulos de la cadena base (`Peano`, `PeanoNatAxioms`, etc.) aunque no aparezcan todas las flechas. El gráfico muestra las dependencias directas más relevantes.
+**Nota**: Cada módulo también importa directamente los módulos de la cadena base (`PeanoNat`, `Axioms`, etc.) aunque no aparezcan todas las flechas. El gráfico muestra las dependencias directas más relevantes.
 
 ---
 
 ## Tabla de dependencias por módulo
 
-| Módulo | Importa directamente |
-|---|---|
-| `Peano` | `Init.Classical` |
-| `PeanoNatAxioms` | `Peano` |
-| `PeanoNatStrictOrder` | `Peano`, `PeanoNatAxioms` |
-| `PeanoNatOrder` | `…StrictOrder` |
-| `PeanoNatMaxMin` | `…Order` |
-| `PeanoNatWellFounded` | `…MaxMin`, `Init.Classical` |
-| `PeanoNatAdd` | `…WellFounded` |
-| `PeanoNatSub` | `…Add` |
-| `PeanoNatMul` | `…Sub` |
-| `PeanoNatDiv` | `…Mul` |
-| `PeanoNatArith` | `…Div`, `Init.Classical` |
-| `PeanoNatPrimes` | `…Arith` |
-| `PeanoNatPow` | `…Div` |
-| `PeanoNatFactorial` | `…Add`, `…Mul` |
-| `PeanoNatBinom` | `…Factorial`, `…Sub`, `…Mul` |
-| `PeanoNatNewtonBinom` | `…Binom`, `…Factorial`, `…Pow` |
-| `Peano.lean` | todos los anteriores |
+| Módulo | Ruta | Importa directamente |
+|---|---|---|
+| `PeanoNat` | `Peano/PeanoNat.lean` | `Init.Classical` |
+| `Axioms` | `Peano/PeanoNat/Axioms.lean` | `PeanoNat` |
+| `StrictOrder` | `Peano/PeanoNat/StrictOrder.lean` | `PeanoNat`, `Axioms` |
+| `Order` | `Peano/PeanoNat/Order.lean` | `…StrictOrder` |
+| `MaxMin` | `Peano/PeanoNat/MaxMin.lean` | `…Order` |
+| `WellFounded` | `Peano/PeanoNat/WellFounded.lean` | `…MaxMin`, `Init.Classical` |
+| `Add` | `Peano/PeanoNat/Add.lean` | `…WellFounded` |
+| `Sub` | `Peano/PeanoNat/Sub.lean` | `…Add` |
+| `Mul` | `Peano/PeanoNat/Mul.lean` | `…Sub` |
+| `Div` | `Peano/PeanoNat/Div.lean` | `…Mul` |
+| `Arith` | `Peano/PeanoNat/Arith.lean` | `…Div`, `Init.Classical` |
+| `Primes` | `Peano/PeanoNat/Primes.lean` | `…Arith` |
+| `Pow` | `Peano/PeanoNat/Pow.lean` | `…Div` |
+| `Factorial` | `Peano/PeanoNat/Factorial.lean` | `…Add`, `…Mul` |
+| `Binom` | `Peano/PeanoNat/Binom.lean` | `…Factorial`, `…Sub`, `…Mul` |
+| `NewtonBinom` | `Peano/PeanoNat/NewtonBinom.lean` | `…Binom`, `…Factorial`, `…Pow` |
+| `Peano.lean` | `Peano.lean` | todos los anteriores |

@@ -7,8 +7,8 @@ License: MIT
 -- Peano/PeanoNatOrder.lean
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
 import Init.Prelude
 
 namespace Peano

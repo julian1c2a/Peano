@@ -13,7 +13,7 @@ License: MIT
 -- @importance: medium
 
 import Peano.PeanoNat
--- import Peano.PeanoNatAxioms
+-- import Peano.PeanoNat.Axioms
 
 namespace Peano.ModuleName
 

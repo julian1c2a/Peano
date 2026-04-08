@@ -7,9 +7,9 @@ License: MIT
 -- Peano/PeanoNatMaxMin.lean
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
 import Init.Data.Nat.Lemmas
 import Init.Prelude
 

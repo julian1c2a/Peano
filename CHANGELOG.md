@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Changed (2026-04-08)
+
+- **Phase 13 — Subdirectory restructure**: Moved 15 `PeanoNat*.lean` files into
+  `Peano/PeanoNat/` subdirectory with stripped prefix names.
+  - `PeanoNatAxioms.lean` → `PeanoNat/Axioms.lean`, `PeanoNatAdd.lean` → `PeanoNat/Add.lean`, etc.
+  - All imports updated: `Peano.PeanoNatXxx` → `Peano.PeanoNat.Xxx`.
+  - `PeanoNat.lean` remains as barrel module at `Peano/PeanoNat.lean`.
+  - DEPENDENCIES.md updated with new paths and module names.
+  - AI-GUIDE.md §22 updated with new directory structure + §22.1 Prelim.lean standard.
+  - AI-GUIDE-update.md created as cross-project template document.
+  - Build: 19/19 jobs, 0 sorry, 0 warnings.
+- **Phase 11 — Warning cleanup**: Removed unused `Nat.sub` simp arg in Sub.lean:484.
+  Build: 19/19, 0 warnings.
+
 ### Changed (2026-04-09)
 
 - **Fase 10 — Migración de nombres de identificadores**: Todos los identificadores

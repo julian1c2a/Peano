@@ -10,11 +10,11 @@ License: MIT
 -- trata `n!` como identificador único. Se usa `factorial n` directamente.
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatAdd
-import Peano.PeanoNatMul
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.Add
+import Peano.PeanoNat.Mul
 
 
 namespace Peano

@@ -14,10 +14,10 @@ License: MIT
 -- También demostramos que el orden estricto '<' en ℕ₀ es un buen orden.
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatMaxMin
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.MaxMin
 import Init.Classical
 
 namespace Peano

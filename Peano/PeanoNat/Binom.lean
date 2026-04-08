@@ -9,13 +9,13 @@ License: MIT
 -- Preparación para el Teorema del Binomio de Newton.
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatAdd
-import Peano.PeanoNatSub
-import Peano.PeanoNatMul
-import Peano.PeanoNatFactorial
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.Add
+import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Factorial
 
 /-!
 Paso 1: El Caso Base (n=0)

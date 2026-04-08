@@ -9,15 +9,15 @@ License: MIT
 -- REFERENCE.md: proyectar este archivo en la sección 17 de REFERENCE.md.
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatAdd
-import Peano.PeanoNatSub
-import Peano.PeanoNatMul
-import Peano.PeanoNatPow
-import Peano.PeanoNatFactorial
-import Peano.PeanoNatBinom
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.Add
+import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Pow
+import Peano.PeanoNat.Factorial
+import Peano.PeanoNat.Binom
 
 namespace Peano
   open Peano

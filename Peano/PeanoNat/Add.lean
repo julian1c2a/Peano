@@ -7,11 +7,11 @@ License: MIT
 -- Peano/PeanoNatAdd.lean
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatMaxMin
-import Peano.PeanoNatWellFounded
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.WellFounded
 
 
 namespace Peano

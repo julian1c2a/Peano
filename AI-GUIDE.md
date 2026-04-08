@@ -408,7 +408,7 @@ section Divisibility
 
 | Entity | Convention | Example |
 | ------ | ---------- | ------- |
-| Module (`.lean` file) | `UpperCamelCase` | `PeanoNatAxioms.lean` |
+| Module (`.lean` file) | `UpperCamelCase` | `Add.lean`, `StrictOrder.lean` |
 | Namespace | `UpperCamelCase` | `Peano`, `Peano.Add` |
 | Type / Prop predicate | `UpperCamelCase` | `ℕ₀`, `ExistsUnique` |
 | Function / value def | `lowerCamelCase` | `succ`, `cero` |
@@ -431,30 +431,60 @@ considering documentation complete and up to date.
 
 ### (22.) Module organization by subdirectory
 
-As the project grows, organize modules into **thematic subdirectories** inside `Peano/`.
+Organize modules into **thematic subdirectories** inside `Peano/`.
 Each subdirectory groups related modules and corresponds to a sub-namespace.
 
-Example structure:
+Current structure:
 
 ```
 Peano/
-├── Peano.lean          # Level 0: foundations (ℕ₀, helpers)
-├── PeanoNatAxioms.lean       # Peano axioms as theorems
-├── _template.lean            # Template (not imported)
-├── Algebra/
-│   ├── Ring.lean             # Peano.Algebra.Ring
-│   └── Field.lean            # Peano.Algebra.Field
-└── Analysis/
-    └── Sequences.lean        # Peano.Analysis.Sequences
+├── PeanoNat.lean               # Level 0: type ℕ₀, σ/τ/ρ, Λ/Ψ, Tuple
+├── _template.lean              # Template (not imported)
+└── PeanoNat/
+    ├── Axioms.lean             # Peano.PeanoNat.Axioms
+    ├── StrictOrder.lean        # Peano.PeanoNat.StrictOrder
+    ├── Order.lean              # Peano.PeanoNat.Order
+    ├── MaxMin.lean             # Peano.PeanoNat.MaxMin
+    ├── WellFounded.lean        # Peano.PeanoNat.WellFounded
+    ├── Add.lean                # Peano.PeanoNat.Add
+    ├── Sub.lean                # Peano.PeanoNat.Sub
+    ├── Mul.lean                # Peano.PeanoNat.Mul
+    ├── Div.lean                # Peano.PeanoNat.Div
+    ├── Arith.lean              # Peano.PeanoNat.Arith
+    ├── Primes.lean             # Peano.PeanoNat.Primes
+    ├── Pow.lean                # Peano.PeanoNat.Pow
+    ├── Factorial.lean          # Peano.PeanoNat.Factorial
+    ├── Binom.lean              # Peano.PeanoNat.Binom
+    └── NewtonBinom.lean        # Peano.PeanoNat.NewtonBinom
 ```
 
 Rules:
 
 - Subdirectory names: `UpperCamelCase`, matching the sub-namespace.
 - Each subdirectory may have a `Basic.lean` for foundational definitions of that area.
-- `new-module.bash` supports paths: `bash new-module.bash Algebra/Ring` creates `Peano/Algebra/Ring.lean`.
+- `new-module.bash` supports paths: `bash new-module.bash PeanoNat/Ring` creates `Peano/PeanoNat/Ring.lean`.
 - `gen-root.bash` automatically scans subdirectories.
-- Namespace mirrors path: `Peano/Algebra/Ring.lean` → `namespace Peano.Algebra.Ring`.
+- Namespace mirrors path: `Peano/PeanoNat/Add.lean` → `namespace Peano` (or `Peano.Add`).
+
+### (22.1) Prelim.lean — shared infrastructure across projects
+
+`Prelim.lean` contains **project-agnostic** definitions shared between Peano, ZfcSetTheory,
+and any future Lean 4 projects by the same author. Currently this content lives inside
+`PeanoNat.lean` and should be extracted to `Peano/Prelim.lean`.
+
+Contents of `Prelim.lean`:
+
+- `ExistsUnique` and its API (`ExistsUnique.exists`, `ExistsUnique.intro`)
+- `∃¹` syntax macros
+- `choose`, `choose_spec`, `choose_unique`, `choose_spec_unique`, `choose_uniq`
+
+Rules:
+
+- `Prelim.lean` lives at the **root** of the source directory (`Peano/Prelim.lean`).
+- It imports ONLY `Init.Classical` — no project-specific dependencies.
+- `PeanoNat.lean` imports `Peano.Prelim` and re-exports its content.
+- When forking to a new project, `Prelim.lean` is copied verbatim; only the namespace may change.
+- Keep `Prelim.lean` synchronized across projects: any API addition must be mirrored.
 
 ### (23.) Barrel modules (mandatory for subdirectories)
 

@@ -9,21 +9,21 @@ License: MIT
 -- sus declaraciones públicas para consumo sin calificación.
 
 import Peano.PeanoNat
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatMaxMin
-import Peano.PeanoNatWellFounded
-import Peano.PeanoNatAdd
-import Peano.PeanoNatSub
-import Peano.PeanoNatMul
-import Peano.PeanoNatDiv
-import Peano.PeanoNatArith
-import Peano.PeanoNatPrimes
-import Peano.PeanoNatPow
-import Peano.PeanoNatFactorial
-import Peano.PeanoNatBinom
-import Peano.PeanoNatNewtonBinom
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.WellFounded
+import Peano.PeanoNat.Add
+import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Div
+import Peano.PeanoNat.Arith
+import Peano.PeanoNat.Primes
+import Peano.PeanoNat.Pow
+import Peano.PeanoNat.Factorial
+import Peano.PeanoNat.Binom
+import Peano.PeanoNat.NewtonBinom
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (PeanoNat.lean)

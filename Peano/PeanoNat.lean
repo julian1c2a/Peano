@@ -23,20 +23,30 @@ namespace Peano
 
   def idℕ₀ (n : ℕ₀) : ℕ₀ := n
   def idNat (n : Nat) : Nat := n
-  def eqFnGen {α β : Type} (f : α → β) (g : α → β) :
-      Prop :=
-          ∀ (x : α), f x = g x
-  def comp {α β : Type} (f : α → β) (g : β → α) :
-      Prop :=
-          ∀ (x : α), g (f x) = x
+  def eqFnGen {α β : Type}
+    (f : α → β) (g : α → β) :
+      Prop
+        :=
+    ∀ (x : α), f x = g x
+  def comp {α β : Type}
+    (f : α → β) (g : β → α) :
+      Prop
+        :=
+    ∀ (x : α), g (f x) = x
   def eqFn {α : Type}
-          (f : ℕ₀ -> α)(g : ℕ₀ -> α) : Prop :=
+    (f : ℕ₀ -> α)(g : ℕ₀ -> α) :
+      Prop
+        :=
     ∀ (x : ℕ₀), f x = g x
   def eqFn2 {α : Type}
-          (f : ℕ₀ × ℕ₀ -> α)(g : ℕ₀ × ℕ₀ -> α) : Prop :=
+    (f : ℕ₀ × ℕ₀ -> α)(g : ℕ₀ × ℕ₀ -> α) :
+      Prop
+        :=
     ∀ (x : ℕ₀), ∀ (y : ℕ₀), f (x, y) = g (x, y)
   def eqFnNat {α : Type}
-          (f : Nat -> α)(g : Nat -> α) : Prop :=
+    (f : Nat -> α)(g : Nat -> α) :
+      Prop
+        :=
     ∀ (x : Nat), f x = g x
 
   set_option trace.Meta.Tactic.simp true

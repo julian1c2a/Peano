@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+### Added (2026-04-09)
+
+- **Isomorfismos Nat↔ℕ₀ completos para mul, div, mod, pow, gcd, lcm (§ 20.5)**:
+  Completados los 14 teoremas de isomorfismo restantes en 4 módulos:
+  - **Mul.lean**: `isomorph_Ψ_mul`, `isomorph_Λ_mul` (inducción sobre `m`, cadena `calc`)
+  - **Div.lean**: `isomorph_Ψ_div` (vía `Nat.div_eq_of_lt_le`),
+    `isomorph_Ψ_mod` (requiere `m ≠ 𝟘`, vía `Nat.add_left_cancel` + `Nat.div_add_mod`),
+    `isomorph_Λ_div`, `isomorph_Λ_mod` (patrón `congrArg Λ`)
+  - **Pow.lean**: `isomorph_Ψ_pow`, `isomorph_Λ_pow` (inducción sobre `m`, cadena `calc`)
+  - **Arith.lean**: `isomorph_Ψ_gcd` (inducción bien fundada + `gcd_step`),
+    `isomorph_Λ_gcd`, `isomorph_Ψ_lcm` (`unfold` + rewrite), `isomorph_Λ_lcm`
+  - **Isomorph.lean**: Actualizado con imports de Mul, Div, Pow, Arith + 6 bloques export nuevos.
+  - **Peano.lean**: Exports actualizados para los 14 nuevos teoremas.
+  - **Nota**: `isomorph_Ψ_mod` requiere `hm : m ≠ 𝟘` porque Peano define `mod n 𝟘 = 𝟘`
+    mientras Lean core define `Nat.mod n 0 = n`.
+  - Build: 30 jobs, 0 warnings, 0 sorry.
+
+### Added (2026-04-10)
+
+- **Log.lean — Logaritmo entero con resto (§ 20)**:
+  Nuevo módulo `Peano/PeanoNat/Log.lean` (`namespace Peano.Log`).
+  Definiciones: `logMod`, `log`, `logRem` — piso del logaritmo en base `b` con resto.
+  Patrón `(k, r)` tal que `n = b^k + r` y `n < b^{k+1}`.
+  Exacto (`n` potencia de `b`) sii `r = 0`.
+  11 símbolos exportados: `logMod`, `log`, `logRem`, `log_zero`, `logRem_zero`,
+  `log_of_lt`, `logRem_of_lt`, `log_one`, `logRem_one`, `logMod_spec`, `log_upper_bound`.
+  Build: 14 jobs, 0 warnings, 0 sorry.
+
+- **Sqrt.lean — Raíz cuadrada entera con resto (§ 21)**:
+  Nuevo módulo `Peano/PeanoNat/Sqrt.lean` (`namespace Peano.Sqrt`).
+  Definiciones: `sqrtMod`, `sqrt`, `sqrtRem` — piso de raíz cuadrada con resto.
+  Patrón `(k, r)` tal que `n = k² + r` y `r < 2k + 1`.
+  Exacto (cuadrado perfecto) sii `r = 0`.
+  10 símbolos exportados: `sqrtMod`, `sqrt`, `sqrtRem`, `sqrt_zero`, `sqrtRem_zero`,
+  `sqrt_one`, `sqrtRem_one`, `sqrtMod_spec`, `sqrtRem_lt`, `sqrt_upper_bound`.
+  Build: 14 jobs, 0 warnings, 0 sorry.
+
 ### Changed (2026-04-09)
 
 - **Arith.lean GCD/LCM/Coprime Mathlib-style extensions (§ 8)**:

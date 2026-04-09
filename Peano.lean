@@ -33,6 +33,8 @@ import Peano.PeanoNat.Combinatorics.Fibonacci
 import Peano.PeanoNat.Combinatorics.NewtonBinom
 import Peano.PeanoNat.Isomorph
 import Peano.PeanoNat.Decidable
+import Peano.PeanoNat.Log
+import Peano.PeanoNat.Sqrt
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (Prelim.lean)
@@ -558,6 +560,8 @@ export Peano.Mul (
   lt_lt_mul_lt_compat
   le_lt_mul_lt_compat
   mul_sub
+  isomorph_Ψ_mul
+  isomorph_Λ_mul
 )
 
 -- ─────────────────────────────────────────────────────────────────
@@ -582,6 +586,10 @@ export Peano.Div (
   mod_of_lt_fst_interval
   mod_of_lt_snd_interval
   mod_of_lt_nth_interval
+  isomorph_Ψ_div
+  isomorph_Ψ_mod
+  isomorph_Λ_div
+  isomorph_Λ_mod
 )
 
 -- ─────────────────────────────────────────────────────────────────
@@ -742,6 +750,10 @@ export Peano.Arith (
   factorsOf
   dividesb
   range_from_one
+  isomorph_Ψ_gcd
+  isomorph_Λ_gcd
+  isomorph_Ψ_lcm
+  isomorph_Λ_lcm
 )
 
 -- ─────────────────────────────────────────────────────────────────
@@ -822,6 +834,8 @@ export Peano.Pow (
   pow_lt_mono_base
   pow_le_pow_left
   pow_mul_comm
+  isomorph_Ψ_pow
+  isomorph_Λ_pow
 )
 
 -- ─────────────────────────────────────────────────────────────────
@@ -937,4 +951,37 @@ export Peano.Fibonacci (
   fib_two
   fibList_zero
   fibList_succ
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Log  (PeanoNat/Log.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Log (
+  logMod
+  log
+  logRem
+  log_zero
+  logRem_zero
+  log_of_lt
+  logRem_of_lt
+  log_one
+  logRem_one
+  logMod_spec
+  log_upper_bound
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Sqrt  (PeanoNat/Sqrt.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Sqrt (
+  sqrtMod
+  sqrt
+  sqrtRem
+  sqrt_zero
+  sqrtRem_zero
+  sqrt_one
+  sqrtRem_one
+  sqrtMod_spec
+  sqrtRem_lt
+  sqrt_upper_bound
 )

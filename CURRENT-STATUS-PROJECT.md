@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-06-18
+**Última actualización:** 2026-04-10
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (28 jobs)
+lake build      →  Build completed successfully (30 jobs)
 sorry count     →  0
 warnings        →  0
 ```
@@ -40,7 +40,7 @@ warnings        →  0
 | `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | Divisibilidad, MCD/MCM, Bézout, `ℕ₁`, 25 extensiones GCD/LCM/Coprime Mathlib-style | ✅ Completo |
 | `Peano/PeanoNat/Decidable.lean` | `Peano.Decidable` | Decidabilidad de `=`, `<`, `≤`, `∣` | ✅ Completo |
 | `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | (Legacy) `max`, `min` — migrado a Lattice.lean | ✅ Completo |
-| `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | Isomorfismo Nat↔ℕ₀ | ✅ Completo |
+| `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | Isomorfismo Nat↔ℕ₀ completo (0, σ, τ, ρ, Lt, Le, max, min, add, sub, mul, div, mod, pow, gcd, lcm) | ✅ Completo |
 | `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única | ✅ Completo |
 | `Peano/PeanoNat/Lists.lean` | `Peano.Lists` | Listas de ℕ₀, FSet, operaciones | ✅ Completo |
 | `Peano/PeanoNat/FSet.lean` | `Peano.FSet` | Conjuntos finitos con UniqueKeys+SortedByKey | ✅ Completo |
@@ -52,6 +52,8 @@ warnings        →  0
 | `Peano/PeanoNat/Combinatorics/Summation.lean` | `Peano.Summation` | Sumatorias `∑`, propiedades algebraicas | ✅ Completo |
 | `Peano/PeanoNat/Combinatorics/Product.lean` | `Peano.Product` | Productorias `∏`, propiedades algebraicas | ✅ Completo |
 | `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | Sucesión de Fibonacci, propiedades | ✅ Completo |
+| `Peano/PeanoNat/Log.lean` | `Peano.Log` | Logaritmo entero con resto: `logMod`, `log`, `logRem` | ✅ Completo |
+| `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | Raíz cuadrada entera con resto: `sqrtMod`, `sqrt`, `sqrtRem` | ✅ Completo |
 
 ---
 
@@ -84,12 +86,14 @@ warnings        →  0
 - **Fibonacci.lean**: Sucesión de Fibonacci + propiedades (identidad de Cassini, fib_add, etc.).
 - **Summation.lean**, **Product.lean**: Sumatorias y productorias con propiedades algebraicas.
 - **NumberSets.lean**: `DivisorsOf`, `CoprimesOf`, `PrimesUpTo` como FSet.
+- **Isomorph.lean (§ 20.5)**: 14 teoremas de isomorfismo Nat↔ℕ₀ para mul, div, mod, pow, gcd, lcm. Reexporta desde Mul, Div, Pow y Arith.
 
 ---
 
 ## Próximos objetivos
 
-- **Digits/Log/Sqrt/Pairing**: Representación en base b, logaritmo entero, raíz cuadrada, función de emparejamiento de Cantor.
+- **Instancias algebraicas**: HSub/HDiv/HMod/HPow/DecidableRel para ℕ₀.
+- **Digits/Pairing**: Representación en base b, función de emparejamiento de Cantor.
 - **Futuro**: Extensión a enteros ℤ (pares de equivalencia).
 
 ---

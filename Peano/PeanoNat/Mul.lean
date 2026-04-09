@@ -742,6 +742,43 @@ namespace Peano
         exact add_k_sub_k (mul c (sub a b)) (mul c b)
       exact h_result.symm
 
+    -- ═══════════════════════════════════════════════════════════
+    -- § Isomorfismo Ψ/Λ para mul
+    -- ═══════════════════════════════════════════════════════════
+
+    theorem isomorph_Ψ_mul (n m : ℕ₀) :
+      Ψ (mul n m) = Nat.mul (Ψ n) (Ψ m)
+        := by
+      induction m with
+      | zero =>
+        calc
+          Ψ (mul n 𝟘) = Ψ 𝟘 := by rw [mul_zero]
+          _ = 0 := by rfl
+          _ = Nat.mul (Ψ n) 0 := by rfl
+      | succ m' ih =>
+        calc
+          Ψ (mul n (σ m')) = Ψ (add (mul n m') n) := by rw [mul_succ]
+          _ = Nat.add (Ψ (mul n m')) (Ψ n) := by rw [isomorph_Ψ_add]
+          _ = Nat.add (Nat.mul (Ψ n) (Ψ m')) (Ψ n) := by rw [ih]
+
+    theorem isomorph_Λ_mul (n m : Nat) :
+      Λ (Nat.mul n m) = mul (Λ n) (Λ m)
+        := by
+      induction m with
+      | zero =>
+        calc
+          Λ (Nat.mul n 0) = Λ 0 := by rfl
+          _ = 𝟘 := by rfl
+          _ = mul (Λ n) 𝟘 := by rfl
+      | succ m' ih =>
+        calc
+          Λ (Nat.mul n (Nat.succ m'))
+            = Λ (Nat.add (Nat.mul n m') n) := by rfl
+          _ = add (Λ (Nat.mul n m')) (Λ n) := by rw [isomorph_Λ_add]
+          _ = add (mul (Λ n) (Λ m')) (Λ n) := by rw [ih]
+          _ = mul (Λ n) (σ (Λ m')) := by rw [mul_succ]
+          _ = mul (Λ n) (Λ (Nat.succ m')) := by rw [← Λ_σ_eq_σ_Ψ]
+
   end Mul
 
 end Peano
@@ -784,4 +821,6 @@ export Peano.Mul(
   le_lt_mul_lt_compat
   mul_sub
   lt_of_lt_of_le
+  isomorph_Ψ_mul
+  isomorph_Λ_mul
 )

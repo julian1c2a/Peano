@@ -497,6 +497,59 @@ namespace Peano
       rw [←h_div_eq'] at h_sub'
       simpa [r] using h_sub'
 
+    -- ═══════════════════════════════════════════════════════════
+    -- § Isomorfismo Ψ/Λ para div y mod
+    -- ═══════════════════════════════════════════════════════════
+
+    theorem isomorph_Ψ_div (n m : ℕ₀) :
+      Ψ (div n m) = Nat.div (Ψ n) (Ψ m)
+        := by
+      by_cases h_m : m = 𝟘
+      · subst h_m
+        have h1 : div n 𝟘 = 𝟘 := by simp [div, divMod]
+        rw [h1]; exact (Nat.div_zero (Ψ n)).symm
+      · have h_eq : n = add (mul (div n m) m) (mod n m) := divMod_spec n m h_m
+        have h_transported := congrArg Ψ h_eq
+        rw [isomorph_Ψ_add, isomorph_Ψ_mul] at h_transported
+        simp only [Nat.add_eq, Nat.mul_eq] at h_transported
+        have h_mod_lt := (isomorph_Ψ_lt _ _).mp (mod_lt n m h_m)
+        symm
+        apply Nat.div_eq_of_lt_le
+        · rw [h_transported]; exact Nat.le_add_right _ _
+        · rw [h_transported, Nat.add_mul, Nat.one_mul]
+          exact Nat.add_lt_add_left h_mod_lt _
+
+    theorem isomorph_Ψ_mod (n m : ℕ₀) (hm : m ≠ 𝟘) :
+      Ψ (mod n m) = Nat.mod (Ψ n) (Ψ m)
+        := by
+      have h_eq : n = add (mul (div n m) m) (mod n m) := divMod_spec n m hm
+      have h_transported := congrArg Ψ h_eq
+      rw [isomorph_Ψ_add, isomorph_Ψ_mul] at h_transported
+      simp only [Nat.add_eq, Nat.mul_eq] at h_transported
+      have h_div : Ψ (div n m) = Nat.div (Ψ n) (Ψ m) := isomorph_Ψ_div n m
+      rw [h_div] at h_transported
+      have h_dam := Nat.div_add_mod (Ψ n) (Ψ m)
+      rw [Nat.mul_comm] at h_dam
+      exact Nat.add_left_cancel (h_transported.symm.trans h_dam.symm)
+
+    theorem isomorph_Λ_div (n m : Nat) :
+      Λ (Nat.div n m) = div (Λ n) (Λ m)
+        := by
+      have h := isomorph_Ψ_div (Λ n) (Λ m)
+      rw [ΨΛ, ΨΛ] at h
+      have := congrArg Λ h
+      rw [ΛΨ] at this
+      exact this.symm
+
+    theorem isomorph_Λ_mod (n m : Nat) (hm : m ≠ 0) :
+      Λ (Nat.mod n m) = mod (Λ n) (Λ m)
+        := by
+      have h := isomorph_Ψ_mod (Λ n) (Λ m) (by rwa [Λ_neq_zero_iff_neq_zero])
+      rw [ΨΛ, ΨΛ] at h
+      have := congrArg Λ h
+      rw [ΛΨ] at this
+      exact this.symm
+
   end Div
 
 end Peano
@@ -516,4 +569,8 @@ export Peano.Div (
   mod_of_lt_snd_interval
   div_of_lt_nth_interval
   mod_of_lt_nth_interval
+  isomorph_Ψ_div
+  isomorph_Ψ_mod
+  isomorph_Λ_div
+  isomorph_Λ_mod
 )

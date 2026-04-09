@@ -898,6 +898,51 @@ namespace Peano
     theorem coprime_one_left (a : ℕ₀) : Coprime 𝟙 a :=
       coprime_comm.mpr (coprime_one_right a)
 
+    -- ═══════════════════════════════════════════════════════════════
+    -- § Isomorfismo Ψ/Λ para gcd y lcm
+    -- ═══════════════════════════════════════════════════════════════
+
+    theorem isomorph_Ψ_gcd (a b : ℕ₀) :
+      Ψ (gcd a b) = Nat.gcd (Ψ a) (Ψ b)
+        := by
+      induction b using well_founded_lt.induction generalizing a with
+      | h b ih =>
+        by_cases h_b : b = 𝟘
+        · subst h_b
+          simp [gcd, Ψ]
+        · -- gcd a b = gcd b (a % b),  con Lt (a % b) b
+          have h_mod_lt := mod_lt a b h_b
+          rw [gcd_step a b h_b, ih (mod a b) h_mod_lt b, isomorph_Ψ_mod a b h_b]
+          -- Goal: Nat.gcd (Ψ b) (Nat.mod (Ψ a) (Ψ b)) = Nat.gcd (Ψ a) (Ψ b)
+          have : Nat.gcd (Ψ b) ((Ψ a) % (Ψ b)) = Nat.gcd (Ψ a) (Ψ b) := by
+            rw [Nat.gcd_comm (Ψ b), ← Nat.gcd_rec, Nat.gcd_comm]
+          exact this
+
+    theorem isomorph_Λ_gcd (n m : Nat) :
+      Λ (Nat.gcd n m) = gcd (Λ n) (Λ m)
+        := by
+      have h := isomorph_Ψ_gcd (Λ n) (Λ m)
+      rw [ΨΛ, ΨΛ] at h
+      have := congrArg Λ h
+      rw [ΛΨ] at this
+      exact this.symm
+
+    theorem isomorph_Ψ_lcm (a b : ℕ₀) :
+      Ψ (lcm a b) = Nat.lcm (Ψ a) (Ψ b)
+        := by
+      unfold lcm Nat.lcm
+      rw [isomorph_Ψ_div, isomorph_Ψ_mul, isomorph_Ψ_gcd]
+      rfl
+
+    theorem isomorph_Λ_lcm (n m : Nat) :
+      Λ (Nat.lcm n m) = lcm (Λ n) (Λ m)
+        := by
+      have h := isomorph_Ψ_lcm (Λ n) (Λ m)
+      rw [ΨΛ, ΨΛ] at h
+      have := congrArg Λ h
+      rw [ΛΨ] at this
+      exact this.symm
+
   end Arith
 
 end Peano
@@ -987,4 +1032,9 @@ export Peano.Arith (
   gcd₁_divides_left
   gcd₁_divides_right
   gcd₁_divides_both
+  -- § Isomorfismo Ψ/Λ para gcd y lcm
+  isomorph_Ψ_gcd
+  isomorph_Λ_gcd
+  isomorph_Ψ_lcm
+  isomorph_Λ_lcm
 )

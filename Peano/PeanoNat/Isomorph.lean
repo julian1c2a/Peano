@@ -10,6 +10,10 @@ License: MIT
 -- No contiene demostraciones nuevas.
 
 import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Div
+import Peano.PeanoNat.Combinatorics.Pow
+import Peano.PeanoNat.Arith
 
 
 -- ─────────────────────────────────────────────────────────────────
@@ -80,4 +84,40 @@ export Peano.Add (
 export Peano.Sub (
   isomorph_Λ_sub
   isomorph_Ψ_sub
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Mul: mul ↔ Nat.mul
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Mul (
+  isomorph_Ψ_mul
+  isomorph_Λ_mul
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Div: div ↔ Nat.div, mod ↔ Nat.mod
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Div (
+  isomorph_Ψ_div
+  isomorph_Ψ_mod
+  isomorph_Λ_div
+  isomorph_Λ_mod
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Pow: pow ↔ Nat.pow
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Pow (
+  isomorph_Ψ_pow
+  isomorph_Λ_pow
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Arith: gcd ↔ Nat.gcd, lcm ↔ Nat.lcm
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Arith (
+  isomorph_Ψ_gcd
+  isomorph_Λ_gcd
+  isomorph_Ψ_lcm
+  isomorph_Λ_lcm
 )

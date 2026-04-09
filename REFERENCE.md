@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-09 12:00
+**Última actualización:** 2026-04-09 23:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -29,11 +29,13 @@
 | `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` y anteriores | `Arith`, `Primes`, `Combinatorics/Pow` |
 | `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | todos los anteriores, `Init.Classical` | `Primes` |
 | `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | `Arith` y todos los anteriores | — |
-| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `…Mul`, `Div` | `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `…Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt` |
 | `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `…Add`, `Mul` | `Binom`, `NewtonBinom` |
 | `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `…Mul`, `Sub`, `Factorial` | `NewtonBinom` |
 | `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | `…Pow`, `Factorial`, `Binom` | — |
-| `Peano/PeanoNat/Isomorph.lean` | — (reexport) | `Sub` y anteriores | — |
+| `Peano/PeanoNat/Log.lean` | `Peano.Log` | `…Div`, `Pow` y anteriores | — |
+| `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | `…Mul`, `Sub`, `Pow` y anteriores | — |
+| `Peano/PeanoNat/Isomorph.lean` | — (reexport) | `Arith` y todos los anteriores | — |
 | `Peano/PeanoNat/Decidable.lean` | — (reexport) | `Order` y anteriores | — |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
@@ -56,6 +58,8 @@
 | `Peano.Factorial` | `Combinatorics/Factorial.lean` | `Peano` |
 | `Peano.Binom` | `Combinatorics/Binom.lean` | `Peano` |
 | `Peano.NewtonBinom` | `Combinatorics/NewtonBinom.lean` | `Peano` |
+| `Peano.Log` | `PeanoNat/Log.lean` | `Peano` |
+| `Peano.Sqrt` | `PeanoNat/Sqrt.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -1297,6 +1301,18 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 `mul_two`, `two_mul`, `mul_three`, `three_mul`, `eq_zero_of_mul_eq_zero`, `obvio_1`, `le_n_mul_n_σn`, `mul_le_right`, `mul_le_left`, `mul_le_full_right`, `mul_le_full_left`, `mul_lt_left`, `mul_lt_right`, `mul_lt_full_left`, `mul_lt_full_right`, `mul_le_mono_right`, `lt_σn_mul_σn_σσm`, `mul_n_τm`, `mul_τn_m`, `lt_of_lt_of_le`, `exists_factor_of_mul_le`, `le_le_mul_le_compat`, `mul_pos`, `lt_lt_mul_lt_compat`, `le_lt_mul_lt_compat`
 
+### 10.3. Isomorfismos Nat ↔ ℕ₀ para mul
+
+**[T10.13]** `isomorph_Ψ_mul`
+
+- **Lean4:** `theorem isomorph_Ψ_mul (n m : ℕ₀) : Ψ (mul n m) = Nat.mul (Ψ n) (Ψ m)`
+- **Matemática:** Ψ(n·m) = Ψ(n) ×ₙ Ψ(m)
+
+**[T10.14]** `isomorph_Λ_mul`
+
+- **Lean4:** `theorem isomorph_Λ_mul (n m : Nat) : Λ (Nat.mul n m) = mul (Λ n) (Λ m)`
+- **Matemática:** Λ(n ×ₙ m) = Λ(n)·Λ(m)
+
 ---
 
 ## 11. Div.lean — `namespace Peano.Div`
@@ -1367,6 +1383,29 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 **[T11.5]** Teoremas adicionales exportados
 
 `gt_imp_neq_zero_one`, `div_of_lt`, `mod_of_lt`, `div_of_lt_fst_interval`, `div_eq_two`, `le___mul__div_a_b__b____a`, `div_of_lt_nth_interval`, `mod_of_lt_fst_interval`, `mod_of_lt_snd_interval`, `mod_of_lt_nth_interval`
+
+### 11.3. Isomorfismos Nat ↔ ℕ₀ para div y mod
+
+**[T11.6]** `isomorph_Ψ_div`
+
+- **Lean4:** `theorem isomorph_Ψ_div (n m : ℕ₀) : Ψ (div n m) = Nat.div (Ψ n) (Ψ m)`
+- **Matemática:** Ψ(⌊n/m⌋) = ⌊Ψ(n)/Ψ(m)⌋ₙ
+
+**[T11.7]** `isomorph_Ψ_mod`
+
+- **Lean4:** `theorem isomorph_Ψ_mod (n m : ℕ₀) (hm : m ≠ 𝟘) : Ψ (mod n m) = Nat.mod (Ψ n) (Ψ m)`
+- **Matemática:** m ≠ 0 ⇒ Ψ(n mod m) = Ψ(n) modₙ Ψ(m)
+- **Nota:** Requiere `m ≠ 𝟘` (Peano: `mod n 𝟘 = 𝟘`; Lean core: `Nat.mod n 0 = n`)
+
+**[T11.8]** `isomorph_Λ_div`
+
+- **Lean4:** `theorem isomorph_Λ_div (n m : Nat) : Λ (Nat.div n m) = div (Λ n) (Λ m)`
+- **Matemática:** Λ(⌊n/m⌋ₙ) = ⌊Λ(n)/Λ(m)⌋
+
+**[T11.9]** `isomorph_Λ_mod`
+
+- **Lean4:** `theorem isomorph_Λ_mod (n m : Nat) (hm : m ≠ 0) : Λ (Nat.mod n m) = mod (Λ n) (Λ m)`
+- **Matemática:** m ≠ 0 ⇒ Λ(n modₙ m) = Λ(n) mod Λ(m)
 
 ---
 
@@ -1687,6 +1726,28 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Lean4:** `theorem coprime_one_right (a : ℕ₀) : Coprime a 𝟙`
 - **Lean4:** `theorem coprime_one_left (a : ℕ₀) : Coprime 𝟙 a`
 
+### 12.8. Isomorfismos Nat ↔ ℕ₀ para gcd y lcm
+
+**[T12.43]** `isomorph_Ψ_gcd`
+
+- **Lean4:** `theorem isomorph_Ψ_gcd (a b : ℕ₀) : Ψ (gcd a b) = Nat.gcd (Ψ a) (Ψ b)`
+- **Matemática:** Ψ(gcd(a,b)) = gcdₙ(Ψ(a), Ψ(b))
+
+**[T12.44]** `isomorph_Λ_gcd`
+
+- **Lean4:** `theorem isomorph_Λ_gcd (n m : Nat) : Λ (Nat.gcd n m) = gcd (Λ n) (Λ m)`
+- **Matemática:** Λ(gcdₙ(n,m)) = gcd(Λ(n), Λ(m))
+
+**[T12.45]** `isomorph_Ψ_lcm`
+
+- **Lean4:** `theorem isomorph_Ψ_lcm (a b : ℕ₀) : Ψ (lcm a b) = Nat.lcm (Ψ a) (Ψ b)`
+- **Matemática:** Ψ(lcm(a,b)) = lcmₙ(Ψ(a), Ψ(b))
+
+**[T12.46]** `isomorph_Λ_lcm`
+
+- **Lean4:** `theorem isomorph_Λ_lcm (n m : Nat) : Λ (Nat.lcm n m) = lcm (Λ n) (Λ m)`
+- **Matemática:** Λ(lcmₙ(n,m)) = lcm(Λ(n), Λ(m))
+
 ---
 
 ## 13. Primes.lean — `namespace Peano.Primes`
@@ -1924,6 +1985,18 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem one_lt_pow {n : ℕ₀} (h₁ : Lt 𝟙 n) {m : ℕ₀} (h₂ : m ≠ 𝟘) : Lt 𝟙 (n ^ m)` / `theorem pow_mul_comm (n m k : ℕ₀) : mul (n ^ m) (n ^ k) = mul (n ^ k) (n ^ m)`
 
+### 14.3. Isomorfismos Nat ↔ ℕ₀ para pow
+
+**[T14.17]** `isomorph_Ψ_pow`
+
+- **Lean4:** `theorem isomorph_Ψ_pow (n m : ℕ₀) : Ψ (pow n m) = Nat.pow (Ψ n) (Ψ m)`
+- **Matemática:** Ψ(n^m) = Ψ(n)^ₙ Ψ(m)
+
+**[T14.18]** `isomorph_Λ_pow`
+
+- **Lean4:** `theorem isomorph_Λ_pow (n m : Nat) : Λ (Nat.pow n m) = pow (Λ n) (Λ m)`
+- **Matemática:** Λ(n^ₙ m) = Λ(n)^Λ(m)
+
 ---
 
 ## 15. Combinatorics/Factorial.lean — `namespace Peano.Factorial`
@@ -2137,7 +2210,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 18. Isomorph.lean — Módulo de reexportación
 
-*Dependencias: `Sub` y anteriores*
+*Dependencias: `Arith` y todos los anteriores*
 
 Módulo sin definiciones ni demostraciones nuevas. Reexporta todos los teoremas de isomorfismo Nat ↔ ℕ₀ (vía Λ y Ψ) dispersos en los módulos de la cadena principal.
 
@@ -2153,6 +2226,14 @@ Módulo sin definiciones ni demostraciones nuevas. Reexporta todos los teoremas 
 
 **Reexporta de `Peano.Sub`:** `isomorph_Λ_sub`, `isomorph_Ψ_sub`
 
+**Reexporta de `Peano.Mul`:** `isomorph_Ψ_mul`, `isomorph_Λ_mul`
+
+**Reexporta de `Peano.Div`:** `isomorph_Ψ_div`, `isomorph_Ψ_mod`, `isomorph_Λ_div`, `isomorph_Λ_mod`
+
+**Reexporta de `Peano.Pow`:** `isomorph_Ψ_pow`, `isomorph_Λ_pow`
+
+**Reexporta de `Peano.Arith`:** `isomorph_Ψ_gcd`, `isomorph_Λ_gcd`, `isomorph_Ψ_lcm`, `isomorph_Λ_lcm`
+
 ---
 
 ## 19. Decidable.lean — Módulo de reexportación
@@ -2164,3 +2245,88 @@ Módulo sin definiciones ni demostraciones nuevas. Reúne todas las instancias `
 **Reexporta de `Peano.StrictOrder`:** `blt`, `bgt`, `blt_iff_Lt`, `blt_then_Lt_wp`, `bgt_iff_Gt`, `nblt_iff_nLt`, `nbgt_iff_nGt`, `decidableLt`, `decidableGt`
 
 **Reexporta de `Peano.Order`:** `ble`, `bge`, `ble_iff_Le`, `bge_iff_Ge`, `decidableLe`, `decidableGe`
+
+---
+
+## 20. Log.lean — `namespace Peano.Log`
+
+*Dependencias: `Div`, `Pow` y anteriores*
+
+Logaritmo entero por debajo con resto: `logMod b n = (k, r)` donde $n = b^k + r$ y $n < b^{k+1}$.
+El resto `r = 0` sii `n` es potencia exacta de `b`.
+
+### 20.1. Definiciones [D]
+
+**[D20.1]** `logMod (b n : ℕ₀) : ℕ₀ × ℕ₀`
+Devuelve `(⌊log_b(n)⌋, n − b^⌊log_b(n)⌋)`. Recurre sobre `n / b`.
+Casos borde: `logMod b 0 = (0,0)`, `logMod b n = (0,0)` si `b ≤ 1`.
+*Termina por `div_lt_self` + `isomorph_Ψ_lt`.*
+
+**[D20.2]** `log (b n : ℕ₀) : ℕ₀ := (logMod b n).1`
+Piso del logaritmo en base `b` de `n`.
+
+**[D20.3]** `logRem (b n : ℕ₀) : ℕ₀ := (logMod b n).2`
+Resto: `n − b^(log b n)`.
+
+### 20.2. Teoremas [T]
+
+**[T20.1]** `log_zero (b : ℕ₀) : log b 𝟘 = 𝟘`
+
+**[T20.2]** `logRem_zero (b : ℕ₀) : logRem b 𝟘 = 𝟘`
+
+**[T20.3]** `log_of_lt {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : Lt n b) : log b n = 𝟘`
+Si $1 < b$ y $0 < n < b$, entonces $\lfloor\log_b n\rfloor = 0$.
+
+**[T20.4]** `logRem_of_lt {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : Lt n b) : logRem b n = sub n 𝟙`
+Si $0 < n < b$, el resto es $n - 1$ (ya que $b^0 = 1$).
+
+**[T20.5]** `log_one {b : ℕ₀} (h_b : Lt 𝟙 b) : log b 𝟙 = 𝟘`
+
+**[T20.6]** `logRem_one {b : ℕ₀} (h_b : Lt 𝟙 b) : logRem b 𝟙 = 𝟘`
+
+**[T20.7]** `logMod_spec {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) : n = add (pow b (logMod b n).1) (logMod b n).2`
+Especificación principal: $n = b^k + r$ con $k = \lfloor\log_b n\rfloor$.
+
+**[T20.8]** `log_upper_bound {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) : Lt n (pow b (σ (logMod b n).1))`
+Cota superior: $n < b^{k+1}$.
+
+---
+
+## 21. Sqrt.lean — `namespace Peano.Sqrt`
+
+*Dependencias: `Mul`, `Sub`, `Pow` y anteriores*
+
+Raíz cuadrada entera por debajo con resto: `sqrtMod n = (k, r)` donde $n = k^2 + r$ y $r < 2k + 1$ (equivalentemente $n < (k+1)^2$).
+El resto `r = 0` sii `n` es cuadrado perfecto.
+
+### 21.1. Definiciones [D]
+
+**[D21.1]** `sqrtMod (n : ℕ₀) : ℕ₀ × ℕ₀`
+Devuelve `(⌊√n⌋, n − ⌊√n⌋²)`. Recurre sobre `sub n 𝟙`.
+Usa la identidad: si `sqrtMod(n−1) = (k, r)` y `σ r = 2k + 1`, devuelve `(σ k, 0)`; si no, `(k, σ r)`.
+*Termina por `sub_lt_self` + `isomorph_Ψ_lt`.*
+
+**[D21.2]** `sqrt (n : ℕ₀) : ℕ₀ := (sqrtMod n).1`
+Piso de la raíz cuadrada de `n`.
+
+**[D21.3]** `sqrtRem (n : ℕ₀) : ℕ₀ := (sqrtMod n).2`
+Resto: $n - \lfloor\sqrt{n}\rfloor^2$.
+
+### 21.2. Teoremas [T]
+
+**[T21.1]** `sqrt_zero : sqrt 𝟘 = 𝟘`
+
+**[T21.2]** `sqrtRem_zero : sqrtRem 𝟘 = 𝟘`
+
+**[T21.3]** `sqrt_one : sqrt 𝟙 = 𝟙`
+
+**[T21.4]** `sqrtRem_one : sqrtRem 𝟙 = 𝟘`
+
+**[T21.5]** `sqrtMod_spec (n : ℕ₀) : n = add (pow (sqrtMod n).1 𝟚) (sqrtMod n).2`
+Especificación principal: $n = k^2 + r$ con $k = \lfloor\sqrt{n}\rfloor$.
+
+**[T21.6]** `sqrtRem_lt (n : ℕ₀) : Lt (sqrtMod n).2 (add (add (sqrtMod n).1 (sqrtMod n).1) 𝟙)`
+Cota del resto: $r < 2k + 1$.
+
+**[T21.7]** `sqrt_upper_bound (n : ℕ₀) : Lt n (pow (σ (sqrtMod n).1) 𝟚)`
+Cota superior: $n < (k+1)^2$. Se deriva de [T21.5] + [T21.6] + la identidad $(k+1)^2 = k^2 + (2k+1)$.

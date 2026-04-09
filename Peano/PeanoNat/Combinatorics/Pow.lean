@@ -325,6 +325,43 @@ namespace Peano
   theorem pow_mul_comm (n m k : ℕ₀) : mul (n ^ m) (n ^ k) = mul (n ^ k) (n ^ m) :=
     mul_comm (n ^ m) (n ^ k)
 
+    -- ═══════════════════════════════════════════════════════════
+    -- § Isomorfismo Ψ/Λ para pow
+    -- ═══════════════════════════════════════════════════════════
+
+    theorem isomorph_Ψ_pow (n m : ℕ₀) :
+      Ψ (pow n m) = Nat.pow (Ψ n) (Ψ m)
+        := by
+      induction m with
+      | zero =>
+        calc
+          Ψ (pow n 𝟘) = Ψ 𝟙 := by rw [pow_zero]
+          _ = 1 := by rfl
+          _ = Nat.pow (Ψ n) 0 := by rfl
+      | succ m' ih =>
+        calc
+          Ψ (pow n (σ m')) = Ψ (mul (pow n m') n) := by rw [pow_succ]
+          _ = Nat.mul (Ψ (pow n m')) (Ψ n) := by rw [isomorph_Ψ_mul]
+          _ = Nat.mul (Nat.pow (Ψ n) (Ψ m')) (Ψ n) := by rw [ih]
+
+    theorem isomorph_Λ_pow (n m : Nat) :
+      Λ (Nat.pow n m) = pow (Λ n) (Λ m)
+        := by
+      induction m with
+      | zero =>
+        calc
+          Λ (Nat.pow n 0) = Λ 1 := by rfl
+          _ = 𝟙 := by rfl
+          _ = pow (Λ n) 𝟘 := by rfl
+      | succ m' ih =>
+        calc
+          Λ (Nat.pow n (Nat.succ m'))
+            = Λ (Nat.mul (Nat.pow n m') n) := by rfl
+          _ = mul (Λ (Nat.pow n m')) (Λ n) := by rw [isomorph_Λ_mul]
+          _ = mul (pow (Λ n) (Λ m')) (Λ n) := by rw [ih]
+          _ = pow (Λ n) (σ (Λ m')) := by rw [pow_succ]
+          _ = pow (Λ n) (Λ (Nat.succ m')) := by rw [← Λ_σ_eq_σ_Ψ]
+
   end Pow
 end Peano
 
@@ -353,4 +390,6 @@ export Peano.Pow (
   pow_lt_mono_base
   pow_le_pow_left
   pow_mul_comm
+  isomorph_Ψ_pow
+  isomorph_Λ_pow
 )

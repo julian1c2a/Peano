@@ -1,6 +1,6 @@
 # Thoughts — Peano
 
-**Last updated:** 2026-04-08 21:00
+**Last updated:** 2026-04-10
 **Author**: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -55,6 +55,20 @@ session-based locking.
 
 - REFERENCE.md must be self-sufficient for AI assistants
 - The "project" protocol (AI-GUIDE.md §12) prevents documentation drift
+
+### Isomorfismos Nat↔ℕ₀ — Lecciones (2026-04-09)
+
+- **`Coe Nat ℕ₀` causa ambigüedad de operadores**: `(Ψ x + 1) * Ψ y` es ambiguo entre
+  ops de Peano y ops de Nat. Solución: evitar `show` con aritmética infix; usar rewrites
+  explícitos (`Nat.add_mul`, `Nat.one_mul`) o calificadores (`Nat.div`).
+- **Patrón `congrArg Ψ` + rewrite en hipótesis**: Cuando `rw [isomorph_Ψ_add]` en el
+  objetivo reescribe al revés (por la coerción), transportar la hipótesis con
+  `congrArg Ψ h_eq` y luego `rw [...] at h_transported`.
+- **`isomorph_Ψ_mod` requiere `m ≠ 𝟘`**: Peano define `mod n 𝟘 = 𝟘` pero
+  Lean core define `Nat.mod n 0 = n`. No hay isomorfismo incondicionado.
+- **`Nat.mod` vs `%`**: Son definicionalmente iguales pero `rw` exige coincidencia
+  sintáctica. Bridge con `have : ... % ... := by rw [...]; exact this`.
+- **`omega` no resuelve div/mod no-lineales**: Hay que usar `Nat.div_eq_of_lt_le` explícitamente.
 
 ---
 

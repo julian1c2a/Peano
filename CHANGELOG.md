@@ -4,6 +4,17 @@
 
 ### Changed (2026-04-09)
 
+- **Arith.lean GCD/LCM/Coprime Mathlib-style extensions (§ 8)**:
+  Made `gcd_comm`, `gcd_divides_left`, `gcd_divides_right` public (were private).
+  Added 25 new theorems: `gcd_dvd_left`, `gcd_dvd_right`, `dvd_gcd`,
+  `gcd_zero_right`, `gcd_zero_left`, `gcd_one_right`, `gcd_one_left`, `gcd_self`,
+  `gcd_eq_zero_iff`, `gcd_ne_zero_left`, `gcd_ne_zero_right`, `dvd_gcd_iff`,
+  `gcd_assoc`, `IsGCD_gcd`, `div_mul_cancel`, `gcd_mul_lcm`, `lcm_comm`,
+  `lcm_zero_left`, `lcm_zero_right`, `dvd_lcm_left`, `dvd_lcm_right`, `lcm_self`,
+  `coprime_comm`, `coprime_one_right`, `coprime_one_left`.
+  Updated export blocks in Arith.lean and Peano.lean.
+  Build: 28 jobs, 0 warnings, 0 sorry.
+
 - **Rename MaxMin → Lattice**: `Peano/PeanoNat/MaxMin.lean` renamed to
   `Peano/PeanoNat/Lattice.lean`. Namespace `Peano.MaxMin` → `Peano.Lattice`.
   All imports, opens, exports, and fully-qualified references updated across

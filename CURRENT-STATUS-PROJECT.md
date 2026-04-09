@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-08
+**Última actualización:** 2026-06-18
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,9 +15,9 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (19 jobs)
+lake build      →  Build completed successfully (28 jobs)
 sorry count     →  0
-warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
+warnings        →  0
 ```
 
 ---
@@ -26,22 +26,32 @@ warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
 
 | Archivo | Namespace | Contenido principal | Estado |
 |---|---|---|---|
-| `PeanoNat.lean` | `Peano` | `ℕ₀`, `ExistsUnique`, `choose`, constantes, isomorfismos | ✅ Completo |
-| `PeanoNatAxioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
-| `PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
-| `PeanoNatOrder.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans` | ✅ Completo |
-| `Lattice.lean` | `Peano.Lattice` | `max`, `min`, retícula distributiva, extensiones Mathlib-style | ✅ Completo |
-| `PeanoNatWellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt` | ✅ Completo |
-| `PeanoNatAdd.lean` | `Peano.Add` | Suma, neutro, conmutatividad, asociatividad | ✅ Completo |
-| `PeanoNatSub.lean` | `Peano.Sub` | Resta truncada, `sub_self`, `add_k_sub_k` | ✅ Completo |
-| `PeanoNatMul.lean` | `Peano.Mul` | Multiplicación, `mul_sub`, `mul_le_mono_right` | ✅ Completo |
-| `PeanoNatDiv.lean` | `Peano.Div` | División entera, módulo, `divMod_eq`, `mod_lt_divisor` | ✅ Completo |
-| `PeanoNatArith.lean` | `Peano.Arith` | Divisibilidad, MCD, Bézout, `ℕ₁`, `gcd₁` | ✅ Completo |
-| `PeanoNatPow.lean` | `Peano.Pow` | Potenciación, `pow_add`, `pow_mul` | ✅ Completo |
-| `PeanoNatFactorial.lean` | `Peano.Factorial` | Factorial, `factorial_pos`, `factorial_succ` | ✅ Completo |
-| `PeanoNatBinom.lean` | `Peano.Binom` | Coeficientes binomiales, Pascal, simetría | ✅ Completo |
-| `PeanoNatNewtonBinom.lean` | `Peano.NewtonBinom` | Binomio de Newton, `sum_binom_eq_pow_two` | ✅ Completo |
-| `PeanoNatPrimes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única | ✅ Completo |
+| `Peano/PeanoNat.lean` | `Peano` | `ℕ₀`, `ExistsUnique`, `choose`, constantes, isomorfismos | ✅ Completo |
+| `Peano/Prelim.lean` | `Peano.Prelim` | Infraestructura compartida (DList→List) | ✅ Completo |
+| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
+| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
+| `Peano/PeanoNat/Order.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans` | ✅ Completo |
+| `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `max`, `min`, retícula distributiva, 18 extensiones Mathlib-style | ✅ Completo |
+| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt` | ✅ Completo |
+| `Peano/PeanoNat/Add.lean` | `Peano.Add` | Suma, neutro, conmutatividad, asociatividad | ✅ Completo |
+| `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | Resta truncada, `sub_self`, `add_k_sub_k` | ✅ Completo |
+| `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | Multiplicación, `mul_sub`, `mul_le_mono_right` | ✅ Completo |
+| `Peano/PeanoNat/Div.lean` | `Peano.Div` | División entera, módulo, `divMod_eq`, `mod_lt` | ✅ Completo |
+| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | Divisibilidad, MCD/MCM, Bézout, `ℕ₁`, 25 extensiones GCD/LCM/Coprime Mathlib-style | ✅ Completo |
+| `Peano/PeanoNat/Decidable.lean` | `Peano.Decidable` | Decidabilidad de `=`, `<`, `≤`, `∣` | ✅ Completo |
+| `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | (Legacy) `max`, `min` — migrado a Lattice.lean | ✅ Completo |
+| `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | Isomorfismo Nat↔ℕ₀ | ✅ Completo |
+| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única | ✅ Completo |
+| `Peano/PeanoNat/Lists.lean` | `Peano.Lists` | Listas de ℕ₀, FSet, operaciones | ✅ Completo |
+| `Peano/PeanoNat/FSet.lean` | `Peano.FSet` | Conjuntos finitos con UniqueKeys+SortedByKey | ✅ Completo |
+| `Peano/PeanoNat/NumberSets.lean` | `Peano.NumberSets` | Divisores, coprimos, primos ≤ n | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | Potenciación, `pow_add`, `pow_mul` | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | Factorial, `factorial_pos`, `factorial_succ` | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | Coeficientes binomiales, Pascal, simetría | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | Binomio de Newton, `sum_binom_eq_pow_two` | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Summation.lean` | `Peano.Summation` | Sumatorias `∑`, propiedades algebraicas | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Product.lean` | `Peano.Product` | Productorias `∏`, propiedades algebraicas | ✅ Completo |
+| `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | Sucesión de Fibonacci, propiedades | ✅ Completo |
 
 ---
 
@@ -60,18 +70,26 @@ warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
 - Potenciación, factorial, coeficientes binomiales, binomio de Newton.
 - Primos: `unique_prime_factorization`, `coprime_dvd_of_dvd_mul` (Gauss), `prime_iff_irreducible`.
 
-### Fase 7: Renombrado de directorio (2026-04-08, en curso)
+### Fase 7–17: Reestructuración y modernización (2026-04-08)
 
-- Directorio `PeanoNatLib/` → `Peano/`, imports y scripts actualizados.
-- Copyright headers añadidos a los 16 módulos.
-- Build verificado: 19/19 jobs OK, 0 sorry.
+- Directorio `PeanoNatLib/` → `Peano/`, `PeanoNatLib.lean` → `PeanoNat.lean`.
+- Subdirectorio `Combinatorics/` extraído. `Prelim.lean`, `Isomorph.lean`, `Decidable.lean` factorizados.
+- Copyright headers, migración de identificadores a convenciones Mathlib4.
+
+### Extensiones recientes (2026-06)
+
+- **Lattice.lean**: Módulo de retícula con `max`/`min` + 18 teoremas Mathlib-style (distributividad, `max_comm_assoc`, `min_max_distrib`, etc.).
+- **Arith.lean § 8**: 25 teoremas GCD/LCM/Coprime Mathlib-style (`gcd_assoc`, `gcd_mul_lcm`, `lcm_comm`, `div_mul_cancel`, `dvd_gcd_iff`, etc.).
+- **FSet.lean**: Conjuntos finitos con invariantes `UniqueKeys` + `SortedByKey`.
+- **Fibonacci.lean**: Sucesión de Fibonacci + propiedades (identidad de Cassini, fib_add, etc.).
+- **Summation.lean**, **Product.lean**: Sumatorias y productorias con propiedades algebraicas.
+- **NumberSets.lean**: `DivisorsOf`, `CoprimesOf`, `PrimesUpTo` como FSet.
 
 ---
 
 ## Próximos objetivos
 
-- **Fase 8**: Renombrar `PeanoNatLib.lean` → `PeanoNat.lean` — ✅ completado.
-- **Fase 10**: Migración de nombres de identificadores a convenciones Mathlib4.
+- **Digits/Log/Sqrt/Pairing**: Representación en base b, logaritmo entero, raíz cuadrada, función de emparejamiento de Cantor.
 - **Futuro**: Extensión a enteros ℤ (pares de equivalencia).
 
 ---

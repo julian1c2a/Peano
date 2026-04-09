@@ -1602,6 +1602,91 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a` / análogos
 
+### 12.7. Extensiones GCD/LCM/Coprime estilo Mathlib (§ 8)
+
+**[T12.24]** `gcd_comm`
+
+- **Lean4:** `theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a`
+
+**[T12.25]** `gcd_dvd_left` / `gcd_dvd_right`
+
+- **Lean4:** `theorem gcd_dvd_left (a b : ℕ₀) : gcd a b ∣ a`
+- **Lean4:** `theorem gcd_dvd_right (a b : ℕ₀) : gcd a b ∣ b`
+
+**[T12.26]** `dvd_gcd`
+
+- **Lean4:** `theorem dvd_gcd {c a b : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ gcd a b`
+
+**[T12.27]** `gcd_zero_right` / `gcd_zero_left`
+
+- **Lean4:** `theorem gcd_zero_right (a : ℕ₀) : gcd a 𝟘 = a`
+- **Lean4:** `theorem gcd_zero_left (a : ℕ₀) : gcd 𝟘 a = a`
+
+**[T12.28]** `gcd_one_right` / `gcd_one_left`
+
+- **Lean4:** `theorem gcd_one_right (a : ℕ₀) : gcd a 𝟙 = 𝟙`
+- **Lean4:** `theorem gcd_one_left (a : ℕ₀) : gcd 𝟙 a = 𝟙`
+
+**[T12.29]** `gcd_self`
+
+- **Lean4:** `theorem gcd_self (a : ℕ₀) : gcd a a = a`
+
+**[T12.30]** `gcd_eq_zero_iff`
+
+- **Lean4:** `theorem gcd_eq_zero_iff (a b : ℕ₀) : gcd a b = 𝟘 ↔ a = 𝟘 ∧ b = 𝟘`
+
+**[T12.31]** `gcd_ne_zero_left` / `gcd_ne_zero_right`
+
+- **Lean4:** `theorem gcd_ne_zero_left {a b : ℕ₀} (ha : a ≠ 𝟘) : gcd a b ≠ 𝟘`
+- **Lean4:** `theorem gcd_ne_zero_right {a b : ℕ₀} (hb : b ≠ 𝟘) : gcd a b ≠ 𝟘`
+
+**[T12.32]** `dvd_gcd_iff`
+
+- **Lean4:** `theorem dvd_gcd_iff {c a b : ℕ₀} : c ∣ gcd a b ↔ c ∣ a ∧ c ∣ b`
+
+**[T12.33]** `gcd_assoc`
+
+- **Lean4:** `theorem gcd_assoc (a b c : ℕ₀) : gcd (gcd a b) c = gcd a (gcd b c)`
+
+**[T12.34]** `IsGCD_gcd`
+
+- **Lean4:** `theorem IsGCD_gcd (a b : ℕ₀) : IsGCD a b (gcd a b)`
+
+**[T12.35]** `div_mul_cancel`
+
+- **Lean4:** `theorem div_mul_cancel {a b : ℕ₀} (hb : b ≠ 𝟘) (h : b ∣ a) : mul (a / b) b = a`
+
+**[T12.36]** `gcd_mul_lcm`
+
+- **Lean4:** `theorem gcd_mul_lcm (a b : ℕ₀) : mul (gcd a b) (lcm a b) = mul a b`
+
+**[T12.37]** `lcm_comm`
+
+- **Lean4:** `theorem lcm_comm (a b : ℕ₀) : lcm a b = lcm b a`
+
+**[T12.38]** `lcm_zero_left` / `lcm_zero_right`
+
+- **Lean4:** `theorem lcm_zero_left (a : ℕ₀) : lcm 𝟘 a = 𝟘`
+- **Lean4:** `theorem lcm_zero_right (a : ℕ₀) : lcm a 𝟘 = 𝟘`
+
+**[T12.39]** `dvd_lcm_left` / `dvd_lcm_right`
+
+- **Lean4:** `theorem dvd_lcm_left (a b : ℕ₀) : a ∣ lcm a b`
+- **Lean4:** `theorem dvd_lcm_right (a b : ℕ₀) : b ∣ lcm a b`
+
+**[T12.40]** `lcm_self`
+
+- **Lean4:** `theorem lcm_self (a : ℕ₀) : lcm a a = a`
+
+**[T12.41]** `coprime_comm`
+
+- **Lean4:** `theorem coprime_comm {a b : ℕ₀} : Coprime a b ↔ Coprime b a`
+
+**[T12.42]** `coprime_one_right` / `coprime_one_left`
+
+- **Lean4:** `theorem coprime_one_right (a : ℕ₀) : Coprime a 𝟙`
+- **Lean4:** `theorem coprime_one_left (a : ℕ₀) : Coprime 𝟙 a`
+
 ---
 
 ## 13. Primes.lean — `namespace Peano.Primes`

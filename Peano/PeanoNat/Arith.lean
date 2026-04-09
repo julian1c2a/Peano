@@ -367,13 +367,13 @@ namespace Peano
       gcd_greatest b a (gcd a b) ⟨gcd_divides_second a b, gcd_divides_first a b⟩
 
     -- First prove that gcd is commutative
-    private theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a :=
+    theorem gcd_comm (a b : ℕ₀) : gcd a b = gcd b a :=
       antisymm_divides (gcd_divides_gcd_symm a b) (gcd_divides_gcd_symm b a)
 
-    private theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
+    theorem gcd_divides_left (a b : ℕ₀) : (gcd a b) ∣ a :=
       (gcd_divides_both a b).1
 
-    private theorem gcd_divides_right (a b : ℕ₀) : (gcd a b) ∣ b :=
+    theorem gcd_divides_right (a b : ℕ₀) : (gcd a b) ∣ b :=
       (gcd_divides_both a b).2 -- Similar to gcd_divides_left but simpler by symmetry
 
     -- Lemma 1: gcd divides any linear combination n*a + m*b
@@ -726,6 +726,178 @@ namespace Peano
       · exact gcd₁_divides_left a b
       · exact gcd₁_divides_right a b
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 8. Extensiones GCD/LCM/Coprime estilo Mathlib
+    -- ══════════════════════════════════════════════════════════════════
+
+    -- ── 8.1 GCD — aliases Mathlib ──────────────────────────────────
+
+    /-- Alias Mathlib: `gcd a b` divide a `a`. -/
+    theorem gcd_dvd_left (a b : ℕ₀) : gcd a b ∣ a :=
+      gcd_divides_left a b
+
+    /-- Alias Mathlib: `gcd a b` divide a `b`. -/
+    theorem gcd_dvd_right (a b : ℕ₀) : gcd a b ∣ b :=
+      gcd_divides_right a b
+
+    /-- Propiedad universal: si `c ∣ a` y `c ∣ b`, entonces `c ∣ gcd a b`. -/
+    theorem dvd_gcd {c a b : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ gcd a b :=
+      gcd_greatest a b c ⟨ha, hb⟩
+
+    -- ── 8.2 GCD con 0 y 1 ─────────────────────────────────────────
+
+    theorem gcd_zero_right (a : ℕ₀) : gcd a 𝟘 = a := by
+      unfold gcd; rw [if_pos rfl]
+
+    theorem gcd_zero_left (a : ℕ₀) : gcd 𝟘 a = a := by
+      rw [gcd_comm]; exact gcd_zero_right a
+
+    theorem gcd_one_right (a : ℕ₀) : gcd a 𝟙 = 𝟙 :=
+      antisymm_divides (gcd_dvd_right a 𝟙) (one_divides (gcd a 𝟙))
+
+    theorem gcd_one_left (a : ℕ₀) : gcd 𝟙 a = 𝟙 := by
+      rw [gcd_comm]; exact gcd_one_right a
+
+    theorem gcd_self (a : ℕ₀) : gcd a a = a :=
+      antisymm_divides (gcd_dvd_left a a) (dvd_gcd (divides_refl a) (divides_refl a))
+
+    -- ── 8.3 GCD y cero ────────────────────────────────────────────
+
+    theorem gcd_eq_zero_iff (a b : ℕ₀) : gcd a b = 𝟘 ↔ a = 𝟘 ∧ b = 𝟘 := by
+      constructor
+      · intro h
+        constructor
+        · exact (zero_divides_iff a).mp (h ▸ gcd_dvd_left a b)
+        · exact (zero_divides_iff b).mp (h ▸ gcd_dvd_right a b)
+      · intro ⟨ha, hb⟩
+        rw [ha, hb, gcd_zero_right]
+
+    theorem gcd_ne_zero_left {a b : ℕ₀} (ha : a ≠ 𝟘) : gcd a b ≠ 𝟘 := by
+      intro h; exact ha ((gcd_eq_zero_iff a b).mp h).1
+
+    theorem gcd_ne_zero_right {a b : ℕ₀} (hb : b ≠ 𝟘) : gcd a b ≠ 𝟘 := by
+      intro h; exact hb ((gcd_eq_zero_iff a b).mp h).2
+
+    -- ── 8.4 Caracterización y asociatividad ───────────────────────
+
+    theorem dvd_gcd_iff {c a b : ℕ₀} : c ∣ gcd a b ↔ c ∣ a ∧ c ∣ b := by
+      constructor
+      · intro h
+        exact ⟨divides_trans h (gcd_dvd_left a b),
+               divides_trans h (gcd_dvd_right a b)⟩
+      · intro ⟨ha, hb⟩
+        exact dvd_gcd ha hb
+
+    theorem gcd_assoc (a b c : ℕ₀) : gcd (gcd a b) c = gcd a (gcd b c) := by
+      apply antisymm_divides
+      · apply dvd_gcd
+        · exact divides_trans (gcd_dvd_left (gcd a b) c) (gcd_dvd_left a b)
+        · apply dvd_gcd
+          · exact divides_trans (gcd_dvd_left (gcd a b) c) (gcd_dvd_right a b)
+          · exact gcd_dvd_right (gcd a b) c
+      · apply dvd_gcd
+        · apply dvd_gcd
+          · exact gcd_dvd_left a (gcd b c)
+          · exact divides_trans (gcd_dvd_right a (gcd b c)) (gcd_dvd_left b c)
+        · exact divides_trans (gcd_dvd_right a (gcd b c)) (gcd_dvd_right b c)
+
+    theorem IsGCD_gcd (a b : ℕ₀) : IsGCD a b (gcd a b) :=
+      ⟨gcd_dvd_left a b, gcd_dvd_right a b, fun _ hc => dvd_gcd hc.1 hc.2⟩
+
+    -- ── 8.5 Puente: división exacta ───────────────────────────────
+
+    /-- Si `b ∣ a` y `b ≠ 0`, entonces `(a / b) * b = a`. -/
+    theorem div_mul_cancel {a b : ℕ₀} (hb : b ≠ 𝟘) (h : b ∣ a) :
+        mul (a / b) b = a := by
+      have h_spec : a = add (mul (a / b) b) (a % b) := divMod_spec a b hb
+      have h_div_mod : b ∣ (a % b) := divides_mod h (divides_refl b)
+      have h_mod_lt : Lt (a % b) b := mod_lt a b hb
+      have h_mod_zero : (a % b) = 𝟘 := by
+        cases Classical.em ((a % b) = 𝟘) with
+        | inl h => exact h
+        | inr h_ne => exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h_ne))
+      rw [h_mod_zero, add_zero] at h_spec
+      exact h_spec.symm
+
+    -- ── 8.6 LCM — propiedades básicas ─────────────────────────────
+
+    theorem gcd_mul_lcm (a b : ℕ₀) : mul (gcd a b) (lcm a b) = mul a b := by
+      by_cases hg : gcd a b = 𝟘
+      · have ⟨ha, hb⟩ := (gcd_eq_zero_iff a b).mp hg
+        subst ha; subst hb
+        rw [gcd_zero_right, zero_mul, zero_mul]
+      · unfold lcm
+        have h_dvd : gcd a b ∣ mul a b :=
+          divides_mul_right (gcd_dvd_left a b)
+        rw [mul_comm (gcd a b) ((mul a b) / (gcd a b))]
+        exact div_mul_cancel hg h_dvd
+
+    theorem lcm_comm (a b : ℕ₀) : lcm a b = lcm b a := by
+      unfold lcm
+      rw [mul_comm a b, gcd_comm a b]
+
+    theorem lcm_zero_left (a : ℕ₀) : lcm 𝟘 a = 𝟘 := by
+      by_cases ha : a = 𝟘
+      · subst ha
+        unfold lcm
+        rw [zero_mul, gcd_zero_right]
+        simp [div, divMod]
+      · have h := gcd_mul_lcm 𝟘 a
+        rw [zero_mul, gcd_zero_left] at h
+        rcases (mul_eq_zero a (lcm 𝟘 a)).mp h with ha0 | hl
+        · exact absurd ha0 ha
+        · exact hl
+
+    theorem lcm_zero_right (a : ℕ₀) : lcm a 𝟘 = 𝟘 := by
+      rw [lcm_comm]; exact lcm_zero_left a
+
+    theorem dvd_lcm_left (a b : ℕ₀) : a ∣ lcm a b := by
+      by_cases ha : a = 𝟘
+      · rw [ha, lcm_zero_left]; exact divides_zero 𝟘
+      · have hg : gcd a b ≠ 𝟘 := gcd_ne_zero_left ha
+        rcases gcd_dvd_right a b with ⟨k, hk⟩
+        suffices h : lcm a b = mul a k by
+          rw [h]; exact divides_mul_right (divides_refl a)
+        have h1 : mul (gcd a b) (lcm a b) = mul a b := gcd_mul_lcm a b
+        have h2 : mul a b = mul (gcd a b) (mul a k) := by
+          have step1 : mul a b = mul a (mul (gcd a b) k) :=
+            congrArg (mul a) hk
+          have step2 : mul a (mul (gcd a b) k) = mul (gcd a b) (mul a k) :=
+            calc mul a (mul (gcd a b) k)
+              _ = mul (mul a (gcd a b)) k := (mul_assoc (gcd a b) a k).symm
+              _ = mul (mul (gcd a b) a) k := by rw [mul_comm a (gcd a b)]
+              _ = mul (gcd a b) (mul a k) := mul_assoc a (gcd a b) k
+          exact step1.trans step2
+        rw [h2] at h1
+        exact mul_cancelation_left (gcd a b) (lcm a b) (mul a k) hg h1
+
+    theorem dvd_lcm_right (a b : ℕ₀) : b ∣ lcm a b := by
+      rw [lcm_comm]; exact dvd_lcm_left b a
+
+    theorem lcm_self (a : ℕ₀) : lcm a a = a := by
+      by_cases ha : a = 𝟘
+      · rw [ha]; exact lcm_zero_left 𝟘
+      · have hg : gcd a a ≠ 𝟘 := gcd_ne_zero_left ha
+        have h1 : mul (gcd a a) (lcm a a) = mul a a := gcd_mul_lcm a a
+        rw [gcd_self] at h1
+        exact mul_cancelation_left a (lcm a a) a ha h1
+
+    -- ── 8.7 Coprime — propiedades básicas ──────────────────────────
+
+    theorem coprime_comm {a b : ℕ₀} : Coprime a b ↔ Coprime b a := by
+      unfold Coprime IsGCD
+      constructor
+      · intro ⟨h1, h2, h3⟩
+        exact ⟨h2, h1, fun _ hc => h3 _ ⟨hc.2, hc.1⟩⟩
+      · intro ⟨h1, h2, h3⟩
+        exact ⟨h2, h1, fun _ hc => h3 _ ⟨hc.2, hc.1⟩⟩
+
+    theorem coprime_one_right (a : ℕ₀) : Coprime a 𝟙 :=
+      ⟨one_divides a, divides_refl 𝟙, fun _ hc => hc.2⟩
+
+    theorem coprime_one_left (a : ℕ₀) : Coprime 𝟙 a :=
+      coprime_comm.mpr (coprime_one_right a)
+
   end Arith
 
 end Peano
@@ -761,10 +933,47 @@ export Peano.Arith (
   divides_mul_right
   divides_mul_left
   divides_add
+  divides_le
+  antisymm_divides
   divides_sub
   divides_mod
   gcd_greatest
-  -- Nuevas definiciones para ℕ₁
+  gcd_divides_linear_combo
+  bezout_natform
+  gcd_divides_max
+  gcd_divides_min
+  -- § 8 extensiones Mathlib — GCD
+  gcd_comm
+  gcd_divides_left
+  gcd_divides_right
+  gcd_dvd_left
+  gcd_dvd_right
+  dvd_gcd
+  gcd_zero_right
+  gcd_zero_left
+  gcd_one_right
+  gcd_one_left
+  gcd_self
+  gcd_eq_zero_iff
+  gcd_ne_zero_left
+  gcd_ne_zero_right
+  dvd_gcd_iff
+  gcd_assoc
+  IsGCD_gcd
+  div_mul_cancel
+  -- § 8 extensiones Mathlib — LCM
+  gcd_mul_lcm
+  lcm_comm
+  lcm_zero_left
+  lcm_zero_right
+  dvd_lcm_left
+  dvd_lcm_right
+  lcm_self
+  -- § 8 extensiones Mathlib — Coprime
+  coprime_comm
+  coprime_one_right
+  coprime_one_left
+  -- Definiciones y teoremas para ℕ₁
   Divides₁
   IsGCD₁
   gcd₁
@@ -772,6 +981,8 @@ export Peano.Arith (
   divides₁_refl
   divides₁_trans
   divides₁_antisymm
+  mod_eq_zero_iff_divides
+  gcd₁_val_eq
   gcd₁_comm
   gcd₁_divides_left
   gcd₁_divides_right

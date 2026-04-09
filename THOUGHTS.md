@@ -191,7 +191,7 @@ para albergar los nuevos módulos. Hoja de ruta priorizada:
 
 **Tier 2 (requiere extensiones moderadas):**
 
-- `GCD.lean` — API extendida de gcd/lcm (mover/ampliar desde `Arith.lean`)
+- ~~`GCD.lean` — API extendida de gcd/lcm~~ ✅ Implementado en `Arith.lean` § 8 (25 teoremas Mathlib-style)
 - `Fibonacci.lean` — definición recursiva + propiedades
 - `Digits.lean` — representación en base b
 - `PrimeCounting.lean` — π(x), cotas elementales
@@ -237,6 +237,13 @@ En `Primes.lean` (privados, re-derivados):
 Mathlib es: `gcd_assoc`, `gcd_comm` (público), `lcm_comm`, `lcm_assoc`,
 `gcd_mul_lcm`, `gcd_one_left/right`, `Coprime` API extendida.
 El error en la comparación anterior fue que busqué en las secciones equivocadas.
+
+**✅ Actualización (paso [3]):** Se han añadido 25 teoremas Mathlib-style en
+`Arith.lean` § 8, incluyendo: `gcd_comm` (público), `gcd_assoc`, `gcd_mul_lcm`,
+`lcm_comm`, `gcd_one_left/right`, `gcd_zero_left/right`, `gcd_self`,
+`gcd_eq_zero_iff`, `div_mul_cancel`, `dvd_gcd_iff`, `dvd_lcm_left/right`,
+`lcm_self`, `coprime_comm`, `coprime_one_left/right`. Pendientes para Primes.lean:
+`lcm_dvd`, `IsLCM_lcm` (requieren `coprime_dvd_of_dvd_mul`).
 
 ### [7] Secciones 3.4–3.7 de la comparación: líneas de ampliación
 
@@ -534,6 +541,59 @@ Arith.lean (usa FSet para factorsOf, DivisorsList, etc.)
   - `Tuple` para aridad fija (argumentos de funciones, pares ordenados vía `Tuple 𝟚`).
   - `List`/`FSet` para colecciones dinámicas (divisores, factores, rangos).
 - `OrderedPair := Tuple 𝟚` sigue siendo válido como abstracción de par.
+
+## 12. Posibilidades para la extensión entera (ℤ) y racional (ℚ)
+
+- La primera idea es definir $\mathbb(Z)$ como un tipo inductivo del tipo:
+
+```lean
+inductive ℤ where
+  | pos : ℕ₀ → ℤ
+  | neg : ℕ₁ → ℤ
+```
+
+y dado el par de ℕ₀ × ℕ₀, definimos la función de equivalencia:
+
+```lean
+def int_equiv : ℕ₀ × ℕ₀ → ℤ
+  | (a, b) => if a ≥ b then ℤ.pos (a - b) else ℤ.neg (b - a)
+```
+
+y también la dada el número entero z, definimos la representación como un par de naturales:
+
+```lean
+def int_repr : ℤ → ℕ₀ × ℕ₀
+  | ℤ.pos n => (n, 0)
+  | ℤ.neg n => (0, n.val)
+```
+
+las operaciones se realizan sobre los pares ordenados, y luego se canonizan a través de `int_equiv`. Creo que no habría por qué introducir `Quotient` ni `Setoid` con este mecanismo.
+
+Las definiciones para el orden son sencillas: `ℤ.pos a < ℤ.pos b` si `a < b`, `ℤ.neg a < ℤ.neg b` si `a > b`, y `ℤ.neg _ < ℤ.pos _` siempre. La suma se define como `(a₁, b₁) + (a₂, b₂) = (a₁ + a₂, b₁ + b₂)` y la multiplicación como `(a₁, b₁) * (a₂, b₂) = (a₁ * a₂ + b₁ * b₂, a₁ * b₂ + a₂ * b₁)`. La resta se puede definir como `a - b = a + (-b)`, donde `-b` se obtiene intercambiando las componentes del par.
+
+Necesitaríamos las funciones de canonización (canon) para asegurar que cada entero tiene una representación única, y demostrar que las operaciones son compatibles con la relación de equivalencia dada por `int_equiv`.
+
+También necesitamos las funciones `abs` y `sign` para definir el valor absoluto y el signo de un entero, lo que facilitará la definición de la función de orden y otras propiedades.
+
+También pondremos las funciones de comparación (`<`, `≤`, `>`, `≥`) y las instancias de `Decidable` para estas relaciones, lo que permitirá usar tácticas como `decide` para resolver metas que involucren comparaciones entre enteros. Las instancias de Decidable para la igualdad también serán necesarias para trabajar con enteros. También pondremos los predicados `IsEven` y `IsOdd` (que habría que pasar también a ℕ₀).
+
+- La idea para definir el tipo $\mathbb{Q}$ como un tipo inductivo va ser mucho más difícil. En principio se puede hacer algo parecido a lo anterior:
+
+```lean
+inductive ℚ where
+  | rat : ℤ × ℕ₁ → ℚ
+```
+
+donde el par `(z, n)` representa la fracción `z / n`. La relación de equivalencia sería algo como:
+
+```lean
+def rat_equiv : (ℤ × ℕ₁) → (ℤ × ℕ₁) → Prop
+  | (z₁, n₁), (z₂, n₂) => z₁ * n₂ = z₂ * n₁
+```
+
+Obtenemos el representante canónico del par como `rat_equiv`-equivalente a `(z, n)` con `gcd(z.val, n.val) = 1` y `n.val > 0`. Las operaciones de suma, resta, multiplicación y división se definen sobre los pares ordenados y luego se canonizan usando `rat_equiv`.
+
+La comparación dadas dos fracciones `z₁ / n₁` y `z₂ / n₂` se puede definir como `z₁ * n₂ < z₂ * n₁`, lo que es compatible con la relación de equivalencia. También se pueden definir las instancias de `Decidable` para la igualdad y las comparaciones, lo que permitirá usar tácticas como `decide` para resolver metas que involucren racionales.
 
 ---
 

@@ -694,6 +694,38 @@ export Peano.Arith (
   bezout_natform
   gcd_divides_max
   gcd_divides_min
+  -- § 8 extensiones Mathlib — GCD
+  gcd_comm
+  gcd_divides_left
+  gcd_divides_right
+  gcd_dvd_left
+  gcd_dvd_right
+  dvd_gcd
+  gcd_zero_right
+  gcd_zero_left
+  gcd_one_right
+  gcd_one_left
+  gcd_self
+  gcd_eq_zero_iff
+  gcd_ne_zero_left
+  gcd_ne_zero_right
+  dvd_gcd_iff
+  gcd_assoc
+  IsGCD_gcd
+  div_mul_cancel
+  -- § 8 extensiones Mathlib — LCM
+  gcd_mul_lcm
+  lcm_comm
+  lcm_zero_left
+  lcm_zero_right
+  dvd_lcm_left
+  dvd_lcm_right
+  lcm_self
+  -- § 8 extensiones Mathlib — Coprime
+  coprime_comm
+  coprime_one_right
+  coprime_one_left
+  -- ℕ₁
   Divides₁
   IsGCD₁
   gcd₁

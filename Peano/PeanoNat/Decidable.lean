@@ -38,4 +38,6 @@ export Peano.Order (
   bge_iff_Ge
   decidableLe
   decidableGe
+  bexLe
+  decidableBExLe_of_bool
 )

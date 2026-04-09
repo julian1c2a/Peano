@@ -37,10 +37,16 @@ import Peano.PeanoNat.Log
 import Peano.PeanoNat.Sqrt
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano  (Prelim.lean)
+-- namespace Peano  (Prelim/ExistsUnique.lean — constructivo)
 -- ─────────────────────────────────────────────────────────────────
 export Peano (
   ExistsUnique
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano  (Prelim/Classical.lean — noncomputable)
+-- ─────────────────────────────────────────────────────────────────
+export Peano (
   choose
   choose_spec
   choose_unique

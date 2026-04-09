@@ -5,7 +5,6 @@ License: MIT
 -/
 
 -- Peano/PeanoNatArith.lean
-import Init.Classical
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.Order
@@ -30,7 +29,6 @@ namespace Peano
       open Peano.Div
       open Peano.Lattice
       open Peano.Lists
-      open Classical
 
     def Divides (a b : ℕ₀) : Prop :=
       ∃ k : ℕ₀, b = mul a k
@@ -43,7 +41,6 @@ namespace Peano
 
     def DivisorOf (d n : ℕ₀) : Prop :=
       Divides d n
-      open Classical
 
     -- ──────────────────────────────────────────────────────────────────
     -- Compatibilidad: alias `mem_cons` / `mem_append` sobre `List`
@@ -170,18 +167,16 @@ namespace Peano
 
     theorem antisymm_divides {a b : ℕ₀} : (a ∣ b) → (b ∣ a) → a = b := by
       intro h_ab h_ba
-      cases Classical.em (a = 𝟘) with
-      | inl ha0 =>
-        rw [ha0] at h_ab
+      by_cases ha0 : a = 𝟘
+      · rw [ha0] at h_ab
         have hb0 : b = 𝟘 := (zero_divides_iff b).mp h_ab
         rw [ha0, hb0]
-      | inr hna0 =>
-        have hnb0 : b ≠ 𝟘 := by
+      · have hnb0 : b ≠ 𝟘 := by
           intro hb0
           rw [hb0] at h_ba
-          exact hna0 ((zero_divides_iff a).mp h_ba)
+          exact ha0 ((zero_divides_iff a).mp h_ba)
         have h_le_ab : a ≤ b := divides_le h_ab hnb0
-        have h_le_ba : b ≤ a := divides_le h_ba hna0
+        have h_le_ba : b ≤ a := divides_le h_ba ha0
         exact le_antisymm a b h_le_ab h_le_ba
 
     def IsGCD (a b d : ℕ₀) : Prop :=
@@ -679,9 +674,9 @@ namespace Peano
           divides_mod h_div_a (divides_refl b.val)
         have h_mod_lt : Lt (a.val % b.val) b.val :=
           mod_lt a.val b.val b.property
-        cases Classical.em ((a.val % b.val) = 𝟘) with
-        | inl h => exact h
-        | inr h => exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h))
+        by_cases h : (a.val % b.val) = 𝟘
+        · exact h
+        · exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h))
 
     -- gcd₁ preserva la igualdad en los valores subyacentes
     theorem gcd₁_val_eq (a b : ℕ₁) :
@@ -813,9 +808,9 @@ namespace Peano
       have h_div_mod : b ∣ (a % b) := divides_mod h (divides_refl b)
       have h_mod_lt : Lt (a % b) b := mod_lt a b hb
       have h_mod_zero : (a % b) = 𝟘 := by
-        cases Classical.em ((a % b) = 𝟘) with
-        | inl h => exact h
-        | inr h_ne => exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h_ne))
+        by_cases h_ne : (a % b) = 𝟘
+        · exact h_ne
+        · exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h_ne))
       rw [h_mod_zero, add_zero] at h_spec
       exact h_spec.symm
 

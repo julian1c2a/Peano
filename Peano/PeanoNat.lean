@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNat.lean
 
-import Peano.Prelim
+import Peano.Prelim.ExistsUnique
 
 
 namespace Peano

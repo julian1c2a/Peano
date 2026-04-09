@@ -249,8 +249,10 @@ namespace Peano
         rw [pow_zero] at h
         exact absurd h (succ_neq_zero 𝟘)
       | succ m' =>
-        exact ⟨Classical.byContradiction (fun hn => absurd h (pow_ne_zero hn (σ m'))),
-               succ_neq_zero m'⟩
+        refine ⟨?_, succ_neq_zero m'⟩
+        by_cases hn : n = 𝟘
+        · exact hn
+        · exact absurd h (pow_ne_zero hn (σ m'))
     · intro ⟨hn, hm⟩
       rw [hn]; exact zero_pow hm
 

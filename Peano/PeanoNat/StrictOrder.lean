@@ -8,7 +8,6 @@ License: MIT
 
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
-import Init.Prelude
 import Init.WF
 import Init.Data.Nat.Basic
 
@@ -28,9 +27,10 @@ namespace Peano
         | ℕ₀.zero , σ _        => True
         | σ n'    , σ m'       => Lt n' m'
 
-    theorem lt_then_lt_succ (n m : ℕ₀) :
+    theorem lt_then_lt_succ
+      (n m : ℕ₀) :
         Lt n m → Lt n (σ m)
-            := by
+          := by
                 intro h_n_lt_m
                 induction n generalizing m with
                 | zero =>
@@ -50,9 +50,10 @@ namespace Peano
                       unfold Lt at h_n_lt_m
                       exact ih_n' m' h_n_lt_m
 
-    theorem lt_then_lt_succ_wp {n m : ℕ₀} (h_lt : Lt n m):
+    theorem lt_then_lt_succ_wp {n m : ℕ₀}
+      (h_lt : Lt n m):
         Lt n (σ m)
-        := by
+          := by
         exact lt_then_lt_succ n m h_lt
 
 
@@ -74,9 +75,10 @@ namespace Peano
         | σ _     , ℕ₀.zero    => true
         | σ n'    , σ m'       => bgt n' m'
 
-    theorem lt_iff_lt_σ_σ (n m : ℕ₀) :
+    theorem lt_iff_lt_σ_σ
+      (n m : ℕ₀) :
         Lt n m ↔ Lt (σ n) (σ m)
-            := by
+          := by
                 induction n generalizing m with
                 | zero => -- n = 𝟘
                   cases m with
@@ -95,11 +97,11 @@ namespace Peano
                     simp [Lt]
 
     theorem lt_iff_lt_τ_τ
-        (n m : ℕ₀)
-        (h_n_neq_0 : n ≠ 𝟘)
-        (h_m_neq_0 : m ≠ 𝟘):
+      (n m : ℕ₀)
+      (h_n_neq_0 : n ≠ 𝟘)
+      (h_m_neq_0 : m ≠ 𝟘):
         Lt n m ↔ Lt (τ n) (τ m)
-            := by
+          := by
         induction m generalizing n with
         | zero =>
             exact False.elim (h_m_neq_0 rfl)
@@ -110,9 +112,10 @@ namespace Peano
             | succ n' =>
                 rfl
 
-    theorem nlt_self(n : ℕ₀) :
+    theorem nlt_self
+      (n : ℕ₀) :
         ¬(Lt n n)
-      := by
+          := by
           induction n with
           | zero =>
               unfold Lt
@@ -126,9 +129,10 @@ namespace Peano
           := by
             exact nlt_self 𝟘
 
-    theorem nlt_n_0(n : ℕ₀) :
+    theorem nlt_n_0
+      (n : ℕ₀) :
         ¬(Lt n 𝟘)
-            := by
+          := by
         induction n with
         | zero =>
             unfold Lt
@@ -137,9 +141,10 @@ namespace Peano
             unfold Lt
             trivial
 
-    theorem nlt_n_0_false(n : ℕ₀) :
+    theorem nlt_n_0_false
+      (n : ℕ₀) :
         Lt n 𝟘 → False
-            := by
+          := by
             induction n with
             | zero =>
                 unfold Lt
@@ -148,7 +153,8 @@ namespace Peano
                 unfold Lt
                 trivial
 
-    theorem pos_of_ne_zero(n : ℕ₀):
+    theorem pos_of_ne_zero
+      (n : ℕ₀):
         n ≠ 𝟘 → Lt 𝟘 n
           := by
             intro h_neq
@@ -160,9 +166,10 @@ namespace Peano
                 unfold Lt
                 trivial
 
-    theorem ne_of_lt(n m : ℕ₀) :
+    theorem ne_of_lt
+      (n m : ℕ₀) :
         Lt n m → n ≠ m
-            := by
+          := by
                 intro h
                 induction n with
                 | zero =>
@@ -174,9 +181,10 @@ namespace Peano
                     rw [Eq.symm heq] at h
                     exact ((nlt_self (σ n')) h)
 
-    theorem neq_then_lt_or_gt(n m : ℕ₀) :
+    theorem neq_then_lt_or_gt
+      (n m : ℕ₀) :
         n ≠ m → (Lt n m ∨ Lt m n)
-            := by
+          := by
                 intro h_neq -- h_neq : n ≠ m
                 induction n generalizing m with
                 | zero =>
@@ -202,9 +210,10 @@ namespace Peano
                         dsimp only [Lt]
                         exact spec_ih
 
-    theorem lt_nor_gt_then_eq(n m : ℕ₀) :
+    theorem lt_nor_gt_then_eq
+      (n m : ℕ₀) :
         ¬(Lt n m) ∧ ¬(Lt m n) → n = m
-            := by
+          := by
                 intro h_conj
                 cases h_conj with
                 | intro h_not_lt_nm h_not_lt_mn =>
@@ -238,9 +247,10 @@ namespace Peano
                                 . exact h_not_lt_m_prime_n_prime
                             rw [h_eq_prime]
 
-    theorem lt_succ_self ( n : ℕ₀ ) :
+    theorem lt_succ_self
+      (n : ℕ₀) :
         Lt n (σ n)
-            := by
+          := by
                 induction n with
                 | zero =>
                     unfold Lt
@@ -249,9 +259,10 @@ namespace Peano
                     unfold Lt
                     trivial
 
-    theorem lt_succ (n m : ℕ₀) :
-      Lt n m → Lt n (σ m)
-        := by
+    theorem lt_succ
+      (n m : ℕ₀) :
+        Lt n m → Lt n (σ m)
+          := by
         intro h_n_lt_m
         induction n generalizing m with
         | zero =>
@@ -274,9 +285,10 @@ namespace Peano
             simp [Lt] at *
             exact ih_n' m' h_n_lt_m
 
-    theorem lt_succ_then_lt (n m : ℕ₀) :
-      Lt (σ n) m → Lt n m
-        := by
+    theorem lt_succ_then_lt
+      (n m : ℕ₀) :
+        Lt (σ n) m → Lt n m
+          := by
       intro h_lt_σn_m
       induction n generalizing m with
       | zero =>
@@ -297,14 +309,16 @@ namespace Peano
             unfold Lt at h_lt_σn_m
             exact ih_n' m' h_lt_σn_m
 
-    theorem lt_succ_then_lt_wp {n m : ℕ₀} (h_lt_σn_m : Lt (σ n) m) :
-      Lt n m
-        := by
+    theorem lt_succ_then_lt_wp {n m : ℕ₀}
+      (h_lt_σn_m : Lt (σ n) m) :
+        Lt n m
+          := by
       exact lt_succ_then_lt n m h_lt_σn_m
 
-    theorem succ_lt_succ_iff (n m : ℕ₀) :
-      Lt (σ n) (σ m) ↔ Lt n m
-      := by
+    theorem succ_lt_succ_iff
+      (n m : ℕ₀) :
+        Lt (σ n) (σ m) ↔ Lt n m
+          := by
       constructor
       · intro h_lt_nm
         induction n generalizing m with
@@ -343,9 +357,10 @@ namespace Peano
             unfold Lt at h_lt_n_m
             exact ih_n' m' h_lt_n_m
 
-  theorem lt_of_succ_lt_succ (n m : ℕ₀):
+  theorem lt_of_succ_lt_succ
+    (n m : ℕ₀):
       Lt (σ n) (σ m) ↔ Lt n m
-      := by
+        := by
     constructor
     · -- Dirección →: Lt (σ n) (σ m) → Lt n m
       intro h_lt_σn_σm
@@ -356,9 +371,10 @@ namespace Peano
       unfold Lt
       exact h_lt_nm
 
-    theorem lt_zero (n : ℕ₀) :
+    theorem lt_zero
+      (n : ℕ₀) :
         Lt n 𝟘 → False
-            := by
+          := by
                 intro h_lt_n_0
                 induction n with
                 | zero =>
@@ -368,15 +384,17 @@ namespace Peano
                     unfold Lt at h_lt_n_0
                     exact False.elim h_lt_n_0
 
-  theorem lt_zero_succ (m: ℕ₀):
+  theorem lt_zero_succ
+    (m: ℕ₀):
       Lt 𝟘 (σ m)
         := by
           unfold Lt;
           exact True.intro
 
-  theorem zero_is_the_minor (n: ℕ₀):
+  theorem zero_is_the_minor
+    (n: ℕ₀) :
       Lt n 𝟘 → False
-          := by
+        := by
     intro h_n_lt_zero
     cases n with
     | zero =>
@@ -386,9 +404,10 @@ namespace Peano
       unfold Lt at h_n_lt_zero;
       exact h_n_lt_zero
 
-    theorem trichotomy (n m : ℕ₀) :
+    theorem trichotomy
+      (n m : ℕ₀) :
         (Lt n m) ∨ (n = m) ∨ (Lt m n)
-            := by
+          := by
                 by_cases h_eq : n = m
                 · -- Caso n = m
                   rw [h_eq]
@@ -406,9 +425,10 @@ namespace Peano
                     apply Or.inr
                     exact h_lt_mn
 
-    theorem lt_asymm(n m : ℕ₀) :
+    theorem lt_asymm
+      (n m : ℕ₀) :
         Lt n m → ¬(Lt m n)
-            := by
+          := by
                 intro h_lt_nm
                 induction n generalizing m with
                 | zero =>
@@ -428,9 +448,10 @@ namespace Peano
                         unfold Lt at h_lt_nm
                         exact ih_n' m' h_lt_nm
 
-    theorem lt_asymm_wp {n m : ℕ₀} (h_lt_nm : Lt n m) :
+    theorem lt_asymm_wp {n m : ℕ₀}
+      (h_lt_nm : Lt n m) :
         ¬(Lt m n)
-            := by
+          := by
         induction n generalizing m with
         | zero =>
             cases m with
@@ -449,11 +470,12 @@ namespace Peano
                 unfold Lt at h_lt_nm
                 exact ih_n' h_lt_nm
 
-    theorem strong_trichotomy (n m : ℕ₀) :
+    theorem strong_trichotomy
+      (n m : ℕ₀) :
           ((Lt n m)∧¬(Lt m n)∧(n ≠ m))
         ∨ ((Lt m n)∧¬(Lt n m)∧(n ≠ m))
         ∨ ((n = m)∧¬(Lt n m)∧¬(Lt m n))
-            := by
+          := by
                 by_cases h_eq : n = m
                 · -- Caso n = m
                   rw [h_eq]
@@ -483,9 +505,10 @@ namespace Peano
                         h_eq
                     ⟩
 
-    theorem lt_irrefl(n : ℕ₀) :
+    theorem lt_irrefl
+      (n : ℕ₀) :
         ¬(Lt n n)
-            := by
+          := by
                 induction n with
                 | zero =>
                     unfold Lt
@@ -494,9 +517,10 @@ namespace Peano
                     unfold Lt
                     exact ih_n'
 
-    theorem lt_trans(n m k : ℕ₀) :
+    theorem lt_trans
+      (n m k : ℕ₀) :
         Lt n m → Lt m k → Lt n k
-            := by
+          := by
                 intro h_lt_nm h_lt_mk
                 induction n generalizing m k with
                 | zero => -- n = zero
@@ -528,9 +552,10 @@ namespace Peano
                             . exact h_lt_nm
                             . exact h_lt_mk
 
-    theorem lt_trans_wp {n m k : ℕ₀} (h_lt_nm : Lt n m) (h_lt_mk : Lt m k) :
-          Lt n k
-              := by
+    theorem lt_trans_wp {n m k : ℕ₀}
+      (h_lt_nm : Lt n m) (h_lt_mk : Lt m k) :
+        Lt n k
+          := by
         induction n generalizing m k with
         | zero =>
           cases m with
@@ -561,9 +586,10 @@ namespace Peano
               . exact h_lt_nm
               . exact h_lt_mk
 
-    theorem lt_equiv_exists_σ (n m : ℕ₀) :
+    theorem lt_equiv_exists_σ
+      (n m : ℕ₀) :
         Lt n m ↔ (m = σ n) ∨ (∃ k : ℕ₀, Lt n k ∧ Lt k m)
-        := by
+          := by
             induction n generalizing m with
             | zero =>
                 cases m with
@@ -628,9 +654,10 @@ namespace Peano
                         assumption
                     · exact h_ex_equiv
 
-    theorem lt_self_σ_self(n : ℕ₀) :
+    theorem lt_self_σ_self
+      (n : ℕ₀) :
         Lt n (σ n)
-            := by
+          := by
         induction n with
         | zero =>
           simp [Lt]
@@ -638,15 +665,16 @@ namespace Peano
           simp [Lt]
           exact ih_n'
 
-    theorem exists_greater_nat (n : ℕ₀) :
-      ∃ (m : ℕ₀), Lt n m
-        := by
+    theorem exists_greater_nat
+      (n : ℕ₀) :
+        ∃ (m : ℕ₀), Lt n m
+          := by
           apply Exists.intro (σ n)
           exact lt_self_σ_self n
 
     theorem nexists_greater_forall :
-      ¬∃ (m : ℕ₀), ∀ (n : ℕ₀),  Lt n m
-        := by
+        ¬∃ (m : ℕ₀), ∀ (n : ℕ₀),  Lt n m
+          := by
           intro h_exists -- Supongamos ∃ m, ∀ n, Lt n m
           rcases h_exists with ⟨m, h_forall_n_lt_m⟩
           -- Obtenemos m y la propiedad ∀ n, Lt n m
@@ -663,9 +691,10 @@ namespace Peano
           -- Tenemos Lt k m y ¬(Lt k m), lo cual es una contradicción.
           exact h_not_lt_k_m h_lt_k_m
 
-    theorem lt_succ_iff_lt_or_eq(n m : ℕ₀) :
-      Lt n (σ m) ↔ Lt n m ∨ n = m
-        := by
+    theorem lt_succ_iff_lt_or_eq
+      (n m : ℕ₀) :
+        Lt n (σ m) ↔ Lt n m ∨ n = m
+          := by
           constructor
           · -- Prueba de: Lt n (σ m) → Lt n m ∨ n = m
             intro h_lt_n_sm -- h_lt_n_sm: Lt n (σ m)
@@ -716,9 +745,10 @@ namespace Peano
                 rw [h_eq]
                 exact lt_succ_self m
 
-    theorem blt_iff_Lt (n m : ℕ₀) :
+    theorem blt_iff_Lt
+      (n m : ℕ₀) :
         blt n m = true ↔ Lt n m
-        := by
+          := by
           induction n generalizing m with
           | zero =>
             cases m with
@@ -734,16 +764,18 @@ namespace Peano
               simp [blt, Lt]
               exact ih_n' m'
 
-    theorem blt_then_Lt_wp {n m : ℕ₀} (h : blt n m = true) :
+    theorem blt_then_Lt_wp {n m : ℕ₀}
+      (h : blt n m = true) :
         Lt n m
-        := by
+          := by
           have h_iff := blt_iff_Lt n m
           rw [h_iff] at h
           exact h
 
-    theorem bgt_iff_Gt (n m : ℕ₀) :
+    theorem bgt_iff_Gt
+      (n m : ℕ₀) :
         bgt n m = true ↔ Gt n m
-        := by
+          := by
           induction n generalizing m with
           | zero =>
             cases m with
@@ -760,9 +792,10 @@ namespace Peano
               exact ih_n' m'
 
 
-    theorem nblt_iff_nLt (n m : ℕ₀) :
+    theorem nblt_iff_nLt
+      (n m : ℕ₀) :
         blt n m = false ↔ ¬ (Lt n m)
-        := by
+          := by
           induction n generalizing m with
           | zero =>
             cases m with
@@ -778,9 +811,10 @@ namespace Peano
               simp [blt, Lt]
               exact ih_n' m'
 
-    theorem nbgt_iff_nGt (n m : ℕ₀) :
+    theorem nbgt_iff_nGt
+      (n m : ℕ₀) :
         bgt n m = false ↔ ¬ (Gt n m)
-        := by
+          := by
           induction n generalizing m with
           | zero =>
             cases m with
@@ -798,9 +832,10 @@ namespace Peano
 
     /--! def Λ(n : Nat) : ℕ₀  de_Nat_a_Pea
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
-    theorem isomorph_Λ_lt (n m : Nat) :
+    theorem isomorph_Λ_lt
+      (n m : Nat) :
         (n < m) ↔ (Lt (Λ n) (Λ m))
-        := by
+          := by
         constructor
         · intro h_lt_nm
           induction n generalizing m with
@@ -845,9 +880,10 @@ namespace Peano
 
     /--! def Λ(n : Nat) : ℕ₀  de_Nat_a_Pea
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
-    theorem isomorph_Ψ_lt (n m : ℕ₀) :
+    theorem isomorph_Ψ_lt
+      (n m : ℕ₀) :
         (Lt n m) ↔ (Ψ n < Ψ m)
-        := by
+          := by
                 constructor
                 · intro h_lt_nm -- h_lt_nm : Lt n m
                   induction n generalizing m with
@@ -920,9 +956,10 @@ namespace Peano
                 := (bgt_iff_Gt n m).mpr h_gt_nm
             h_bgt_is_true proof_bgt_should_be_true)
 
-    theorem zero_lt_succ (n : ℕ₀) :
-      Lt 𝟘 (σ n)
-        := by
+    theorem zero_lt_succ
+      (n : ℕ₀) :
+        Lt 𝟘 (σ n)
+          := by
           induction n with
           | zero =>
             calc
@@ -933,9 +970,10 @@ namespace Peano
               Lt 𝟘 (σ (σ n')) := lt_succ_self 𝟘
               _ = σ (σ n') := rfl
 
-    theorem neq_01_then_gt_1 (n : ℕ₀):
-      (n ≠ 𝟘) ∧ (n ≠ 𝟙) → Lt 𝟙 n
-        := by
+    theorem neq_01_then_gt_1
+      (n : ℕ₀) :
+        (n ≠ 𝟘) ∧ (n ≠ 𝟙) → Lt 𝟙 n
+          := by
       intro h_all_neq
       have h_n_neq_zero := h_all_neq.left
       have h_n_neq_one := h_all_neq.right
@@ -961,9 +999,10 @@ namespace Peano
         | inr h_one_lt_n =>
           exact h_one_lt_n
 
-    theorem lt_0_succ (n : ℕ₀) :
-      Lt 𝟘 (σ n)
-        := by
+    theorem lt_0_succ
+      (n : ℕ₀) :
+        Lt 𝟘 (σ n)
+          := by
       induction n with
       | zero =>
         unfold Lt
@@ -972,9 +1011,10 @@ namespace Peano
         unfold Lt
         trivial
 
-    theorem lt_1_succ_succ (n : ℕ₀):
-      Lt 𝟙 (σ(σ n))
-        := by
+    theorem lt_1_succ_succ
+      (n : ℕ₀):
+        Lt 𝟙 (σ(σ n))
+          := by
       induction n with
       | zero =>
         unfold Lt
@@ -983,9 +1023,10 @@ namespace Peano
         unfold Lt
         trivial
 
-    theorem nlt_then_ltc_or_eq (n m : ℕ₀) :
+    theorem nlt_then_ltc_or_eq
+      (n m : ℕ₀) :
         ¬(Lt n m) → (Lt m n ∨ n = m)
-            := by
+          := by
       intro h_not_lt_nm
       induction n generalizing m with
       | zero =>
@@ -1022,9 +1063,10 @@ namespace Peano
                   apply Or.inr
                   rw [h_eq_n'_m']
 
-    theorem lt_or_eq_then_nltc (n m : ℕ₀) :
-          (Lt m n ∨ n = m) → ¬(Lt n m)
-              := by
+    theorem lt_or_eq_then_nltc
+      (n m : ℕ₀) :
+        (Lt m n ∨ n = m) → ¬(Lt n m)
+          := by
           intro h
           cases h with
           | inl h_lt_m_n =>
@@ -1034,16 +1076,17 @@ namespace Peano
               rw [h_eq_n_m]
               exact nlt_self m
 
-    theorem lt_or_eq_iff_nltc (n m : ℕ₀) :
-          (Lt m n ∨ n = m) ↔ ¬(Lt n m)
-              := by
+    theorem lt_or_eq_iff_nltc
+      (n m : ℕ₀) :
+        (Lt m n ∨ n = m) ↔ ¬(Lt n m)
+          := by
                   constructor
                   · exact lt_or_eq_then_nltc n m
                   · exact nlt_then_ltc_or_eq n m
 
     theorem succ_lt_succ_iff_forall :
-          ∀ (n m: ℕ₀), Lt (σ n) (σ m) ↔ Lt n m
-              := by
+        ∀ (n m: ℕ₀), Lt (σ n) (σ m) ↔ Lt n m
+          := by
                   intro n m
                   constructor
                   · intro h_lt_sn_sm
@@ -1054,8 +1097,8 @@ namespace Peano
                     exact h_lt_nm
 
     theorem lt_then_lt_succ_forall :
-          ∀ (n m: ℕ₀), Lt (σ n) (σ m) → Lt n m
-              := by
+        ∀ (n m: ℕ₀), Lt (σ n) (σ m) → Lt n m
+          := by
                   intro n m h_lt_sn_sm
                   induction n generalizing m with
                   | zero =>
@@ -1076,8 +1119,8 @@ namespace Peano
                           exact ih_n' m' h_lt_sn_sm
 
     theorem lt_succ_then_lt_forall :
-          ∀ (n m: ℕ₀), Lt n m → Lt (σ n) (σ m)
-              := by
+        ∀ (n m: ℕ₀), Lt n m → Lt (σ n) (σ m)
+          := by
                   intro n m h_lt_nm
                   induction n generalizing m with
                   | zero =>
@@ -1097,9 +1140,10 @@ namespace Peano
                           unfold Lt at h_lt_nm
                           exact ih_n' m' h_lt_nm
 
-    theorem lt_then_lt_succs (n m : ℕ₀) :
+    theorem lt_then_lt_succs
+      (n m : ℕ₀) :
         Lt n m → Lt (σ n) (σ m)
-            := by
+          := by
                 intro h_lt_n_sm
                 induction n generalizing m with
                 | zero =>
@@ -1119,9 +1163,10 @@ namespace Peano
                         unfold Lt at h_lt_n_sm
                         exact ih_n' m' h_lt_n_sm
 
-    theorem succ_lt_succ_then (n m : ℕ₀) :
+    theorem succ_lt_succ_then
+      (n m : ℕ₀) :
         Lt (σ n) (σ m) → Lt n m
-            := by
+          := by
                 intro h_lt_sn_sm
                 induction n generalizing m with
                 | zero =>
@@ -1141,20 +1186,23 @@ namespace Peano
                         unfold Lt at h_lt_sn_sm
                         exact ih_n' m' h_lt_sn_sm
 
-    theorem lt_n_sm_then_lt_n_m_or_eq (n m : ℕ₀) :
-      Lt n (σ m) → Lt n m ∨ n = m
-        := by
+    theorem lt_n_sm_then_lt_n_m_or_eq
+      (n m : ℕ₀) :
+        Lt n (σ m) → Lt n m ∨ n = m
+          := by
           intro h_lt_n_sm
           exact (lt_succ_iff_lt_or_eq n m).mp h_lt_n_sm
 
-    theorem lt_n_sm_then_lt_n_m_or_eq_wp {n m : ℕ₀} (h_lt : Lt n (σ m)):
-      Lt n m ∨ n = m
-        := by
+    theorem lt_n_sm_then_lt_n_m_or_eq_wp {n m : ℕ₀}
+      (h_lt : Lt n (σ m)):
+        Lt n m ∨ n = m
+          := by
           exact lt_n_sm_then_lt_n_m_or_eq n m h_lt
 
-    theorem lt_sn_m_then_lt_n_m (n m : ℕ₀) :
-      Lt (σ n) m → Lt n m
-        := by
+    theorem lt_sn_m_then_lt_n_m
+      (n m : ℕ₀) :
+        Lt (σ n) m → Lt n m
+          := by
           intro h_lt_sn_m
           induction n generalizing m with
           | zero =>
@@ -1175,39 +1223,44 @@ namespace Peano
                   exact ih_n' m' h_lt_sn_m
 
     theorem lt_0_1 :
-      Lt 𝟘 𝟙
-        := by
+        Lt 𝟘 𝟙
+          := by
           unfold Lt
           trivial
 
-    theorem lt_1_b_then_b_neq_1 {b : ℕ₀} (h_lt_1_b : 𝟙 < b) :
-      b ≠ 𝟙
-        := by
+    theorem lt_1_b_then_b_neq_1 {b : ℕ₀}
+      (h_lt_1_b : 𝟙 < b) :
+        b ≠ 𝟙
+          := by
           exact Ne.symm (ne_of_lt 𝟙 b h_lt_1_b)
 
-    theorem lt_sn_m_then_lt_n_m_wp {n m : ℕ₀} (h_lt : Lt (σ n) m):
-      Lt n m
-        := by
+    theorem lt_sn_m_then_lt_n_m_wp {n m : ℕ₀}
+      (h_lt : Lt (σ n) m):
+        Lt n m
+          := by
           exact lt_sn_m_then_lt_n_m n m h_lt
 
-    theorem lt_1_b_then_b_neq_0 {b : ℕ₀} (h_lt_1_b : 𝟙 < b) :
-          b ≠ 𝟘
+    theorem lt_1_b_then_b_neq_0 {b : ℕ₀}
+      (h_lt_1_b : 𝟙 < b) :
+        b ≠ 𝟘
           := by
               have h_lt_0_b : Lt 𝟘 b := by exact lt_trans_wp lt_0_1 h_lt_1_b
               exact Ne.symm (ne_of_lt 𝟘 b h_lt_0_b)
 
-    theorem lt_b_1_then_b_eq_0 {b : ℕ₀} (h_lt_b_1 : b < 𝟙) :
-          b = 𝟘
-              := by
+    theorem lt_b_1_then_b_eq_0 {b : ℕ₀}
+      (h_lt_b_1 : b < 𝟙) :
+        b = 𝟘
+          := by
                   cases b with
                   | zero =>
                       rfl
                   | succ b' =>
                       exact False.elim (lt_zero b' h_lt_b_1)
 
-    theorem neq_0_then_lt_0 {n : ℕ₀} (h_neq : n ≠ 𝟘) :
-          Lt 𝟘 n
-              := by
+    theorem neq_0_then_lt_0 {n : ℕ₀}
+      (h_neq : n ≠ 𝟘) :
+        Lt 𝟘 n
+          := by
                   cases n with
                   | zero =>
                       exact False.elim (h_neq rfl)
@@ -1215,9 +1268,10 @@ namespace Peano
                       unfold Lt
                       trivial
 
-    theorem lt_0_then_neq_0 {n : ℕ₀} (h_lt : Lt 𝟘 n) :
-          n ≠ 𝟘
-              := by
+    theorem lt_0_then_neq_0 {n : ℕ₀}
+      (h_lt : Lt 𝟘 n) :
+        n ≠ 𝟘
+          := by
                   cases n with
                   | zero =>
                       exact False.elim h_lt
@@ -1225,9 +1279,10 @@ namespace Peano
                       intro h_eq
                       cases h_eq
 
-    theorem lt_then_lt_σ_σ_wp {n m : ℕ₀} (h_lt_nm : Lt n m) :
-          Lt (σ n) (σ m)
-              := by
+    theorem lt_then_lt_σ_σ_wp {n m : ℕ₀}
+      (h_lt_nm : Lt n m) :
+        Lt (σ n) (σ m)
+          := by
                   induction n generalizing m with
                   | zero =>
                       cases m with
@@ -1246,9 +1301,10 @@ namespace Peano
                           unfold Lt at h_lt_nm
                           exact ih_n' h_lt_nm
 
-    theorem lt_σ_σ_then_lt_wp {n m : ℕ₀} (h_lt_nm : Lt (σ n) (σ m)) :
-          Lt n m
-              := by
+    theorem lt_σ_σ_then_lt_wp {n m : ℕ₀}
+      (h_lt_nm : Lt (σ n) (σ m)) :
+        Lt n m
+          := by
                   induction n generalizing m with
                   | zero =>
                       cases m with
@@ -1342,3 +1398,4 @@ export Peano.StrictOrder (
     lt_succ_then_lt
     lt_succ_then_lt_wp
 )
+

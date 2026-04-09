@@ -15,6 +15,7 @@ License: MIT
 -- § 5. Divisor primo: todo n ≥ 2 tiene uno
 -- § 6. Existencia de factorización prima (TFA — Existencia)
 -- § 7. Unicidad de la factorización prima  (TFA — Unicidad)
+-- § 8. Factorización computable (factorize : ℕ₂ → FactFSet)
 
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Lists
@@ -35,7 +36,7 @@ namespace Peano
       open Peano.Arith
       open Peano.Lists
       open Peano.Product
-      open Classical
+      open Peano.FSet
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 0. gcd_dvd_left / gcd_dvd_right / gcd_comm' (privados en PeanoNatArith)
@@ -157,9 +158,26 @@ namespace Peano
       · exact h1
       · exact absurd (hp_eq ▸ gcd_dvd_right p a) hna
 
-    theorem prime_coprime_or_dvd {p n : ℕ₀} (hp : Prime p) : p ∣ n ∨ Coprime p n :=
-      (em (p ∣ n)).imp id
-        (fun h => (gcd_eq_one_iff_coprime p n).mp (prime_not_dvd_imp_coprime hp h))
+    theorem prime_coprime_or_dvd {p n : ℕ₀} (hp : Prime p) : p ∣ n ∨ Coprime p n := by
+      have hp0 := prime_ne_zero hp
+      by_cases h : (n % p) = 𝟘
+      · -- n % p = 0 → p ∣ n
+        left
+        have h_spec : n = add (mul (n / p) p) (n % p) := divMod_spec n p hp0
+        rw [h, add_zero] at h_spec
+        exact ⟨n / p, h_spec.trans (mul_comm _ _)⟩
+      · -- n % p ≠ 0 → ¬(p ∣ n) → coprime
+        right
+        have hndvd : ¬ p ∣ n := by
+          intro ⟨k, hk⟩
+          have h_spec : n = add (mul (n / p) p) (n % p) := divMod_spec n p hp0
+          have h_dvd_mod : p ∣ (n % p) := divides_mod ⟨k, hk⟩ (divides_refl p)
+          have h_mod_lt : Lt (n % p) p := mod_lt n p hp0
+          exact h (by
+            by_cases h_ne : (n % p) = 𝟘
+            · exact h_ne
+            · exact absurd h_mod_lt (le_not_lt (divides_le h_dvd_mod h_ne)))
+        exact (gcd_eq_one_iff_coprime p n).mp (prime_not_dvd_imp_coprime hp hndvd)
 
     /-- **Lema de Gauss**: mcd(a,b) = 1 ∧ a ∣ b·c → a ∣ c.
         La demostración usa bezout_natform y sub_k_add_k/subₕₖ_eq_iff_eq_add_of_le.
@@ -171,49 +189,49 @@ namespace Peano
       obtain ⟨n, m, h_bez⟩ := bezout_natform a b
       rw [hcop] at h_bez
       -- Tratar c = 0 de forma especial
-      rcases em (c = 𝟘) with hc0 | hc_ne
-      · rw [hc0]; exact divides_zero a
-      rcases h_bez with h | h
-      · -- Caso 1: 𝟙 = sub (mul n a) (mul m b)
-        have h_lt : Lt (mul m b) (mul n a) :=
-          (sub_pos_iff_lt (mul n a) (mul m b)).mp (h ▸ Or.inr rfl)
-        have h1 : a ∣ mul (mul n a) c := by
-          rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
-        have h2 : a ∣ mul (mul m b) c := by
-          rw [mul_assoc]; exact divides_mul_left hdvd
-        -- n·a = m·b + 1  →  (n·a)·c = (m·b)·c + c
-        have h_na_c : mul (mul n a) c = add (mul (mul m b) c) c := by
-          have h_sk := sub_k_add_k (mul n a) (mul m b) (lt_imp_le_wp h_lt)
-          rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m b) = mul n a
-          rw [h_sk.symm, add_mul, one_mul]
-          exact add_comm c (mul (mul m b) c)
-        have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by
-          rw [h_na_c]
-          exact add_k_sub_k c (mul (mul m b) c)
-        have h_lt2 : Lt (mul (mul m b) c) (mul (mul n a) c) := by
-          rw [h_na_c]; exact lt_self_add_r (mul (mul m b) c) c hc_ne
-        rw [← h_sub_c]
-        exact divides_sub h_lt2 h1 h2
-      · -- Caso 2: 𝟙 = sub (mul n b) (mul m a)  (simétrico)
-        have h_lt : Lt (mul m a) (mul n b) :=
-          (sub_pos_iff_lt (mul n b) (mul m a)).mp (h ▸ Or.inr rfl)
-        have h1 : a ∣ mul (mul n b) c := by
-          rw [mul_assoc]; exact divides_mul_left hdvd
-        have h2 : a ∣ mul (mul m a) c := by
-          rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
-        -- n·b = m·a + 1  →  (n·b)·c = (m·a)·c + c
-        have h_nb_c : mul (mul n b) c = add (mul (mul m a) c) c := by
-          have h_sk := sub_k_add_k (mul n b) (mul m a) (lt_imp_le_wp h_lt)
-          rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m a) = mul n b
-          rw [h_sk.symm, add_mul, one_mul]
-          exact add_comm c (mul (mul m a) c)
-        have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by
-          rw [h_nb_c]
-          exact add_k_sub_k c (mul (mul m a) c)
-        have h_lt2 : Lt (mul (mul m a) c) (mul (mul n b) c) := by
-          rw [h_nb_c]; exact lt_self_add_r (mul (mul m a) c) c hc_ne
-        rw [← h_sub_c]
-        exact divides_sub h_lt2 h1 h2
+      by_cases hc_ne : c = 𝟘
+      · rw [hc_ne]; exact divides_zero a
+      · rcases h_bez with h | h
+        · -- Caso 1: 𝟙 = sub (mul n a) (mul m b)
+          have h_lt : Lt (mul m b) (mul n a) :=
+            (sub_pos_iff_lt (mul n a) (mul m b)).mp (h ▸ Or.inr rfl)
+          have h1 : a ∣ mul (mul n a) c := by
+            rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
+          have h2 : a ∣ mul (mul m b) c := by
+            rw [mul_assoc]; exact divides_mul_left hdvd
+          -- n·a = m·b + 1  →  (n·a)·c = (m·b)·c + c
+          have h_na_c : mul (mul n a) c = add (mul (mul m b) c) c := by
+            have h_sk := sub_k_add_k (mul n a) (mul m b) (lt_imp_le_wp h_lt)
+            rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m b) = mul n a
+            rw [h_sk.symm, add_mul, one_mul]
+            exact add_comm c (mul (mul m b) c)
+          have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by
+            rw [h_na_c]
+            exact add_k_sub_k c (mul (mul m b) c)
+          have h_lt2 : Lt (mul (mul m b) c) (mul (mul n a) c) := by
+            rw [h_na_c]; exact lt_self_add_r (mul (mul m b) c) c hc_ne
+          rw [← h_sub_c]
+          exact divides_sub h_lt2 h1 h2
+        · -- Caso 2: 𝟙 = sub (mul n b) (mul m a)  (simétrico)
+          have h_lt : Lt (mul m a) (mul n b) :=
+            (sub_pos_iff_lt (mul n b) (mul m a)).mp (h ▸ Or.inr rfl)
+          have h1 : a ∣ mul (mul n b) c := by
+            rw [mul_assoc]; exact divides_mul_left hdvd
+          have h2 : a ∣ mul (mul m a) c := by
+            rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
+          -- n·b = m·a + 1  →  (n·b)·c = (m·a)·c + c
+          have h_nb_c : mul (mul n b) c = add (mul (mul m a) c) c := by
+            have h_sk := sub_k_add_k (mul n b) (mul m a) (lt_imp_le_wp h_lt)
+            rw [← h] at h_sk   -- h_sk : add 𝟙 (mul m a) = mul n b
+            rw [h_sk.symm, add_mul, one_mul]
+            exact add_comm c (mul (mul m a) c)
+          have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by
+            rw [h_nb_c]
+            exact add_k_sub_k c (mul (mul m a) c)
+          have h_lt2 : Lt (mul (mul m a) c) (mul (mul n b) c) := by
+            rw [h_nb_c]; exact lt_self_add_r (mul (mul m a) c) c hc_ne
+          rw [← h_sub_c]
+          exact divides_sub h_lt2 h1 h2
 
     -- ──────────────────────────────────────────────────────────────────
     -- Irreducible → Prime y equivalencias (dependen de coprime_dvd_of_dvd_mul)
@@ -311,16 +329,245 @@ namespace Peano
         · exact Or.inr (ih h_pqs)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 5. Todo n ≥ 2 tiene un divisor primo
+    -- § 5. Factorización computable
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Búsqueda del menor divisor de `n` partiendo del candidato `c`.
+        `fuel` controla la terminación (decrece en cada paso).
+        Computable: Sí. -/
+    def smallestDivisorAux (n c : ℕ₀) : ℕ₀ → ℕ₀
+      | 𝟘 => c
+      | σ f' =>
+        if dividesb c n then c
+        else smallestDivisorAux n (σ c) f'
+
+    /-- Menor divisor ≥ 2 de `n` (para `n ≥ 2`).
+        Computable: Sí. Dependencias: `dividesb`. -/
+    def smallestDivisor (n : ℕ₀) : ℕ₀ :=
+      smallestDivisorAux n 𝟚 n
+
+    -- ── 8.1. Lemas puente: dividesb ↔ divisibilidad ────────────────
+
+    private theorem dividesb_true_imp_dvd {d n : ℕ₀} (hd : d ≠ 𝟘) :
+        dividesb d n = true → d ∣ n := by
+      intro h
+      have hmod : (n % d) = 𝟘 := of_decide_eq_true h
+      have h_spec : n = add (mul (n / d) d) (n % d) := divMod_spec n d hd
+      rw [hmod, add_zero] at h_spec
+      exact ⟨n / d, h_spec.trans (mul_comm _ _)⟩
+
+    private theorem dvd_imp_dividesb_true {d n : ℕ₀} (hd : d ≠ 𝟘) :
+        d ∣ n → dividesb d n = true := by
+      intro hdvd
+      show decide ((n % d) = 𝟘) = true
+      apply decide_eq_true
+      have h_div_mod : d ∣ (n % d) := divides_mod hdvd (divides_refl d)
+      have h_mod_lt : Lt (n % d) d := mod_lt n d hd
+      by_cases h_ne : (n % d) = 𝟘
+      · exact h_ne
+      · exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h_ne))
+
+    private theorem dividesb_self {n : ℕ₀} (hn : n ≠ 𝟘) :
+        dividesb n n = true :=
+      dvd_imp_dividesb_true hn (divides_refl n)
+
+    -- ── 8.2. Especificación de smallestDivisorAux ──────────────────
+
+    /-- Lema maestro: `smallestDivisorAux n c fuel` devuelve el menor valor
+        `d ≥ c` que divide a `n` (y `d ≤ n`),
+        siempre que `c ≤ n` y `fuel` sea suficiente (`n ≤ c + fuel`).
+        El cuarto componente dice que todo candidato entre `c` y `d` no divide. -/
+    private theorem smallestDivisorAux_spec (n : ℕ₀) (hn : Le 𝟚 n) :
+        ∀ (c fuel : ℕ₀), Le 𝟚 c → Le c n → Le n (add c fuel) →
+        dividesb (smallestDivisorAux n c fuel) n = true ∧
+        Le c (smallestDivisorAux n c fuel) ∧
+        Le (smallestDivisorAux n c fuel) n ∧
+        (∀ e, Le c e → Lt e (smallestDivisorAux n c fuel) →
+          dividesb e n = false) := by
+      intro c fuel hc hcn hfuel
+      induction fuel generalizing c with
+      | zero =>
+        rw [add_zero] at hfuel
+        have heq := le_antisymm c n hcn hfuel
+        simp only [smallestDivisorAux]
+        rw [heq]
+        have hn0 : n ≠ 𝟘 := by
+          intro h0; rw [h0] at hn; exact lt_zero 𝟚 (Or.resolve_right hn (succ_neq_zero 𝟙))
+        exact ⟨dividesb_self hn0, le_refl n, le_refl n,
+               fun e he h_lt => absurd h_lt (le_not_lt he)⟩
+      | succ f' ih =>
+        simp only [smallestDivisorAux]
+        by_cases h_div : dividesb c n = true
+        · -- c divide a n → resultado = c
+          simp [h_div]
+          exact ⟨le_refl c, hcn, fun _ hce h_lt => absurd h_lt (le_not_lt hce)⟩
+        · -- c no divide a n → resultado = smallestDivisorAux n (σ c) f'
+          have h_div_false : dividesb c n = false := Bool.eq_false_iff.mpr h_div
+          simp [h_div_false]
+          have hc_ne_n : c ≠ n := by
+            intro heq; rw [heq] at h_div
+            have hn0 : n ≠ 𝟘 := by
+              intro h0; rw [h0] at hn
+              exact lt_zero 𝟚 (Or.resolve_right hn (succ_neq_zero 𝟙))
+            exact h_div (dividesb_self hn0)
+          have hsc_le_n : Le (σ c) n :=
+            lt_nm_then_le_nm_wp (lt_of_le_neq_wp hcn hc_ne_n)
+          have hsc2 : Le 𝟚 (σ c) :=
+            le_trans 𝟚 c (σ c) hc (Or.inl (lt_self_σ_self c))
+          have hfuel' : Le n (add (σ c) f') := by
+            rw [succ_add]; rw [add_succ] at hfuel; exact hfuel
+          obtain ⟨h1, h2, h3, h4⟩ := ih (σ c) hsc2 hsc_le_n hfuel'
+          refine ⟨h1, le_trans c (σ c) _ (Or.inl (lt_self_σ_self c)) h2, h3,
+                  fun e hce h_lt => ?_⟩
+          -- Si e = c, sabemos dividesb c n = false.
+          -- Si Le (σ c) e, usamos h4 (IH).
+          rcases hce with h_lt_ce | h_eq_ce
+          · exact h4 e (lt_nm_then_le_nm_wp h_lt_ce) h_lt
+          · rw [← h_eq_ce]; exact h_div_false
+
+    -- ── 8.3. Propiedades de smallestDivisor ────────────────────────
+
+    /-- `smallestDivisor n` divide a `n` (para `n ≥ 2`). -/
+    theorem smallestDivisor_dvd {n : ℕ₀} (hn : Le 𝟚 n) :
+        smallestDivisor n ∣ n := by
+      unfold smallestDivisor
+      have hfuel : Le n (add 𝟚 n) :=
+        le_trans n (add n 𝟚) (add 𝟚 n)
+          (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
+          (le_of_eq_wp (add_comm n 𝟚))
+      obtain ⟨h_div, h_ge, h_le, _⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
+      have h_d_ne_0 : smallestDivisorAux n 𝟚 n ≠ 𝟘 := by
+        intro h0; rw [h0] at h_ge
+        exact lt_zero 𝟚 (Or.resolve_right h_ge (succ_neq_zero 𝟙))
+      exact dividesb_true_imp_dvd h_d_ne_0 h_div
+
+    /-- `smallestDivisor n ≥ 2` (para `n ≥ 2`). -/
+    theorem smallestDivisor_ge_two {n : ℕ₀} (hn : Le 𝟚 n) :
+        Le 𝟚 (smallestDivisor n) := by
+      unfold smallestDivisor
+      have hfuel : Le n (add 𝟚 n) :=
+        le_trans n (add n 𝟚) (add 𝟚 n)
+          (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
+          (le_of_eq_wp (add_comm n 𝟚))
+      obtain ⟨_, h_ge, _, _⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
+      exact h_ge
+
+    /-- `smallestDivisor n ≤ n` (para `n ≥ 2`). -/
+    theorem smallestDivisor_le {n : ℕ₀} (hn : Le 𝟚 n) :
+        Le (smallestDivisor n) n := by
+      unfold smallestDivisor
+      have hfuel : Le n (add 𝟚 n) :=
+        le_trans n (add n 𝟚) (add 𝟚 n)
+          (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
+          (le_of_eq_wp (add_comm n 𝟚))
+      obtain ⟨_, _, h_le, _⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
+      exact h_le
+
+    /-- Si `smallestDivisor n = n` y `n ≥ 2`, entonces `n` es irreducible. -/
+    theorem smallestDivisor_eq_self_imp_irreducible {n : ℕ₀} (hn : Le 𝟚 n)
+        (h_sd : smallestDivisor n = n) : Irreducible n := by
+      have hn0 : n ≠ 𝟘 := by
+        rintro rfl; exact lt_zero 𝟚 (Or.resolve_right hn (succ_neq_zero 𝟙))
+      have hn1 : n ≠ 𝟙 := by
+        rintro rfl
+        rcases hn with h | h
+        · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
+        · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
+      -- Extraer la propiedad de minimalidad de smallestDivisor
+      have hfuel : Le n (add 𝟚 n) :=
+        le_trans n (add n 𝟚) (add 𝟚 n)
+          (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
+          (le_of_eq_wp (add_comm n 𝟚))
+      obtain ⟨_, _, _, h_min⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
+      -- h_min : ∀ e, Le 𝟚 e → Lt e (smallestDivisorAux n 𝟚 n) → dividesb e n = false
+      -- Reescribir usando h_sd:
+      have h_sd_raw : smallestDivisorAux n 𝟚 n = n := h_sd
+      rw [h_sd_raw] at h_min
+      -- h_min : ∀ e, Le 𝟚 e → Lt e n → dividesb e n = false
+      refine ⟨hn1, fun a b hab => ?_⟩
+      by_cases ha1 : a = 𝟙
+      · exact Or.inl ha1
+      · by_cases hb1 : b = 𝟙
+        · exact Or.inr hb1
+        · exfalso
+          have ha0 : a ≠ 𝟘 := by
+            intro h0; rw [h0, zero_mul] at hab; exact hn0 hab.symm
+          have hb0 : b ≠ 𝟘 := by
+            intro h0; rw [h0, mul_zero] at hab; exact hn0 hab.symm
+          have ha2 : Le 𝟚 a := by
+            rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 ha0) with h | h
+            · exact lt_then_le_succ_wp h
+            · exact absurd h.symm ha1
+          have hb2 : Le 𝟚 b := by
+            rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h | h
+            · exact lt_then_le_succ_wp h
+            · exact absurd h.symm hb1
+          have ha_lt : Lt a n := by
+            rw [← hab]
+            exact lt_of_lt_of_le
+              (by have := mul_lt_right a 𝟚 ha0 (lt_succ_self 𝟙)
+                  rwa [mul_comm 𝟚 a] at this)
+              (by have := mul_le_mono_right a hb2
+                  rwa [mul_comm 𝟚 a, mul_comm b a] at this)
+          have h_no_div : dividesb a n = false := h_min a ha2 ha_lt
+          have h_yes_div : dividesb a n = true :=
+            dvd_imp_dividesb_true ha0 ⟨b, hab.symm⟩
+          exact absurd h_yes_div (Bool.eq_false_iff.mp h_no_div)
+
+    /-- Construye la factorización prima de `n` acumulando en `acc`.
+        En cada paso extrae el menor divisor `p` con `smallestDivisor`,
+        lo añade vía `addFactor` y recurre con `n / p`.
+        `fuel` controla la terminación.
+        Computable: Sí. Dependencias: `smallestDivisor`, `FactFSet.addFactor`. -/
+    def factorizeAux : ℕ₀ → ℕ₀ → FactFSet → FactFSet
+      | _, 𝟘, acc => acc
+      | n, σ fuel', acc =>
+        let p := smallestDivisor n
+        if hp0 : p = 𝟘 then acc
+        else
+          let p₁ : ℕ₁ := ⟨p, hp0⟩
+          if hp1 : p₁.val = 𝟙 then acc
+          else
+            let p₂ : ℕ₂ := ⟨p₁, hp1⟩
+            let n' := n / p
+            if Le 𝟚 n' then
+              factorizeAux n' fuel' (acc.addFactor p₂)
+            else
+              acc.addFactor p₂
+
+    /-- Factorización prima computable de `n ∈ ℕ₂`.
+        Devuelve un `FactFSet` — lista de pares `(primo, exponente)`
+        ordenada por base, con exponentes ≥ 1.
+        Computable: Sí. Dependencias: `smallestDivisor`, `FactFSet.addFactor`. -/
+    def factorize (n : ℕ₂) : FactFSet :=
+      factorizeAux n.val.val n.val.val FactFSet.empty
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 6. Todo n ≥ 2 tiene un divisor primo
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Irreducible implica "prima para divisibilidad de productos"
         (usa coprime_dvd_of_dvd_mul para el caso gcd = 1). -/
     private theorem irreducible_prime_dvd_mul {p a b : ℕ₀}
         (hirr : Irreducible p) (hdvd : p ∣ mul a b) : p ∣ a ∨ p ∣ b := by
-      rcases em (p ∣ a) with h | h
-      · exact Or.inl h
-      · right
+      have hp0 : p ≠ 𝟘 := by
+        intro h0; rw [h0] at hirr
+        exact absurd ((hirr.2 𝟘 𝟘 (by rw [zero_mul])).elim id id).symm (succ_neq_zero 𝟘)
+      by_cases h_mod : (a % p) = 𝟘
+      · -- a % p = 0 → p ∣ a
+        left
+        have h_spec : a = add (mul (a / p) p) (a % p) := divMod_spec a p hp0
+        rw [h_mod, add_zero] at h_spec
+        exact ⟨a / p, h_spec.trans (mul_comm _ _)⟩
+      · -- a % p ≠ 0 → ¬(p ∣ a) → gcd(p,a) = 1 → Gauss → p ∣ b
+        right
+        have h : ¬ p ∣ a := by
+          intro ⟨k, hk⟩
+          have h_dvd_mod : p ∣ (a % p) := divides_mod ⟨k, hk⟩ (divides_refl p)
+          have h_mod_lt : Lt (a % p) p := mod_lt a p hp0
+          exact h_mod (by
+            by_cases h_ne : (a % p) = 𝟘
+            · exact h_ne
+            · exact absurd h_mod_lt (le_not_lt (divides_le h_dvd_mod h_ne)))
         -- gcd(p,a) ∣ p, y p irreducible → gcd(p,a) = 1 ó gcd(p,a) = p
         have hg_p := gcd_dvd_left p a
         -- Usamos irreducible para factorizar p:
@@ -349,76 +596,36 @@ namespace Peano
         ∃ p, Prime p ∧ p ∣ n := by
       induction n using well_founded_lt.induction
       rename_i n ih
-      -- ¿Es n irreducible?
-      rcases em (Irreducible n) with hirr | hnirr
-      · -- n irreducible: construir Prime n
+      by_cases h_eq : smallestDivisor n = n
+      · -- smallestDivisor n = n → n es irreducible
+        have hirr := smallestDivisor_eq_self_imp_irreducible hn h_eq
         refine ⟨n,
           ⟨fun h0 => absurd ((hirr.2 𝟘 𝟘 (by rw [h0, mul_zero])).elim id id).symm
                              (succ_neq_zero 𝟘),
            hirr.1,
            fun a b hdvd => irreducible_prime_dvd_mul hirr hdvd⟩,
           divides_refl n⟩
-      · -- n no irreducible → ∃ a b, mul a b = n, a ≠ 1, b ≠ 1
-        have hn0 : n ≠ 𝟘 := by
-          rintro rfl
-          rcases hn with h | h
-          · exact lt_zero 𝟚 h
-          · exact absurd h (succ_neq_zero 𝟙)
-        have hn1 : n ≠ 𝟙 := by
-          rintro rfl
-          rcases hn with h | h
-          · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
-          · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
-        have h_notfact : ∃ a b : ℕ₀, mul a b = n ∧ a ≠ 𝟙 ∧ b ≠ 𝟙 := by
-          unfold Irreducible at hnirr
-          -- hnirr : ¬ (n ≠ 𝟙 ∧ ∀ a b, mul a b = n → a = 𝟙 ∨ b = 𝟙)
-          -- Como n ≠ 𝟙, la primera parte es verdadera, así que la segunda es falsa:
-          have h2 : ¬ (∀ a b : ℕ₀, mul a b = n → a = 𝟙 ∨ b = 𝟙) :=
-            fun hall => hnirr ⟨hn1, hall⟩
-          -- Negación clásica: ∃ a b, mul a b = n ∧ (a ≠ 𝟙 ∧ b ≠ 𝟙)
-          have := Classical.not_forall.mp h2
-          obtain ⟨a, ha⟩ := this
-          have hb := Classical.not_forall.mp ha
-          obtain ⟨b, hb'⟩ := hb
-          rw [Classical.not_imp] at hb'
-          have hne := not_or.mp hb'.2
-          exact ⟨a, b, hb'.1, hne.1, hne.2⟩
-        obtain ⟨a, b, h_ab, ha1, hb1⟩ := h_notfact
-        have ha0 : a ≠ 𝟘 := by
-          intro h0; rw [h0, zero_mul] at h_ab; exact hn0 h_ab.symm
-        have hb0 : b ≠ 𝟘 := by
-          intro h0; rw [h0, mul_zero] at h_ab; exact hn0 h_ab.symm
-        have ha2 : Le 𝟚 a := by
-          rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 ha0) with h_lt | h_eq
-          · exact lt_then_le_succ_wp h_lt
-          · exact absurd h_eq.symm ha1
-        have hb2 : Le 𝟚 b := by
-          rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h_lt | h_eq
-          · exact lt_then_le_succ_wp h_lt
-          · exact absurd h_eq.symm hb1
-        -- a < n: n = a·b ≥ a·2 > a
-        have ha_lt_n : Lt a n := by
-          rw [← h_ab]
-          have h1 : Lt a (mul a 𝟚) := by
-            have := mul_lt_right a 𝟚 ha0 (lt_succ_self 𝟙)
-            rwa [mul_comm 𝟚 a] at this
-          have h2 : Le (mul a 𝟚) (mul a b) := by
-            have := mul_le_mono_right a hb2
-            rwa [mul_comm 𝟚 a, mul_comm b a] at this
-          exact lt_of_lt_of_le h1 h2
-        rcases ih a ha_lt_n ha2 with ⟨p, hp, h_pa⟩
-        exact ⟨p, hp, divides_trans h_pa ⟨b, h_ab.symm⟩⟩
+      · -- smallestDivisor n ≠ n → usar a := smallestDivisor n como divisor propio
+        have ha_dvd : smallestDivisor n ∣ n := smallestDivisor_dvd hn
+        have ha2 : Le 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
+        have ha_le : Le (smallestDivisor n) n := smallestDivisor_le hn
+        have ha_lt_n : Lt (smallestDivisor n) n :=
+          lt_of_le_neq_wp ha_le h_eq
+        rcases ih (smallestDivisor n) ha_lt_n ha2 with ⟨p, hp, h_pa⟩
+        exact ⟨p, hp, divides_trans h_pa ha_dvd⟩
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 6. TFA — Existencia de factorización prima
+    -- § 7. TFA — Existencia de factorización prima
     -- ══════════════════════════════════════════════════════════════════
 
     theorem exists_prime_factorization (n : ℕ₀) (hn : Le 𝟚 n) :
         ∃ ps : List ℕ₀, PrimeList ps ∧ product_list ps = n := by
       induction n using well_founded_lt.induction
       rename_i n ih
-      rcases em (Irreducible n) with hirr | hnirr
-      · have hn_prime : Prime n :=
+      by_cases h_eq : smallestDivisor n = n
+      · -- smallestDivisor n = n → n irreducible → n primo
+        have hirr := smallestDivisor_eq_self_imp_irreducible hn h_eq
+        have hn_prime : Prime n :=
           ⟨fun h0 => absurd ((hirr.2 𝟘 𝟘 (by rw [h0, mul_zero])).elim id id).symm
                              (succ_neq_zero 𝟘),
            hirr.1,
@@ -427,66 +634,46 @@ namespace Peano
                fun p hp =>
                  (mem_cons p n []).mp hp |>.elim (· ▸ hn_prime) (fun h => absurd h List.not_mem_nil),
                by simp [product_list, mul_one]⟩
-      · have hn0 : n ≠ 𝟘 := by
-          rintro rfl
-          rcases hn with h | h
+      · -- smallestDivisor n ≠ n → factores a := sd n, b := n / a
+        have hn0 : n ≠ 𝟘 := by
+          rintro rfl; rcases hn with h | h
           · exact lt_zero 𝟚 h
           · exact absurd h (succ_neq_zero 𝟙)
-        have hn1 : n ≠ 𝟙 := by
-          rintro rfl
-          rcases hn with h | h
-          · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
-          · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
-        have h_notfact : ∃ a b : ℕ₀, mul a b = n ∧ a ≠ 𝟙 ∧ b ≠ 𝟙 := by
-          unfold Irreducible at hnirr
-          have h2 : ¬ (∀ a b : ℕ₀, mul a b = n → a = 𝟙 ∨ b = 𝟙) :=
-            fun hall => hnirr ⟨hn1, hall⟩
-          have := Classical.not_forall.mp h2
-          obtain ⟨a, ha⟩ := this
-          have hb := Classical.not_forall.mp ha
-          obtain ⟨b, hb'⟩ := hb
-          rw [Classical.not_imp] at hb'
-          have hne := not_or.mp hb'.2
-          exact ⟨a, b, hb'.1, hne.1, hne.2⟩
-        obtain ⟨a, b, h_ab, ha1, hb1⟩ := h_notfact
-        have ha0 : a ≠ 𝟘 := by
-          intro h0; rw [h0, zero_mul] at h_ab; exact hn0 h_ab.symm
+        have ha_dvd : smallestDivisor n ∣ n := smallestDivisor_dvd hn
+        have ha2 : Le 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
+        have ha0 : smallestDivisor n ≠ 𝟘 := by
+          intro h0; rw [h0] at ha2
+          exact lt_zero 𝟚 (Or.resolve_right ha2 (succ_neq_zero 𝟙))
+        let b := div n (smallestDivisor n)
+        have h_mul : mul b (smallestDivisor n) = n :=
+          div_mul_cancel ha0 ha_dvd
         have hb0 : b ≠ 𝟘 := by
-          intro h0; rw [h0, mul_zero] at h_ab; exact hn0 h_ab.symm
-        have ha2 : Le 𝟚 a := by
-          rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 ha0) with h_lt | h_eq
-          · exact lt_then_le_succ_wp h_lt
-          · exact absurd h_eq.symm ha1
+          intro h0; rw [h0, zero_mul] at h_mul; exact hn0 h_mul.symm
+        have hb1 : b ≠ 𝟙 := by
+          intro h1; rw [h1, one_mul] at h_mul; exact h_eq h_mul
         have hb2 : Le 𝟚 b := by
-          rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h_lt | h_eq
+          rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h_lt | h_eq'
           · exact lt_then_le_succ_wp h_lt
-          · exact absurd h_eq.symm hb1
-        have ha_lt_n : Lt a n := by
-          rw [← h_ab]
-          have h1 : Lt a (mul a 𝟚) := by
-            have := mul_lt_right a 𝟚 ha0 (lt_succ_self 𝟙)
-            rwa [mul_comm 𝟚 a] at this
-          exact lt_of_lt_of_le h1 (by
-            have := mul_le_mono_right a hb2
-            rwa [mul_comm 𝟚 a, mul_comm b a] at this)
+          · exact absurd h_eq'.symm hb1
+        have ha_lt_n : Lt (smallestDivisor n) n :=
+          lt_of_le_neq_wp (smallestDivisor_le hn) h_eq
         have hb_lt_n : Lt b n := by
-          rw [← h_ab, mul_comm]
-          have h1 : Lt b (mul b 𝟚) := by
-            have := mul_lt_right b 𝟚 hb0 (lt_succ_self 𝟙)
-            rwa [mul_comm 𝟚 b] at this
-          exact lt_of_lt_of_le h1 (by
-            have := mul_le_mono_right b ha2
-            rwa [mul_comm 𝟚 b, mul_comm a b] at this)
-        obtain ⟨ps_a, hps_a, h_prod_a⟩ := ih a ha_lt_n ha2
+          rw [← h_mul, mul_comm]
+          exact lt_of_lt_of_le
+            (by have := mul_lt_right b 𝟚 hb0 (lt_succ_self 𝟙)
+                rwa [mul_comm 𝟚 b] at this)
+            (by have := mul_le_mono_right b ha2
+                rwa [mul_comm 𝟚 b] at this)
+        obtain ⟨ps_a, hps_a, h_prod_a⟩ := ih (smallestDivisor n) ha_lt_n ha2
         obtain ⟨ps_b, hps_b, h_prod_b⟩ := ih b hb_lt_n hb2
         refine ⟨ps_a ++ ps_b, ?_, ?_⟩
         · intro p hm
           rw [mem_append] at hm
           exact hm.elim (hps_a p) (hps_b p)
-        · rw [product_append, h_prod_a, h_prod_b, h_ab]
+        · rw [product_append, h_prod_a, h_prod_b, mul_comm, h_mul]
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 7. TFA — Unicidad de la factorización prima
+    -- § 8. TFA — Unicidad de la factorización prima
     -- ══════════════════════════════════════════════════════════════════
 
     theorem mem_dvd_product {q : ℕ₀} {l : List ℕ₀} (h : q ∈ l) :
@@ -647,8 +834,9 @@ namespace Peano
             rw [filter_count_neq (Ne.symm h_pp₀) qs hp₀_mem]
             exact ih_eq
 
+
     -- ══════════════════════════════════════════════════════════════════
-    -- § 8. Alias exportable de Prime y conjunto ℙ
+    -- § 9. Alias exportable de Prime y conjunto ℙ
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Alias de `Peano.Arith.Prime` en el namespace `Peano.Primes`,
@@ -687,4 +875,6 @@ export Peano.Primes (
     exists_prime_divisor
     exists_prime_factorization
     unique_prime_factorization
+    smallestDivisor
+    factorize
 )

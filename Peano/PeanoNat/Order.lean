@@ -9,7 +9,6 @@ License: MIT
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
-import Init.Prelude
 
 namespace Peano
   open Peano
@@ -1442,6 +1441,51 @@ namespace Peano
       · contradiction -- heq contradicts h_not_eq
       · exact hgt
 
+    /-- Boolean bounded existential search: does `P k` hold for some `k ≤ n`? -/
+    def bexLe (P : ℕ₀ → Bool) : ℕ₀ → Bool
+      | 𝟘    => P 𝟘
+      | σ n' => P (σ n') || bexLe P n'
+
+    /-- Helper: witness extraction from `bexLe`. -/
+    theorem bexLe_true_imp_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) :
+        (n : ℕ₀) → bexLe Pb n = true → ∃ k, Le k n ∧ P k
+      | 𝟘, h => ⟨𝟘, le_refl 𝟘, (h_iff 𝟘).mp h⟩
+      | σ n', h => by
+        simp [bexLe, Bool.or_eq_true] at h
+        rcases h with hp | hr
+        · exact ⟨σ n', le_refl (σ n'), (h_iff (σ n')).mp hp⟩
+        · obtain ⟨k, hk, hpk⟩ := bexLe_true_imp_exists P Pb h_iff n' hr
+          exact ⟨k, le_k_n_then_le_k_sn_wp hk, hpk⟩
+
+    /-- Helper: negation from `bexLe = false`. -/
+    theorem bexLe_false_imp_not_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) :
+        (n : ℕ₀) → bexLe Pb n = false → ¬ ∃ k, Le k n ∧ P k
+      | 𝟘, h, ⟨k, hle, hpk⟩ => by
+        have hk0 := le_zero_eq_wp hle
+        rw [hk0] at hpk
+        exact Bool.false_ne_true (h ▸ (h_iff 𝟘).mpr hpk)
+      | σ n', h, ⟨k, hle, hpk⟩ => by
+        have hbex : bexLe Pb (σ n') = false := h
+        simp [bexLe] at hbex
+        have ⟨h1, h2⟩ := hbex
+        exact hle.elim
+          (fun h_lt =>
+            bexLe_false_imp_not_exists P Pb h_iff n' h2
+              ⟨k, lt_then_le_succ_wp h_lt, hpk⟩)
+          (fun h_eq => Bool.false_ne_true (h1 ▸ (h_iff (σ n')).mpr (h_eq ▸ hpk)))
+
+    /-- Decidability of bounded existential: `∃ k, Le k n ∧ P k`,
+        given a boolean decision function for `P`. -/
+    def decidableBExLe_of_bool (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) (n : ℕ₀) :
+        Decidable (∃ k, Le k n ∧ P k) :=
+      if h : bexLe Pb n = true then
+        isTrue (bexLe_true_imp_exists P Pb h_iff n h)
+      else
+        isFalse (bexLe_false_imp_not_exists P Pb h_iff n (Bool.eq_false_iff.mpr h))
+
 
   end Order
 end Peano
@@ -1548,4 +1592,6 @@ export Peano.Order (
   lt_succ_iff_le
   nlt_of_le
   not_lt_and_not_eq_implies_gt
+  bexLe
+  decidableBExLe_of_bool
 )

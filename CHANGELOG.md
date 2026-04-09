@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Changed (2026-04-09)
+
+- **Rename MaxMin → Lattice**: `Peano/PeanoNat/MaxMin.lean` renamed to
+  `Peano/PeanoNat/Lattice.lean`. Namespace `Peano.MaxMin` → `Peano.Lattice`.
+  All imports, opens, exports, and fully-qualified references updated across
+  8 dependent files. Documentation updated in all `.md` files.
+
+- **Lattice.lean Mathlib-style extensions (§ 7)**:
+  Added 18 new theorems: `max_min_self`, `min_max_self` (absorption Mathlib naming),
+  `min_le_max`, `max_eq_left_iff`, `max_eq_right_iff`, `min_eq_left_iff`,
+  `min_eq_right_iff`, `max_le_iff`, `le_min_iff`, `max_le_max`, `min_le_min`,
+  `max_left_comm`, `min_left_comm`, `max_right_comm`, `min_right_comm`,
+  `max_succ_succ`, `min_succ_succ`. Export block: 74 symbols total.
+  Build: 28 jobs, 0 warnings, 0 sorry.
+
+- **FSet.lean warning fix**: Removed unused `hu` parameter from
+  `uniqueKeys_factListAddFactor`.
+
 ### Changed (2026-04-10)
 
 - **Phase 17 — Factor Combinatorics subdirectory**: Moved `Pow.lean`,

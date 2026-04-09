@@ -19,8 +19,10 @@ License: MIT
 -- § 9. insert y ofList para ℕ₀FSet
 -- § 10. Filtrado preservando orden
 -- § 11. Notación {[ ... ]} para ℕ₀FSet
+-- § 12. Operaciones sobre FactFSet (addFactor, lookup)
 
 import Peano.PeanoNat.Lists
+import Peano.PeanoNat.Add
 
 
 namespace Peano
@@ -59,14 +61,41 @@ namespace Peano
       sorted : Sorted (· < ·) elems
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 4. FactFSet — conjuntos finitos de ℕ₂ × ℕ₁
+    -- § 4. FactFSet — conjuntos finitos de ℕ₂ × ℕ₁ (factorizaciones)
     -- ══════════════════════════════════════════════════════════════════
 
-    /-- Conjunto finito de pares (primo, exponente) para factorizaciones,
-        ordenado lexicográficamente. Cada primo aparece a lo sumo una vez. -/
+    /-- Claves únicas en una lista de pares: ninguna base se repite. -/
+    def UniqueKeys : List (ℕ₂ × ℕ₁) → Prop
+      | [] => True
+      | (p, _) :: rest => (∀ q e, (q, e) ∈ rest → q ≠ p) ∧ UniqueKeys rest
+
+    /-- Lista ordenada estrictamente por la primera componente (base). -/
+    abbrev SortedByKey (l : List (ℕ₂ × ℕ₁)) : Prop :=
+      List.Pairwise (fun a b : ℕ₂ × ℕ₁ => a.1 < b.1) l
+
+    open Peano.StrictOrder in
+    /-- SortedByKey implica UniqueKeys: claves estrictamente crecientes
+        no pueden repetirse. -/
+    theorem sortedByKey_imp_uniqueKeys :
+        ∀ l : List (ℕ₂ × ℕ₁), SortedByKey l → UniqueKeys l := by
+      intro l
+      induction l with
+      | nil => intro _; trivial
+      | cons hd tl ih =>
+        intro hs
+        have ⟨hall, htl⟩ := List.pairwise_cons.mp hs
+        exact ⟨fun q e hmem hqp => by
+          have h_lt := hall (q, e) hmem
+          rw [hqp] at h_lt
+          exact lt_irrefl hd.1.val.val h_lt, ih htl⟩
+
+    /-- Conjunto finito de pares (base ≥ 2, exponente ≥ 1) para factorizaciones.
+        Ordenado estrictamente por la primera componente (base),
+        lo que garantiza unicidad de representación y claves únicas. -/
     structure FactFSet where
       elems : List (ℕ₂ × ℕ₁)
-      sorted : Sorted (· < ·) elems
+      sortedByKey : SortedByKey elems
+      uniqueKeys : UniqueKeys elems
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 5. Constructores básicos
@@ -75,12 +104,14 @@ namespace Peano
     def ℕ₀FSet.empty : ℕ₀FSet := ⟨[], sorted_nil _⟩
     def ℕ₁FSet.empty : ℕ₁FSet := ⟨[], sorted_nil _⟩
     def ℕ₂FSet.empty : ℕ₂FSet := ⟨[], sorted_nil _⟩
-    def FactFSet.empty : FactFSet := ⟨[], sorted_nil _⟩
+    def FactFSet.empty : FactFSet :=
+      FactFSet.mk [] (sorted_nil _) trivial
 
     def ℕ₀FSet.singleton (x : ℕ₀) : ℕ₀FSet := ⟨[x], sorted_singleton _ x⟩
     def ℕ₁FSet.singleton (x : ℕ₁) : ℕ₁FSet := ⟨[x], sorted_singleton _ x⟩
     def ℕ₂FSet.singleton (x : ℕ₂) : ℕ₂FSet := ⟨[x], sorted_singleton _ x⟩
-    def FactFSet.singleton (x : ℕ₂ × ℕ₁) : FactFSet := ⟨[x], sorted_singleton _ x⟩
+    def FactFSet.singleton (x : ℕ₂ × ℕ₁) : FactFSet :=
+      FactFSet.mk [x] (sorted_singleton _ x) ⟨fun _ _ h => absurd h List.not_mem_nil, trivial⟩
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 6. Cardinal (cardinalidad en ℕ₀)
@@ -248,6 +279,127 @@ namespace Peano
 
     macro_rules
       | `({[ $s | $p ]}) => `(ℕ₀FSet.filter $p $s)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 12. Operaciones sobre FactFSet (addFactor, lookup)
+    -- ══════════════════════════════════════════════════════════════════
+
+    open Peano.Axioms in
+    /-- Sucesor en ℕ₁: σ n como natural positivo. -/
+    def succN1 (n : ℕ₁) : ℕ₁ :=
+      Subtype.mk (σ n.val) (succ_neq_zero n.val)
+
+    open Peano.Axioms in
+    /-- El uno como elemento de ℕ₁. -/
+    def oneN1 : ℕ₁ :=
+      Subtype.mk 𝟙 (succ_neq_zero 𝟘)
+
+    /-- Busca el exponente asociado a la base `n` en una lista de factores.
+        Devuelve `none` si `n` no aparece como primera componente. -/
+    def factListLookup (n : ℕ₂) : List (ℕ₂ × ℕ₁) → Option ℕ₁
+      | [] => none
+      | (p, c) :: rest => if p = n then some c else factListLookup n rest
+
+    /-- Añade un factor `n` a una lista de factores ordenada por clave:
+        — si `n` no aparece, inserta `(n, 1)` en su posición;
+        — si aparece como `(n, c)`, lo reemplaza por `(n, σ c)`.
+        Preserva el orden por clave y la unicidad de claves. -/
+    def factListAddFactor (n : ℕ₂) : List (ℕ₂ × ℕ₁) → List (ℕ₂ × ℕ₁)
+      | [] => [(n, oneN1)]
+      | (p, c) :: rest =>
+        if n < p then (n, oneN1) :: (p, c) :: rest
+        else if p = n then (n, succN1 c) :: rest
+        else (p, c) :: factListAddFactor n rest
+
+    open Peano.StrictOrder in
+    /-- `factListAddFactor` preserva las claves: la primera componente
+        de cada par del resultado es clave original o `n`. -/
+    private theorem factListAddFactor_keys (n : ℕ₂)
+        (l : List (ℕ₂ × ℕ₁)) :
+        ∀ x, x ∈ factListAddFactor n l →
+          x.1 = n ∨ ∃ e, (x.1, e) ∈ l := by
+      induction l with
+      | nil =>
+        intro x hx
+        simp [factListAddFactor] at hx
+        exact Or.inl (congrArg Prod.fst hx)
+      | cons hd tl ih =>
+        intro x hx
+        simp only [factListAddFactor] at hx
+        split at hx
+        · -- n < hd.1: resultado = (n, oneN1) :: hd :: tl
+          rcases List.mem_cons.mp hx with rfl | htail
+          · exact Or.inl rfl
+          · exact Or.inr ⟨x.2, htail⟩
+        · split at hx
+          · -- hd.1 = n: resultado = (n, succN1 _) :: tl
+            rcases List.mem_cons.mp hx with rfl | htail
+            · exact Or.inl rfl
+            · exact Or.inr ⟨x.2, List.mem_cons.mpr (Or.inr htail)⟩
+          · -- otro: resultado = hd :: factListAddFactor n tl
+            rcases List.mem_cons.mp hx with rfl | htail
+            · exact Or.inr ⟨hd.2, List.mem_cons.mpr (Or.inl rfl)⟩
+            · rcases ih x htail with h | ⟨e, he⟩
+              · exact Or.inl h
+              · exact Or.inr ⟨e, List.mem_cons.mpr (Or.inr he)⟩
+
+    open Peano.StrictOrder in
+    /-- `factListAddFactor` preserva `SortedByKey`. -/
+    theorem sortedByKey_factListAddFactor (n : ℕ₂)
+        (l : List (ℕ₂ × ℕ₁)) (hs : SortedByKey l) :
+        SortedByKey (factListAddFactor n l) := by
+      induction l with
+      | nil => exact sorted_singleton _ (n, oneN1)
+      | cons hd tl ih =>
+        simp only [factListAddFactor]
+        have ⟨hall, htl⟩ := List.pairwise_cons.mp hs
+        split
+        next h_n_lt =>
+          -- n < hd.1 → resultado = (n, _) :: hd :: tl
+          exact List.Pairwise.cons
+            (fun z hz => match List.mem_cons.mp hz with
+              | Or.inl h => h ▸ h_n_lt
+              | Or.inr h => lt_trans_wp h_n_lt (hall z h))
+            hs
+        next h_nlt =>
+          split
+          next h_eq =>
+            -- hd.1 = n → resultado = (n, succN1 _) :: tl
+            exact List.Pairwise.cons
+              (fun z hz => h_eq ▸ hall z hz) htl
+          next h_neq =>
+            -- hd.1 < n (por tricotomía) → resultado = hd :: factListAddFactor n tl
+            have h_hd_lt_n : hd.1 < n := by
+              rcases trichotomy hd.1.val.val n.val.val with h | h | h
+              · exact h
+              · exact absurd (Subtype.ext (Subtype.ext h)) h_neq
+              · exact absurd h h_nlt
+            exact List.Pairwise.cons
+              (fun z hz =>
+                match factListAddFactor_keys n tl z hz with
+                | Or.inl hfst => hfst ▸ h_hd_lt_n
+                | Or.inr ⟨e, he⟩ => hall (z.1, e) he)
+              (ih htl)
+
+    open Peano.StrictOrder in
+    /-- `factListAddFactor` preserva `UniqueKeys`. -/
+    theorem uniqueKeys_factListAddFactor (n : ℕ₂)
+        (l : List (ℕ₂ × ℕ₁)) (hs : SortedByKey l) :
+        UniqueKeys (factListAddFactor n l) :=
+      sortedByKey_imp_uniqueKeys _ (sortedByKey_factListAddFactor n l hs)
+
+    /-- Busca el exponente del factor `n` en un `FactFSet`. -/
+    def FactFSet.lookup (n : ℕ₂) (s : FactFSet) : Option ℕ₁ :=
+      factListLookup n s.elems
+
+    /-- Añade (o incrementa) el exponente del factor `n`.
+        — Si `n` no está: inserta `(n, 1)`.
+        — Si está como `(n, c)`: lo reemplaza por `(n, c+1)`. -/
+    def FactFSet.addFactor (n : ℕ₂) (s : FactFSet) : FactFSet :=
+      FactFSet.mk
+        (factListAddFactor n s.elems)
+        (sortedByKey_factListAddFactor n s.elems s.sortedByKey)
+        (uniqueKeys_factListAddFactor n s.elems s.sortedByKey)
 
   end FSet
 

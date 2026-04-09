@@ -57,9 +57,9 @@ export Peano.Order (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- MaxMin: max/min ↔ Nat.max/Nat.min
+-- Lattice: max/min ↔ Nat.max/Nat.min
 -- ─────────────────────────────────────────────────────────────────
-export Peano.MaxMin (
+export Peano.Lattice (
   isomorph_Λ_max
   isomorph_Λ_min
   isomorph_Ψ_max

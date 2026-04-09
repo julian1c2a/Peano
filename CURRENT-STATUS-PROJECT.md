@@ -30,7 +30,7 @@ warnings        →  1 (PeanoNatSub.lean:484 — unused simp arg, cosmético)
 | `PeanoNatAxioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
 | `PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
 | `PeanoNatOrder.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans` | ✅ Completo |
-| `PeanoNatMaxMin.lean` | `Peano.MaxMin` | `max`, `min`, propiedades básicas | ✅ Completo |
+| `Lattice.lean` | `Peano.Lattice` | `max`, `min`, retícula distributiva, extensiones Mathlib-style | ✅ Completo |
 | `PeanoNatWellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt` | ✅ Completo |
 | `PeanoNatAdd.lean` | `Peano.Add` | Suma, neutro, conmutatividad, asociatividad | ✅ Completo |
 | `PeanoNatSub.lean` | `Peano.Sub` | Resta truncada, `sub_self`, `add_k_sub_k` | ✅ Completo |

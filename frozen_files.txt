@@ -8,7 +8,7 @@ Peano/PeanoNat.lean
 Peano/PeanoNatAxioms.lean
 Peano/PeanoNatStrictOrder.lean
 Peano/PeanoNatOrder.lean
-Peano/PeanoNatMaxMin.lean
+Peano/PeanoNat/Lattice.lean
 Peano/PeanoNatWellFounded.lean
 Peano/PeanoNatAdd.lean
 Peano/PeanoNatSub.lean

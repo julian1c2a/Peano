@@ -444,7 +444,7 @@ Peano/
     ├── Axioms.lean             # Peano.PeanoNat.Axioms
     ├── StrictOrder.lean        # Peano.PeanoNat.StrictOrder
     ├── Order.lean              # Peano.PeanoNat.Order
-    ├── MaxMin.lean             # Peano.PeanoNat.MaxMin
+    ├── Lattice.lean             # Peano.PeanoNat.Lattice
     ├── WellFounded.lean        # Peano.PeanoNat.WellFounded
     ├── Add.lean                # Peano.PeanoNat.Add
     ├── Sub.lean                # Peano.PeanoNat.Sub

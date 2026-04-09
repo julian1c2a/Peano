@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-09 01:02
+**Última actualización:** 2026-04-09 12:00
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -18,12 +18,12 @@
 | `Peano.lean` | — | todos los módulos de `Peano/` | — |
 | `Peano/Prelim.lean` | `Peano` | `Init.Classical` | `PeanoNat` y todos los siguientes |
 | `Peano/PeanoNat.lean` | `Peano` | `Prelim` | todos los de `PeanoNat/` |
-| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder`, `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Order.lean` | `Peano.Order` | `PeanoNat`, `Axioms`, `StrictOrder` | `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes` |
-| `Peano/PeanoNat/Add.lean` | `Peano.Add` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `WellFounded` | `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder`, `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Order.lean` | `Peano.Order` | `PeanoNat`, `Axioms`, `StrictOrder` | `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes` |
+| `Peano/PeanoNat/Add.lean` | `Peano.Add` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `WellFounded` | `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
 | `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | `…Add` y anteriores | `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
 | `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | `…Sub` y anteriores | `Div`, `Arith`, `Primes`, `Combinatorics/*` |
 | `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` y anteriores | `Arith`, `Primes`, `Combinatorics/Pow` |
@@ -44,7 +44,7 @@
 | `Peano.Axioms` | `PeanoNat/Axioms.lean` | `Peano` |
 | `Peano.StrictOrder` | `PeanoNat/StrictOrder.lean` | `Peano` |
 | `Peano.Order` | `PeanoNat/Order.lean` | `Peano` |
-| `Peano.MaxMin` | `PeanoNat/MaxMin.lean` | `Peano` |
+| `Peano.Lattice` | `PeanoNat/Lattice.lean` | `Peano` |
 | `Peano.WellFounded` | `PeanoNat/WellFounded.lean` | `Peano` |
 | `Peano.Add` | `PeanoNat/Add.lean` | `Peano` |
 | `Peano.Sub` | `PeanoNat/Sub.lean` | `Peano` |
@@ -797,7 +797,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ---
 
-## 6. MaxMin.lean — `namespace Peano.MaxMin`
+## 6. Lattice.lean — `namespace Peano.Lattice`
 
 *Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`*
 
@@ -850,61 +850,162 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Computable:** Sí
 
-### 6.2. Teoremas principales (retícula distributiva)
+### 6.2. Teoremas — Propiedades básicas de retículo
 
-**[T6.1]** `max_idem` / `min_idem`
+**[T6.1]** Idempotencia
 
-- **Lean4:** `theorem max_idem (n : ℕ₀) : max n n = n` / `theorem min_idem (n : ℕ₀) : min n n = n`
-- **Matemática:** max(n,n) = n;  min(n,n) = n
+- `theorem max_idem (n : ℕ₀) : max n n = n`
+- `theorem min_idem (n : ℕ₀) : min n n = n`
 
-**[T6.2]** `max_comm` / `min_comm`
+**[T6.2]** Conmutatividad
 
-- **Lean4:** `theorem max_comm (n m : ℕ₀) : max n m = max m n` / `theorem min_comm (n m : ℕ₀) : min n m = min m n`
-- **Matemática:** Conmutatividad
+- `theorem max_comm (n m : ℕ₀) : max n m = max m n`
+- `theorem min_comm (n m : ℕ₀) : min n m = min m n`
 
-**[T6.3]** `max_assoc` / `min_assoc`
+**[T6.3]** Asociatividad
 
-- **Lean4:** `theorem max_assoc (n m k : ℕ₀) : max (max n m) k = max n (max m k)` / `theorem min_assoc (n m k : ℕ₀) : min (min n m) k = min n (min m k)`
-- **Matemática:** Asociatividad
+- `theorem max_assoc (n m k : ℕ₀) : max (max n m) k = max n (max m k)`
+- `theorem min_assoc (n m k : ℕ₀) : min (min n m) k = min n (min m k)`
 
-**[T6.4]** `le_max_left` / `le_max_right`
+**[T6.4]** Cotas sup/inf
 
-- **Lean4:** `theorem le_max_left (n m : ℕ₀) : Le n (max n m)` / `theorem le_max_right (n m : ℕ₀) : Le m (max n m)`
-- **Matemática:** n ≤ max(n,m);  m ≤ max(n,m)
+- `theorem le_max_left (n m : ℕ₀) : Le n (max n m)`
+- `theorem le_max_right (n m : ℕ₀) : Le m (max n m)`
+- `theorem min_le_left (n m : ℕ₀) : Le (min n m) n`
+- `theorem min_le_right (n m : ℕ₀) : Le (min n m) m`
 
-**[T6.5]** `min_le_left` / `min_le_right`
+**[T6.5]** Universalidad de sup/inf
 
-- **Lean4:** `theorem min_le_left (n m : ℕ₀) : Le (min n m) n` / `theorem min_le_right (n m : ℕ₀) : Le (min n m) m`
-- **Matemática:** min(n,m) ≤ n;  min(n,m) ≤ m
+- `theorem max_le (n m k : ℕ₀) (h₁ : Le n k) (h₂ : Le m k) : Le (max n m) k`
+- `theorem le_min (k n m : ℕ₀) (h₁ : Le k n) (h₂ : Le k m) : Le k (min n m)`
 
-**[T6.6]** `max_distrib_min`
+**[T6.6]** Distributividad (retícula distributiva)
 
-- **Lean4:** `theorem max_distrib_min (n m k : ℕ₀) : max n (min m k) = min (max n m) (max n k)`
-- **Matemática:** max(n, min(m,k)) = min(max(n,m), max(n,k))
+- `theorem max_distrib_min (n m k : ℕ₀) : max n (min m k) = min (max n m) (max n k)`
+- `theorem min_distrib_max (n m k : ℕ₀) : min n (max m k) = max (min n m) (min n k)`
 
-**[T6.7]** `min_distrib_max`
+### 6.3. Teoremas — Identidades y extremos
 
-- **Lean4:** `theorem min_distrib_max (n m k : ℕ₀) : min n (max m k) = max (min n m) (min n k)`
-- **Matemática:** min(n, max(m,k)) = max(min(n,m), min(n,k))
+**[T6.7]** Identidades con 𝟘
 
-**[T6.8]** `eq_of_max_eq_min`
+- `theorem min_abs_0 (n : ℕ₀) : min 𝟘 n = 𝟘`
+- `theorem min_0_abs (n : ℕ₀) : min n 𝟘 = 𝟘`
+- `theorem max_not_0 (n : ℕ₀) : max 𝟘 n = n`
+- `theorem max_0_not (n : ℕ₀) : max n 𝟘 = n`
 
-- **Lean4:** `theorem eq_of_max_eq_min (n m : ℕ₀) : (max n m = min n m) → (n = m)`
-- **Matemática:** max(n,m) = min(n,m) ⇒ n = m
+**[T6.8]** Igualdad y max/min
 
-**[T6.9]** `isomorph_Λ_max` / `isomorph_Λ_min` / `isomorph_Ψ_max` / `isomorph_Ψ_min`
+- `theorem eq_of_max_eq_min (n m : ℕ₀) : (max n m = min n m) → (n = m)`
+- `theorem eq_then_eq_max_min (n m : ℕ₀) : (n = m) → (max n m = min n m)`
+- `theorem eq_iff_eq_max_min (n m : ℕ₀) : n = m ↔ max n m = min n m`
 
-- **Lean4:** Preservación de max/min por los isomorfismos Λ y Ψ
+### 6.4. Teoremas — Selección y orden
 
-**[T6.10]** Teoremas adicionales exportados
+**[T6.9]** max/min selecciona un argumento
 
-`min_abs_0`, `min_0_abs`, `max_not_0`, `max_0_not`, `eq_then_eq_max_min`, `eq_iff_eq_max_min`, `min_of_min_max`, `max_of_min_max`, `max_is_any`, `min_is_any`, `lt_then_min`, `min_then_le`, `min_eq_of_gt`, `max_eq_of_lt`, `max_eq_of_gt`, `max_ne_min_of_ne`, `if_neq_then_min_xor`, `lt_max_of_ne`, `le_then_max_eq_right`, `le_then_max_eq_left`, `lt_of_not_le`, `max_le`, `le_then_min_eq_left`, `le_then_min_eq_right`, `le_min`, `not_exists_max`, `min_eq_right`, `min_eq_left`, `max_eq_right`, `max_eq_left`, `le_a_le_b_then_le_min_a_b_left`, `le_min_a_b_then_le_a_le_b_left`, `le_a_le_b_then_le_min_a_b_right`, `le_a_le_b_then_le_max_a_b_right`, `le_max_a_b_then_le_a_le_b_right`, `le_a_le_b_then_le_max_a_b_left`
+- `theorem max_is_any (n m : ℕ₀) : max n m = n ∨ max n m = m`
+- `theorem min_is_any (n m : ℕ₀) : min n m = n ∨ min n m = m`
+
+**[T6.10]** Relación con ≤ / <
+
+- `theorem lt_then_min (a b : ℕ₀) : Lt a b → min a b = a`
+- `theorem min_then_le (a b : ℕ₀) : min a b = a → Le a b`
+- `theorem min_eq_of_gt {a b : ℕ₀} (h : Lt b a) : min a b = b`
+- `theorem max_eq_of_lt {a b : ℕ₀} (h : Lt a b) : max a b = b`
+- `theorem max_eq_of_gt {a b : ℕ₀} (h : Lt b a) : max a b = a`
+- `theorem lt_of_not_le {n m : ℕ₀} (h : ¬ Le n m) : Lt m n`
+
+**[T6.11]** Equivalencias Le ↔ max/min
+
+- `theorem le_then_max_eq_right (n m : ℕ₀) (h : Le n m) : max n m = m`
+- `theorem le_then_max_eq_left (n m : ℕ₀) (h : Le m n) : max n m = n`
+- `theorem le_then_min_eq_left (n m : ℕ₀) (h : Le n m) : min n m = n`
+- `theorem le_then_min_eq_right (n m : ℕ₀) (h : Le m n) : min n m = m`
+- `theorem max_eq_left {a b : ℕ₀} (h : b ≤ a) : max a b = a`
+- `theorem max_eq_right {a b : ℕ₀} (h : a ≤ b) : max a b = b`
+- `theorem min_eq_left {a b : ℕ₀} (h : a ≤ b) : min a b = a`
+- `theorem min_eq_right {a b : ℕ₀} (h : b ≤ a) : min a b = b`
+
+**[T6.12]** Discriminación por desigualdad
+
+- `theorem max_ne_min_of_ne (n m : ℕ₀) : n ≠ m ↔ ...`
+- `theorem if_neq_then_min_xor (n m : ℕ₀) : n ≠ m ↔ ...`
+- `theorem lt_max_of_ne (n m : ℕ₀) : n ≠ m ↔ Lt (min n m) (max n m)`
+
+**[T6.13]** Absorción
+
+- `theorem min_of_min_max (n m : ℕ₀) : min n m = min (max n m) (min n m)`
+- `theorem max_of_min_max (n m : ℕ₀) : max n m = max (min n m) (max n m)`
+
+**[T6.14]** Propiedades varias
+
+- `theorem not_exists_max : ∀ k, ∃ n, max n k = n ∧ n ≠ k`
+
+**[T6.15]** Galois connections (Le ↔ min/max)
+
+- `theorem le_a_le_b_then_le_min_a_b_left (a b c : ℕ₀) : Le c a → Le c b → Le c (min a b)`
+- `theorem le_min_a_b_then_le_a_le_b_left (a b c : ℕ₀) : Le c (min a b) → Le c a ∧ Le c b`
+- `theorem le_a_le_b_then_le_min_a_b_right (a b c : ℕ₀) : Le a c → Le b c → Le (min a b) c`
+- `theorem le_a_le_b_then_le_max_a_b_right (a b c : ℕ₀) : Le a c → Le b c → Le (max a b) c`
+- `theorem le_max_a_b_then_le_a_le_b_right (a b c : ℕ₀) : Le (max a b) c → Le a c ∧ Le b c`
+- `theorem le_a_le_b_then_le_max_a_b_left (a b c : ℕ₀) : Le c a → Le c b → Le c (max a b)`
+
+### 6.5. Teoremas — Isomorfismos
+
+- `theorem isomorph_Λ_max (n m : Nat) : max (Λ n) (Λ m) = Λ (Nat.max n m)`
+- `theorem isomorph_Λ_min (n m : Nat) : min (Λ n) (Λ m) = Λ (Nat.min n m)`
+- `theorem isomorph_Ψ_max (n m : ℕ₀) : Nat.max (Ψ n) (Ψ m) = Ψ (max n m)`
+- `theorem isomorph_Ψ_min (n m : ℕ₀) : Nat.min (Ψ n) (Ψ m) = Ψ (min n m)`
+
+### 6.6. Teoremas — Extensiones Mathlib-style (§ 7 del archivo)
+
+**[T6.16]** Absorción (Mathlib naming)
+
+- `theorem max_min_self (a b : ℕ₀) : max a (min a b) = a`  — `sup_inf_self`
+- `theorem min_max_self (a b : ℕ₀) : min a (max a b) = a`  — `inf_sup_self`
+
+**[T6.17]** inf ≤ sup
+
+- `theorem min_le_max (a b : ℕ₀) : Le (min a b) (max a b)`
+
+**[T6.18]** Iff characterizations
+
+- `theorem max_eq_left_iff {a b : ℕ₀} : max a b = a ↔ Le b a`
+- `theorem max_eq_right_iff {a b : ℕ₀} : max a b = b ↔ Le a b`
+- `theorem min_eq_left_iff {a b : ℕ₀} : min a b = a ↔ Le a b`
+- `theorem min_eq_right_iff {a b : ℕ₀} : min a b = b ↔ Le b a`
+
+**[T6.19]** max_le / le_min as iff
+
+- `theorem max_le_iff {a b c : ℕ₀} : Le (max a b) c ↔ Le a c ∧ Le b c`
+- `theorem le_min_iff {c a b : ℕ₀} : Le c (min a b) ↔ Le c a ∧ Le c b`
+
+**[T6.20]** Monotonía
+
+- `theorem max_le_max {a a' b b' : ℕ₀} (h₁ : Le a a') (h₂ : Le b b') : Le (max a b) (max a' b')`
+- `theorem min_le_min {a a' b b' : ℕ₀} (h₁ : Le a a') (h₂ : Le b b') : Le (min a b) (min a' b')`
+
+**[T6.21]** Left/right commutativity
+
+- `theorem max_left_comm (a b c : ℕ₀) : max a (max b c) = max b (max a c)`
+- `theorem min_left_comm (a b c : ℕ₀) : min a (min b c) = min b (min a c)`
+- `theorem max_right_comm (a b c : ℕ₀) : max (max a b) c = max (max a c) b`
+- `theorem min_right_comm (a b c : ℕ₀) : min (min a b) c = min (min a c) b`
+
+**[T6.22]** Successor structural
+
+- `theorem max_succ_succ (a b : ℕ₀) : max (σ a) (σ b) = σ (max a b)`
+- `theorem min_succ_succ (a b : ℕ₀) : min (σ a) (σ b) = σ (min a b)`
+
+### 6.7. Export block completo (74 símbolos)
+
+`max`, `min`, `min_max`, `max_min`, `max_idem`, `min_idem`, `min_abs_0`, `min_0_abs`, `max_not_0`, `max_0_not`, `eq_of_max_eq_min`, `eq_then_eq_max_min`, `eq_iff_eq_max_min`, `min_of_min_max`, `max_of_min_max`, `max_is_any`, `min_is_any`, `lt_then_min`, `min_then_le`, `min_eq_of_gt`, `max_eq_of_lt`, `max_ne_min_of_ne`, `if_neq_then_min_xor`, `lt_max_of_ne`, `max_comm`, `min_comm`, `le_then_max_eq_right`, `le_then_max_eq_left`, `le_max_left`, `le_max_right`, `max_le`, `max_assoc`, `le_then_min_eq_left`, `le_then_min_eq_right`, `min_le_left`, `min_le_right`, `le_min`, `min_assoc`, `not_exists_max`, `max_distrib_min`, `min_distrib_max`, `isomorph_Λ_max`, `isomorph_Λ_min`, `isomorph_Ψ_max`, `isomorph_Ψ_min`, `max_eq_left`, `max_eq_right`, `min_eq_left`, `min_eq_right`, `le_a_le_b_then_le_min_a_b_left`, `le_min_a_b_then_le_a_le_b_left`, `le_a_le_b_then_le_min_a_b_right`, `le_a_le_b_then_le_max_a_b_right`, `le_max_a_b_then_le_a_le_b_right`, `le_a_le_b_then_le_max_a_b_left`, `max_min_self`, `min_max_self`, `min_le_max`, `max_eq_left_iff`, `max_eq_right_iff`, `min_eq_left_iff`, `min_eq_right_iff`, `max_le_iff`, `le_min_iff`, `max_le_max`, `min_le_min`, `max_left_comm`, `min_left_comm`, `max_right_comm`, `min_right_comm`, `max_succ_succ`, `min_succ_succ`
 
 ---
 
 ## 7. WellFounded.lean — `namespace Peano.WellFounded`
 
-*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `Init.Classical`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `Init.Classical`*
 
 ### 7.1. Definiciones
 
@@ -930,7 +1031,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 8. Add.lean — `namespace Peano.Add`
 
-*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `WellFounded`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `WellFounded`*
 
 ### 8.1. Definiciones
 
@@ -1961,7 +2062,7 @@ Módulo sin definiciones ni demostraciones nuevas. Reexporta todos los teoremas 
 
 **Reexporta de `Peano.Order`:** `isomorph_Ψ_le`, `isomorph_Λ_le`
 
-**Reexporta de `Peano.MaxMin`:** `isomorph_Λ_max`, `isomorph_Λ_min`, `isomorph_Ψ_max`, `isomorph_Ψ_min`
+**Reexporta de `Peano.Lattice`:** `isomorph_Λ_max`, `isomorph_Λ_min`, `isomorph_Ψ_max`, `isomorph_Ψ_min`
 
 **Reexporta de `Peano.Add`:** `isomorph_Ψ_add`, `isomorph_Λ_add`
 

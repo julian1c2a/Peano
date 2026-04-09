@@ -211,7 +211,7 @@ During development, names are renamed progressively following these conventions.
 Priority order for migration:
 
 1. Base modules (axioms): `Peano`, `PeanoNatAxioms`
-2. Order: `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`
+2. Order: `PeanoNatStrictOrder`, `PeanoNatOrder`, `Lattice`, `PeanoNatWellFounded`
 3. Arithmetic: `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`, `PeanoNatArith`
 4. Advanced: `PeanoNatPrimes`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`, `PeanoNatNewtonBinom`
 

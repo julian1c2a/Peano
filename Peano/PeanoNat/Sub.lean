@@ -11,7 +11,7 @@ import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.Add
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
-import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.WellFounded
 import Peano.PeanoNat.Add
 
@@ -23,7 +23,7 @@ namespace Peano
         open Peano.Axioms
         open Peano.StrictOrder
         open Peano.Order
-        open Peano.MaxMin
+        open Peano.Lattice
         open Peano.WellFounded
         open Peano.Add
 

@@ -14,7 +14,7 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.Lists
 
 
@@ -28,7 +28,7 @@ namespace Peano
       open Peano.Add
       open Peano.Sub
       open Peano.Div
-      open Peano.MaxMin
+      open Peano.Lattice
       open Peano.Lists
       open Classical
 
@@ -607,13 +607,13 @@ namespace Peano
       have h_right := gcd_divides_right a b
       by_cases h : Le a b
       · -- If a ≤ b, then max a b = b
-        have h_eq := Peano.MaxMin.le_then_max_eq_right a b h
+        have h_eq := Peano.Lattice.le_then_max_eq_right a b h
         rw [h_eq]
         exact h_right
       · -- If ¬(a ≤ b), then b < a and max a b = a
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.lt_of_not_le h
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.Lattice.lt_of_not_le h
         have h_le : Le b a := Or.inl h_lt
-        have h_eq := Peano.MaxMin.le_then_max_eq_left a b h_le
+        have h_eq := Peano.Lattice.le_then_max_eq_left a b h_le
         rw [h_eq]
         exact h_left
 
@@ -623,13 +623,13 @@ namespace Peano
       have h_right := gcd_divides_right a b
       by_cases h : Le a b
       · -- If a ≤ b, then min a b = a
-        have h_eq := Peano.MaxMin.le_then_min_eq_left a b h
+        have h_eq := Peano.Lattice.le_then_min_eq_left a b h
         rw [h_eq]
         exact h_left
       · -- If ¬(a ≤ b), then b < a and min a b = b
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.MaxMin.lt_of_not_le h
+        have h_lt : Peano.StrictOrder.Lt b a := Peano.Lattice.lt_of_not_le h
         have h_le : Le b a := Or.inl h_lt
-        have h_eq := Peano.MaxMin.le_then_min_eq_right a b h_le
+        have h_eq := Peano.Lattice.le_then_min_eq_right a b h_le
         rw [h_eq]
         exact h_right
 

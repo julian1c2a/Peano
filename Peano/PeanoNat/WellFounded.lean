@@ -17,7 +17,7 @@ import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
-import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lattice
 import Init.Classical
 
 namespace Peano
@@ -27,7 +27,7 @@ namespace Peano
     open Axioms
     open StrictOrder
     open Order
-    open MaxMin
+    open Lattice
 
     /--
       Define el "tamaño" de un número ℕ₀ para que Lean pueda usarlo

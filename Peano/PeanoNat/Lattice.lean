@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNatMaxMin.lean
+-- Peano/PeanoNat/Lattice.lean
 
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
@@ -16,8 +16,8 @@ import Init.Prelude
 namespace Peano
     open Peano
 
-    namespace MaxMin
-        open Peano.MaxMin
+    namespace Lattice
+        open Peano.Lattice
         open Peano.Axioms
         open Peano.StrictOrder
         open Peano.Order
@@ -1495,11 +1495,103 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
         exact h_c_le_a
     exact h_c_le_max
 
-  end MaxMin
+  /- § 7. Lattice extensions (Mathlib-style) -/
+
+  -- Absorption laws (Mathlib naming: sup_inf_self / inf_sup_self)
+  theorem max_min_self (a b : ℕ₀) : max a (min a b) = a :=
+    max_eq_left (min_le_left a b)
+
+  theorem min_max_self (a b : ℕ₀) : min a (max a b) = a :=
+    min_eq_left (le_max_left a b)
+
+  -- inf ≤ sup
+  theorem min_le_max (a b : ℕ₀) : Le (min a b) (max a b) :=
+    le_trans (min a b) a (max a b) (min_le_left a b) (le_max_left a b)
+
+  -- Iff characterizations
+  theorem max_eq_left_iff {a b : ℕ₀} : max a b = a ↔ Le b a := by
+    constructor
+    · intro h; have := le_max_right a b; rw [h] at this; exact this
+    · exact fun h => max_eq_left h
+
+  theorem max_eq_right_iff {a b : ℕ₀} : max a b = b ↔ Le a b := by
+    constructor
+    · intro h; have := le_max_left a b; rw [h] at this; exact this
+    · exact fun h => max_eq_right h
+
+  theorem min_eq_left_iff {a b : ℕ₀} : min a b = a ↔ Le a b := by
+    constructor
+    · intro h; have := min_le_right a b; rw [h] at this; exact this
+    · exact fun h => min_eq_left h
+
+  theorem min_eq_right_iff {a b : ℕ₀} : min a b = b ↔ Le b a := by
+    constructor
+    · intro h; have := min_le_left a b; rw [h] at this; exact this
+    · exact fun h => min_eq_right h
+
+  -- max_le / le_min as iff
+  theorem max_le_iff {a b c : ℕ₀} : Le (max a b) c ↔ Le a c ∧ Le b c := by
+    constructor
+    · exact fun h => le_max_a_b_then_le_a_le_b_right a b c h
+    · exact fun ⟨h1, h2⟩ => le_a_le_b_then_le_max_a_b_right a b c h1 h2
+
+  theorem le_min_iff {c a b : ℕ₀} : Le c (min a b) ↔ Le c a ∧ Le c b := by
+    constructor
+    · exact fun h => le_min_a_b_then_le_a_le_b_left a b c h
+    · exact fun ⟨h1, h2⟩ => le_a_le_b_then_le_min_a_b_left a b c h1 h2
+
+  -- Monotonicity
+  theorem max_le_max {a a' b b' : ℕ₀} (h1 : Le a a') (h2 : Le b b') :
+      Le (max a b) (max a' b') :=
+    max_le a b (max a' b')
+      (le_trans a a' (max a' b') h1 (le_max_left a' b'))
+      (le_trans b b' (max a' b') h2 (le_max_right a' b'))
+
+  theorem min_le_min {a a' b b' : ℕ₀} (h1 : Le a a') (h2 : Le b b') :
+      Le (min a b) (min a' b') :=
+    le_min (min a b) a' b'
+      (le_trans (min a b) a a' (min_le_left a b) h1)
+      (le_trans (min a b) b b' (min_le_right a b) h2)
+
+  -- Left/right commutativity
+  theorem max_left_comm (a b c : ℕ₀) :
+      max a (max b c) = max b (max a c) := by
+    rw [← max_assoc a b c, max_comm a b, max_assoc b a c]
+
+  theorem min_left_comm (a b c : ℕ₀) :
+      min a (min b c) = min b (min a c) := by
+    rw [← min_assoc a b c, min_comm a b, min_assoc b a c]
+
+  theorem max_right_comm (a b c : ℕ₀) :
+      max (max a b) c = max (max a c) b := by
+    rw [max_assoc a b c, max_comm b c, ← max_assoc a c b]
+
+  theorem min_right_comm (a b c : ℕ₀) :
+      min (min a b) c = min (min a c) b := by
+    rw [min_assoc a b c, min_comm b c, ← min_assoc a c b]
+
+  -- Successor structural
+  theorem max_succ_succ (a b : ℕ₀) :
+      max (σ a) (σ b) = σ (max a b) := by
+    cases le_total a b with
+    | inl h_le =>
+      rw [max_eq_right h_le, max_eq_right (succ_le_succ_if h_le)]
+    | inr h_le =>
+      rw [max_eq_left h_le, max_eq_left (succ_le_succ_if h_le)]
+
+  theorem min_succ_succ (a b : ℕ₀) :
+      min (σ a) (σ b) = σ (min a b) := by
+    cases le_total a b with
+    | inl h_le =>
+      rw [min_eq_left h_le, min_eq_left (succ_le_succ_if h_le)]
+    | inr h_le =>
+      rw [min_eq_right h_le, min_eq_right (succ_le_succ_if h_le)]
+
+  end Lattice
 
 end Peano
 
-export Peano.MaxMin (
+export Peano.Lattice (
   max
   min
   min_max
@@ -1555,4 +1647,22 @@ export Peano.MaxMin (
   le_a_le_b_then_le_max_a_b_right
   le_max_a_b_then_le_a_le_b_right
   le_a_le_b_then_le_max_a_b_left
+  -- § 7. Lattice extensions (Mathlib-style)
+  max_min_self
+  min_max_self
+  min_le_max
+  max_eq_left_iff
+  max_eq_right_iff
+  min_eq_left_iff
+  min_eq_right_iff
+  max_le_iff
+  le_min_iff
+  max_le_max
+  min_le_min
+  max_left_comm
+  min_left_comm
+  max_right_comm
+  min_right_comm
+  max_succ_succ
+  min_succ_succ
 )

@@ -121,7 +121,7 @@ the old directory name and should be `PeanoNat.lean` for consistency.
 | `PeanoNatAxioms.lean` | `Peano.Axioms` | `Peano.Axioms` | ✅ No change |
 | `PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | `Peano.StrictOrder` | ✅ No change |
 | `PeanoNatOrder.lean` | `Peano.Order` | `Peano.Order` | ✅ No change |
-| `PeanoNatMaxMin.lean` | `Peano.MaxMin` | `Peano.MaxMin` | ✅ No change |
+| `Lattice.lean` | `Peano.Lattice` | `Peano.Lattice` | ✅ Renamed from MaxMin |
 | `PeanoNatWellFounded.lean` | `Peano.WellFounded` | `Peano.WellFounded` | ✅ No change |
 | `PeanoNatAdd.lean` | `Peano.Add` | `Peano.Add` | ✅ No change |
 | `PeanoNatSub.lean` | `Peano.Sub` | `Peano.Sub` | ✅ No change |
@@ -168,7 +168,7 @@ PeanoNat.lean          (1st — no dependencies)
 PeanoNatAxioms.lean    (2nd — depends on PeanoNat)
 PeanoNatStrictOrder.lean (3rd)
 PeanoNatOrder.lean     (4th)
-PeanoNatMaxMin.lean    (5th — MOST renames here)
+Lattice.lean           (5th — renamed from MaxMin, MOST renames here)
 PeanoNatWellFounded.lean (6th)
 PeanoNatAdd.lean       (7th)
 PeanoNatSub.lean       (8th)
@@ -234,7 +234,7 @@ PeanoNatNewtonBinom.lean (16th)
 | `Le'` | `le'` | NC-4 (recursive def) |
 | Various verbose names | Mathlib-style | Rules 1-3 |
 
-#### PeanoNatMaxMin.lean (namespace Peano.MaxMin) — MOST RENAMES
+#### Lattice.lean (namespace Peano.Lattice) — MOST RENAMES (formerly MaxMin)
 
 | Current | Target | Rule |
 |---------|--------|------|

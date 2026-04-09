@@ -13,7 +13,7 @@ import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
-import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.WellFounded
 import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
@@ -27,6 +27,9 @@ import Peano.PeanoNat.NumberSets
 import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Factorial
 import Peano.PeanoNat.Combinatorics.Binom
+import Peano.PeanoNat.Combinatorics.Summation
+import Peano.PeanoNat.Combinatorics.Product
+import Peano.PeanoNat.Combinatorics.Fibonacci
 import Peano.PeanoNat.Combinatorics.NewtonBinom
 import Peano.PeanoNat.Isomorph
 import Peano.PeanoNat.Decidable
@@ -291,9 +294,9 @@ export Peano.Order (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.MaxMin  (PeanoNatMaxMin.lean)
+-- namespace Peano.Lattice  (PeanoNat/Lattice.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.MaxMin (
+export Peano.Lattice (
   max
   min
   min_max
@@ -638,6 +641,17 @@ export Peano.FSet (
   ℕ₀FSet.ofList
   sorted_filter
   ℕ₀FSet.filter
+  succN1
+  oneN1
+  factListLookup
+  factListAddFactor
+  sortedByKey_factListAddFactor
+  uniqueKeys_factListAddFactor
+  UniqueKeys
+  SortedByKey
+  sortedByKey_imp_uniqueKeys
+  FactFSet.lookup
+  FactFSet.addFactor
 )
 
 -- ─────────────────────────────────────────────────────────────────
@@ -724,10 +738,6 @@ export Peano.Primes (
   prime_coprime_or_dvd
   coprime_dvd_of_dvd_mul
   PrimeList
-  product_list
-  product_nil
-  product_cons
-  product_append
   product_list_pos
   prime_dvd_product_list
   exists_prime_divisor
@@ -818,9 +828,9 @@ export Peano.Binom (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.NewtonBinom  (PeanoNatNewtonBinom.lean)
+-- namespace Peano.Summation  (Combinatorics/Summation.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.NewtonBinom (
+export Peano.Summation (
   finSum
   finSum_zero
   finSum_succ
@@ -831,6 +841,48 @@ export Peano.NewtonBinom (
   finSum_le_of_le
   finSum_pos
   finSum_const
+  finSum_succ_left
+  finSum_reverse
+  sum_list
+  sum_list_nil
+  sum_list_cons
+  sum_list_append
+  sum_list_singleton
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Product  (Combinatorics/Product.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Product (
+  product_list
+  product_nil
+  product_cons
+  product_append
+  product_list_singleton
+  finProd
+  finProd_zero
+  finProd_succ
+  finProd_one_fn
+  finProd_zero_fn
+  finProd_succ_left
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Factorization  (Combinatorics/Product.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Factorization (
+  factorValue
+  factorValue_val
+  product_factorization
+  product_factorization_val
+  product_factorization_empty
+  product_factorization_singleton
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.NewtonBinom  (Combinatorics/NewtonBinom.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.NewtonBinom (
   sum_binom_eq_pow_two
   binomTerm
   binomTerm_zero
@@ -838,4 +890,19 @@ export Peano.NewtonBinom (
   newton_binom
   pow_add_split
   exists_nm_growth
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Fibonacci  (Combinatorics/Fibonacci.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Fibonacci (
+  fibPair
+  fib
+  fibList
+  fib_zero
+  fib_one
+  fib_succ_succ
+  fib_two
+  fibList_zero
+  fibList_succ
 )

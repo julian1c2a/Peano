@@ -10,7 +10,7 @@ import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
-import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.WellFounded
 
 
@@ -23,7 +23,7 @@ namespace Peano
       open Peano.Axioms
       open Peano.StrictOrder
       open Peano.Order
-      open Peano.MaxMin
+      open Peano.Lattice
       open Peano.WellFounded
 
     def add (n m : ℕ₀) : ℕ₀ :=

@@ -5,7 +5,8 @@ License: MIT
 -/
 
 -- Peano/PeanoNat/Combinatorics/NewtonBinom.lean
--- Sumatorios finitos, Teorema del Binomio de Newton y crecimiento comparado.
+-- Teorema del Binomio de Newton y crecimiento comparado.
+-- Depende de Summation.lean para finSum (∑).
 -- REFERENCE.md: proyectar este archivo en la sección 17 de REFERENCE.md.
 
 import Peano.PeanoNat
@@ -18,6 +19,7 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Factorial
 import Peano.PeanoNat.Combinatorics.Binom
+import Peano.PeanoNat.Combinatorics.Summation
 
 namespace Peano
   open Peano
@@ -32,112 +34,9 @@ namespace Peano
     open Peano.Pow
     open Peano.Factorial
     open Peano.Binom
+    open Peano.Summation
 
-    -- ── §1. Sumatorio finito ───────────────────────────────────────────────────
-
-    /- `finSum f n` = Σ_{k=0}^{n} f(k).
-       Computable. Terminado por recursión estructural en n. -/
-    def finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀
-      | 𝟘   => f 𝟘
-      | σ n => add (finSum f n) (f (σ n))
-
-    /- Notación: `∑ k ≤ n, f k` = finSum (fun k => f k) n = Σ_{k=0}^{n} f(k).
-       Uso: ∑ k ≤ n', C(n', k)  en lugar de  finSum (fun k => C(n', k)) n'. -/
-    macro "∑ " k:ident " ≤ " n:term ", " f:term : term => `(finSum (fun $k => $f) $n)
-
-    -- ── Propiedades básicas del sumatorio ─────────────────────────────────────
-
-    theorem finSum_zero (f : ℕ₀ → ℕ₀) : finSum f 𝟘 = f 𝟘 := by rfl
-
-    theorem finSum_succ (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        finSum f (σ n) = add (finSum f n) (f (σ n)) := by rfl
-
-    /- El sumatorio de la función cero es cero. -/
-    theorem finSum_zero_fn (n : ℕ₀) : finSum (fun _ => 𝟘) n = 𝟘 := by
-      induction n with
-      | zero    => rfl
-      | succ n' ih => rw [finSum_succ, ih, add_zero]
-
-    /- Linealidad: Σ (f + g) = Σ f + Σ g. -/
-    theorem finSum_add_fn (f g : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        finSum (fun k => add (f k) (g k)) n = add (finSum f n) (finSum g n) := by
-      induction n with
-      | zero    => rfl
-      | succ n' ih =>
-          -- Objetivo tras rw ih: (A+B)+(C+D) = (A+C)+(B+D)  con A=ΣF, B=ΣG, C=f(σn'), D=g(σn')
-          rw [finSum_succ, finSum_succ, finSum_succ, ih]
-          rw [add_assoc, ← add_assoc (finSum f n'), add_comm (finSum g n'),
-              add_assoc (finSum f n'), ← add_assoc]
-
-    /- Factor constante: Σ (c · f) = c · Σ f. -/
-    theorem finSum_mul_const (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        finSum (fun k => mul c (f k)) n = mul c (finSum f n) := by
-      induction n with
-      | zero    => rfl
-      | succ n' ih => rw [finSum_succ, finSum_succ, ih, mul_add]
-
-    /- Distribución a derecha: (Σ f) · c = Σ (f · c). -/
-    theorem finSum_mul_const_right (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        mul (finSum f n) c = finSum (fun k => mul (f k) c) n := by
-      induction n with
-      | zero    => rfl
-      | succ n' ih => rw [finSum_succ, finSum_succ, add_mul, ← ih]
-
-    /- Monotonía: si f ≤ g puntualmente entonces Σ f ≤ Σ g. -/
-    theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) :
-        Le (finSum f n) (finSum g n) := by
-      induction n with
-      | zero    => exact h 𝟘
-      | succ n' ih =>
-          rw [finSum_succ, finSum_succ]
-          exact le_add_compat_wp ih (h (σ n'))
-
-    /- Positividad: si f > 0 puntualmente entonces Σ f > 0. -/
-    theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) :
-        Lt 𝟘 (finSum f n) := by
-      induction n with
-      | zero    => exact h 𝟘
-      | succ n' ih =>
-          rw [finSum_succ]
-          exact lt_of_lt_of_le ih (le_self_add_r (finSum f n') (f (σ n')))
-
-    /- La suma de una constante: Σ_{k=0}^{n} c = (n+1)·c. -/
-    theorem finSum_const (c n : ℕ₀) :
-        finSum (fun _ => c) n = mul (σ n) c := by
-      induction n with
-      | zero    => rw [finSum_zero]; exact (one_mul c).symm
-      | succ n' ih =>
-          rw [finSum_succ, ih, ← succ_mul]
-
-    -- ── §1b. Desplazamiento e inversión de índice ─────────────────────────────
-
-    /- Desplazamiento a la izquierda:
-       Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1). -/
-    theorem finSum_succ_left (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        finSum f (σ n) = add (f 𝟘) (finSum (fun k => f (σ k)) n) := by
-      induction n with
-      | zero    => rfl
-      | succ n' ih =>
-          rw [finSum_succ, ih, finSum_succ, ← add_assoc]
-
-    /- Invariancia por inversión del índice:
-       Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n-k).
-       Esto expresa que el sumatorio no depende del orden de recorrido. -/
-    theorem finSum_reverse (f : ℕ₀ → ℕ₀) (n : ℕ₀) :
-        finSum f n = finSum (fun k => f (sub n k)) n := by
-      induction n with
-      | zero    => rw [finSum_zero, finSum_zero, sub_self]
-      | succ n' ih =>
-          rw [finSum_succ, ih,
-              finSum_succ_left (fun k => f (sub (σ n') k)),
-              sub_zero]
-          -- Meta: add (finSum (fun k => f (sub n' k)) n') (f (σ n'))
-          --     = add (f (σ n')) (finSum (fun k => f (sub (σ n') (σ k))) n')
-          have h_fn : (fun k => f (sub (σ n') (σ k))) = (fun k => f (sub n' k)) := by
-            funext k; rw [← sub_succ_succ_eq]
-          rw [h_fn, add_comm]
-
-    -- ── §2. Sumatorio de coeficientes binomiales ──────────────────────────────
+    -- ── §1. Sumatorio de coeficientes binomiales ──────────────────────────────
 
     /- Suma de la fila n del triángulo de Pascal: Σ_{k=0}^{n} C(n,k) = 2^n.
        Prueba por inducción con la identidad de Pascal.
@@ -165,7 +64,7 @@ namespace Peano
           -- Paso 4: álgebra  1 + (P + X) = P + P  con  P = 1 + X
           rw [add_comm (pow 𝟚 n'), add_assoc, ← h_shift, ← mul_two, ← pow_succ]
 
-    -- ── §3. Término del binomio de Newton ────────────────────────────────────
+    -- ── §2. Término del binomio de Newton ────────────────────────────────────
 
     /- Término k-ésimo del desarrollo binomial: C(n,k) · a^k · b^(n-k). -/
     def binomTerm (a b n k : ℕ₀) : ℕ₀ :=
@@ -274,7 +173,7 @@ namespace Peano
               add_comm (finSum (fun k => mul (binomTerm a b n' k) a) n') (pow b (σ n')),
               ← add_assoc]
 
-    -- ── §4. Crecimiento comparado: (n+k)^m < n^(m+k) ─────────────────────────
+    -- ── §3. Crecimiento comparado: (n+k)^m < n^(m+k) ─────────────────────────
 
     /- Lema: n^(m+k) = n^m · n^k. -/
     theorem pow_add_split (n m k : ℕ₀) :
@@ -329,18 +228,6 @@ namespace Peano
 end Peano
 
 export Peano.NewtonBinom (
-  finSum
-  finSum_zero
-  finSum_succ
-  finSum_zero_fn
-  finSum_add_fn
-  finSum_mul_const
-  finSum_mul_const_right
-  finSum_le_of_le
-  finSum_pos
-  finSum_const
-  finSum_succ_left
-  finSum_reverse
   sum_binom_eq_pow_two
   binomTerm
   binomTerm_zero

@@ -18,6 +18,7 @@ License: MIT
 
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Lists
+import Peano.PeanoNat.Combinatorics.Product
 
 namespace Peano
   open Peano
@@ -30,9 +31,10 @@ namespace Peano
       open Peano.Sub
       open Peano.Mul
       open Peano.Div
-      open Peano.MaxMin
+      open Peano.Lattice
       open Peano.Arith
       open Peano.Lists
+      open Peano.Product
       open Classical
 
     -- ══════════════════════════════════════════════════════════════════
@@ -271,27 +273,11 @@ namespace Peano
             (hab.trans (mul_one a).symm)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 4. Listas de primos y función producto
+    -- § 4. Listas de primos
     -- ══════════════════════════════════════════════════════════════════
 
     def PrimeList (ps : List ℕ₀) : Prop :=
       ∀ p, p ∈ ps → Prime p
-
-    def product_list : List ℕ₀ → ℕ₀
-      | []       => 𝟙
-      | p :: ps => mul p (product_list ps)
-
-    @[simp] theorem product_nil : product_list [] = 𝟙 := rfl
-
-    @[simp] theorem product_cons (p : ℕ₀) (ps : List ℕ₀) :
-        product_list (p :: ps) = mul p (product_list ps) := rfl
-
-    theorem product_append (l1 l2 : List ℕ₀) :
-        product_list (l1 ++ l2) =
-          mul (product_list l1) (product_list l2) := by
-      induction l1 with
-      | nil => simp [one_mul]
-      | cons p ps ih => simp [ih, mul_assoc]
 
     theorem product_list_pos {ps : List ℕ₀} (hps : PrimeList ps) :
         Lt 𝟘 (product_list ps) := by
@@ -696,10 +682,6 @@ export Peano.Primes (
     not_has_two_divisors_zero
     prime_iff_has_exactly_two_divisors
     PrimeList
-    product_list
-    product_nil
-    product_cons
-    product_append
     product_list_pos
     prime_dvd_product_list
     exists_prime_divisor

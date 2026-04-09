@@ -1,6 +1,6 @@
 # Dependencias del Proyecto Peano
 
-**Última actualización:** 2026-04-08 22:00
+**Última actualización:** 2026-04-09 12:00
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -38,8 +38,8 @@ graph TD;
         Mul --> Sub;
         Sub --> Add;
         Add --> WellFounded;
-        WellFounded --> MaxMin;
-        MaxMin --> Order;
+        WellFounded --> Lattice;
+        Lattice --> Order;
         Order --> StrictOrder;
         StrictOrder --> Axioms;
         Axioms --> PeanoNat;
@@ -60,8 +60,8 @@ graph TD;
 | `Axioms` | `Peano/PeanoNat/Axioms.lean` | `PeanoNat` |
 | `StrictOrder` | `Peano/PeanoNat/StrictOrder.lean` | `PeanoNat`, `Axioms` |
 | `Order` | `Peano/PeanoNat/Order.lean` | `…StrictOrder` |
-| `MaxMin` | `Peano/PeanoNat/MaxMin.lean` | `…Order` |
-| `WellFounded` | `Peano/PeanoNat/WellFounded.lean` | `…MaxMin`, `Init.Classical` |
+| `Lattice` | `Peano/PeanoNat/Lattice.lean` | `…Order` |
+| `WellFounded` | `Peano/PeanoNat/WellFounded.lean` | `…Lattice`, `Init.Classical` |
 | `Add` | `Peano/PeanoNat/Add.lean` | `…WellFounded` |
 | `Sub` | `Peano/PeanoNat/Sub.lean` | `…Add` |
 | `Mul` | `Peano/PeanoNat/Mul.lean` | `…Sub` |

@@ -27,7 +27,7 @@ Peano.lean                           ← entrada; importa toda la librería
    ├─ PeanoNatAxioms.lean            namespace Peano.Axioms
    ├─ PeanoNatStrictOrder.lean       namespace Peano.StrictOrder
    ├─ PeanoNatOrder.lean             namespace Peano.Order
-   ├─ PeanoNatMaxMin.lean            namespace Peano.MaxMin
+   ├─ Lattice.lean                  namespace Peano.Lattice
    ├─ PeanoNatWellFounded.lean       namespace Peano.WellFounded
    ├─ PeanoNatAdd.lean               namespace Peano.Add
    ├─ PeanoNatSub.lean               namespace Peano.Sub
@@ -75,11 +75,12 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - Instancias `LE ℕ₀`, decisión para `Le` y `Ge`
 - Teoremas: reflexividad, antisimetría, transitividad, totalidad, `lt_succ_iff_le`, `le_iff_exists_add`
 
-### `Peano.MaxMin` — Máximo y mínimo
+### `Peano.Lattice` — Máximo, mínimo y estructura de retículo
 
 - `max`, `min`: computable, usa `BLt`
 - `min_max`, `max_min`: pares ordenados
 - Retícula distributiva completa: idempotencia, conmutatividad, asociatividad, distributividad
+- Extensiones Mathlib-style: absorción, iff, monotonía, left/right comm, sucesor
 
 ### `Peano.WellFounded` — Bien-fundación
 

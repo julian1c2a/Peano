@@ -19,8 +19,11 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
+import Peano.PeanoNat.Lists
+import Peano.PeanoNat.FSet
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Primes
+import Peano.PeanoNat.NumberSets
 import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Factorial
 import Peano.PeanoNat.Combinatorics.Binom
@@ -579,6 +582,65 @@ export Peano.Div (
 )
 
 -- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Lists  (PeanoNatLists.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Lists (
+  instDecidableEqN1
+  instDecidableEqN2
+  instLTN1
+  instLEN1
+  instLTN2
+  instLEN2
+  decidableLtN1
+  decidableLeN1
+  decidableLtN2
+  decidableLeN2
+  lexLt
+  instLTProdN2N1
+  decidableLexLt
+  lengthₚ
+  lengthₚ_nil
+  lengthₚ_cons
+  Sorted
+  sorted_nil
+  sorted_singleton
+  decidableMemList
+  Nat0List
+  Nat1List
+  Nat2List
+  FactList
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.FSet  (PeanoNatFSet.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.FSet (
+  ℕ₀FSet
+  ℕ₁FSet
+  ℕ₂FSet
+  FactFSet
+  ℕ₀FSet.empty
+  ℕ₁FSet.empty
+  ℕ₂FSet.empty
+  FactFSet.empty
+  ℕ₀FSet.singleton
+  ℕ₁FSet.singleton
+  ℕ₂FSet.singleton
+  FactFSet.singleton
+  ℕ₀FSet.card
+  ℕ₁FSet.card
+  ℕ₂FSet.card
+  FactFSet.card
+  sortedInsert
+  mem_sortedInsert_iff
+  sorted_sortedInsert
+  ℕ₀FSet.insert
+  ℕ₀FSet.ofList
+  sorted_filter
+  ℕ₀FSet.filter
+)
+
+-- ─────────────────────────────────────────────────────────────────
 -- namespace Peano.Arith  (PeanoNatArith.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Arith (
@@ -590,7 +652,6 @@ export Peano.Arith (
   multiples_to_divides
   divides_to_multiples
   multiples_iff_divides
-  DList
   DivisorsList
   mem_cons
   mem_append
@@ -673,6 +734,22 @@ export Peano.Primes (
   exists_prime_factorization
   mem_dvd_product
   unique_prime_factorization
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.NumberSets  (PeanoNatNumberSets.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.NumberSets (
+  IsPrime
+  CoprimesOf
+  DivisorsOf
+  MultiplesOf
+  isPrimeb
+  coprimeb
+  divisorsFSet
+  primesFSet
+  coprimesFSet
+  multiplesFSet
 )
 
 -- ─────────────────────────────────────────────────────────────────

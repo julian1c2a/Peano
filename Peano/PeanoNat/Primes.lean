@@ -17,6 +17,7 @@ License: MIT
 -- § 7. Unicidad de la factorización prima  (TFA — Unicidad)
 
 import Peano.PeanoNat.Arith
+import Peano.PeanoNat.Lists
 
 namespace Peano
   open Peano
@@ -31,6 +32,7 @@ namespace Peano
       open Peano.Div
       open Peano.MaxMin
       open Peano.Arith
+      open Peano.Lists
       open Classical
 
     -- ══════════════════════════════════════════════════════════════════
@@ -272,59 +274,55 @@ namespace Peano
     -- § 4. Listas de primos y función producto
     -- ══════════════════════════════════════════════════════════════════
 
-    def PrimeList (ps : DList ℕ₀) : Prop :=
-      ∀ p, DList.Mem p ps → Prime p
+    def PrimeList (ps : List ℕ₀) : Prop :=
+      ∀ p, p ∈ ps → Prime p
 
-    def product_list : DList ℕ₀ → ℕ₀
-      | DList.nil       => 𝟙
-      | DList.cons p ps => mul p (product_list ps)
+    def product_list : List ℕ₀ → ℕ₀
+      | []       => 𝟙
+      | p :: ps => mul p (product_list ps)
 
-    @[simp] theorem product_nil : product_list DList.nil = 𝟙 := rfl
+    @[simp] theorem product_nil : product_list [] = 𝟙 := rfl
 
-    @[simp] theorem product_cons (p : ℕ₀) (ps : DList ℕ₀) :
-        product_list (DList.cons p ps) = mul p (product_list ps) := rfl
+    @[simp] theorem product_cons (p : ℕ₀) (ps : List ℕ₀) :
+        product_list (p :: ps) = mul p (product_list ps) := rfl
 
-    theorem product_append (l1 l2 : DList ℕ₀) :
-        product_list (DList.append l1 l2) =
+    theorem product_append (l1 l2 : List ℕ₀) :
+        product_list (l1 ++ l2) =
           mul (product_list l1) (product_list l2) := by
       induction l1 with
-      | nil => simp [DList.append, one_mul]
-      | cons p ps ih => simp [DList.append, ih, mul_assoc]
+      | nil => simp [one_mul]
+      | cons p ps ih => simp [ih, mul_assoc]
 
-    theorem product_list_pos {ps : DList ℕ₀} (hps : PrimeList ps) :
+    theorem product_list_pos {ps : List ℕ₀} (hps : PrimeList ps) :
         Lt 𝟘 (product_list ps) := by
       induction ps with
       | nil => exact lt_0_1
       | cons p ps ih =>
         simp [product_list]
         apply mul_pos
-        · exact neq_0_then_lt_0 (prime_ne_zero (hps p (Or.inl rfl)))
-        · exact ih (fun q hq => hps q (Or.inr hq))
+        · exact neq_0_then_lt_0 (prime_ne_zero (hps p (List.mem_cons.mpr (Or.inl rfl))))
+        · exact ih (fun q hq => hps q (List.mem_cons.mpr (Or.inr hq)))
 
     /-- **Euclides para listas**: p primo, p ∣ ∏ ps → ∃ q ∈ ps, p ∣ q. -/
     theorem prime_dvd_product_list {p : ℕ₀} (hp : Prime p) :
-        ∀ ps : DList ℕ₀, p ∣ product_list ps →
-          ∃ q, DList.Mem q ps ∧ p ∣ q := by
+        ∀ ps : List ℕ₀, p ∣ product_list ps →
+          ∃ q, q ∈ ps ∧ p ∣ q := by
       intro ps
       induction ps with
       | nil =>
         simp [product_list]
         intro h
-        -- p ∣ 1 y p ≥ 2, pero 1 < 2: contradicción
         have h_le_p_1 : Le p 𝟙 := divides_le h (succ_neq_zero 𝟘)
         have h_le_2_1 : Le 𝟚 𝟙 := le_trans 𝟚 p 𝟙 (prime_ge_two hp) h_le_p_1
         rcases h_le_2_1 with h_lt | h_eq
-        · -- Lt (σ 𝟙) 𝟙: lt_succ_self 𝟙 da Lt 𝟙 (σ 𝟙), luego asimetría
-          exact absurd h_lt (lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙))
-        · -- σ (σ 𝟘) = σ 𝟘: succ_inj da σ 𝟘 = 𝟘, absurdo
-          exact absurd (succ_inj_pos_wp h_eq) (succ_neq_zero 𝟘)
+        · exact absurd h_lt (lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙))
+        · exact absurd (succ_inj_pos_wp h_eq) (succ_neq_zero 𝟘)
       | cons q qs ih =>
         simp [product_list]
         intro h_dvd
         rcases hp.2.2 q (product_list qs) h_dvd with h_pq | h_pqs
-        · exact ⟨q, Or.inl rfl, h_pq⟩
-        · rcases ih h_pqs with ⟨r, hr_mem, hr_dvd⟩
-          exact ⟨r, Or.inr hr_mem, hr_dvd⟩
+        · exact Or.inl h_pq
+        · exact Or.inr (ih h_pqs)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 5. Todo n ≥ 2 tiene un divisor primo
@@ -430,7 +428,7 @@ namespace Peano
     -- ══════════════════════════════════════════════════════════════════
 
     theorem exists_prime_factorization (n : ℕ₀) (hn : Le 𝟚 n) :
-        ∃ ps : DList ℕ₀, PrimeList ps ∧ product_list ps = n := by
+        ∃ ps : List ℕ₀, PrimeList ps ∧ product_list ps = n := by
       induction n using well_founded_lt.induction
       rename_i n ih
       rcases em (Irreducible n) with hirr | hnirr
@@ -439,9 +437,9 @@ namespace Peano
                              (succ_neq_zero 𝟘),
            hirr.1,
            fun a b hdvd => irreducible_prime_dvd_mul hirr hdvd⟩
-        exact ⟨DList.cons n DList.nil,
+        exact ⟨[n],
                fun p hp =>
-                 (mem_cons p n DList.nil).mp hp |>.elim (· ▸ hn_prime) False.elim,
+                 (mem_cons p n []).mp hp |>.elim (· ▸ hn_prime) (fun h => absurd h List.not_mem_nil),
                by simp [product_list, mul_one]⟩
       · have hn0 : n ≠ 𝟘 := by
           rintro rfl
@@ -495,7 +493,7 @@ namespace Peano
             rwa [mul_comm 𝟚 b, mul_comm a b] at this)
         obtain ⟨ps_a, hps_a, h_prod_a⟩ := ih a ha_lt_n ha2
         obtain ⟨ps_b, hps_b, h_prod_b⟩ := ih b hb_lt_n hb2
-        refine ⟨DList.append ps_a ps_b, ?_, ?_⟩
+        refine ⟨ps_a ++ ps_b, ?_, ?_⟩
         · intro p hm
           rw [mem_append] at hm
           exact hm.elim (hps_a p) (hps_b p)
@@ -505,10 +503,10 @@ namespace Peano
     -- § 7. TFA — Unicidad de la factorización prima
     -- ══════════════════════════════════════════════════════════════════
 
-    theorem mem_dvd_product {q : ℕ₀} {l : DList ℕ₀} (h : DList.Mem q l) :
+    theorem mem_dvd_product {q : ℕ₀} {l : List ℕ₀} (h : q ∈ l) :
         q ∣ product_list l := by
       induction l with
-      | nil => exact h.elim
+      | nil => exact absurd h List.not_mem_nil
       | cons x xs ih =>
         rcases (mem_cons q x xs).mp h with h_eq | h_mem
         · simp [product_list]; rw [← h_eq]
@@ -521,63 +519,63 @@ namespace Peano
     -- ──────────────────────────────────────────────────────────────────
 
     /-- Elimina la primera ocurrencia de p. -/
-    private def remove_one (p : ℕ₀) : DList ℕ₀ → DList ℕ₀
-      | DList.nil       => DList.nil
-      | DList.cons q qs => if q = p then qs else DList.cons q (remove_one p qs)
+    private def remove_one (p : ℕ₀) : List ℕ₀ → List ℕ₀
+      | []       => []
+      | q :: qs => if q = p then qs else q :: (remove_one p qs)
 
     private theorem product_remove_one {p : ℕ₀} :
-        ∀ l : DList ℕ₀, DList.Mem p l →
+        ∀ l : List ℕ₀, p ∈ l →
           product_list l = mul p (product_list (remove_one p l)) := by
       intro l hm
       induction l with
-      | nil => exact hm.elim
+      | nil => exact absurd hm List.not_mem_nil
       | cons q qs ih =>
         by_cases h : q = p
         · subst h
           simp [remove_one, product_list]
         · simp only [remove_one, if_neg h, product_list]
-          rcases hm with rfl | hm
+          rcases List.mem_cons.mp hm with rfl | hm
           · exact absurd rfl h
           · rw [ih hm, ← mul_assoc, mul_comm q p, mul_assoc]
 
-    private theorem primelist_remove_one {p : ℕ₀} {l : DList ℕ₀}
-        (hm : DList.Mem p l) (hpl : PrimeList l) : PrimeList (remove_one p l) := by
+    private theorem primelist_remove_one {p : ℕ₀} {l : List ℕ₀}
+        (hm : p ∈ l) (hpl : PrimeList l) : PrimeList (remove_one p l) := by
       induction l with
-      | nil => exact hm.elim
+      | nil => exact absurd hm List.not_mem_nil
       | cons q qs ih =>
         by_cases h : q = p
         · subst h
           simp only [remove_one]
-          intro r hr; exact hpl r (Or.inr hr)
+          intro r hr; exact hpl r (List.mem_cons.mpr (Or.inr hr))
         · simp only [remove_one, if_neg h]
-          rcases hm with rfl | hm
+          rcases List.mem_cons.mp hm with rfl | hm
           · exact absurd rfl h
           · intro r hr
-            rcases hr with rfl | hr
-            · exact hpl r (Or.inl rfl)
-            · exact ih hm (fun r hr => hpl r (Or.inr hr)) r hr
+            rcases List.mem_cons.mp hr with rfl | hr
+            · exact hpl r (List.mem_cons.mpr (Or.inl rfl))
+            · exact ih hm (fun r hr => hpl r (List.mem_cons.mpr (Or.inr hr))) r hr
 
     /-- Quitar p de l no afecta la longitud del filtro de p' ≠ p. -/
     private theorem filter_count_neq {p p' : ℕ₀} (hne : p ≠ p') :
-        ∀ l : DList ℕ₀, DList.Mem p l →
-          DList.length (DList.filter (fun q => decide (q = p')) l) =
-          DList.length (DList.filter (fun q => decide (q = p')) (remove_one p l)) := by
+        ∀ l : List ℕ₀, p ∈ l →
+          lengthₚ (List.filter (fun q => decide (q = p')) l) =
+          lengthₚ (List.filter (fun q => decide (q = p')) (remove_one p l)) := by
       intro l
       induction l with
-      | nil => intro hm; exact hm.elim
+      | nil => intro hm; exact absurd hm List.not_mem_nil
       | cons q qs ih =>
         intro hm
         by_cases hqp : q = p
         · subst hqp
-          simp only [remove_one, DList.filter]
+          simp only [remove_one, List.filter]
           have : decide (q = p') = false := by simp [hne]
           simp [this]
-        · simp only [remove_one, if_neg hqp, DList.filter]
-          rcases hm with rfl | hm
+        · simp only [remove_one, if_neg hqp, List.filter]
+          rcases List.mem_cons.mp hm with rfl | hm
           · exact absurd rfl hqp
           · by_cases hqp' : q = p'
             · simp only [show decide (q = p') = true from decide_eq_true_eq.mpr hqp',
-                         if_true, DList.length]
+                         lengthₚ_cons]
               exact congrArg (fun n => σ n) (ih hm)
             · have : decide (q = p') = false := by simp [hqp']
               simp only [this]
@@ -585,40 +583,40 @@ namespace Peano
 
     /-- La multiplicidad de p en l es 1 + la multiplicidad en remove_one p l. -/
     private theorem filter_count_eq {p : ℕ₀} :
-        ∀ l : DList ℕ₀, DList.Mem p l →
-          DList.length (DList.filter (fun q => decide (q = p)) l) =
-          σ (DList.length (DList.filter (fun q => decide (q = p)) (remove_one p l))) := by
+        ∀ l : List ℕ₀, p ∈ l →
+          lengthₚ (List.filter (fun q => decide (q = p)) l) =
+          σ (lengthₚ (List.filter (fun q => decide (q = p)) (remove_one p l))) := by
       intro l
       induction l with
-      | nil => intro hm; exact hm.elim
+      | nil => intro hm; exact absurd hm List.not_mem_nil
       | cons q qs ih =>
         intro hm
         by_cases h : q = p
-        · simp [h, remove_one, DList.filter, DList.length]
-        · simp only [remove_one, if_neg h, DList.filter]
+        · simp [h, remove_one, List.filter, lengthₚ_cons]
+        · simp only [remove_one, if_neg h, List.filter]
           have hdf : decide (q = p) = false := by simp [h]
           simp only [hdf]
-          rcases hm with rfl | hm
+          rcases List.mem_cons.mp hm with rfl | hm
           · exact absurd rfl h
           · exact ih hm
 
-    private theorem prime_list_nil_of_prod_one {qs : DList ℕ₀}
-        (hpl : PrimeList qs) (h : product_list qs = 𝟙) : qs = DList.nil := by
+    private theorem prime_list_nil_of_prod_one {qs : List ℕ₀}
+        (hpl : PrimeList qs) (h : product_list qs = 𝟙) : qs = [] := by
       cases qs with
       | nil => rfl
       | cons q qs' =>
         rw [product_cons] at h
-        exact absurd (mul_eq_one h).1 (prime_ne_one (hpl q (Or.inl rfl)))
+        exact absurd (mul_eq_one h).1 (prime_ne_one (hpl q (List.mem_cons.mpr (Or.inl rfl))))
 
     /-- **TFA — Unicidad.** Dos listas de primos con igual producto tienen
         la misma multiplicidad para cada primo. -/
     theorem unique_prime_factorization :
-        ∀ ps qs : DList ℕ₀,
+        ∀ ps qs : List ℕ₀,
           PrimeList ps → PrimeList qs →
           product_list ps = product_list qs →
           ∀ p : ℕ₀, Prime p →
-            DList.length (DList.filter (fun q => decide (q = p)) ps) =
-            DList.length (DList.filter (fun q => decide (q = p)) qs) := by
+            lengthₚ (List.filter (fun q => decide (q = p)) ps) =
+            lengthₚ (List.filter (fun q => decide (q = p)) qs) := by
       intro ps
       induction ps with
       | nil =>
@@ -626,11 +624,11 @@ namespace Peano
         rw [product_nil] at h_prod
         have hqs_nil := prime_list_nil_of_prod_one hqs h_prod.symm
         subst hqs_nil
-        simp [DList.filter, DList.length]
+        simp [List.filter, lengthₚ]
       | cons p₀ ps' ih =>
         intro qs hps hqs h_prod p hp
-        have hp₀     : Prime p₀    := hps p₀ (Or.inl rfl)
-        have hps'    : PrimeList ps' := fun r hr => hps r (Or.inr hr)
+        have hp₀     : Prime p₀    := hps p₀ (List.mem_cons.mpr (Or.inl rfl))
+        have hps'    : PrimeList ps' := fun r hr => hps r (List.mem_cons.mpr (Or.inr hr))
         rw [product_cons] at h_prod
         -- p₀ ∣ ∏ qs
         have hp₀_dvd : p₀ ∣ product_list qs := ⟨product_list ps', h_prod.symm⟩
@@ -653,12 +651,12 @@ namespace Peano
           by_cases h_pp₀ : p = p₀
           · subst h_pp₀
             -- count p₀ (p₀ :: ps') = σ (count p₀ ps')
-            simp [DList.filter, DList.length]
+            simp [List.filter, lengthₚ_cons]
             -- count p₀ qs = σ (count p₀ (remove_one p₀ qs))
             rw [filter_count_eq qs hp₀_mem]
             rw [ih_eq]
           · -- count p (p₀ :: ps') = count p ps'  (p ≠ p₀)
-            simp [DList.filter, Ne.symm h_pp₀]
+            simp [List.filter, Ne.symm h_pp₀]
             -- count p qs = count p (remove_one p₀ qs)
             rw [filter_count_neq (Ne.symm h_pp₀) qs hp₀_mem]
             exact ih_eq

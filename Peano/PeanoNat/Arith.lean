@@ -15,6 +15,7 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.MaxMin
+import Peano.PeanoNat.Lists
 
 
 namespace Peano
@@ -28,6 +29,7 @@ namespace Peano
       open Peano.Sub
       open Peano.Div
       open Peano.MaxMin
+      open Peano.Lists
       open Classical
 
     def Divides (a b : ℕ₀) : Prop :=
@@ -43,79 +45,37 @@ namespace Peano
       Divides d n
       open Classical
 
-    inductive DList (α : Type) : Type
-      | nil : DList α
-      | cons : α → DList α → DList α
+    -- ──────────────────────────────────────────────────────────────────
+    -- Compatibilidad: alias `mem_cons` / `mem_append` sobre `List`
+    -- ──────────────────────────────────────────────────────────────────
 
-    def DList.append {α : Type} : DList α → DList α → DList α
-      | DList.nil, ys => ys
-      | DList.cons x xs, ys => DList.cons x (DList.append xs ys)
+    theorem mem_cons {α : Type} (a b : α) (xs : List α) :
+      a ∈ (b :: xs) ↔ a = b ∨ a ∈ xs :=
+      List.mem_cons
 
-    def DList.filter {α : Type} (p : α → Bool) : DList α → DList α
-      | DList.nil => DList.nil
-      | DList.cons x xs =>
-        if p x then DList.cons x (DList.filter p xs) else DList.filter p xs
-
-    def DList.length {α : Type} : DList α → ℕ₀
-      | DList.nil => 𝟘
-      | DList.cons _ xs => σ (DList.length xs)
-
-    def DList.Mem {α : Type} (a : α) : DList α → Prop
-      | DList.nil => False
-      | DList.cons h t => a = h ∨ DList.Mem a t
-
-    notation:50 a " ∈ " l => DList.Mem a l
-
-    theorem mem_cons {α : Type} (a b : α) (xs : DList α) :
-      DList.Mem a (DList.cons b xs) ↔ a = b ∨ DList.Mem a xs := by
-      rfl
-
-    theorem mem_append {α : Type} (a : α) (xs ys : DList α) :
-      DList.Mem a (DList.append xs ys) ↔ DList.Mem a xs ∨ DList.Mem a ys := by
-      induction xs with
-      | nil =>
-        simp [DList.append, DList.Mem]
-      | cons x xs ih =>
-        simp [DList.append, DList.Mem, ih, or_assoc]
-
-    inductive DList.NoDup {α : Type} : DList α → Prop
-      | nil : DList.NoDup DList.nil
-      | cons {x : α} {xs : DList α} : (DList.Mem x xs → False) → DList.NoDup xs → DList.NoDup (DList.cons x xs)
-
-    def DList.MemDec {α : Type} [DecidableEq α] (a : α) : (xs : DList α) → Decidable (DList.Mem a xs)
-      | DList.nil => isFalse (by intro h; exact h)
-      | DList.cons x xs =>
-        match decEq a x with
-        | isTrue h_eq => isTrue (Or.inl h_eq)
-        | isFalse h_neq =>
-          match DList.MemDec a xs with
-          | isTrue h_mem => isTrue (Or.inr h_mem)
-          | isFalse h_mem =>
-            isFalse (by
-              intro h
-              cases h with
-              | inl h_eq => exact h_neq h_eq
-              | inr h_tail => exact h_mem h_tail)
+    theorem mem_append {α : Type} (a : α) (xs ys : List α) :
+      a ∈ (xs ++ ys) ↔ a ∈ xs ∨ a ∈ ys :=
+      List.mem_append
 
     structure DivisorsList (n : ℕ₀) : Type where
-      vals : DList ℕ₀
-      all_divide : ∀ d : ℕ₀, DList.Mem d vals → d ∣ n
-      complete : ∀ d : ℕ₀, d ∣ n → DList.Mem d vals
-      symm : ∀ d k : ℕ₀, DList.Mem d vals → n = mul d k → DList.Mem k vals
+      vals : List ℕ₀
+      all_divide : ∀ d : ℕ₀, d ∈ vals → d ∣ n
+      complete : ∀ d : ℕ₀, d ∣ n → d ∈ vals
+      symm : ∀ d k : ℕ₀, d ∈ vals → n = mul d k → k ∈ vals
 
     def Divisors (n : ℕ₀) : ℕ₀ → Prop :=
       fun d => d ∣ n
 
-    def range_from_one : ℕ₀ → DList ℕ₀
-      | 𝟘 => DList.nil
-      | σ n' => DList.append (range_from_one n') (DList.cons (σ n') DList.nil)
+    def range_from_one : ℕ₀ → List ℕ₀
+      | 𝟘 => []
+      | σ n' => range_from_one n' ++ [σ n']
 
     def dividesb (d n : ℕ₀) : Bool :=
       decide ((n % d) = 𝟘)
 
-    def factorsOf (n : ℕ₁) : DList ℕ₀ :=
+    def factorsOf (n : ℕ₁) : List ℕ₀ :=
       let n0 := n.val
-      DList.filter (fun d => dividesb d n0) (range_from_one n0)
+      (range_from_one n0).filter (fun d => dividesb d n0)
 
     inductive Multiples (n : ℕ₀) : ℕ₀ → Prop
       | zero : Multiples n 𝟘
@@ -779,14 +739,7 @@ export Peano.Arith (
   multiples_to_divides
   divides_to_multiples
   multiples_iff_divides
-  DList
   DivisorsList
-  DList.Mem
-  DList.append
-  DList.filter
-  DList.length
-  DList.NoDup
-  DList.MemDec
   mem_cons
   mem_append
   range_from_one

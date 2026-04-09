@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-03-16 18:30
+**Última actualización:** 2026-04-09 01:02
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,78 +13,85 @@
 
 ### 0.1. Módulos `.lean`
 
-| Módulo (ruta) | Namespace | Docs | Depende de | Dependido por |
-|---|---|---|---|---|
-| `Peano.lean` | — | Sí | todos los módulos de `Peano/` | — |
-| `Peano/Peano.lean` | `Peano` | Sí | `Init.Classical` | todos |
-| `Peano/PeanoNatAxioms.lean` | `Peano.Axioms` | Sí | `Peano` | `StrictOrder`, `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatStrictOrder.lean` | `Peano.StrictOrder` | Sí | `Peano`, `PeanoNatAxioms` | `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatOrder.lean` | `Peano.Order` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder` | `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatMaxMin.lean` | `Peano.MaxMin` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatWellFounded.lean` | `Peano.WellFounded` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatAdd.lean` | `Peano.Add` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded` | `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatSub.lean` | `Peano.Sub` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd` | `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNatMul.lean` | `Peano.Mul` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub` | `Div`, `Arith` |
-| `Peano/PeanoNatDiv.lean` | `Peano.Div` | Sí | `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul` | `Arith`, `Pow` |
-| `Peano/PeanoNatPow.lean` | `Peano.Pow` | Sí | `Peano`, ..., `PeanoNatDiv` (sin `Arith`) | `Peano.lean` |
-| `Peano/PeanoArith.lean` | `Peano.Arith` | Sí | todos los anteriores, `Init.Classical` | `Primes` |
-| `Peano/PeanoNatPrimes.lean` | `Peano.Primes` | Sí | todos los anteriores + `PeanoNatArith` | — |
-| `Peano/PeanoNatPow.lean` | `Peano.Pow` | Sí | `Peano`…`PeanoNatMul`, `PeanoNatDiv` | `Peano.lean` |
-| `Peano/PeanoNatFactorial.lean` | `Peano.Factorial` | Sí | `Peano`…`PeanoNatAdd`, `PeanoNatMul` | `PeanoNatBinom`, `PeanoNatNewtonBinom` |
-| `Peano/PeanoNatBinom.lean` | `Peano.Binom` | Sí | `Peano`…`PeanoNatMul`, `PeanoNatFactorial` | `PeanoNatNewtonBinom` |
-| `Peano/PeanoNatNewtonBinom.lean` | `Peano.NewtonBinom` | Sí | `Peano`…`PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom` | `Peano.lean` |
+| Módulo (ruta) | Namespace | Depende de | Dependido por |
+|---|---|---|---|
+| `Peano.lean` | — | todos los módulos de `Peano/` | — |
+| `Peano/Prelim.lean` | `Peano` | `Init.Classical` | `PeanoNat` y todos los siguientes |
+| `Peano/PeanoNat.lean` | `Peano` | `Prelim` | todos los de `PeanoNat/` |
+| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder`, `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order`, `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Order.lean` | `Peano.Order` | `PeanoNat`, `Axioms`, `StrictOrder` | `MaxMin`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
+| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes` |
+| `Peano/PeanoNat/Add.lean` | `Peano.Add` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `WellFounded` | `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | `…Add` y anteriores | `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | `…Sub` y anteriores | `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` y anteriores | `Arith`, `Primes`, `Combinatorics/Pow` |
+| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | todos los anteriores, `Init.Classical` | `Primes` |
+| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | `Arith` y todos los anteriores | — |
+| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `…Mul`, `Div` | `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `…Add`, `Mul` | `Binom`, `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `…Mul`, `Sub`, `Factorial` | `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | `…Pow`, `Factorial`, `Binom` | — |
+| `Peano/PeanoNat/Isomorph.lean` | — (reexport) | `Sub` y anteriores | — |
+| `Peano/PeanoNat/Decidable.lean` | — (reexport) | `Order` y anteriores | — |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
 
 | Namespace | Módulo | Sub-namespace de |
 |---|---|---|
-| `Peano` | `Peano.lean` | — (raíz del proyecto) |
-| `Peano.Axioms` | `PeanoNatAxioms.lean` | `Peano` |
-| `Peano.StrictOrder` | `PeanoNatStrictOrder.lean` | `Peano` |
-| `Peano.Order` | `PeanoNatOrder.lean` | `Peano` |
-| `Peano.MaxMin` | `PeanoNatMaxMin.lean` | `Peano` |
-| `Peano.WellFounded` | `PeanoNatWellFounded.lean` | `Peano` |
-| `Peano.Add` | `PeanoNatAdd.lean` | `Peano` |
-| `Peano.Sub` | `PeanoNatSub.lean` | `Peano` |
-| `Peano.Mul` | `PeanoNatMul.lean` | `Peano` |
-| `Peano.Div` | `PeanoNatDiv.lean` | `Peano` |
-| `Peano.Arith` | `PeanoArith.lean` | `Peano` |
-| `Peano.Primes` | `PeanoNatPrimes.lean` | `Peano` |
-| `Peano.Pow` | `PeanoNatPow.lean` | `Peano` |
-| `Peano.Factorial` | `PeanoNatFactorial.lean` | `Peano` |
-| `Peano.Binom` | `PeanoNatBinom.lean` | `Peano` |
-| `Peano.NewtonBinom` | `PeanoNatNewtonBinom.lean` | `Peano` |
+| `Peano` | `Prelim.lean`, `PeanoNat.lean` | — (raíz del proyecto) |
+| `Peano.Axioms` | `PeanoNat/Axioms.lean` | `Peano` |
+| `Peano.StrictOrder` | `PeanoNat/StrictOrder.lean` | `Peano` |
+| `Peano.Order` | `PeanoNat/Order.lean` | `Peano` |
+| `Peano.MaxMin` | `PeanoNat/MaxMin.lean` | `Peano` |
+| `Peano.WellFounded` | `PeanoNat/WellFounded.lean` | `Peano` |
+| `Peano.Add` | `PeanoNat/Add.lean` | `Peano` |
+| `Peano.Sub` | `PeanoNat/Sub.lean` | `Peano` |
+| `Peano.Mul` | `PeanoNat/Mul.lean` | `Peano` |
+| `Peano.Div` | `PeanoNat/Div.lean` | `Peano` |
+| `Peano.Arith` | `PeanoNat/Arith.lean` | `Peano` |
+| `Peano.Primes` | `PeanoNat/Primes.lean` | `Peano` |
+| `Peano.Pow` | `Combinatorics/Pow.lean` | `Peano` |
+| `Peano.Factorial` | `Combinatorics/Factorial.lean` | `Peano` |
+| `Peano.Binom` | `Combinatorics/Binom.lean` | `Peano` |
+| `Peano.NewtonBinom` | `Combinatorics/NewtonBinom.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
 | Símbolo | Tipo | Prioridad | Namespace | Módulo |
 |---|---|---|---|---|
-| `σ n` | prefijo | `max` | `Peano` | `Peano.lean` |
-| `𝟘` | constante | — | `Peano` | `Peano.lean` |
-| `𝟙` | constante | — | `Peano` | `Peano.lean` |
-| `𝟚` | constante | — | `Peano` | `Peano.lean` |
-| `𝟛` | constante | — | `Peano` | `Peano.lean` |
-| `∃¹ x, p x` | macro cuantificador (4 variantes) | — | `Peano` | `Peano.lean` |
-| `n + m` | infijo, instancia `Add ℕ₀` | ~65 | `Peano.Add` | `PeanoNatAdd.lean` |
-| `a + b` (alias) | `notation a "+" b => Peano.Add.add a b` | — | `Peano.Add` | `PeanoNatAdd.lean` |
-| `a +l b` | `notation a "+l" b => Peano.Add.add_l a b` | — | `Peano.Add` | `PeanoNatAdd.lean` |
-| `n - m` | infijo | 65 | `Peano.Sub` | `PeanoNatSub.lean` |
-| `n -( h ) m` | notación con prueba | 65 | `Peano.Sub` | `PeanoNatSub.lean` |
-| `n * m` | infijo | 70 | `Peano.Mul` | `PeanoNatMul.lean` |
-| `a / b` | notación | — | `Peano.Div` | `PeanoNatDiv.lean` |
-| `a % b` | notación | — | `Peano.Div` | `PeanoNatDiv.lean` |
-| `n < m` | instancia `LT ℕ₀` | — | `Peano.StrictOrder` | `PeanoNatStrictOrder.lean` |
-| `n ≤ m` | instancia `LE ℕ₀` | — | `Peano.Order` | `PeanoNatOrder.lean` |
-| `a ∣ b` | infijo | 50 | `Peano.Arith` | `PeanoArith.lean` |
-| `a ∤ b` | notación negación | 50 | `Peano.Arith` | `PeanoArith.lean` |
-| `a ∣₁ b` | infijo | 50 | `Peano.Arith` | `PeanoArith.lean` |
-| `n ^ m` | infijo | 80 | `Peano.Pow` | `PeanoNatPow.lean` |
+| `σ n` | prefijo | `max` | `Peano` | `PeanoNat.lean` |
+| `𝟘` | constante | — | `Peano` | `PeanoNat.lean` |
+| `𝟙` | constante | — | `Peano` | `PeanoNat.lean` |
+| `𝟚` | constante | — | `Peano` | `PeanoNat.lean` |
+| `𝟛` | constante | — | `Peano` | `PeanoNat.lean` |
+| `∃¹ x, p x` | macro cuantificador (4 variantes) | — | `Peano` | `Prelim.lean` |
+| `⟨⟩` | tupla vacía | — | `Peano` | `PeanoNat.lean` |
+| `⟨x⟩` | tupla singleton | — | `Peano` | `PeanoNat.lean` |
+| `n + m` | infijo, instancia `Add ℕ₀` | ~65 | `Peano.Add` | `Add.lean` |
+| `a +l b` | infijo | — | `Peano.Add` | `Add.lean` |
+| `n - m` | infijo | 65 | `Peano.Sub` | `Sub.lean` |
+| `n -( h ) m` | notación con prueba | 65 | `Peano.Sub` | `Sub.lean` |
+| `n * m` | infijo | 70 | `Peano.Mul` | `Mul.lean` |
+| `a / b` | notación | — | `Peano.Div` | `Div.lean` |
+| `a % b` | notación | — | `Peano.Div` | `Div.lean` |
+| `n < m` | instancia `LT ℕ₀` | — | `Peano.StrictOrder` | `StrictOrder.lean` |
+| `n ≤ m` | instancia `LE ℕ₀` | — | `Peano.Order` | `Order.lean` |
+| `a ∣ b` | infijo | 50 | `Peano.Arith` | `Arith.lean` |
+| `a ∤ b` | notación negación | 50 | `Peano.Arith` | `Arith.lean` |
+| `a ∣₁ b` | infijo | 50 | `Peano.Arith` | `Arith.lean` |
+| `n ^ m` | infijo | 80 | `Peano.Pow` | `Combinatorics/Pow.lean` |
+| `C(n, k)` | notación combinatoria | — | `Peano.Binom` | `Combinatorics/Binom.lean` |
+| `∑ k ≤ n, f` | macro sumatorio | — | `Peano.NewtonBinom` | `Combinatorics/NewtonBinom.lean` |
 
 ---
 
-## 1. Peano.lean — `namespace Peano`
+## 1. Prelim.lean — `namespace Peano`
 
 *Dependencias: `Init.Classical`*
+
+Infraestructura compartida: existencia única y operador de elección clásica. No depende de `ℕ₀`.
 
 ### 1.1. Definiciones
 
@@ -95,93 +102,24 @@
 - **Computable:** No (Prop)
 - **Notación:** `∃¹ x, p x` | `∃¹ (x), p x` | `∃¹ (x : T), p x` | `∃¹ x : T, p x` — macro, 4 variantes
 
-**[D1.2]** `ℕ₀`
-
-- **Lean4:**
-
-  ```
-  inductive ℕ₀ : Type
-    | zero : ℕ₀
-    | succ : ℕ₀ → ℕ₀
-    deriving Repr, BEq, DecidableEq
-  ```
-
-- **Matemática:** Tipo inductivo libre con constructores 0 y σ: ℕ₀ → ℕ₀
-- **Computable:** Sí
-- **Notación:** `𝟘` → `ℕ₀.zero`; `σ n` → `ℕ₀.succ n` (prefijo, prioridad `max`)
-
-**[D1.3]** `ℕ₁`
-
-- **Lean4:** `def ℕ₁ : Type := {n : ℕ₀ // n ≠ ℕ₀.zero}`
-- **Matemática:** ℕ₁ = {n ∈ ℕ₀ | n ≠ 0}
-- **Computable:** Sí
-
-**[D1.4]** `ℕ₂`
-
-- **Lean4:** `def ℕ₂ : Type := {n : ℕ₁ // n.val ≠ ℕ₀.succ ℕ₀.zero}`
-- **Matemática:** ℕ₂ = {n ∈ ℕ₁ | n ≠ 1}
-- **Computable:** Sí
-
-**[D1.5]** Constantes numéricas
-
-- **Lean4:**
-
-  ```
-  def cero  : ℕ₀ := ℕ₀.zero    -- notación: 𝟘
-  def one   : ℕ₀ := σ 𝟘         -- notación: 𝟙
-  def two   : ℕ₀ := σ one       -- notación: 𝟚
-  def three : ℕ₀ := σ two       -- notación: 𝟛
-  ```
-
-- **Matemática:** 0, 1 = σ(0), 2 = σ(1), 3 = σ(2)
-- **Computable:** Sí
-
-**[D1.6]** `Λ` y `Ψ` (isomorfismo con `Nat`)
-
-- **Lean4:**
-
-  ```
-  def Λ (n : Nat) : ℕ₀   -- recursión sobre Nat; Nat.zero ↦ 𝟘, Nat.succ k ↦ σ(Λ k)
-  def Ψ (n : ℕ₀)  : Nat   -- recursión sobre ℕ₀
-  ```
-
-- **Matemática:** Λ: ℕ → ℕ₀, Ψ: ℕ₀ → ℕ; isomorfismo de semiestructuras
-- **Computable:** Sí (ambos)
-
-**[D1.7]** `choose` (elección clásica)
+**[D1.2]** `choose` (elección clásica)
 
 - **Lean4:** `noncomputable def choose {α : Type} {p : α → Prop} (h : ∃ x, p x) : α`
 - **Matemática:** Operador ε: dado ∃x, p(x), elige un testigo
 - **Computable:** No (noncomputable; usa `Classical.indefiniteDescription`)
 - **Dependencias:** `Init.Classical`
 
-**[D1.8]** `ExistsUnique.exists`
+**[D1.3]** `ExistsUnique.exists`
 
 - **Lean4:** `def ExistsUnique.exists {α : Type} {p : α → Prop} (h : ExistsUnique p) : ∃ x, p x`
 - **Computable:** Sí
 
-**[D1.9]** `choose_unique`
+**[D1.4]** `choose_unique`
 
 - **Lean4:** `noncomputable def choose_unique {α : Type} {p : α → Prop} (h : ExistsUnique p) : α`
 - **Matemática:** Elección del único testigo de ∃¹x, p(x)
 - **Computable:** No
 - **Dependencias:** `choose`, `ExistsUnique.exists`
-
-**[D1.10]** Funciones auxiliares de igualdad funcional
-
-- **Lean4:**
-
-  ```
-  def idℕ₀   (n : ℕ₀) : ℕ₀
-  def idNat  (n : Nat) : Nat
-  def EqFnGen {α β} (f g : α → β)       : Prop  -- ∀ x, f x = g x
-  def Comp    {α β} (f : α→β) (g : β→α) : Prop  -- ∀ x, g(f x) = x
-  def EqFn    {α}   (f g : ℕ₀ → α)      : Prop
-  def EqFn2   {α}   (f g : ℕ₀×ℕ₀ → α)   : Prop
-  def EqFnNat {α}   (f g : Nat → α)     : Prop
-  ```
-
-- **Computable:** Sí (identidades y definiciones proposicionales)
 
 ### 1.2. Teoremas
 
@@ -205,123 +143,388 @@
 
 ---
 
-## 2. PeanoNatAxioms.lean — `namespace Peano.Axioms`
+## 2. PeanoNat.lean — `namespace Peano`
 
-*Dependencias: `Peano`*
+*Dependencias: `Prelim`*
 
-Los axiomas de Peano se demuestran como teoremas a partir de la estructura inductiva de `ℕ₀`.
+Tipo inductivo básico `ℕ₀`, subtipos, isomorfismo con `Nat`, tuplas.
 
-### 2.1. Definiciones auxiliares
+### 2.1. Definiciones
 
-**[D2.1]** `is_zero`, `is_succ`, `return_branch`
+**[D2.1]** `ℕ₀`
 
 - **Lean4:**
 
   ```
-  def is_zero      : ℕ₀ → Prop   -- True iff n = 𝟘
-  def is_succ      : ℕ₀ → Prop   -- True iff ∃k, n = σ k
-  def return_branch : ℕ₀ → Prop   -- is_zero | is_succ según constructor
+  inductive ℕ₀ : Type
+    | zero : ℕ₀
+    | succ : ℕ₀ → ℕ₀
+    deriving Repr, BEq, DecidableEq
+  ```
+
+- **Matemática:** Tipo inductivo libre con constructores 0 y σ: ℕ₀ → ℕ₀
+- **Computable:** Sí
+- **Notación:** `𝟘` → `ℕ₀.zero`; `σ n` → `ℕ₀.succ n` (prefijo, prioridad `max`)
+
+**[D2.2]** `ℕ₁`
+
+- **Lean4:** `def ℕ₁ : Type := {n : ℕ₀ // n ≠ ℕ₀.zero}`
+- **Matemática:** ℕ₁ = {n ∈ ℕ₀ | n ≠ 0}
+- **Computable:** Sí
+
+**[D2.3]** `ℕ₂`
+
+- **Lean4:** `def ℕ₂ : Type := {n : ℕ₁ // n.val ≠ ℕ₀.succ ℕ₀.zero}`
+- **Matemática:** ℕ₂ = {n ∈ ℕ₁ | n ≠ 1}
+- **Computable:** Sí
+
+**[D2.4]** Constantes numéricas
+
+- **Lean4:**
+
+  ```
+  def cero  : ℕ₀ := ℕ₀.zero    -- notación: 𝟘
+  def one   : ℕ₀ := σ 𝟘         -- notación: 𝟙
+  def two   : ℕ₀ := σ one       -- notación: 𝟚
+  def three : ℕ₀ := σ two       -- notación: 𝟛
+  ```
+
+- **Matemática:** 0, 1 = σ(0), 2 = σ(1), 3 = σ(2)
+- **Computable:** Sí
+
+**[D2.5]** Funciones auxiliares de igualdad funcional
+
+- **Lean4:**
+
+  ```
+  def idℕ₀   (n : ℕ₀) : ℕ₀
+  def idNat  (n : Nat) : Nat
+  def eqFnGen {α β} (f g : α → β)       : Prop  -- ∀ x, f x = g x
+  def comp    {α β} (f : α→β) (g : β→α) : Prop  -- ∀ x, g(f x) = x
+  def eqFn    {α}   (f g : ℕ₀ → α)      : Prop
+  def eqFn2   {α}   (f g : ℕ₀×ℕ₀ → α)   : Prop
+  def eqFnNat {α}   (f g : Nat → α)     : Prop
+  ```
+
+- **Computable:** Sí (identidades y definiciones proposicionales)
+
+**[D2.6]** `Λ` y `Ψ` (isomorfismo con `Nat`)
+
+- **Lean4:**
+
+  ```
+  def Λ (n : Nat) : ℕ₀   -- Nat.zero ↦ 𝟘, Nat.succ k ↦ σ(Λ k)
+  def Ψ (n : ℕ₀)  : Nat   -- ℕ₀.zero ↦ 0, ℕ₀.succ k ↦ Nat.succ (Ψ k)
+  ```
+
+- **Matemática:** Λ: ℕ → ℕ₀, Ψ: ℕ₀ → ℕ; isomorfismo de semiestructuras
+- **Computable:** Sí (ambos)
+
+**[D2.7]** `τ` (predecesor truncado)
+
+- **Lean4:**
+
+  ```
+  def τ (n : ℕ₀) : ℕ₀ :=
+    match n with
+    | ℕ₀.zero => 𝟘
+    | ℕ₀.succ k => k
+  ```
+
+- **Matemática:** τ(0) = 0; τ(σ n) = n  (predecesor truncado)
+- **Computable:** Sí
+
+**[D2.8]** `ρ` (predecesor verificado)
+
+- **Lean4:**
+
+  ```
+  def ρ (n : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) : ℕ₀ :=
+    match n with
+    | ℕ₀.zero => False.elim (h_n_neq_0 rfl)
+    | ℕ₀.succ k => k
+  ```
+
+- **Matemática:** ρ(n, n≠0) = predecesor de n (con prueba n ≠ 0)
+- **Computable:** Sí
+
+**[D2.9]** `Tuple` (tuplas de dimensión finita)
+
+- **Lean4:**
+
+  ```
+  def Tuple : ℕ₀ → Type
+    | 𝟘 => Unit
+    | σ n => ℕ₀ × Tuple n
+  ```
+
+- **Matemática:** Tuple(0) = Unit; Tuple(σ n) = ℕ₀ × Tuple(n)
+- **Computable:** Sí
+
+**[D2.10]** Operaciones sobre tuplas
+
+- **Lean4:**
+
+  ```
+  def emptyTuple : Tuple 𝟘 := ()
+  def consTuple {n : ℕ₀} (x : ℕ₀) (xs : Tuple n) : Tuple (σ n) := (x, xs)
+  def headTuple {n : ℕ₀} (t : Tuple (σ n)) : ℕ₀ := t.1
+  def tailTuple {n : ℕ₀} (t : Tuple (σ n)) : Tuple n := t.2
+  def mkTuple : (n : ℕ₀) → (f : ℕ₀ → ℕ₀) → Tuple n
+  ```
+
+- **Matemática:** Constructor vacío, cons, proyecciones cabeza/cola, construcción desde función
+- **Computable:** Sí
+- **Notación:** `⟨⟩` → `emptyTuple`; `⟨x⟩` → `consTuple x emptyTuple`
+
+### 2.2. Instancias
+
+- `Coe Nat ℕ₀` (coerción vía `Λ`)
+- `tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)`
+- `tupleRepr : (n : ℕ₀) → Repr (Tuple n)`
+
+---
+
+## 3. Axioms.lean — `namespace Peano.Axioms`
+
+*Dependencias: `PeanoNat`*
+
+Los axiomas de Peano se demuestran como teoremas a partir de la estructura inductiva de `ℕ₀`.
+
+### 3.1. Definiciones auxiliares
+
+**[D3.1]** `isZero`, `isSucc`, `returnBranch`
+
+- **Lean4:**
+
+  ```
+  def isZero      : ℕ₀ → Prop   -- True iff n = 𝟘
+  def isSucc      : ℕ₀ → Prop   -- True iff ∃k, n = σ k
+  def returnBranch : ℕ₀ → Prop   -- isZero | isSucc según constructor
   ```
 
 - **Computable:** No (Prop)
 
-**[D2.2]** `succ_inj` (alias)
+**[D3.2]** `succ_inj` (alias)
 
-- **Lean4:** `def succ_inj (n m : ℕ₀) := AXIOM_succ_inj n m`
+- **Lean4:** `def succ_inj (n m : ℕ₀) := succ_injective n m`
 - **Computable:** No (Prop → Prop)
 
-### 2.2. Axiomas (demostrados como teoremas), ordenados de declaración
+**[D3.3]** `BIs_zero`, `BIs_succ` (contrapartes booleanas)
 
-**[A1]** `AXIOM_zero_is_an_PeanoNat`
+- **Lean4:**
 
-- **Lean4:** `theorem AXIOM_zero_is_an_PeanoNat : is_zero 𝟘`
-- **Matemática:** is_zero(0)
-- **Dependencias:** `is_zero`
+  ```
+  def BIs_zero : ℕ₀ → Bool
+  def BIs_succ : ℕ₀ → Bool
+  ```
 
-**[A2]** `AXIOM_succ_is_an_PeanoNat`
+- **Computable:** Sí
 
-- **Lean4:** `theorem AXIOM_succ_is_an_PeanoNat (n : ℕ₀) : is_succ (σ n)`
-- **Matemática:** ∀n ∈ ℕ₀, is_succ(σ n)
-- **Dependencias:** `is_succ`
+**[D3.4]** `category_by_constructor`
 
-**[A3]** `AXIOM_cero_neq_succ`
+- **Lean4:** `def category_by_constructor (n : ℕ₀) : ℕ₀ → Prop`
+- **Computable:** No (Prop)
 
-- **Lean4:** `theorem AXIOM_cero_neq_succ : ∀ (k : ℕ₀), 𝟘 ≠ σ k`
-- **Matemática:** ∀k ∈ ℕ₀, 0 ≠ σ(k)
+### 3.2. Axiomas (demostrados como teoremas)
+
+**[A1]** `isNat_zero`
+
+- **Lean4:** `theorem isNat_zero : isZero 𝟘`
+- **Matemática:** isZero(0)
+
+**[A2]** `isNat_succ`
+
+- **Lean4:** `theorem isNat_succ (n : ℕ₀) : isSucc (σ n)`
+- **Matemática:** ∀n ∈ ℕ₀, isSucc(σ n)
+
+**[A3]** `cero_neq_succ` / `zero_ne_succ`
+
+- **Lean4:** `theorem cero_neq_succ (n : ℕ₀) : 𝟘 ≠ σ n`
+- **Lean4:** `theorem zero_ne_succ : ∀ (n : ℕ₀), 𝟘 ≠ σ n`
+- **Matemática:** ∀n ∈ ℕ₀, 0 ≠ σ(n)
 
 **[A4]** `AXIOM_zero_notin_ima_succ`
 
 - **Lean4:** `theorem AXIOM_zero_notin_ima_succ : ∀ (n : ℕ₀), 𝟘 ≠ σ n`
 - **Matemática:** 0 ∉ Im(σ)
 
-**[A5]** `AXIOM_succ_is_funct_forall_n_in_PeanoNat`
+**[A5]** `succ_isNat`
 
-- **Lean4:** `theorem AXIOM_succ_is_funct_forall_n_in_PeanoNat : ∀ (n : ℕ₀), ∃ (k : ℕ₀), k = σ n`
+- **Lean4:** `theorem succ_isNat : ∀ (n : ℕ₀), ∃ (k : ℕ₀), k = σ n`
 - **Matemática:** ∀n ∈ ℕ₀, ∃k ∈ ℕ₀, k = σ(n)
 
-**[A6]** `AXIOM_uniqueness_on_image`
+**[A6]** `succ_congr`
 
-- **Lean4:** `theorem AXIOM_uniqueness_on_image (n m : ℕ₀) : n = m → σ n = σ m`
+- **Lean4:** `theorem succ_congr (n m : ℕ₀) : n = m → σ n = σ m`
 - **Matemática:** n = m ⇒ σ(n) = σ(m)  (univocidad de σ)
 
-**[A7]** `AXIOM_succ_inj`
+**[A7]** `succ_injective`
 
-- **Lean4:** `theorem AXIOM_succ_inj (n m : ℕ₀) : σ n = σ m → n = m`
+- **Lean4:** `theorem succ_injective (n m : ℕ₀) : σ n = σ m → n = m`
 - **Matemática:** σ(n) = σ(m) ⇒ n = m  (inyectividad de σ)
 
-**[A8]** `AXIOM_induction_on_PeanoNat`
+**[A8]** `induction_principle`
 
 - **Lean4:**
 
   ```
-  theorem AXIOM_induction_on_PeanoNat
+  theorem induction_principle
       (P : ℕ₀ → Prop) (h_0 : P 𝟘)
       (h_succ : ∀ n, P n → P (σ n)) : ∀ n, P n
   ```
 
 - **Matemática:** P(0) ∧ (∀n, P(n) ⇒ P(σ n)) ⇒ ∀n ∈ ℕ₀, P(n)
 
-### 2.3. Teoremas auxiliares exportados
+### 3.3. Teoremas auxiliares exportados
 
-**[T2.1]** `noConfusion`
+**[T3.1]** `noConfusion`
 
-- **Lean4:** `theorem noConfusion (n : ℕ₀) : (is_zero n → ¬ is_succ n) ∧ (is_succ n → ¬ is_zero n)`
-- **Matemática:** is_zero(n) e is_succ(n) son mutuamente excluyentes
+- **Lean4:** `theorem noConfusion (n : ℕ₀) : (isZero n → ¬ isSucc n) ∧ (isSucc n → ¬ isZero n)`
+- **Matemática:** isZero(n) e isSucc(n) son mutuamente excluyentes
 
-**[T2.2]** `cero_neq_succ`
-
-- **Lean4:** `theorem cero_neq_succ : ∀ (n : ℕ₀), 𝟘 ≠ σ n`
-- **Matemática:** ∀n ∈ ℕ₀, 0 ≠ σ(n)
-
-**[T2.3]** `succ_neq_zero`
+**[T3.2]** `succ_neq_zero`
 
 - **Lean4:** `theorem succ_neq_zero (n : ℕ₀) : σ n ≠ 𝟘`
 - **Matemática:** ∀n ∈ ℕ₀, σ(n) ≠ 0
 
-**[T2.4]** `succ_inj_wp`
+**[T3.3]** `succ_inj_wp`
 
 - **Lean4:** `theorem succ_inj_wp {n m : ℕ₀} (h_neq : ¬ n = m) : σ n ≠ σ m`
 - **Matemática:** n ≠ m ⇒ σ(n) ≠ σ(m)
 
-**[T2.5]** `succ_inj_neg`
+**[T3.4]** `succ_inj_neg`
 
 - **Lean4:** `theorem succ_inj_neg : ∀ n m : ℕ₀, σ n ≠ σ m → n ≠ m`
 - **Matemática:** σ(n) ≠ σ(m) ⇒ n ≠ m
 
-**[T2.6]** `succ_inj_pos_wp`
+**[T3.5]** `succ_inj_pos_wp`
 
 - **Lean4:** `theorem succ_inj_pos_wp {n m : ℕ₀} (h_succeq : σ n = σ m) : n = m`
 - **Matemática:** σ(n) = σ(m) ⇒ n = m
 
+**[T3.6]** `neq_succ`
+
+- **Lean4:** `theorem neq_succ (k : ℕ₀) : k ≠ σ k`
+- **Matemática:** ∀k ∈ ℕ₀, k ≠ σ(k)
+
+**[T3.7]** `isZero_or_isSucc`
+
+- **Lean4:** `theorem isZero_or_isSucc (n : ℕ₀) : isZero n ∨ isSucc n`
+- **Matemática:** ∀n ∈ ℕ₀, isZero(n) ∨ isSucc(n)
+
+**[T3.8]** `isZero_xor_isSucc`
+
+- **Lean4:** `theorem isZero_xor_isSucc (n : ℕ₀) : (isZero n ∧ ¬isSucc n) ∨ (isSucc n ∧ ¬isZero n)`
+- **Matemática:** ∀n ∈ ℕ₀, isZero(n) ⊕ isSucc(n)
+
+### 3.4. Isomorfismo Λ/Ψ — inyectividad, biyección, composición
+
+**[T3.9]** `Λ_inj`
+
+- **Lean4:** `theorem Λ_inj (n m : Nat) : Λ n = Λ m → n = m`
+- **Matemática:** Λ es inyectiva
+
+**[T3.10]** `Ψ_inj`
+
+- **Lean4:** `theorem Ψ_inj (n m : ℕ₀) : Ψ n = Ψ m → n = m`
+- **Matemática:** Ψ es inyectiva
+
+**[T3.11]** `Λ_surj`
+
+- **Lean4:** `theorem Λ_surj (k : ℕ₀) : ∃ n : Nat, Λ n = k`
+- **Matemática:** Λ es sobreyectiva
+
+**[T3.12]** `Λ_bij`
+
+- **Lean4:** `theorem Λ_bij (n m : Nat) (k : ℕ₀) : (Λ n = Λ m → n = m) ∧ (∃ j, Λ j = k)`
+- **Matemática:** Λ es biyectiva
+
+**[T3.13]** `Ψ_surj`
+
+- **Lean4:** `theorem Ψ_surj (n : Nat) : ∃ k : ℕ₀, Ψ k = n`
+- **Matemática:** Ψ es sobreyectiva
+
+**[T3.14]** `Ψ_bij`
+
+- **Lean4:** `theorem Ψ_bij (n m : ℕ₀) (k : Nat) : (Ψ n = Ψ m → n = m) ∧ (∃ j, Ψ j = k)`
+- **Matemática:** Ψ es biyectiva
+
+**[T3.15]** `comp_Λ_eq_Ψ` / `comp_Ψ_eq_Λ`
+
+- **Lean4:** `theorem comp_Λ_eq_Ψ : comp Λ Ψ` / `theorem comp_Ψ_eq_Λ : comp Ψ Λ`
+- **Matemática:** Ψ ∘ Λ = id_ℕ;  Λ ∘ Ψ = id_ℕ₀
+
+**[T3.16]** `ΨΛ` / `ΛΨ`
+
+- **Lean4:** `theorem ΨΛ (n : Nat) : Ψ (Λ n) = n` / `theorem ΛΨ (n : ℕ₀) : Λ (Ψ n) = n`
+- **Matemática:** Ψ(Λ(n)) = n;  Λ(Ψ(n)) = n
+
+### 3.5. Conmutación σ/τ/ρ con isomorfismos
+
+**[T3.17]** `isomorph_0_Λ` / `isomorph_0_Ψ`
+
+- **Lean4:** `theorem isomorph_0_Λ : Λ 0 = 𝟘` / `theorem isomorph_0_Ψ : Ψ 𝟘 = 0`
+
+**[T3.18]** `isomorph_σ_Λ` / `isomorph_σ_Ψ`
+
+- **Lean4:** `theorem isomorph_σ_Λ (n : Nat) : Λ (Nat.succ n) = σ (Λ n)` / `theorem isomorph_σ_Ψ (n : ℕ₀) : Ψ (σ n) = Nat.succ (Ψ n)`
+
+**[T3.19]** `isomorph_τ_Λ` / `isomorph_τ_Ψ`
+
+- **Lean4:** `theorem isomorph_τ_Λ (n : Nat) : τ (Λ n) = Λ (Nat.pred n)` / `theorem isomorph_τ_Ψ (n : ℕ₀) : Nat.pred (Ψ n) = Ψ (τ n)`
+
+**[T3.20]** `isomorph_ρ_Ψ` / `isomorph_Λ_ρ`
+
+- **Lean4:** `theorem isomorph_ρ_Ψ (n : ℕ₀) (h : n ≠ 𝟘) : Nat.pred (Ψ n) = Ψ (ρ n h)` / `theorem isomorph_Λ_ρ (n : Nat) (h : n ≠ 0) : Λ (Nat.pred n) = ρ (Λ n) ...`
+
+**[T3.21]** `tau_eq_rho_if_ne_zero`
+
+- **Lean4:** `theorem tau_eq_rho_if_ne_zero (k : ℕ₀) (hk : k ≠ 𝟘) : τ k = ρ k hk`
+- **Matemática:** k ≠ 0 ⇒ τ(k) = ρ(k)
+
+### 3.6. Inversión σ/τ/ρ
+
+**[T3.22]** `τ_σ_eq_self`
+
+- **Lean4:** `theorem τ_σ_eq_self (n : ℕ₀) : τ (σ n) = n`
+- **Matemática:** τ(σ(n)) = n
+
+**[T3.23]** `ρ_σ_eq_self`
+
+- **Lean4:** `theorem ρ_σ_eq_self (n : ℕ₀) (h : σ n ≠ 𝟘) : ρ (σ n) h = n`
+- **Matemática:** ρ(σ(n)) = n
+
+**[T3.24]** `σ_ρ_eq_self`
+
+- **Lean4:** `theorem σ_ρ_eq_self (n : ℕ₀) (h : n ≠ 𝟘) : σ (ρ n h) = n`
+- **Matemática:** n ≠ 0 ⇒ σ(ρ(n)) = n
+
+**[T3.25]** `σ_τ_eq_id_pos`
+
+- **Lean4:** `theorem σ_τ_eq_id_pos : ∀ n : ℕ₀, n ≠ 𝟘 → σ (τ n) = n`
+- **Matemática:** n ≠ 0 ⇒ σ(τ(n)) = n
+
+### 3.7. Igualdad funcional
+
+**[T3.26]** `eqFn_induction`
+
+- **Lean4:** `theorem eqFn_induction {α} (f g : ℕ₀ → α) : f 𝟘 = g 𝟘 → (∀ n, f n = g n → f (σ n) = g (σ n)) → eqFn f g`
+- **Matemática:** Principio de inducción para igualdad funcional
+
+**[T3.27]** `eqFn_refl` / `eqFn_symm` / `eqFn_trans`
+
+- **Lean4:** Reflexividad, simetría y transitividad de `eqFn`
+
 ---
 
-## 3. PeanoNatStrictOrder.lean — `namespace Peano.StrictOrder`
+## 4. StrictOrder.lean — `namespace Peano.StrictOrder`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`*
+*Dependencias: `PeanoNat`, `Axioms`*
 
-### 3.1. Definiciones
+### 4.1. Definiciones
 
-**[D3.1]** `Lt`
+**[D4.1]** `Lt`
 
 - **Lean4:**
 
@@ -334,25 +537,16 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   ```
 
 - **Matemática:** Lt(n, 0) = ⊥;  Lt(0, σm) = ⊤;  Lt(σn, σm) = Lt(n, m)
-- **Computable:** No (Prop); par booleano: `BLt`
+- **Computable:** No (Prop); par booleano: `blt`
 - **Terminado por:** recursión estructural sobre ambos argumentos
 - **Notación:** `n < m` (instancia `LT ℕ₀`)
 
-**[D3.2]** `BLt` (par booleano de `Lt`)
+**[D4.2]** `blt` (par booleano de `Lt`)
 
-- **Lean4:**
-
-  ```
-  def BLt (n m : ℕ₀) : Bool :=
-    match n, m with
-    | _,       ℕ₀.zero => false
-    | ℕ₀.zero, σ _    => true
-    | σ n',    σ m'   => BLt n' m'
-  ```
-
+- **Lean4:** `def blt (n m : ℕ₀) : Bool` — recursión análoga a `Lt`
 - **Computable:** Sí
 
-**[D3.3]** `Gt`
+**[D4.3]** `Gt`
 
 - **Lean4:**
 
@@ -365,14 +559,14 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   ```
 
 - **Matemática:** Gt(n, m) ⟺ Lt(m, n)
-- **Computable:** No; par booleano: `BGt`
+- **Computable:** No; par booleano: `bgt`
 
-**[D3.4]** `BGt` (par booleano de `Gt`)
+**[D4.4]** `bgt` (par booleano de `Gt`)
 
-- **Lean4:** `def BGt (n m : ℕ₀) : Bool` — recursión análoga a `BLt`
+- **Lean4:** `def bgt (n m : ℕ₀) : Bool` — recursión análoga
 - **Computable:** Sí
 
-**[D3.5]** Instancias de decisión y clase de orden
+**[D4.5]** Instancias de decisión y clase de orden
 
 - **Lean4:**
 
@@ -382,67 +576,105 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   instance decidableGt (n m : ℕ₀) : Decidable (Gt n m)
   ```
 
-### 3.2. Teoremas principales (orden estricto total)
+### 4.2. Teoremas principales (orden estricto total)
 
-**[T3.1]** `lt_irrefl`
+**[T4.1]** `lt_irrefl`
 
 - **Lean4:** `theorem lt_irrefl (n : ℕ₀) : ¬(Lt n n)`
 - **Matemática:** ∀n ∈ ℕ₀, ¬(n < n)
 
-**[T3.2]** `lt_asymm`
+**[T4.2]** `lt_asymm`
 
 - **Lean4:** `theorem lt_asymm (n m : ℕ₀) : Lt n m → ¬(Lt m n)`
 - **Matemática:** n < m ⇒ ¬(m < n)
 
-**[T3.3]** `lt_trans`
+**[T4.3]** `lt_trans`
 
-- **Lean4:** `theorem lt_trans (n m k : ℕ₀) : Lt n m → Lt m k → Lt n k`
-- **Matemática:** n < m ∧ m < k ⇒ n < k
+- **Lean4:** `theorem lt_trans (a b c : ℕ₀) : Lt a b → Lt b c → Lt a c`
+- **Matemática:** a < b ∧ b < c ⇒ a < c
 
-**[T3.4]** `trichotomy`
+**[T4.4]** `trichotomy`
 
 - **Lean4:** `theorem trichotomy (n m : ℕ₀) : (Lt n m) ∨ (n = m) ∨ (Lt m n)`
 - **Matemática:** ∀n, m ∈ ℕ₀, n < m ∨ n = m ∨ m < n
 
-**[T3.5]** `lt_iff_lt_σ_σ`
+**[T4.5]** `strong_trichotomy`
+
+- **Lean4:** `theorem strong_trichotomy (n m : ℕ₀) : (Lt n m ∧ ¬(n = m) ∧ ¬(Lt m n)) ∨ (n = m ∧ ¬(Lt n m) ∧ ¬(Lt m n)) ∨ (Lt m n ∧ ¬(n = m) ∧ ¬(Lt n m))`
+- **Matemática:** Tricotomía mutuamente excluyente
+
+**[T4.6]** `lt_iff_lt_σ_σ`
 
 - **Lean4:** `theorem lt_iff_lt_σ_σ (n m : ℕ₀) : Lt n m ↔ Lt (σ n) (σ m)`
 - **Matemática:** n < m ⟺ σ(n) < σ(m)
 
-**[T3.6]** `lt_0_n`
+**[T4.7]** `lt_iff_lt_τ_τ`
 
-- **Lean4:** `theorem lt_0_n (n : ℕ₀) (h : n ≠ 𝟘) : Lt 𝟘 n`
-- **Matemática:** n ≠ 0 ⇒ 0 < n
+- **Lean4:** `theorem lt_iff_lt_τ_τ ...`
+- **Matemática:** n < m ⟺ τ(n) < τ(m) (con condiciones)
 
-**[T3.7]** `lt_zero`
+**[T4.8]** `lt_zero` / `nlt_n_0`
 
-- **Lean4:** `theorem lt_zero (n : ℕ₀) : ¬ Lt n 𝟘`
+- **Lean4:** `theorem lt_zero (n : ℕ₀) : ¬ Lt n 𝟘` / `theorem nlt_n_0 (n : ℕ₀) : ¬ Lt n 𝟘`
 - **Matemática:** ∀n ∈ ℕ₀, ¬(n < 0)
 
-**[T3.8]** `lt_then_lt_succ`
-
-- **Lean4:** `theorem lt_then_lt_succ (n m : ℕ₀) : Lt n m → Lt n (σ m)`
-- **Matemática:** n < m ⇒ n < σ(m)
-
-**[T3.9]** `not_lt_and_not_eq_implies_gt`
-
-- **Lean4:** `theorem not_lt_and_not_eq_implies_gt (a b : ℕ₀) : ¬ Lt a b → ¬ (a = b) → Lt b a`
-- **Matemática:** ¬(a < b) ∧ a ≠ b ⇒ b < a
-
-**[T3.10]** `lt_succ_self`
+**[T4.9]** `lt_succ_self`
 
 - **Lean4:** `theorem lt_succ_self (n : ℕ₀) : Lt n (σ n)`
 - **Matemática:** ∀n ∈ ℕ₀, n < σ(n)
 
+**[T4.10]** `lt_then_lt_succ`
+
+- **Lean4:** `theorem lt_then_lt_succ (n m : ℕ₀) : Lt n m → Lt n (σ m)`
+- **Matemática:** n < m ⇒ n < σ(m)
+
+**[T4.11]** `pos_of_ne_zero`
+
+- **Lean4:** `theorem pos_of_ne_zero (n : ℕ₀) (h : n ≠ 𝟘) : Lt 𝟘 n`
+- **Matemática:** n ≠ 0 ⇒ 0 < n
+
+**[T4.12]** `zero_lt_succ`
+
+- **Lean4:** `theorem zero_lt_succ (n : ℕ₀) : Lt 𝟘 (σ n)`
+- **Matemática:** ∀n ∈ ℕ₀, 0 < σ(n)
+
+**[T4.13]** `ne_of_lt`
+
+- **Lean4:** `theorem ne_of_lt {n m : ℕ₀} : Lt n m → n ≠ m`
+
+**[T4.14]** `lt_equiv_exists_σ`
+
+- **Lean4:** `theorem lt_equiv_exists_σ (a b : ℕ₀) : Lt a b ↔ ∃ k, b = σ (add a k)`
+- **Matemática:** a < b ⟺ ∃k, b = σ(a + k)
+
+**[T4.15]** `succ_lt_succ_iff`
+
+- **Lean4:** `theorem succ_lt_succ_iff {n m : ℕ₀} : Lt (σ n) (σ m) ↔ Lt n m`
+- **Matemática:** σ(n) < σ(m) ⟺ n < m
+
+**[T4.16]** `blt_iff_Lt` / `bgt_iff_Gt`
+
+- **Lean4:** `theorem blt_iff_Lt (n m : ℕ₀) : blt n m = true ↔ Lt n m` / `theorem bgt_iff_Gt (n m : ℕ₀) : bgt n m = true ↔ Gt n m`
+- **Matemática:** Equivalencia booleano ↔ proposición
+
+**[T4.17]** `isomorph_Λ_lt` / `isomorph_Ψ_lt`
+
+- **Lean4:** `theorem isomorph_Λ_lt (a b : Nat) : a < b ↔ Lt (Λ a) (Λ b)` / `theorem isomorph_Ψ_lt (a b : ℕ₀) : Lt a b ↔ Ψ a < Ψ b`
+- **Matemática:** Preservación del orden estricto por Λ y Ψ
+
+**[T4.18]** Teoremas adicionales exportados
+
+`lt_then_lt_succ_wp`, `nlt_self`, `nlt_n_0_false`, `neq_then_lt_or_gt`, `lt_nor_gt_then_eq`, `lt_succ`, `lt_succ_then_lt`, `lt_succ_then_lt_wp`, `lt_self_σ_self`, `exists_greater_nat`, `nexists_greater_forall`, `lt_succ_iff_lt_or_eq`, `nblt_iff_nLt`, `nbgt_iff_nGt`, `neq_01_then_gt_1`, `lt_0_succ`, `lt_1_succ_succ`, `nlt_then_ltc_or_eq`, `lt_or_eq_then_nltc`, `lt_or_eq_iff_nltc`, `succ_lt_succ_iff_forall`, `lt_then_lt_succ_forall`, `lt_succ_then_lt_forall`, `lt_then_lt_succs`, `succ_lt_succ_then`, `lt_n_sm_then_lt_n_m_or_eq`, `lt_n_sm_then_lt_n_m_or_eq_wp`, `lt_sn_m_then_lt_n_m`, `lt_0_1`, `lt_1_b_then_b_neq_1`, `lt_sn_m_then_lt_n_m_wp`, `lt_1_b_then_b_neq_0`, `lt_b_1_then_b_eq_0`, `neq_0_then_lt_0`, `lt_0_then_neq_0`, `lt_then_lt_σ_σ_wp`, `lt_σ_σ_then_lt_wp`, `not_lt_and_not_eq_implies_gt`, `lt_asymm_wp`
+
 ---
 
-## 4. PeanoNatOrder.lean — `namespace Peano.Order`
+## 5. Order.lean — `namespace Peano.Order`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`*
 
-### 4.1. Definiciones
+### 5.1. Definiciones
 
-**[D4.1]** `Le`
+**[D5.1]** `Le`
 
 - **Lean4:** `def Le (n m : ℕ₀) : Prop := Lt n m ∨ n = m`
 - **Matemática:** n ≤ m ⟺ n < m ∨ n = m
@@ -450,26 +682,31 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Notación:** `n ≤ m` (instancia `LE ℕ₀`)
 - **Dependencias:** `Lt`
 
-**[D4.2]** `Ge`
+**[D5.2]** `Ge`
 
 - **Lean4:** `def Ge (n m : ℕ₀) : Prop := Lt m n ∨ n = m`
 - **Matemática:** n ≥ m ⟺ m < n ∨ n = m
 
-**[D4.3]** `Le'` (definición alternativa recursiva)
+**[D5.3]** `le'` (definición alternativa recursiva)
 
 - **Lean4:**
 
   ```
-  def Le' (n m : ℕ₀) : Prop :=
+  def le' (n m : ℕ₀) : Prop :=
     match n, m with
     | 𝟘,   _    => True
     | σ _, 𝟘   => False
-    | σ n', σ m' => Le' n' m'
+    | σ n', σ m' => le' n' m'
   ```
 
 - **Matemática:** Definición recursiva equivalente de ≤
 
-**[D4.4]** Instancias
+**[D5.4]** `ble`, `bge` (booleanos)
+
+- **Lean4:** `def ble (n m : ℕ₀) : Bool` / `def bge (n m : ℕ₀) : Bool`
+- **Computable:** Sí
+
+**[D5.5]** Instancias
 
 - **Lean4:**
 
@@ -479,94 +716,94 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   instance decidableGe (n m : ℕ₀) : Decidable (Ge n m)
   ```
 
-### 4.2. Teoremas principales (orden total no estricto)
+### 5.2. Teoremas principales (orden total no estricto)
 
-**[T4.1]** `le_refl`
+**[T5.1]** `le_refl`
 
 - **Lean4:** `theorem le_refl (n : ℕ₀) : Le n n`
 - **Matemática:** ∀n ∈ ℕ₀, n ≤ n
 
-**[T4.2]** `le_antisymm`
+**[T5.2]** `le_antisymm`
 
 - **Lean4:** `theorem le_antisymm (n m : ℕ₀) : Le n m → Le m n → n = m`
 - **Matemática:** n ≤ m ∧ m ≤ n ⇒ n = m
 
-**[T4.3]** `le_trans`
+**[T5.3]** `le_trans`
 
-- **Lean4:** `theorem le_trans (n m k : ℕ₀) : Le n m → Le m k → Le n k`
-- **Matemática:** n ≤ m ∧ m ≤ k ⇒ n ≤ k
+- **Lean4:** `theorem le_trans (a b c : ℕ₀) : Le a b → Le b c → Le a c`
+- **Matemática:** a ≤ b ∧ b ≤ c ⇒ a ≤ c
 
-**[T4.4]** `le_total`
+**[T5.4]** `le_total`
 
 - **Lean4:** `theorem le_total (n m : ℕ₀) : Le n m ∨ Le m n`
 - **Matemática:** ∀n, m ∈ ℕ₀, n ≤ m ∨ m ≤ n
 
-**[T4.5]** `zero_le`
+**[T5.5]** `zero_le`
 
 - **Lean4:** `theorem zero_le (n : ℕ₀) : Le 𝟘 n`
 - **Matemática:** ∀n ∈ ℕ₀, 0 ≤ n
 
-**[T4.6]** `le_self_add_r`
-
-- **Lean4:** `theorem le_self_add_r (n m : ℕ₀) : Le n (add n m)`
-- **Matemática:** ∀n, m ∈ ℕ₀, n ≤ n + m
-- **Dependencias:** `add`
-
-**[T4.7]** `lt_of_lt_of_le`
-
-- **Lean4:** `theorem lt_of_lt_of_le {a b c : ℕ₀} (h₁ : Lt a b) (h₂ : Le b c) : Lt a c`
-- **Matemática:** a < b ∧ b ≤ c ⇒ a < c
-
-**[T4.8]** `lt_imp_le`
+**[T5.6]** `lt_imp_le`
 
 - **Lean4:** `theorem lt_imp_le {n m : ℕ₀} : Lt n m → Le n m`
 - **Matemática:** n < m ⇒ n ≤ m
 
-**[T4.9]** `le_iff_lt_or_eq`
+**[T5.7]** `le_iff_lt_succ` / `lt_succ_iff_le`
 
-- **Lean4:** `theorem le_iff_lt_or_eq (n m : ℕ₀) : Le n m ↔ Lt n m ∨ n = m`
-- **Matemática:** n ≤ m ⟺ n < m ∨ n = m
+- **Lean4:** `theorem le_iff_lt_succ (n m : ℕ₀) : Le n m ↔ Lt n (σ m)`
+- **Matemática:** n ≤ m ⟺ n < σ(m)
 
-**[T4.10]** `succ_le_succ_then`
+**[T5.8]** `succ_le_succ_iff`
 
-- **Lean4:** `theorem succ_le_succ_then {n m : ℕ₀} : Le (σ n) (σ m) → Le n m`
-- **Matemática:** σ(n) ≤ σ(m) ⇒ n ≤ m
+- **Lean4:** `theorem succ_le_succ_iff {n m : ℕ₀} : Le (σ n) (σ m) ↔ Le n m`
+- **Matemática:** σ(n) ≤ σ(m) ⟺ n ≤ m
 
-**[T4.11]** `lt_succ_iff_le`
-
-- **Lean4:** `theorem lt_succ_iff_le (n m : ℕ₀) : Lt n (σ m) ↔ Le n m`
-- **Matemática:** n < σ(m) ⟺ n ≤ m
-
-**[T4.12]** `le_zero_eq`
+**[T5.9]** `le_zero_eq`
 
 - **Lean4:** `theorem le_zero_eq (n : ℕ₀) (h : Le n 𝟘) : n = 𝟘`
 - **Matemática:** n ≤ 0 ⇒ n = 0
 
-**[T4.13]** `not_succ_le_zero`
+**[T5.10]** `not_succ_le_zero`
 
 - **Lean4:** `theorem not_succ_le_zero (n : ℕ₀) : ¬ Le (σ n) 𝟘`
 - **Matemática:** ∀n ∈ ℕ₀, ¬(σ(n) ≤ 0)
 
-**[T4.14]** `le_not_lt` (antisimetría estricto/no-estricto)
+**[T5.11]** `le_not_lt`
 
 - **Lean4:** `theorem le_not_lt {n m : ℕ₀} (h : Le n m) : ¬ Lt m n`
 - **Matemática:** n ≤ m ⇒ ¬(m < n)
 
-**[T4.15]** `well_ordering_principle` (en este módulo, sobre `Le`)
+**[T5.12]** `Le_iff_le'`
+
+- **Lean4:** `theorem Le_iff_le' (n m : ℕ₀) : Le n m ↔ le' n m`
+- **Matemática:** Equivalencia de definiciones de ≤
+
+**[T5.13]** `ble_iff_Le` / `bge_iff_Ge`
+
+- **Lean4:** `theorem ble_iff_Le (n m : ℕ₀) : ble n m = true ↔ Le n m` / `theorem bge_iff_Ge (n m : ℕ₀) : bge n m = true ↔ Ge n m`
+
+**[T5.14]** `isomorph_Ψ_le` / `isomorph_Λ_le`
+
+- **Lean4:** `theorem isomorph_Ψ_le (a b : ℕ₀) : Le a b ↔ Ψ a ≤ Ψ b` / `theorem isomorph_Λ_le (a b : Nat) : a ≤ b ↔ Le (Λ a) (Λ b)`
+
+**[T5.15]** `well_ordering_principle`
 
 - **Lean4:** `theorem well_ordering_principle {P : ℕ₀ → Prop} (h : ∃ n, P n) : ∃ n, P n ∧ ∀ m, Lt m n → ¬P m`
 - **Matemática:** Todo conjunto no vacío de ℕ₀ tiene un elemento minimal para <
-- **Dependencias:** `well_founded_lt` (PeanoNatWellFounded)
+
+**[T5.16]** Teoremas adicionales exportados
+
+`lt_imp_le_wp`, `le_of_eq`, `le_of_eq_wp`, `le_self_of_eq_self`, `le_0_of_eq_0`, `le_then_le_succ`, `le_succ_self`, `le_succ`, `le_1_succ`, `le_zero_eq_zero`, `le_succ_zero_zero`, `le_1_0_then_false`, `le_succ_iff_le_or_eq`, `le_succ_then_le_or_eq`, `le_or_eq_then_le_succ`, `lt_of_le_neq`, `lt_of_le_neq_wp`, `le_zero_eq_wp`, `succ_le_succ_then`, `succ_le_succ_then_wp`, `succ_le_succ_if`, `succ_le_succ_if_wp`, `succ_le_succ_iff_wp`, `succ_le_succ'_then_wp`, `lt_of_le_of_ne`, `lt_iff_le_not_le`, `lt_succ_iff_lt_or_eq_alt`, `le_succ_iff_le_or_eq_alt`, `le_of_succ_le_succ`, `nle_then_gt`, `nle_then_gt_wp`, `gt_then_nle`, `gt_then_nle_wp`, `le_1_m_then_m_neq_0`, `le_1_m_then_m_neq_0_wp`, `m_neq_0_proved_lt_1_m`, `le_m_1_then_m_eq_0or1_wp`, `le_n_m_then_m_neq_0`, `le_n_m_n_neq_0_then_m_neq_0`, `m_neq_0_proved_lt_1_m_wp`, `le_0_succ_then_lt_0_succ`, `le_0_succ_then_lt_0_succ_wp`, `lt_0_succ_then_le_0_succ`, `lt_0_succ_then_le_0_succ_wp`, `le_0_succ_iff_lt_0_succ`, `le_then_lt_succ`, `le_then_lt_succ_wp`, `le_succ_then_le_or_eq_wp`, `le_or_eq_then_le_succ_wp`, `le_succ_k_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n_wp`, `le_succ_k_n_then_lt_k_n`, `le_succ_k_n_then_lt_k_n_wp`, `le_succ_then_le`, `le_succ_then_le_wp`, `le_k_n_then_le_k_sn_wp`, `le_n_m_then_le_n_sm`, `le_n_m_then_le_n_sm_wp`, `le_sn_m_then_le_n_m_or_succ`, `le_sn_m_then_le_n_m_or_succ_wp`, `le_then_lt_or_eq`, `nle_σn_n`, `le_σn_n_then_false`, `lt_0n_then_le_1n`, `lt_0n_then_le_1n_wp`, `lt_nm_then_le_nm`, `lt_nm_then_le_nm_wp`, `le_then_ngt`, `le_then_ngt_wp`, `ngt_then_le`, `ngt_then_le_wp`, `le_succ_then_lt`, `le_succ_then_lt_wp`, `lt_then_le_succ_wp`, `lt_then_le_succ`, `ngt_iff_le`
 
 ---
 
-## 5. PeanoNatMaxMin.lean — `namespace Peano.MaxMin`
+## 6. MaxMin.lean — `namespace Peano.MaxMin`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`*
 
-### 5.1. Definiciones
+### 6.1. Definiciones
 
-**[D5.1]** `max`
+**[D6.1]** `max`
 
 - **Lean4:**
 
@@ -577,15 +814,14 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
     | n,    𝟘    => n
     | σ n', σ m' =>
         if n' = m' then σ m'
-        else if BLt n' m' then σ m'
+        else if blt n' m' then σ m'
         else σ n'
   ```
 
 - **Matemática:** max: ℕ₀ × ℕ₀ → ℕ₀
-- **Computable:** Sí (usa `BLt`)
-- **Par booleano:** Sí (usa `BLt` internamente)
+- **Computable:** Sí (usa `blt`)
 
-**[D5.2]** `min`
+**[D6.2]** `min`
 
 - **Lean4:**
 
@@ -596,14 +832,14 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
     | _,    𝟘    => 𝟘
     | σ n', σ m' =>
         if n' = m' then σ n'
-        else if BLt n' m' then σ n'
+        else if blt n' m' then σ n'
         else σ m'
   ```
 
 - **Matemática:** min: ℕ₀ × ℕ₀ → ℕ₀
 - **Computable:** Sí
 
-**[D5.3]** `min_max` / `max_min`
+**[D6.3]** `min_max` / `max_min`
 
 - **Lean4:**
 
@@ -614,104 +850,91 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Computable:** Sí
 
-### 5.2. Teoremas principales (retícula distributiva)
+### 6.2. Teoremas principales (retícula distributiva)
 
-**[T5.1]** `max_idem` / `min_idem`
+**[T6.1]** `max_idem` / `min_idem`
 
 - **Lean4:** `theorem max_idem (n : ℕ₀) : max n n = n` / `theorem min_idem (n : ℕ₀) : min n n = n`
 - **Matemática:** max(n,n) = n;  min(n,n) = n
 
-**[T5.2]** `max_comm` / `min_comm`
+**[T6.2]** `max_comm` / `min_comm`
 
 - **Lean4:** `theorem max_comm (n m : ℕ₀) : max n m = max m n` / `theorem min_comm (n m : ℕ₀) : min n m = min m n`
-- **Matemática:** max(n,m) = max(m,n);  min(n,m) = min(m,n)
+- **Matemática:** Conmutatividad
 
-**[T5.3]** `max_assoc` / `min_assoc`
+**[T6.3]** `max_assoc` / `min_assoc`
 
-- **Lean4:** `theorem max_assoc (n m k : ℕ₀) : max (max n m) k = max n (max m k)`
-  `theorem min_assoc (n m k : ℕ₀) : min (min n m) k = min n (min m k)`
-- **Matemática:** Asociatividad de max y min
+- **Lean4:** `theorem max_assoc (n m k : ℕ₀) : max (max n m) k = max n (max m k)` / `theorem min_assoc (n m k : ℕ₀) : min (min n m) k = min n (min m k)`
+- **Matemática:** Asociatividad
 
-**[T5.4]** `le_max_left` / `le_max_right`
+**[T6.4]** `le_max_left` / `le_max_right`
 
 - **Lean4:** `theorem le_max_left (n m : ℕ₀) : Le n (max n m)` / `theorem le_max_right (n m : ℕ₀) : Le m (max n m)`
 - **Matemática:** n ≤ max(n,m);  m ≤ max(n,m)
 
-**[T5.5]** `min_le_left` / `min_le_right`
+**[T6.5]** `min_le_left` / `min_le_right`
 
 - **Lean4:** `theorem min_le_left (n m : ℕ₀) : Le (min n m) n` / `theorem min_le_right (n m : ℕ₀) : Le (min n m) m`
 - **Matemática:** min(n,m) ≤ n;  min(n,m) ≤ m
 
-**[T5.6]** `max_distrib_min`
+**[T6.6]** `max_distrib_min`
 
 - **Lean4:** `theorem max_distrib_min (n m k : ℕ₀) : max n (min m k) = min (max n m) (max n k)`
 - **Matemática:** max(n, min(m,k)) = min(max(n,m), max(n,k))
 
-**[T5.7]** `min_distrib_max`
+**[T6.7]** `min_distrib_max`
 
 - **Lean4:** `theorem min_distrib_max (n m k : ℕ₀) : min n (max m k) = max (min n m) (min n k)`
 - **Matemática:** min(n, max(m,k)) = max(min(n,m), min(n,k))
 
-**[T5.8]** `eq_max_min_then_eq`
+**[T6.8]** `eq_of_max_eq_min`
 
-- **Lean4:** `theorem eq_max_min_then_eq (n m : ℕ₀) : (max n m = min n m) → (n = m)`
+- **Lean4:** `theorem eq_of_max_eq_min (n m : ℕ₀) : (max n m = min n m) → (n = m)`
 - **Matemática:** max(n,m) = min(n,m) ⇒ n = m
+
+**[T6.9]** `isomorph_Λ_max` / `isomorph_Λ_min` / `isomorph_Ψ_max` / `isomorph_Ψ_min`
+
+- **Lean4:** Preservación de max/min por los isomorfismos Λ y Ψ
+
+**[T6.10]** Teoremas adicionales exportados
+
+`min_abs_0`, `min_0_abs`, `max_not_0`, `max_0_not`, `eq_then_eq_max_min`, `eq_iff_eq_max_min`, `min_of_min_max`, `max_of_min_max`, `max_is_any`, `min_is_any`, `lt_then_min`, `min_then_le`, `min_eq_of_gt`, `max_eq_of_lt`, `max_eq_of_gt`, `max_ne_min_of_ne`, `if_neq_then_min_xor`, `lt_max_of_ne`, `le_then_max_eq_right`, `le_then_max_eq_left`, `lt_of_not_le`, `max_le`, `le_then_min_eq_left`, `le_then_min_eq_right`, `le_min`, `not_exists_max`, `min_eq_right`, `min_eq_left`, `max_eq_right`, `max_eq_left`, `le_a_le_b_then_le_min_a_b_left`, `le_min_a_b_then_le_a_le_b_left`, `le_a_le_b_then_le_min_a_b_right`, `le_a_le_b_then_le_max_a_b_right`, `le_max_a_b_then_le_a_le_b_right`, `le_a_le_b_then_le_max_a_b_left`
 
 ---
 
-## 6. PeanoNatWellFounded.lean — `namespace Peano.WellFounded`
+## 7. WellFounded.lean — `namespace Peano.WellFounded`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `Init.Classical`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `Init.Classical`*
 
-### 6.1. Definiciones
+### 7.1. Definiciones
 
-**[D6.1]** Instancia `SizeOf ℕ₀`
+**[D7.1]** Instancia `SizeOf ℕ₀`
 
 - **Lean4:** `instance : SizeOf ℕ₀ where sizeOf := Ψ`
 - **Descripción:** Conecta la relación `Lt` con la terminación de Lean vía el isomorfismo Ψ: ℕ₀ → Nat
 - **Computable:** Sí (Ψ es computable)
 
-### 6.2. Teoremas principales
+### 7.2. Teoremas principales
 
-**[T6.1]** `acc_lt_wf`
+**[T7.1]** `acc_lt_wf`
 
 - **Lean4:** `theorem acc_lt_wf (n : ℕ₀) : Acc Lt n`
 - **Matemática:** ∀n ∈ ℕ₀, n es accesible respecto a <
-- **Dependencias:** `Lt`, `lt_succ_iff_le`, `le_iff_lt_or_eq`
 
-**[T6.2]** `well_founded_lt`
+**[T7.2]** `well_founded_lt`
 
 - **Lean4:** `theorem well_founded_lt : WellFounded Lt`
-- **Matemática:** < es una relación bien fundada en ℕ₀ (no existen cadenas descendentes infinitas)
-- **Dependencias:** `acc_lt_wf`
-
-**[T6.3]** `well_ordering_principle`
-
-- **Lean4:**
-
-  ```
-  theorem well_ordering_principle (P : ℕ₀ → Prop) (h_nonempty : ∃ k, P k) :
-      ∃¹ (n : ℕ₀), (P n) ∧ ∀ (m : ℕ₀), (P m) → (Le n m)
-  ```
-
-- **Matemática:** (∃k, P(k)) ⇒ ∃¹n, (P(n) ∧ ∀m, P(m) ⇒ n ≤ m)
-- **Dependencias:** `well_founded_lt`, `ExistsUnique`, `Le`
-
-**[T6.4]** `isomorph_Ψ_lt`
-
-- **Lean4:** `theorem isomorph_Ψ_lt (a b : ℕ₀) : Lt a b ↔ Ψ a < Ψ b`
-- **Matemática:** a < b en ℕ₀ ⟺ Ψ(a) < Ψ(b) en ℕ
-- **Dependencias:** `Ψ`, `Lt`
+- **Matemática:** < es una relación bien fundada en ℕ₀
 
 ---
 
-## 7. PeanoNatAdd.lean — `namespace Peano.Add`
+## 8. Add.lean — `namespace Peano.Add`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`*
+*Dependencias: `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `MaxMin`, `WellFounded`*
 
-### 7.1. Definiciones
+### 8.1. Definiciones
 
-**[D7.1]** `add`
+**[D8.1]** `add`
 
 - **Lean4:**
 
@@ -725,9 +948,9 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Matemática:** n + 0 = n;  n + σ(m) = σ(n + m)
 - **Computable:** Sí
 - **Terminado por:** recursión estructural sobre `m`
-- **Notación:** `n + m` (instancia `Add ℕ₀`, prioridad hereda de la typeclass); alias `notation a "+" b`
+- **Notación:** `n + m` (instancia `Add ℕ₀`)
 
-**[D7.2]** `add_l` (suma recursiva sobre el argumento izquierdo)
+**[D8.2]** `add_l` (suma recursiva sobre el argumento izquierdo)
 
 - **Lean4:**
 
@@ -738,63 +961,74 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
     | σ n' => σ (add n' m)
   ```
 
-- **Matemática:** Definición alternativa de la suma (recursión sobre el primer argumento)
+- **Matemática:** Definición alternativa (recursión sobre primer argumento)
 - **Computable:** Sí
-- **Terminado por:** recursión estructural sobre `n`
 - **Notación:** `n +l m`
 
-### 7.2. Teoremas principales
+### 8.2. Teoremas principales
 
-**[T7.1]** `add_zero`
+**[T8.1]** `add_zero` / `zero_add`
 
-- **Lean4:** `theorem add_zero (n : ℕ₀) : add n 𝟘 = n`
-- **Matemática:** n + 0 = n
+- **Lean4:** `theorem add_zero (n : ℕ₀) : add n 𝟘 = n` / `theorem zero_add (n : ℕ₀) : add 𝟘 n = n`
+- **Matemática:** n + 0 = n;  0 + n = n
 
-**[T7.2]** `zero_add`
+**[T8.2]** `add_succ` / `succ_add`
 
-- **Lean4:** `theorem zero_add (n : ℕ₀) : add 𝟘 n = n`
-- **Matemática:** 0 + n = n
+- **Lean4:** `theorem add_succ (n m : ℕ₀) : add n (σ m) = σ (add n m)` / `theorem succ_add (n m : ℕ₀) : add (σ n) m = σ (add n m)`
+- **Matemática:** n + σ(m) = σ(n + m);  σ(n) + m = σ(n + m)
 
-**[T7.3]** `add_succ`
+**[T8.3]** `add_one` / `one_add`
 
-- **Lean4:** `theorem add_succ (n m : ℕ₀) : add n (σ m) = σ (add n m)`
-- **Matemática:** n + σ(m) = σ(n + m)
+- **Lean4:** `theorem add_one (n : ℕ₀) : add n 𝟙 = σ n` / `theorem one_add (n : ℕ₀) : add 𝟙 n = σ n`
+- **Matemática:** n + 1 = σ(n);  1 + n = σ(n)
 
-**[T7.4]** `add_one`
-
-- **Lean4:** `theorem add_one (n : ℕ₀) : add n 𝟙 = σ n`
-- **Matemática:** n + 1 = σ(n)
-
-**[T7.5]** `add_comm`
+**[T8.4]** `add_comm`
 
 - **Lean4:** `theorem add_comm (n m : ℕ₀) : add n m = add m n`
 - **Matemática:** ∀n, m ∈ ℕ₀, n + m = m + n
 
-**[T7.6]** `add_assoc`
+**[T8.5]** `add_assoc`
 
 - **Lean4:** `theorem add_assoc (n m k : ℕ₀) : add n (add m k) = add (add n m) k`
 - **Matemática:** ∀n, m, k ∈ ℕ₀, n + (m + k) = (n + m) + k
 
-**[T7.7]** `add_cancelation`
+**[T8.6]** `add_cancel`
 
-- **Lean4:** `theorem add_cancelation (n m k : ℕ₀) : add n m = add n k → m = k`
+- **Lean4:** `theorem add_cancel (n m k : ℕ₀) : add n m = add n k → m = k`
 - **Matemática:** n + m = n + k ⇒ m = k
 
-**[T7.8]** `le_iff_exists_add`
+**[T8.7]** `add_eq_zero_iff`
+
+- **Lean4:** `theorem add_eq_zero_iff {n m : ℕ₀} : add n m = 𝟘 ↔ n = 𝟘 ∧ m = 𝟘`
+- **Matemática:** n + m = 0 ⟺ n = 0 ∧ m = 0
+
+**[T8.8]** `le_iff_exists_add`
 
 - **Lean4:** `theorem le_iff_exists_add (a b : ℕ₀) : Le a b ↔ ∃ p, b = add a p`
 - **Matemática:** a ≤ b ⟺ ∃p ∈ ℕ₀, b = a + p
-- **Dependencias:** `Le`, `add`
+
+**[T8.9]** `lt_iff_exists_add_succ`
+
+- **Lean4:** `theorem lt_iff_exists_add_succ (a b : ℕ₀) : Lt a b ↔ ∃ p, b = add a (σ p)`
+- **Matemática:** a < b ⟺ ∃p ∈ ℕ₀, b = a + σ(p)
+
+**[T8.10]** `isomorph_Ψ_add` / `isomorph_Λ_add`
+
+- **Lean4:** Preservación de la suma por Ψ y Λ
+
+**[T8.11]** Teoremas adicionales exportados
+
+`add_zero_l`, `zero_add_l`, `add_zero_eq_add_l_zero`, `add_one_l`, `one_add_l`, `add_one_eq_add_l_one`, `add_succ_l`, `succ_add_l`, `add_succ_eq_add_l_succ`, `add_eq_add_l`, `eq_fn_add_add_l`, `add_le`, `add_le_r`, `le_self_add_r`, `le_self_add_r_forall`, `lt_self_add_r`, `lt_self_add_r_forall`, `le_self_add_l`, `le_self_add_l_forall`, `lt_self_add_l`, `lt_self_add_l_forall`, `add_lt`, `cancelation_add`, `add_lt_cancelation`, `add_le_cancelation`, `le_then_le_add_zero`, `le_then_le_add_one`, `le_add_then_le_add_succ`, `le_add_zero_then_le`, `le_add_one_then_le`, `le_add_r_add_r_then_le`, `le_add_l_add_l_then_le`, `le_then_le_add_r_add_r_then_le`, `le_then_le_add_l_add_l_then_le`, `le_iff_le_add_r_add_r_forall`, `le_iff_le_add_l_add_l_forall`, `le_add_then_le`, `le_iff_le_add`, `le_iff_le_add_forall`, `le_add_cancel`, `le_then_exists_zero_add`, `le_self_add`, `add_σn_m_eq_add_n_σm`, `add_σn_m_eq_σadd_n_m`, `add_τn_m_eq_add_n_τm`, `le_self_add_forall`, `lt_add_succ`, `le_then_exists_add`, `le_then_exists_add_wp`, `lt_then_exists_add_succ`, `lt_then_exists_add_succ_wp`, `add_lt_add_left_iff`, `lt_iff_add_cancel`, `lt_iff_add_lt`, `lt_n_add_n_σm`, `lt_add_of_pos_right`, `le_add_compat`, `le_add_compat_wp`, `lt_le_then_lt_add_compat`, `lt_le_then_add_add_compat_wp`, `le_lt_then_lt_add_compat`, `le_lt_then_lt_add_compat_wp`, `lt_lt_then_lt_add_compat`, `lt_lt_then_lt_add_compat_wp`, `le_a_b_then_le_2a_2b`, `le_a_b_then_le_2a_2b_wp`, `lt_a_b_then_lt_2a_2b`, `lt_a_b_then_lt_2a_2b_wp`, `linear_equation_right`, `linear_inequation_left`, `linear_equation_left`, `linear_inequation_right`, `lt_add_pos`, `lt_0_then_le_1`
 
 ---
 
-## 8. PeanoNatSub.lean — `namespace Peano.Sub`
+## 9. Sub.lean — `namespace Peano.Sub`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`*
+*Dependencias: `…Add` y anteriores*
 
-### 8.1. Definiciones
+### 9.1. Definiciones
 
-**[D8.1]** `subₕₖ` (resta con prueba)
+**[D9.1]** `subₕₖ` (resta con prueba)
 
 - **Lean4:**
 
@@ -809,11 +1043,10 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Matemática:** n ∸ m con prueba m ≤ n (resta exacta)
 - **Computable:** Sí
-- **Terminado por:** `termination_by n` + `Nat.lt_succ_self`
+- **Terminado por:** `termination_by n`
 - **Notación:** `n -( h ) m` (prioridad 65)
-- **Dependencias:** `Le`, `succ_le_succ_then`, `le_zero_eq`
 
-**[D8.2]** `sub` (resta truncada / monus)
+**[D9.2]** `sub` (resta truncada / monus)
 
 - **Lean4:**
 
@@ -824,57 +1057,62 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Matemática:** n ∸ m = n − m si m ≤ n, else 0
 - **Computable:** Sí (usa instancia `decidableLe`)
-- **Par booleano:** Sí, via `decidableLe`
 - **Notación:** `n - m` (infijo, prioridad 65)
-- **Dependencias:** `subₕₖ`, `Le`, `decidableLe`
 
-### 8.2. Teoremas principales
+### 9.2. Teoremas principales
 
-**[T8.1]** `sub_zero`
+**[T9.1]** `sub_zero` / `zero_sub`
 
-- **Lean4:** `theorem sub_zero (n : ℕ₀) : sub n 𝟘 = n`
-- **Matemática:** n ∸ 0 = n
+- **Lean4:** `theorem sub_zero (n : ℕ₀) : sub n 𝟘 = n` / `theorem zero_sub (n : ℕ₀) : sub 𝟘 n = 𝟘`
+- **Matemática:** n ∸ 0 = n;  0 ∸ n = 0
 
-**[T8.2]** `zero_sub`
-
-- **Lean4:** `theorem zero_sub (n : ℕ₀) : sub 𝟘 n = 𝟘`
-- **Matemática:** 0 ∸ n = 0
-
-**[T8.3]** `sub_k_add_k`
+**[T9.2]** `sub_k_add_k`
 
 - **Lean4:** `theorem sub_k_add_k (n k : ℕ₀) (h : Le k n) : add (sub n k) k = n`
 - **Matemática:** k ≤ n ⇒ (n ∸ k) + k = n
 
-**[T8.4]** `add_k_sub_k`
+**[T9.3]** `add_k_sub_k`
 
 - **Lean4:** `theorem add_k_sub_k (n k : ℕ₀) : sub (add n k) k = n`
 - **Matemática:** (n + k) ∸ k = n
 
-**[T8.5]** `le_sub_iff_add_le_of_le`
+**[T9.4]** `sub_self`
+
+- **Lean4:** `theorem sub_self (n : ℕ₀) : sub n n = 𝟘`
+- **Matemática:** n ∸ n = 0
+
+**[T9.5]** `le_sub_iff_add_le_of_le`
 
 - **Lean4:** `theorem le_sub_iff_add_le_of_le (n m k : ℕ₀) (h : Le m n) : Le k (sub n m) ↔ Le (add m k) n`
 - **Matemática:** m ≤ n ⇒ (k ≤ n ∸ m ⟺ m + k ≤ n)
 
-**[T8.6]** `sub_pos_iff_lt`
+**[T9.6]** `sub_pos_iff_lt`
 
 - **Lean4:** `theorem sub_pos_iff_lt (n m : ℕ₀) : Le 𝟙 (sub n m) ↔ Lt m n`
 - **Matemática:** 1 ≤ n ∸ m ⟺ m < n
 
-**[T8.7]** `sub_lt_self`
+**[T9.7]** `sub_lt_self`
 
 - **Lean4:** `theorem sub_lt_self (a b : ℕ₀) (h_le : Le b a) (h_b_ne : b ≠ 𝟘) : Lt (sub a b) a`
 - **Matemática:** b ≤ a ∧ b ≠ 0 ⇒ a ∸ b < a
-- **Dependencias:** `sub`, `Lt`, `Le`
+
+**[T9.8]** `isomorph_Λ_sub` / `isomorph_Ψ_sub`
+
+- **Lean4:** Preservación de la resta por Λ y Ψ
+
+**[T9.9]** Teoremas adicionales exportados
+
+`subₕₖ_zero`, `zero_subₕₖ`, `subₕₖ_eq_zero`, `sub_eq_zero`, `subₕₖ_one`, `sub_one`, `one_sub`, `subₕₖ_succ`, `sub_succ`, `succ_sub`, `sub_succ_succ_eq`, `subₕₖ_k_add_k`, `subₕₖ_k_add_k_forall`, `sub_k_add_k_forall`, `add_k_subₕₖ_k`, `add_k_sub_k_forall`, `aux_ge_1`, `nle_one_zero`, `aux_neq_0`, `subₕₖ_le_self`, `subₕₖ_lt_self`, `sub_lt_self_wp`, `sub_le_self`, `subₕₖ_eq_iff_eq_add_of_le`, `subₕₖ_le_subₕₖ_right`, `subₕₖ_le_subₕₖ_left`, `add_sub_assoc`, `add_le_add_left`, `sub_eq_of_le`, `sub_sub`, `sub_lt_iff_lt_add_of_le`, `lt_b_a_then_sub_a_b_neq_0`, `sub_pos_of_lt`
 
 ---
 
-## 9. PeanoNatMul.lean — `namespace Peano.Mul`
+## 10. Mul.lean — `namespace Peano.Mul`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`*
+*Dependencias: `…Sub` y anteriores*
 
-### 9.1. Definiciones
+### 10.1. Definiciones
 
-**[D9.1]** `mul`
+**[D10.1]** `mul`
 
 - **Lean4:**
 
@@ -889,79 +1127,84 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Computable:** Sí
 - **Terminado por:** recursión estructural sobre `m`
 - **Notación:** `n * m` (infijo, prioridad 70)
-- **Dependencias:** `add`
 
-### 9.2. Teoremas principales
+### 10.2. Teoremas principales
 
-**[T9.1]** `mul_zero` / `zero_mul`
+**[T10.1]** `mul_zero` / `zero_mul`
 
 - **Lean4:** `theorem mul_zero (n : ℕ₀) : mul n 𝟘 = 𝟘` / `theorem zero_mul (n : ℕ₀) : mul 𝟘 n = 𝟘`
 - **Matemática:** n·0 = 0;  0·n = 0
 
-**[T9.2]** `mul_one` / `one_mul`
+**[T10.2]** `mul_one` / `one_mul`
 
 - **Lean4:** `theorem mul_one (n : ℕ₀) : mul n 𝟙 = n` / `theorem one_mul (m : ℕ₀) : mul 𝟙 m = m`
 - **Matemática:** n·1 = n;  1·m = m
 
-**[T9.3]** `mul_succ` / `succ_mul`
+**[T10.3]** `mul_succ` / `succ_mul`
 
-- **Lean4:** `theorem mul_succ (n m : ℕ₀) : mul n (σ m) = add (mul n m) n`
-  `theorem succ_mul (n m : ℕ₀) : mul (σ n) m = add (mul n m) m`
+- **Lean4:** `theorem mul_succ (n m : ℕ₀) : mul n (σ m) = add (mul n m) n` / `theorem succ_mul (n m : ℕ₀) : mul (σ n) m = add (mul n m) m`
 - **Matemática:** n·σ(m) = n·m + n;  σ(n)·m = n·m + m
 
-**[T9.4]** `mul_comm`
+**[T10.4]** `mul_comm`
 
 - **Lean4:** `theorem mul_comm (n m : ℕ₀) : mul n m = mul m n`
 - **Matemática:** ∀n, m ∈ ℕ₀, n·m = m·n
 
-**[T9.5]** `mul_assoc`
+**[T10.5]** `mul_assoc`
 
 - **Lean4:** `theorem mul_assoc (m n k : ℕ₀) : mul (mul m n) k = mul m (mul n k)`
 - **Matemática:** ∀m, n, k ∈ ℕ₀, (m·n)·k = m·(n·k)
 
-**[T9.6]** `mul_ldistr`
+**[T10.6]** `mul_add` / `add_mul`
 
-- **Lean4:** `theorem mul_ldistr (m n k : ℕ₀) : mul m (add n k) = add (mul m n) (mul m k)`
-- **Matemática:** m·(n + k) = m·n + m·k
+- **Lean4:** `theorem mul_add (m n k : ℕ₀) : mul m (add n k) = add (mul m n) (mul m k)` / `theorem add_mul (m n k : ℕ₀) : mul (add m n) k = add (mul m k) (mul n k)`
+- **Matemática:** Distributividad izquierda y derecha
 
-**[T9.7]** `mul_eq_zero`
+**[T10.7]** `mul_eq_zero`
 
 - **Lean4:** `theorem mul_eq_zero (n m : ℕ₀) : mul n m = 𝟘 ↔ n = 𝟘 ∨ m = 𝟘`
 - **Matemática:** n·m = 0 ⟺ n = 0 ∨ m = 0
 
-**[T9.8]** `mul_sub`
+**[T10.8]** `mul_cancelation_left` / `mul_cancelation_right`
 
-- **Lean4:** `theorem mul_sub (c a b : ℕ₀) (h_lt : Lt b a) : mul c (sub a b) = sub (mul c a) (mul c b)`
+- **Lean4:** `theorem mul_cancelation_left {a b c : ℕ₀} (h : a ≠ 𝟘) : mul a b = mul a c → b = c` / análogo derecho
+- **Matemática:** a ≠ 0 ∧ a·b = a·c ⇒ b = c
+
+**[T10.9]** `mul_sub`
+
+- **Lean4:** `theorem mul_sub (c a b : ℕ₀) (h : Lt b a) : mul c (sub a b) = sub (mul c a) (mul c b)`
 - **Matemática:** b < a ⇒ c·(a ∸ b) = c·a ∸ c·b
-- **Dependencias:** `sub`, `mul`, `Lt`
 
-**[T9.9]** `archimedean_property`
+**[T10.10]** `archimedean_property`
 
-- **Lean4:** `theorem archimedean_property {n : ℕ₀} (m : ℕ₀) (h_n_pos : Lt 𝟘 n) : ∃ j, Lt m (mul j n)`
+- **Lean4:** `theorem archimedean_property {n : ℕ₀} (m : ℕ₀) (h : Lt 𝟘 n) : ∃ j, Lt m (mul j n)`
 - **Matemática:** n > 0 ⇒ ∀m ∈ ℕ₀, ∃j ∈ ℕ₀, m < j·n
 
-**[T9.10]** `exists_unique_mul_le_and_lt_succ_mul`
+**[T10.11]** `exists_unique_mul_le_and_lt_succ_mul`
 
 - **Lean4:**
 
   ```
   theorem exists_unique_mul_le_and_lt_succ_mul
-      (n m : ℕ₀) (h_n_pos : Lt 𝟘 n) :
+      (n m : ℕ₀) (h : Lt 𝟘 n) :
       ∃¹ k, Le (mul k n) m ∧ Lt m (mul (σ k) n)
   ```
 
 - **Matemática:** n > 0 ⇒ ∃¹k ∈ ℕ₀, k·n ≤ m < σ(k)·n
-- **Dependencias:** `ExistsUnique`, `mul`, `Le`, `Lt`
+
+**[T10.12]** Teoremas adicionales exportados
+
+`mul_two`, `two_mul`, `mul_three`, `three_mul`, `eq_zero_of_mul_eq_zero`, `obvio_1`, `le_n_mul_n_σn`, `mul_le_right`, `mul_le_left`, `mul_le_full_right`, `mul_le_full_left`, `mul_lt_left`, `mul_lt_right`, `mul_lt_full_left`, `mul_lt_full_right`, `mul_le_mono_right`, `lt_σn_mul_σn_σσm`, `mul_n_τm`, `mul_τn_m`, `lt_of_lt_of_le`, `exists_factor_of_mul_le`, `le_le_mul_le_compat`, `mul_pos`, `lt_lt_mul_lt_compat`, `le_lt_mul_lt_compat`
 
 ---
 
-## 10. PeanoNatDiv.lean — `namespace Peano.Div`
+## 11. Div.lean — `namespace Peano.Div`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`*
+*Dependencias: `…Mul` y anteriores*
 
-### 10.1. Definiciones
+### 11.1. Definiciones
 
-**[D10.1]** `divMod`
+**[D11.1]** `divMod`
 
 - **Lean4:**
 
@@ -978,58 +1221,68 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Matemática:** ((⌊a/b⌋, a mod b))
 - **Computable:** Sí
-- **Terminado por:** `termination_by a`;  `decreasing_by` usa `lt_sizeOf` + `sub_lt_self`
-- **Dependencias:** `sub`, `Lt`, `Le`, `SizeOf ℕ₀` (via `isomorph_Ψ_lt`)
+- **Terminado por:** `termination_by a` vía `sub_lt_self` + `lt_sizeOf`
 
-**[D10.2]** `div`
+**[D11.2]** `div`
 
 - **Lean4:** `def div (a b : ℕ₀) : ℕ₀ := (divMod a b).1`
 - **Matemática:** ⌊a/b⌋
 - **Computable:** Sí
 - **Notación:** `a / b`
 
-**[D10.3]** `mod`
+**[D11.3]** `mod`
 
 - **Lean4:** `def mod (a b : ℕ₀) : ℕ₀ := (divMod a b).2`
 - **Matemática:** a mod b
 - **Computable:** Sí
 - **Notación:** `a % b`
 
-**[D10.4]** `lt_sizeOf` (lema de conexión, exportado)
+**[D11.4]** `lt_sizeOf`
 
 - **Lean4:** `theorem lt_sizeOf (a b : ℕ₀) : Lt a b → sizeOf a < sizeOf b`
-- **Dependencias:** `isomorph_Ψ_lt`, `SizeOf ℕ₀`
 
-### 10.2. Teoremas principales
+### 11.2. Teoremas principales
 
-**[T10.1]** `divMod_eq`
+**[T11.1]** `divMod_spec`
 
-- **Lean4:** `theorem divMod_eq (a b : ℕ₀) : b ≠ 𝟘 → a = add (mul (div a b) b) (mod a b)`
-- **Matemática:** b ≠ 0 ⇒ a = (a/b)·b + (a mod b)
-- **Dependencias:** `divMod`, `add`, `mul`, `well_founded_lt`
+- **Lean4:** `theorem divMod_spec (a b : ℕ₀) (h : b ≠ 𝟘) : add (mul (div a b) b) (mod a b) = a`
+- **Matemática:** b ≠ 0 ⇒ (a/b)·b + (a mod b) = a
 
-**[T10.2]** `mod_lt_divisor`
+**[T11.2]** `mod_lt`
 
-- **Lean4:** `theorem mod_lt_divisor (a b : ℕ₀) : b ≠ 𝟘 → Lt (mod a b) b`
+- **Lean4:** `theorem mod_lt (a b : ℕ₀) (h : b ≠ 𝟘) : Lt (mod a b) b`
 - **Matemática:** b ≠ 0 ⇒ (a mod b) < b
-- **Dependencias:** `mod`, `Lt`
+
+**[T11.3]** `div_le_self`
+
+- **Lean4:** `theorem div_le_self (a b : ℕ₀) : Le (div a b) a`
+- **Matemática:** ⌊a/b⌋ ≤ a
+
+**[T11.4]** `div_lt_self`
+
+- **Lean4:** `theorem div_lt_self ...`
+- **Matemática:** Condiciones bajo las cuales ⌊a/b⌋ < a
+
+**[T11.5]** Teoremas adicionales exportados
+
+`gt_imp_neq_zero_one`, `div_of_lt`, `mod_of_lt`, `div_of_lt_fst_interval`, `div_eq_two`, `le___mul__div_a_b__b____a`, `div_of_lt_nth_interval`, `mod_of_lt_fst_interval`, `mod_of_lt_snd_interval`, `mod_of_lt_nth_interval`
 
 ---
 
-## 11. PeanoArith.lean — `namespace Peano.Arith`
+## 12. Arith.lean — `namespace Peano.Arith`
 
 *Dependencias: todos los módulos anteriores, `Init.Classical`*
 
-### 11.1. Definiciones para `ℕ₀`
+### 12.1. Definiciones para `ℕ₀`
 
-**[D11.1]** `Divides`
+**[D12.1]** `Divides`
 
 - **Lean4:** `def Divides (a b : ℕ₀) : Prop := ∃ k : ℕ₀, b = mul a k`
 - **Matemática:** a ∣ b  ⟺  ∃k ∈ ℕ₀, b = a·k
 - **Computable:** No (Prop)
 - **Notación:** `a ∣ b` (infijo, prioridad 50); `a ∤ b` ≡ ¬(a ∣ b) (prioridad 50)
 
-**[D11.2]** `MultipleOf`, `DivisorOf`
+**[D12.2]** `MultipleOf`, `DivisorOf`
 
 - **Lean4:**
 
@@ -1038,34 +1291,34 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   def DivisorOf  (d n : ℕ₀) : Prop := Divides d n
   ```
 
-- **Matemática:** Sinónimos orientados de n ∣ m
+- **Matemática:** Sinónimos orientados
 
-**[D11.3]** `Divisors`
+**[D12.3]** `Divisors`
 
 - **Lean4:** `def Divisors (n : ℕ₀) : ℕ₀ → Prop := fun d => d ∣ n`
 - **Matemática:** Divisors(n) = {d ∈ ℕ₀ | d ∣ n}
 
-**[D11.4]** `IsGCD`
+**[D12.4]** `IsGCD`
 
 - **Lean4:** `def IsGCD (a b d : ℕ₀) : Prop := d ∣ a ∧ d ∣ b ∧ ∀ c, (c ∣ a ∧ c ∣ b) → c ∣ d`
 - **Matemática:** IsGCD(a, b, d)  ⟺  d∣a ∧ d∣b ∧ (∀c, c∣a ∧ c∣b ⇒ c∣d)
 
-**[D11.5]** `IsLCM`
+**[D12.5]** `IsLCM`
 
 - **Lean4:** `def IsLCM (a b m : ℕ₀) : Prop := a ∣ m ∧ b ∣ m ∧ ∀ c, (a ∣ c ∧ b ∣ c) → m ∣ c`
 - **Matemática:** IsLCM(a, b, m)  ⟺  a∣m ∧ b∣m ∧ (∀c, a∣c ∧ b∣c ⇒ m∣c)
 
-**[D11.6]** `Coprime`
+**[D12.6]** `Coprime`
 
 - **Lean4:** `def Coprime (a b : ℕ₀) : Prop := IsGCD a b 𝟙`
 - **Matemática:** gcd(a, b) = 1
 
-**[D11.7]** `Prime`
+**[D12.7]** `Prime`
 
 - **Lean4:** `def Prime (p : ℕ₀) : Prop := p ≠ 𝟘 ∧ p ≠ 𝟙 ∧ ∀ a b, p ∣ (mul a b) → p ∣ a ∨ p ∣ b`
-- **Matemática:** p ≠ 0 ∧ p ≠ 1 ∧ (∀a,b, p∣ab ⇒ p∣a ∨ p∣b)  (Lema de Euclides como definición)
+- **Matemática:** p ≠ 0 ∧ p ≠ 1 ∧ (∀a,b, p∣ab ⇒ p∣a ∨ p∣b)
 
-**[D11.8]** `gcd`
+**[D12.8]** `gcd`
 
 - **Lean4:**
 
@@ -1077,17 +1330,15 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Matemática:** gcd(a, 0) = a;  gcd(a, b) = gcd(b, a mod b)
 - **Computable:** Sí
-- **Terminado por:** `termination_by b` vía `mod_lt_divisor` + `lt_sizeOf`
-- **Dependencias:** `mod`, `well_founded_lt`
+- **Terminado por:** `termination_by b` vía `mod_lt` + `lt_sizeOf`
 
-**[D11.9]** `lcm`
+**[D12.9]** `lcm`
 
 - **Lean4:** `def lcm (a b : ℕ₀) : ℕ₀ := div (mul a b) (gcd a b)`
 - **Matemática:** lcm(a, b) = (a·b) / gcd(a, b)
 - **Computable:** Sí
-- **Dependencias:** `mul`, `div`, `gcd`
 
-**[D11.10]** `Multiples` (inductivo)
+**[D12.10]** `Multiples` (inductivo)
 
 - **Lean4:**
 
@@ -1099,35 +1350,32 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Matemática:** Multiples(n) = {0, n, 2n, 3n, …}
 
-**[D11.11]** Estructuras auxiliares de listas de divisores
+**[D12.11]** Estructuras de listas de divisores
 
 - **Lean4:**
 
   ```
-  inductive DList (α : Type) : Type          -- lista inductiva propia
-  def range_from_one : ℕ₀ → DList ℕ₀        -- rango [1 .. n]
-  def dividesb (d n : ℕ₀) : Bool            -- (n % d = 𝟘)
-  def Factors_of (n : ℕ₁) : DList ℕ₀        -- factores de n
-  structure DivisorsList (n : ℕ₀) : Type    -- lista certificada de divisores
+  inductive DList (α : Type) : Type
+  def range_from_one : ℕ₀ → DList ℕ₀
+  def dividesb (d n : ℕ₀) : Bool
+  def factorsOf (n : ℕ₁) : DList ℕ₀
+  structure DivisorsList (n : ℕ₀) : Type
   ```
 
-- **Computable:** Sí (`DList`, `dividesb`, `Factors_of`, `range_from_one`)
+- **Computable:** Sí
 
-### 11.2. Definiciones para `ℕ₁`
+### 12.2. Definiciones para `ℕ₁`
 
-**[D11.12]** `Divides₁`
+**[D12.12]** `Divides₁`
 
 - **Lean4:** `def Divides₁ (a b : ℕ₁) : Prop := a.val ∣ b.val`
-- **Matemática:** a ∣₁ b  ⟺  a_ℕ ∣ b_ℕ
-- **Computable:** No (Prop)
 - **Notación:** `a ∣₁ b` (infijo, prioridad 50)
 
-**[D11.13]** `IsGCD₁`
+**[D12.13]** `IsGCD₁`
 
 - **Lean4:** `def IsGCD₁ (a b d : ℕ₁) : Prop := d ∣₁ a ∧ d ∣₁ b ∧ ∀ c : ℕ₁, (c ∣₁ a ∧ c ∣₁ b) → c ∣₁ d`
-- **Matemática:** MCD en ℕ₁
 
-**[D11.14]** `gcd₁`
+**[D12.14]** `gcd₁`
 
 - **Lean4:**
 
@@ -1138,107 +1386,78 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   termination_by b.val
   ```
 
-- **Matemática:** Algoritmo de Euclides en ℕ₁
 - **Computable:** Sí
-- **Terminado por:** `termination_by b.val` vía `mod_lt_divisor` + `lt_sizeOf`
-- **Dependencias:** `mod`, `well_founded_lt`, `ℕ₁`
 
-**[D11.15]** `Coprime₁`
+**[D12.15]** `Coprime₁`
 
 - **Lean4:** `def Coprime₁ (a b : ℕ₁) : Prop := gcd₁ a b = ⟨𝟙, by decide⟩`
-- **Matemática:** gcd₁(a, b) = 1 en ℕ₁
 
-### 11.3. Teoremas para `ℕ₀` — Divisibilidad básica
+### 12.3. Teoremas — Divisibilidad básica
 
-**[T11.1]** `divides_refl`
+**[T12.1]** `divides_refl`
 
 - **Lean4:** `theorem divides_refl (a : ℕ₀) : a ∣ a`
-- **Matemática:** ∀a ∈ ℕ₀, a ∣ a
 
-**[T11.2]** `one_divides`
+**[T12.2]** `one_divides`
 
 - **Lean4:** `theorem one_divides (a : ℕ₀) : 𝟙 ∣ a`
-- **Matemática:** ∀a ∈ ℕ₀, 1 ∣ a
 
-**[T11.3]** `divides_zero`
+**[T12.3]** `divides_zero`
 
 - **Lean4:** `theorem divides_zero (a : ℕ₀) : a ∣ 𝟘`
-- **Matemática:** ∀a ∈ ℕ₀, a ∣ 0
 
-**[T11.4]** `zero_divides_iff`
+**[T12.4]** `zero_divides_iff`
 
 - **Lean4:** `theorem zero_divides_iff (b : ℕ₀) : (𝟘 ∣ b) ↔ b = 𝟘`
-- **Matemática:** 0 ∣ b ⟺ b = 0
 
-**[T11.5]** `divides_trans`
+**[T12.5]** `divides_trans`
 
 - **Lean4:** `theorem divides_trans {a b c : ℕ₀} : a ∣ b → b ∣ c → a ∣ c`
-- **Matemática:** a ∣ b ∧ b ∣ c ⇒ a ∣ c
 
-**[T11.6]** `divides_mul_right`
+**[T12.6]** `divides_mul_right` / `divides_mul_left`
 
-- **Lean4:** `theorem divides_mul_right {a b c : ℕ₀} : a ∣ b → a ∣ (mul b c)`
-- **Matemática:** a ∣ b ⇒ a ∣ b·c
+- **Lean4:** `theorem divides_mul_right {a b c : ℕ₀} : a ∣ b → a ∣ (mul b c)` / análogo izquierdo
 
-**[T11.7]** `divides_mul_left`
-
-- **Lean4:** `theorem divides_mul_left {a b c : ℕ₀} : a ∣ b → a ∣ (mul c b)`
-- **Matemática:** a ∣ b ⇒ a ∣ c·b
-
-**[T11.8]** `divides_add`
+**[T12.7]** `divides_add`
 
 - **Lean4:** `theorem divides_add {a b c : ℕ₀} : a ∣ b → a ∣ c → a ∣ (add b c)`
-- **Matemática:** a ∣ b ∧ a ∣ c ⇒ a ∣ (b + c)
 
-**[T11.9]** `divides_le`
+**[T12.8]** `divides_le`
 
 - **Lean4:** `theorem divides_le {a b : ℕ₀} : a ∣ b → b ≠ 𝟘 → Le a b`
 - **Matemática:** a ∣ b ∧ b ≠ 0 ⇒ a ≤ b
 
-**[T11.10]** `antisymm_divides`
+**[T12.9]** `antisymm_divides`
 
 - **Lean4:** `theorem antisymm_divides {a b : ℕ₀} : (a ∣ b) → (b ∣ a) → a = b`
-- **Matemática:** a ∣ b ∧ b ∣ a ⇒ a = b
 
-**[T11.11]** `divides_sub`
+**[T12.10]** `divides_sub`
 
-- **Lean4:** `theorem divides_sub {a b c : ℕ₀} (h_lt_a_b : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (sub a b)`
-- **Matemática:** b < a ∧ c ∣ a ∧ c ∣ b ⇒ c ∣ (a ∸ b)
+- **Lean4:** `theorem divides_sub {a b c : ℕ₀} (h : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (sub a b)`
 
-**[T11.12]** `divides_mod`
+**[T12.11]** `divides_mod`
 
 - **Lean4:** `theorem divides_mod {a b c : ℕ₀} (ha : c ∣ a) (hb : c ∣ b) : c ∣ (a % b)`
-- **Matemática:** c ∣ a ∧ c ∣ b ⇒ c ∣ (a mod b)
 
-**[T11.13]** `multiples_iff_divides`
+**[T12.12]** `multiples_iff_divides`
 
 - **Lean4:** `theorem multiples_iff_divides (n m : ℕ₀) : Multiples n m ↔ n ∣ m`
-- **Matemática:** m ∈ Multiples(n) ⟺ n ∣ m
 
-### 11.4. Teoremas para `ℕ₀` — MCD y Bézout
+### 12.4. Teoremas — MCD y Bézout
 
-**[T11.14]** `gcd_greatest`
+**[T12.13]** `gcd_greatest`
 
 - **Lean4:** `theorem gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b`
-- **Matemática:** c ∣ a ∧ c ∣ b ⇒ c ∣ gcd(a, b)
-- **Dependencias:** `gcd`, `well_founded_lt`, `divides_mod`
 
-**[T11.15]** `gcd_divides_linear_combo`
+**[T12.14]** `gcd_divides_linear_combo`
 
 - **Lean4:** `theorem gcd_divides_linear_combo (a b n m : ℕ₀) : gcd a b ∣ (add (mul a n) (mul b m))`
-- **Matemática:** gcd(a,b) ∣ (a·n + b·m) para todo n, m ∈ ℕ₀
 
-**[T11.16]** `gcd_divides_max`
+**[T12.15]** `gcd_divides_max` / `gcd_divides_min`
 
-- **Lean4:** `theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b`
-- **Matemática:** gcd(a,b) ∣ max(a,b)
+- **Lean4:** `theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b` / `theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b`
 
-**[T11.17]** `gcd_divides_min`
-
-- **Lean4:** `theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b`
-- **Matemática:** gcd(a,b) ∣ min(a,b)
-
-**[T11.18]** `bezout_natform`
+**[T12.16]** `bezout_natform`
 
 - **Lean4:**
 
@@ -1249,771 +1468,513 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   ```
 
 - **Matemática:** ∃n,m ∈ ℕ₀, gcd(a,b) = n·a ∸ m·b  ∨  gcd(a,b) = n·b ∸ m·a
-- **Dependencias:** `gcd`, `mul`, `sub`, `add_k_sub_k`
-- **Nota:** La forma OR es intrínseca a la recursión de Euclides con coeficientes en ℕ₀ (sin enteros negativos). La alternancia se propaga como tipo `Or` a cada nivel de la inducción bien fundada.
 
-### 11.5. Teoremas para `ℕ₀` — DivisorsList
+### 12.5. Teoremas — DivisorsList
 
-**[T11.19]** `divisorslist_one_mem`
+**[T12.17]** `divisorslist_one_mem`
 
 - **Lean4:** `theorem divisorslist_one_mem {n : ℕ₀} (d : DivisorsList n) : 𝟙 ∈ d.vals`
-- **Matemática:** 1 ∈ divisores(n)
 
-**[T11.20]** `divisorslist_self_mem`
+**[T12.18]** `divisorslist_self_mem`
 
 - **Lean4:** `theorem divisorslist_self_mem {n : ℕ₀} (d : DivisorsList n) : n ∈ d.vals`
-- **Matemática:** n ∈ divisores(n)
 
-### 11.6. Teoremas para `ℕ₁`
+### 12.6. Teoremas — ℕ₁
 
-**[T11.21]** `divides₁_refl`
+**[T12.19]** `divides₁_refl` / `divides₁_trans` / `divides₁_antisymm`
 
-- **Lean4:** `theorem divides₁_refl (a : ℕ₁) : a ∣₁ a`
-- **Matemática:** ∀a ∈ ℕ₁, a ∣₁ a
+- **Lean4:** Reflexividad, transitividad y antisimetría de `∣₁`
 
-**[T11.22]** `divides₁_trans`
-
-- **Lean4:** `theorem divides₁_trans {a b c : ℕ₁} (hab : a ∣₁ b) (hbc : b ∣₁ c) : a ∣₁ c`
-- **Matemática:** a ∣₁ b ∧ b ∣₁ c ⇒ a ∣₁ c
-
-**[T11.23]** `divides₁_antisymm`
-
-- **Lean4:** `theorem divides₁_antisymm {a b : ℕ₁} (hab : a ∣₁ b) (hba : b ∣₁ a) : a = b`
-- **Matemática:** a ∣₁ b ∧ b ∣₁ a ⇒ a = b
-
-**[T11.24]** `mod_eq_zero_iff_divides`
+**[T12.20]** `mod_eq_zero_iff_divides`
 
 - **Lean4:** `theorem mod_eq_zero_iff_divides {a b : ℕ₁} : (a.val % b.val) = 𝟘 ↔ (b ∣₁ a)`
-- **Matemática:** a mod b = 0 ⟺ b ∣₁ a
 
-**[T11.25]** `gcd₁_val_eq`
+**[T12.21]** `gcd₁_val_eq`
 
 - **Lean4:** `theorem gcd₁_val_eq (a b : ℕ₁) : (gcd₁ a b).val = gcd a.val b.val`
-- **Matemática:** (gcd₁(a,b))_ℕ = gcd(a_ℕ, b_ℕ)
 
-**[T11.26]** `gcd₁_comm`
+**[T12.22]** `gcd₁_comm`
 
 - **Lean4:** `theorem gcd₁_comm (a b : ℕ₁) : gcd₁ a b = gcd₁ b a`
-- **Matemática:** gcd₁(a, b) = gcd₁(b, a)
 
-**[T11.27]** `gcd₁_divides_left`
+**[T12.23]** `gcd₁_divides_left` / `gcd₁_divides_right` / `gcd₁_divides_both`
 
-- **Lean4:** `theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a`
-- **Matemática:** gcd₁(a, b) ∣₁ a
-
-**[T11.28]** `gcd₁_divides_right`
-
-- **Lean4:** `theorem gcd₁_divides_right (a b : ℕ₁) : gcd₁ a b ∣₁ b`
-- **Matemática:** gcd₁(a, b) ∣₁ b
-
-**[T11.29]** `gcd₁_divides_both`
-
-- **Lean4:** `theorem gcd₁_divides_both (a b : ℕ₁) : gcd₁ a b ∣₁ a ∧ gcd₁ a b ∣₁ b`
-- **Matemática:** gcd₁(a,b) ∣₁ a  ∧  gcd₁(a,b) ∣₁ b
+- **Lean4:** `theorem gcd₁_divides_left (a b : ℕ₁) : gcd₁ a b ∣₁ a` / análogos
 
 ---
 
-## 12. PeanoNatPrimes.lean — `namespace Peano.Primes`
+## 13. Primes.lean — `namespace Peano.Primes`
 
-*Dependencias: todos los módulos anteriores + `PeanoNatArith` (`Init.Classical`)*
+*Dependencias: todos los módulos anteriores + `Arith`*
 
-> **Estado:** Completamente demostrado. **Cero `sorry`.** Módulo cerrado: TFA (existencia y unicidad), tres equivalencias de primalidad, Lema de Gauss, alias exportados `Prime` y `ℙ`.  
-> **Secciones:** §0 Lemas gcd (privados) · §1 Propiedades básicas de Prime · §2 Irreducibilidad y equivalencias · §3 Coprimalidad y Lema de Gauss · §4 Listas y producto · §5 Divisor primo · §6 TFA Existencia · §7 TFA Unicidad · §8 Alias exportados  
-> Objetivo principal: **Teorema Fundamental de la Aritmética (TFA)** — existencia y unicidad de la factorización en primos— junto con tres definiciones equivalentes de número primo y sus equivalencias.
-
-### 12.1. Propiedades básicas de `Prime`
-
-**[T12.1]** `prime_ne_zero`
-
-- **Lean4:** `theorem prime_ne_zero {p : ℕ₀} (hp : Prime p) : p ≠ 𝟘`
-- **Matemática:** p primo ⇒ p ≠ 0
-- **Dependencias:** `Prime`
-
-**[T12.2]** `prime_ne_one`
-
-- **Lean4:** `theorem prime_ne_one {p : ℕ₀} (hp : Prime p) : p ≠ 𝟙`
-- **Matemática:** p primo ⇒ p ≠ 1
-
-**[T12.3]** `one_lt_prime`
-
-- **Lean4:** `theorem one_lt_prime {p : ℕ₀} (hp : Prime p) : Lt 𝟙 p`
-- **Matemática:** p primo ⇒ 1 < p
-- **Dependencias:** `Lt`, `prime_ne_zero`, `prime_ne_one`
-
-**[T12.4]** `prime_ge_two`
-
-- **Lean4:** `theorem prime_ge_two {p : ℕ₀} (hp : Prime p) : Le 𝟚 p`
-- **Matemática:** p primo ⇒ 2 ≤ p
-- **Dependencias:** `Le`, `one_lt_prime`
-
-**[T12.5]** `not_prime_one`
-
-- **Lean4:** `theorem not_prime_one : ¬ Prime 𝟙`
-- **Matemática:** 1 no es primo
-
-**[T12.6]** `not_prime_zero`
-
-- **Lean4:** `theorem not_prime_zero : ¬ Prime 𝟘`
-- **Matemática:** 0 no es primo
-
-### 12.2. Irreducibilidad y equivalencias entre definiciones de primo
-
-**[D12.1]** `Irreducible` (Def. A)
-
-- **Lean4:** `def Irreducible (p : ℕ₀) : Prop := p ≠ 𝟙 ∧ ∀ a b : ℕ₀, mul a b = p → a = 𝟙 ∨ b = 𝟙`
-- **Matemática:** p ≠ 1 ∧ (∀a,b, a·b = p ⇒ a = 1 ∨ b = 1)
-- **Computable:** No (Prop)
-- **Dependencias:** `mul`
-
-**[D12.2]** `HasExactlyTwoDivisors` (Def. B)
-
-- **Lean4:** `def HasExactlyTwoDivisors (p : ℕ₀) : Prop := (∀ d : ℕ₀, d ∣ p → d = 𝟙 ∨ d = p) ∧ p ≠ 𝟙`
-- **Matemática:** (∀d, d∣p ⇒ d=1 ∨ d=p) ∧ p ≠ 1  (automáticamente excluye p=0 y p=1)
-- **Computable:** No (Prop)
-- **Dependencias:** `Divides`
-
-**[T12.7]** `mul_eq_one`
-
-- **Lean4:** `theorem mul_eq_one {a b : ℕ₀} (h : mul a b = 𝟙) : a = 𝟙 ∧ b = 𝟙`
-- **Matemática:** a·b = 1 ⇒ a = 1 ∧ b = 1
-- **Dependencias:** `divides_le`, `mul_comm`
-
-**[T12.8]** `prime_divisors`
-
-- **Lean4:** `theorem prime_divisors {p d : ℕ₀} (hp : Prime p) (hd : d ∣ p) : d = 𝟙 ∨ d = p`
-- **Matemática:** p primo ∧ d ∣ p ⇒ d = 1 ∨ d = p
-- **Dependencias:** `mul_eq_one`, `antisymm_divides`, `mul_cancelation_left`
-
-**[T12.9]** `prime_imp_irreducible`
-
-- **Lean4:** `theorem prime_imp_irreducible {p : ℕ₀} (hp : Prime p) : Irreducible p`
-- **Matemática:** p primo (Def. C) ⇒ p irreducible (Def. A)
-- **Dependencias:** `prime_divisors`, `prime_ne_one`, `mul_cancelation_left`
-
-**[T12.10]** `irreducible_imp_prime`
-
-- **Lean4:** `theorem irreducible_imp_prime {p : ℕ₀} (hp0 : p ≠ 𝟘) (hirr : Irreducible p) : Prime p`
-- **Matemática:** p ≠ 0 ∧ p irreducible (Def. A) ⇒ p primo (Def. C)
-- **Dependencias:** `gcd_dvd_left`, `gcd_dvd_right`, `gcd_eq_one_iff_coprime`, `coprime_dvd_of_dvd_mul`
-- **Método:** Se extrae k con p = gcd(p,a)·k desde `gcd_dvd_left`. Irreducibilidad dicta gcd(p,a) = 1 ó k = 1. Caso 1: Lema de Gauss (coprime_dvd_of_dvd_mul) → p ∣ b. Caso 2: gcd(p,a) = p → p ∣ a.
-
-**[T12.11]** `prime_iff_irreducible`
-
-- **Lean4:** `theorem prime_iff_irreducible {p : ℕ₀} : Prime p ↔ (p ≠ 𝟘 ∧ Irreducible p)`
-- **Matemática:** p primo (C) ⟺ p ≠ 0 ∧ p irreducible (A)
-- **Dependencias:** `prime_imp_irreducible`, `irreducible_imp_prime`
-
-**[T12.12]** `not_has_two_divisors_one`
-
-- **Lean4:** `theorem not_has_two_divisors_one : ¬ HasExactlyTwoDivisors 𝟙`
-- **Matemática:** 1 no tiene exactamente dos divisores
-
-**[T12.13]** `not_has_two_divisors_zero`
-
-- **Lean4:** `theorem not_has_two_divisors_zero : ¬ HasExactlyTwoDivisors 𝟘`
-- **Matemática:** 0 no tiene exactamente dos divisores (𝟚 ∣ 0 pero 𝟚 ≠ 1 y 𝟚 ≠ 0)
-- **Dependencias:** `divides_zero`, `succ_inj_pos_wp`, `succ_neq_zero`
-
-**[T12.14]** `prime_iff_has_exactly_two_divisors`
-
-- **Lean4:** `theorem prime_iff_has_exactly_two_divisors {p : ℕ₀} : Prime p ↔ HasExactlyTwoDivisors p`
-- **Matemática:** p primo (C) ⟺ p tiene exactamente dos divisores (B)
-- **Dependencias:** `prime_divisors`, `prime_ne_one`, `irreducible_imp_prime`, `mul_cancelation_left`
-
-### 12.3. Coprimalidad y lema de Gauss
-
-**[T12.15]** `coprime_symm`
-
-- **Lean4:** `theorem coprime_symm {a b : ℕ₀} (h : Coprime a b) : Coprime b a`
-- **Matemática:** gcd(a,b) = 1 ⇒ gcd(b,a) = 1
-- **Dependencias:** `Coprime`, `IsGCD`
-
-**[T12.16]** `gcd_eq_one_iff_coprime`
-
-- **Lean4:** `theorem gcd_eq_one_iff_coprime (a b : ℕ₀) : gcd a b = 𝟙 ↔ Coprime a b`
-- **Matemática:** gcd(a,b) = 1 ⟺ Coprime(a,b)
-- **Dependencias:** `gcd`, `Coprime`, `gcd_greatest`, `antisymm_divides`
-
-**[T12.17]** `prime_not_dvd_imp_coprime`
-
-- **Lean4:** `theorem prime_not_dvd_imp_coprime {p a : ℕ₀} (hp : Prime p) (hna : ¬ p ∣ a) : gcd p a = 𝟙`
-- **Matemática:** p primo ∧ p ∤ a ⇒ gcd(p,a) = 1
-- **Dependencias:** `prime_divisors`, `gcd_dvd_left`
-
-**[T12.18]** `prime_coprime_or_dvd`
-
-- **Lean4:** `theorem prime_coprime_or_dvd {p n : ℕ₀} (hp : Prime p) : p ∣ n ∨ Coprime p n`
-- **Matemática:** p primo ⇒ p ∣ n ∨ gcd(p,n) = 1
-- **Dependencias:** `prime_not_dvd_imp_coprime`, `gcd_eq_one_iff_coprime`
-
-**[T12.19]** `coprime_dvd_of_dvd_mul`
-
-- **Lean4:** `theorem coprime_dvd_of_dvd_mul {a b c : ℕ₀} (hcop : Coprime a b) (hdvd : a ∣ mul b c) : a ∣ c`
-- **Matemática:** gcd(a,b) = 1 ∧ a ∣ b·c ⇒ a ∣ c  (**Lema de Gauss**)
-- **Dependencias:** `bezout_natform`, `gcd_eq_one_iff_coprime`, `sub_pos_iff_lt`, `sub_k_add_k`, `add_k_sub_k`, `lt_self_add_r`, `divides_sub`
-- **Método:** Bézout da n,m con n·a − m·b = 1 (ó n·b − m·a = 1). Multiplicando por c y usando `sub_k_add_k`/`add_k_sub_k` se obtiene (n·a)·c − (m·b)·c = c. Como a divide ambos minuendos, `divides_sub` concluye a ∣ c. El otro caso de Bézout es simétrico.
-
-### 12.4. Listas de primos y función producto
-
-**[D12.3]** `PrimeList`
-
-- **Lean4:** `def PrimeList (ps : DList ℕ₀) : Prop := ∀ p, DList.Mem p ps → Prime p`
-- **Matemática:** Todos los elementos de la lista `ps` son primos
-- **Computable:** No (Prop)
-- **Dependencias:** `DList`, `Prime`
-
-**[D12.4]** `product_list`
-
-- **Lean4:**
-
-  ```
-  def product_list : DList ℕ₀ → ℕ₀
-    | DList.nil       => 𝟙
-    | DList.cons p ps => mul p (product_list ps)
-  ```
-
-- **Matemática:** ∏ ps (producto de todos los elementos de `ps`)
-- **Computable:** Sí
-- **Terminado por:** recursión estructural sobre `DList`
-- **Dependencias:** `mul`, `DList`
-
-**[T12.20]** `product_nil`
-
-- **Lean4:** `@[simp] theorem product_nil : product_list DList.nil = 𝟙`
-- **Matemática:** ∏ [] = 1
-
-**[T12.21]** `product_cons`
-
-- **Lean4:** `@[simp] theorem product_cons (p : ℕ₀) (ps : DList ℕ₀) : product_list (DList.cons p ps) = mul p (product_list ps)`
-- **Matemática:** ∏ (p :: ps) = p · ∏ ps
-
-**[T12.22]** `product_append`
-
-- **Lean4:** `theorem product_append (l1 l2 : DList ℕ₀) : product_list (DList.append l1 l2) = mul (product_list l1) (product_list l2)`
-- **Matemática:** ∏ (l1 ++ l2) = (∏ l1) · (∏ l2)
-- **Dependencias:** `mul_assoc`, `one_mul`
-
-**[T12.23]** `product_list_pos`
-
-- **Lean4:** `theorem product_list_pos {ps : DList ℕ₀} (hps : PrimeList ps) : Lt 𝟘 (product_list ps)`
-- **Matemática:** `PrimeList ps` ⇒ ∏ ps > 0
-- **Dependencias:** `prime_ne_zero`, `mul_pos`
-
-**[T12.24]** `prime_dvd_product_list`
-
-- **Lean4:** `theorem prime_dvd_product_list {p : ℕ₀} (hp : Prime p) : ∀ ps : DList ℕ₀, p ∣ product_list ps → ∃ q, DList.Mem q ps ∧ p ∣ q`
-- **Matemática:** p primo ∧ p ∣ ∏ ps ⇒ ∃q ∈ ps, p ∣ q  (**Euclides para listas**)
-- **Dependencias:** `prime_ge_two`, `divides_le`, `lt_asymm`, `Prime.2.2` (propiedad euclídea)
-
-### 12.5. Existencia de divisor primo y factorización prima
-
-**[T12.25]** `exists_prime_divisor`
-
-- **Lean4:** `theorem exists_prime_divisor (n : ℕ₀) (hn : Le 𝟚 n) : ∃ p, Prime p ∧ p ∣ n`
-- **Matemática:** n ≥ 2 ⇒ ∃p primo tal que p ∣ n
-- **Dependencias:** `well_founded_lt`, `Irreducible`, `irreducible_prime_dvd_mul` (privado), `mul_lt_right`, `mul_le_mono_right`
-- **Método:** Inducción bien fundada: si n es irreducible se construye el primo directamente; si no, se factoriza n = a·b con a,b ≥ 2, y se aplica HI sobre a < n.
-
-**[T12.26]** `exists_prime_factorization`
-
-- **Lean4:** `theorem exists_prime_factorization (n : ℕ₀) (hn : Le 𝟚 n) : ∃ ps : DList ℕ₀, PrimeList ps ∧ product_list ps = n`
-- **Matemática:** n ≥ 2 ⇒ ∃ lista de primos ps tal que ∏ ps = n  (**TFA — Existencia**)
-- **Dependencias:** `well_founded_lt`, `Irreducible`, `product_append`, `irreducible_prime_dvd_mul` (privado)
-- **Método:** Inducción bien fundada: caso irreducible → lista unitaria; caso reducible n = a·b → concatenar factorizaciones de a y b (ambos estrictamente menores que n).
-
-### 12.6. Unicidad de la factorización prima
-
-**[T12.27]** `mem_dvd_product`
-
-- **Lean4:** `theorem mem_dvd_product {q : ℕ₀} {l : DList ℕ₀} (h : DList.Mem q l) : q ∣ product_list l`
-- **Matemática:** q ∈ l ⇒ q ∣ ∏ l
-- **Dependencias:** `divides_mul_right`, `divides_trans`
-
-**[T12.28]** `unique_prime_factorization`
-
-- **Lean4:**
-
-  ```
-  theorem unique_prime_factorization :
-      ∀ ps qs : DList ℕ₀,
-        PrimeList ps → PrimeList qs →
-        product_list ps = product_list qs →
-        ∀ p : ℕ₀, Prime p →
-          DList.length (DList.filter (fun q => decide (q = p)) ps) =
-          DList.length (DList.filter (fun q => decide (q = p)) qs)
-  ```
-
-- **Matemática:** Si ∏ ps = ∏ qs con ps, qs listas de primos, entonces ∀p primo, la multiplicidad de p en ps = multiplicidad de p en qs  (**TFA — Unicidad**)
-- **Dependencias:** `prime_dvd_product_list`, `prime_divisors`, `prime_ne_one`, `mul_cancelation_left`, `product_remove_one` (priv.), `primelist_remove_one` (priv.), `filter_count_eq` (priv.), `filter_count_neq` (priv.), `prime_list_nil_of_prod_one` (priv.)
-- **Método:** Inducción estructural sobre `ps`. Caso nil: qs = nil por `prime_list_nil_of_prod_one`. Caso `p₀ :: ps'`: `prime_dvd_product_list` da q ∈ qs con p₀ ∣ q; `prime_divisors` fuerza p₀ = q; se retira p₀ de qs con `remove_one` y se cancela p₀ del producto; HI cierra. Para cada primo p: si p = p₀ se usa `filter_count_eq`; si p ≠ p₀ se usa `filter_count_neq`.
-
-### 12.7. Alias exportados y conjunto de primos ℙ
-
-**[D12.5]** `Prime` (abbrev)
-
-- **Lean4:** `abbrev Prime (p : ℕ₀) : Prop := Peano.Arith.Prime p`
-- **Matemática:** p primo en sentido de Euclides: p ≠ 0 ∧ p ≠ 1 ∧ ∀a b, p ∣ a·b ⇒ p ∣ a ∨ p ∣ b
-- **Computable:** No (Prop)
-- **Nota:** Alias transparente (`abbrev`) de `Peano.Arith.Prime` dentro de `namespace Peano.Primes`, necesario para que `Prime` aparezca en el bloque `export Peano.Primes (Prime ...)`. El uso de `abbrev` (en lugar de `def`) preserva la transparencia definitiva ante el unificador de Lean 4.
-- **Dependencias:** `Peano.Arith.Prime`
-
-**[D12.6]** `ℙ`
-
-- **Lean4:** `def ℙ : Type := {n : ℕ₂ // Prime n.val.val}`
-- **Matemática:** El **conjunto de los números primos** como subtipo de ℕ₂; ℙ := { n ∈ ℕ₂ ∣ Prime n }
-- **Computable:** No (la condición es una Prop)
-- **Nota:** Cada `n : ℙ` satisface n ≠ 0 (por ser n : ℕ₁), n ≠ 1 (por ser n : ℕ₂) y `Prime n.val.val` automáticamente.
-- **Dependencias:** `ℕ₂`, `Prime`
-
----
-
-## 13. PeanoNatPow.lean — `namespace Peano.Pow`
-
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatMaxMin`, `PeanoNatWellFounded`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatDiv`*
+> Teorema Fundamental de la Aritmética (TFA) — existencia y unicidad de la factorización en primos.
 
 ### 13.1. Definiciones
 
-**[D13.1]** `pow`
+**[D13.1]** `Irreducible`
+
+- **Lean4:** `def Irreducible (p : ℕ₀) : Prop := p ≠ 𝟘 ∧ p ≠ 𝟙 ∧ ∀ a b, p = mul a b → a = 𝟙 ∨ b = 𝟙`
+- **Matemática:** p irreducible ⟺ p ≠ 0 ∧ p ≠ 1 ∧ (p = ab ⇒ a = 1 ∨ b = 1)
+
+**[D13.2]** `HasExactlyTwoDivisors`
+
+- **Lean4:** `def HasExactlyTwoDivisors (p : ℕ₀) : Prop := ...`
+- **Matemática:** p tiene exactamente dos divisores: 1 y p
+
+**[D13.3]** `ℙ` (tipo de primos)
+
+- **Lean4:** `def ℙ := {n : ℕ₂ // Prime n.val.val}`
+- **Matemática:** ℙ = {p ∈ ℕ₂ | Prime(p)}
+
+**[D13.4]** `PrimeList`
+
+- **Lean4:** `def PrimeList (ps : DList ℕ₀) : Prop`
+- **Matemática:** Todos los elementos de la lista son primos
+
+**[D13.5]** `product_list`
+
+- **Lean4:** `def product_list : DList ℕ₀ → ℕ₀`
+- **Matemática:** Producto de una lista de naturales
+
+### 13.2. Propiedades básicas de `Prime`
+
+**[T13.1]** `prime_ne_zero` / `prime_ne_one`
+
+- **Lean4:** `theorem prime_ne_zero {p : ℕ₀} (hp : Prime p) : p ≠ 𝟘` / `theorem prime_ne_one {p : ℕ₀} (hp : Prime p) : p ≠ 𝟙`
+
+**[T13.2]** `one_lt_prime` / `prime_ge_two`
+
+- **Lean4:** `theorem one_lt_prime {p : ℕ₀} (hp : Prime p) : Lt 𝟙 p` / `theorem prime_ge_two {p : ℕ₀} (hp : Prime p) : Le 𝟚 p`
+
+**[T13.3]** `not_prime_one` / `not_prime_zero`
+
+- **Lean4:** `theorem not_prime_one : ¬ Prime 𝟙` / `theorem not_prime_zero : ¬ Prime 𝟘`
+
+**[T13.4]** `mul_eq_one`
+
+- **Lean4:** `theorem mul_eq_one {a b : ℕ₀} : mul a b = 𝟙 → a = 𝟙 ∧ b = 𝟙`
+- **Matemática:** a·b = 1 ⇒ a = 1 ∧ b = 1
+
+**[T13.5]** `prime_divisors`
+
+- **Lean4:** `theorem prime_divisors {p : ℕ₀} (hp : Prime p) {d : ℕ₀} (hd : d ∣ p) : d = 𝟙 ∨ d = p`
+
+### 13.3. Equivalencias de primalidad
+
+**[T13.6]** `prime_imp_irreducible`
+
+- **Lean4:** `theorem prime_imp_irreducible {p : ℕ₀} (hp : Prime p) : Irreducible p`
+
+**[T13.7]** `irreducible_imp_prime`
+
+- **Lean4:** `theorem irreducible_imp_prime {p : ℕ₀} (hp : Irreducible p) : Prime p`
+
+**[T13.8]** `prime_iff_irreducible`
+
+- **Lean4:** `theorem prime_iff_irreducible {p : ℕ₀} : Prime p ↔ Irreducible p`
+
+**[T13.9]** `prime_iff_has_exactly_two_divisors`
+
+- **Lean4:** `theorem prime_iff_has_exactly_two_divisors {p : ℕ₀} : Prime p ↔ HasExactlyTwoDivisors p`
+
+### 13.4. Coprimalidad y Lema de Gauss
+
+**[T13.10]** `coprime_symm`
+
+- **Lean4:** `theorem coprime_symm {a b : ℕ₀} : Coprime a b → Coprime b a`
+
+**[T13.11]** `gcd_eq_one_iff_coprime`
+
+- **Lean4:** `theorem gcd_eq_one_iff_coprime (a b : ℕ₀) : gcd a b = 𝟙 ↔ Coprime a b`
+
+**[T13.12]** `prime_not_dvd_imp_coprime`
+
+- **Lean4:** `theorem prime_not_dvd_imp_coprime {p a : ℕ₀} (hp : Prime p) (h : ¬ p ∣ a) : Coprime p a`
+
+**[T13.13]** `prime_coprime_or_dvd`
+
+- **Lean4:** `theorem prime_coprime_or_dvd {p a : ℕ₀} (hp : Prime p) : Coprime p a ∨ p ∣ a`
+
+**[T13.14]** `coprime_dvd_of_dvd_mul` (Lema de Gauss)
+
+- **Lean4:** `theorem coprime_dvd_of_dvd_mul {a b c : ℕ₀} (h : Coprime a b) (h2 : a ∣ mul b c) : a ∣ c`
+- **Matemática:** gcd(a,b)=1 ∧ a∣bc ⇒ a∣c
+
+### 13.5. Listas y productos
+
+**[T13.15]** `product_nil` / `product_cons` / `product_append`
+
+- **Lean4:** Reglas de simplificación para `product_list`
+
+**[T13.16]** `product_list_pos`
+
+- **Lean4:** `theorem product_list_pos ...`
+- **Matemática:** El producto de una PrimeList es positivo
+
+**[T13.17]** `prime_dvd_product_list`
+
+- **Lean4:** `theorem prime_dvd_product_list {p : ℕ₀} {ps : DList ℕ₀} (hp : Prime p) (hpl : PrimeList ps) (hd : p ∣ product_list ps) : ∃ q, q ∈ ps ∧ p = q`
+
+**[T13.18]** `mem_dvd_product`
+
+- **Lean4:** `theorem mem_dvd_product {a : ℕ₀} {l : DList ℕ₀} (h : a ∈ l) : a ∣ product_list l`
+
+### 13.6. Teorema Fundamental de la Aritmética
+
+**[T13.19]** `exists_prime_divisor`
+
+- **Lean4:** `theorem exists_prime_divisor {n : ℕ₀} (h : Lt 𝟙 n) : ∃ p, Prime p ∧ p ∣ n`
+- **Matemática:** n > 1 ⇒ ∃p primo, p ∣ n
+
+**[T13.20]** `exists_prime_factorization` (TFA — existencia)
+
+- **Lean4:** `theorem exists_prime_factorization (n : ℕ₀) (h : Lt 𝟙 n) : ∃ ps : DList ℕ₀, PrimeList ps ∧ product_list ps = n`
+- **Matemática:** n > 1 ⇒ ∃ lista de primos cuyo producto es n
+
+**[T13.21]** `unique_prime_factorization` (TFA — unicidad)
+
+- **Lean4:** `theorem unique_prime_factorization ...`
+- **Matemática:** La factorización en primos es única salvo permutación
+
+---
+
+## 14. Combinatorics/Pow.lean — `namespace Peano.Pow`
+
+*Dependencias: `…Mul`, `Div`*
+
+### 14.1. Definiciones
+
+**[D14.1]** `pow`
 
 - **Lean4:**
 
   ```
   def pow (n m : ℕ₀) : ℕ₀ :=
     match m with
-    | 𝟘    => 𝟙
+    | 𝟘 => 𝟙
     | σ m' => mul (pow n m') n
   ```
 
-- **Matemática:** n⁰ = 1;  n^(σm) = n^m · n
+- **Matemática:** n⁰ = 1;  n^{σ m} = n^m · n
 - **Computable:** Sí
 - **Terminado por:** recursión estructural sobre `m`
 - **Notación:** `n ^ m` (infijo, prioridad 80)
-- **Dependencias:** `mul`
 
-### 13.2. Teoremas principales
+### 14.2. Teoremas principales
 
-**[T13.1]** `pow_zero`
+**[T14.1]** `pow_zero`
 
 - **Lean4:** `theorem pow_zero (n : ℕ₀) : n ^ 𝟘 = 𝟙`
-- **Matemática:** ∀n ∈ ℕ₀, n⁰ = 1  (incluye 0⁰ = 1)
+- **Matemática:** n⁰ = 1
 
-**[T13.2]** `zero_pow`
+**[T14.2]** `zero_pow`
 
-- **Lean4:** `theorem zero_pow {m : ℕ₀} (h_neq_0 : m ≠ 𝟘) : 𝟘 ^ m = 𝟘`
+- **Lean4:** `theorem zero_pow {m : ℕ₀} (h : m ≠ 𝟘) : 𝟘 ^ m = 𝟘`
 - **Matemática:** m ≠ 0 ⇒ 0^m = 0
-- **Dependencias:** `mul_zero`
 
-**[T13.3]** `one_pow`
+**[T14.3]** `one_pow` / `pow_one`
 
-- **Lean4:** `theorem one_pow (m : ℕ₀) : 𝟙 ^ m = 𝟙`
-- **Matemática:** ∀m ∈ ℕ₀, 1^m = 1
-- **Dependencias:** `mul`
+- **Lean4:** `theorem one_pow (m : ℕ₀) : 𝟙 ^ m = 𝟙` / `theorem pow_one (n : ℕ₀) : n ^ 𝟙 = n`
+- **Matemática:** 1^m = 1;  n¹ = n
 
-**[T13.4]** `pow_succ`
+**[T14.4]** `pow_succ`
 
 - **Lean4:** `theorem pow_succ (n m : ℕ₀) : n ^ (σ m) = mul (n ^ m) n`
-- **Matemática:** n^(σm) = n^m · n  (ecuación recursiva de la definición)
+- **Matemática:** n^{σ(m)} = n^m · n
 
-**[T13.5]** `pow_one`
-
-- **Lean4:** `theorem pow_one (n : ℕ₀) : n ^ 𝟙 = n`
-- **Matemática:** ∀n ∈ ℕ₀, n¹ = n
-- **Dependencias:** `pow_zero`, `one_mul`
-
-**[T13.6]** `pow_gt`
-
-- **Lean4:** `theorem pow_gt {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) (h_m_gt_0 : m > 𝟘) : n ^ m > 𝟘`
-- **Matemática:** n > 0 ∧ m > 0 ⇒ n^m > 0
-- **Dependencias:** `mul_pos`, `lt_succ_self`, `pow_zero`
-
-**[T13.7]** `pow_ge_one`
-
-- **Lean4:** `theorem pow_ge_one {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) : n ^ m ≥ 𝟙`
-- **Matemática:** n > 0 ⇒ n^m ≥ 1
-
-**[T13.8]** `pow_lt_succ_base`
-
-- **Lean4:** `theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt (n ^ m) ((σ n) ^ m)`
-- **Matemática:** n ≠ 0 ∧ m ≠ 0 ⇒ n^m < (n+1)^m
-
-**[T13.9]** `pow_lt_succ_base_strong`
-
-- **Lean4:** `theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt (n ^ m) ((σ n) ^ m)`
-- **Matemática:** m ≠ 0 ⇒ n^m < (n+1)^m  (sin condición sobre n)
-
-**[T13.10]** `pow_lt_succ_exp`
-
-- **Lean4:** `theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) : Lt (n ^ m) (n ^ σ m)`
-- **Matemática:** 1 < n ⇒ n^m < n^(m+1)
-
-**[T13.11]** `pow_add_eq_mul_pow`
+**[T14.5]** `pow_add_eq_mul_pow`
 
 - **Lean4:** `theorem pow_add_eq_mul_pow (n m k : ℕ₀) : n ^ (add m k) = mul (n ^ m) (n ^ k)`
-- **Matemática:** n^(m+k) = n^m · n^k
+- **Matemática:** n^{m+k} = n^m · n^k
 
-**[T13.12]** `mul_pow_n_m_pow_k_m_eq_pow_nk_m`
+**[T14.6]** `pow_pow_eq_pow_mul`
+
+- **Lean4:** `theorem pow_pow_eq_pow_mul (n m k : ℕ₀) : pow (pow n m) k = pow n (mul m k)`
+- **Matemática:** (n^m)^k = n^{m·k}
+
+**[T14.7]** `mul_pow_n_m_pow_k_m_eq_pow_nk_m`
 
 - **Lean4:** `theorem mul_pow_n_m_pow_k_m_eq_pow_nk_m (n k m : ℕ₀) : mul (pow n m) (pow k m) = pow (mul n k) m`
 - **Matemática:** n^m · k^m = (n·k)^m
 
-**[T13.13]** `pow_pow_eq_pow_mul`
-
-- **Lean4:** `theorem pow_pow_eq_pow_mul (n m k : ℕ₀) : pow (pow n m) k = pow n (mul m k)`
-- **Matemática:** (n^m)^k = n^(m·k)
-
-**[T13.14]** `pow_ne_zero`
-
-- **Lean4:** `theorem pow_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) (m : ℕ₀) : n ^ m ≠ 𝟘`
-- **Matemática:** n ≠ 0 ⇒ n^m ≠ 0
-- **Dependencias:** `pow_gt`, `lt_zero`
-
-**[T13.15]** `pow_two`
-
-- **Lean4:** `theorem pow_two (n : ℕ₀) : n ^ 𝟚 = mul n n`
-- **Matemática:** n² = n·n
-
-**[T13.16]** `pow_eq_zero_iff`
+**[T14.8]** `pow_eq_zero_iff`
 
 - **Lean4:** `theorem pow_eq_zero_iff {n m : ℕ₀} : n ^ m = 𝟘 ↔ n = 𝟘 ∧ m ≠ 𝟘`
 - **Matemática:** n^m = 0 ⟺ n = 0 ∧ m ≠ 0
 
-**[T13.17]** `one_lt_pow`
+**[T14.9]** `pow_eq_one_iff`
 
-- **Lean4:** `theorem one_lt_pow {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) : Lt 𝟙 (n ^ m)`
-- **Matemática:** 1 < n ∧ m ≠ 0 ⇒ 1 < n^m
-
-**[T13.18]** `pow_eq_one_iff`
-
-- **Lean4:** `theorem pow_eq_one_iff {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} : n ^ m = 𝟙 ↔ n = 𝟙 ∨ m = 𝟘`
+- **Lean4:** `theorem pow_eq_one_iff {n : ℕ₀} (h : n ≠ 𝟘) {m : ℕ₀} : n ^ m = 𝟙 ↔ n = 𝟙 ∨ m = 𝟘`
 - **Matemática:** n ≠ 0 ⇒ (n^m = 1 ⟺ n = 1 ∨ m = 0)
 
-**[T13.19]** `pow_lt_mono_exp`
+**[T14.10]** `pow_two`
 
-- **Lean4:** `theorem pow_lt_mono_exp {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Lt m k) : Lt (n ^ m) (n ^ k)`
-- **Matemática:** 1 < n ∧ m < k ⇒ n^m < n^k  (monotonicidad estricta en el exponente)
+- **Lean4:** `theorem pow_two (n : ℕ₀) : n ^ 𝟚 = mul n n`
+- **Matemática:** n² = n·n
 
-**[T13.20]** `pow_le_pow_right`
+**[T14.11]** `pow_ne_zero`
 
-- **Lean4:** `theorem pow_le_pow_right {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Le m k) : Le (n ^ m) (n ^ k)`
-- **Matemática:** 1 < n ∧ m ≤ k ⇒ n^m ≤ n^k
+- **Lean4:** `theorem pow_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) (m : ℕ₀) : n ^ m ≠ 𝟘`
 
-**[T13.21]** `pow_lt_mono_base`
+**[T14.12]** `pow_gt` / `pow_ge_one`
 
-- **Lean4:** `theorem pow_lt_mono_base {m n : ℕ₀} (h : Lt m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) : Lt (m ^ k) (n ^ k)`
-- **Matemática:** m < n ∧ k ≠ 0 ⇒ m^k < n^k  (monotonicidad estricta en la base)
+- **Lean4:** `theorem pow_gt {n m : ℕ₀} (h_n : Gt n 𝟘) (h_m : Gt m 𝟘) : Gt (n ^ m) 𝟘` / `theorem pow_ge_one {n m : ℕ₀} (h : Gt n 𝟘) : Ge (n ^ m) 𝟙`
 
-**[T13.22]** `pow_le_pow_left`
+**[T14.13]** `pow_lt_mono_exp` / `pow_le_pow_right`
 
-- **Lean4:** `theorem pow_le_pow_left {m n : ℕ₀} (h : Le m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) : Le (m ^ k) (n ^ k)`
-- **Matemática:** m ≤ n ∧ k ≠ 0 ⇒ m^k ≤ n^k
+- **Lean4:** `theorem pow_lt_mono_exp {n : ℕ₀} (h : Lt 𝟙 n) {m k : ℕ₀} (h₂ : Lt m k) : Lt (n ^ m) (n ^ k)` / `theorem pow_le_pow_right {n : ℕ₀} (h : Lt 𝟙 n) {m k : ℕ₀} (h₂ : Le m k) : Le (n ^ m) (n ^ k)`
+- **Matemática:** Monotonía del exponente (base > 1)
 
-**[T13.23]** `pow_mul_comm`
+**[T14.14]** `pow_lt_mono_base` / `pow_le_pow_left`
 
-- **Lean4:** `theorem pow_mul_comm (n m k : ℕ₀) : mul (n ^ m) (n ^ k) = mul (n ^ k) (n ^ m)`
-- **Matemática:** n^m · n^k = n^k · n^m
+- **Lean4:** `theorem pow_lt_mono_base {m n : ℕ₀} (h : Lt m n) {k : ℕ₀} (h₂ : k ≠ 𝟘) : Lt (m ^ k) (n ^ k)` / `theorem pow_le_pow_left {m n : ℕ₀} (h : Le m n) {k : ℕ₀} (h₂ : k ≠ 𝟘) : Le (m ^ k) (n ^ k)`
+- **Matemática:** Monotonía de la base (exponente > 0)
+
+**[T14.15]** `pow_lt_succ_base` / `pow_lt_succ_base_strong` / `pow_lt_succ_exp`
+
+- **Lean4:** Teoremas de crecimiento estricto de potencias
+
+**[T14.16]** `one_lt_pow` / `pow_mul_comm`
+
+- **Lean4:** `theorem one_lt_pow {n : ℕ₀} (h₁ : Lt 𝟙 n) {m : ℕ₀} (h₂ : m ≠ 𝟘) : Lt 𝟙 (n ^ m)` / `theorem pow_mul_comm (n m k : ℕ₀) : mul (n ^ m) (n ^ k) = mul (n ^ k) (n ^ m)`
 
 ---
 
-## 14. PeanoNatFactorial.lean — `namespace Peano.Factorial`
+## 15. Combinatorics/Factorial.lean — `namespace Peano.Factorial`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatMul`*
+*Dependencias: `…Add`, `Mul`*
 
-### 14.1. Definiciones
+### 15.1. Definiciones
 
-**[D14.1]** `factorial`
+**[D15.1]** `factorial`
 
 - **Lean4:**
 
   ```
   def factorial : ℕ₀ → ℕ₀
-    | 𝟘   => 𝟙
+    | 𝟘 => 𝟙
     | σ n => mul (factorial n) (σ n)
   ```
 
-- **Matemática:** 0! = 1;  (σn)! = n! · σ(n)
+- **Matemática:** 0! = 1;  (σ n)! = n! · σ(n)
 - **Computable:** Sí
-- **Terminado por:** recursión estructural sobre el argumento
-- **Nota:** En Lean 4 el lexer trata `n!` como identificador; se usa `factorial n` directamente
+- **Terminado por:** recursión estructural
 
-### 14.2. Teoremas principales
+### 15.2. Teoremas principales
 
-**[T14.1]** `factorial_zero`
+**[T15.1]** `factorial_zero` / `factorial_one` / `factorial_two`
 
-- **Lean4:** `theorem factorial_zero : factorial 𝟘 = 𝟙`
-- **Matemática:** 0! = 1
+- **Lean4:** `theorem factorial_zero : factorial 𝟘 = 𝟙` / `theorem factorial_one : factorial 𝟙 = 𝟙` / `theorem factorial_two : factorial 𝟚 = 𝟚`
 
-**[T14.2]** `factorial_succ`
+**[T15.2]** `factorial_succ`
 
 - **Lean4:** `theorem factorial_succ (n : ℕ₀) : factorial (σ n) = mul (factorial n) (σ n)`
-- **Matemática:** (n+1)! = n! · (n+1)
+- **Matemática:** (σ n)! = n! · σ(n)
 
-**[T14.3]** `factorial_one`
+**[T15.3]** `factorial_pos`
 
-- **Lean4:** `theorem factorial_one : factorial 𝟙 = 𝟙`
-- **Matemática:** 1! = 1
+- **Lean4:** `theorem factorial_pos (n : ℕ₀) : Gt (factorial n) 𝟘`
+- **Matemática:** n! > 0
 
-**[T14.4]** `factorial_two`
-
-- **Lean4:** `theorem factorial_two : factorial 𝟚 = 𝟚`
-- **Matemática:** 2! = 2
-
-**[T14.5]** `factorial_pos`
-
-- **Lean4:** `theorem factorial_pos (n : ℕ₀) : factorial n > 𝟘`
-- **Matemática:** ∀n ∈ ℕ₀, n! > 0
-
-**[T14.6]** `factorial_ne_zero`
+**[T15.4]** `factorial_ne_zero`
 
 - **Lean4:** `theorem factorial_ne_zero (n : ℕ₀) : factorial n ≠ 𝟘`
-- **Matemática:** ∀n ∈ ℕ₀, n! ≠ 0
 
-**[T14.7]** `factorial_ge_one`
+**[T15.5]** `factorial_ge_one`
 
-- **Lean4:** `theorem factorial_ge_one (n : ℕ₀) : factorial n ≥ 𝟙`
-- **Matemática:** ∀n ∈ ℕ₀, n! ≥ 1
+- **Lean4:** `theorem factorial_ge_one (n : ℕ₀) : Ge (factorial n) 𝟙`
+- **Matemática:** n! ≥ 1
 
-**[T14.8]** `factorial_le_succ`
+**[T15.6]** `factorial_le_succ` / `factorial_le_mono`
 
-- **Lean4:** `theorem factorial_le_succ (n : ℕ₀) : Le (factorial n) (factorial (σ n))`
-- **Matemática:** n! ≤ (n+1)!
-
-**[T14.9]** `factorial_le_mono`
-
-- **Lean4:** `theorem factorial_le_mono {m n : ℕ₀} (h : Le m n) : Le (factorial m) (factorial n)`
-- **Matemática:** m ≤ n ⇒ m! ≤ n!
+- **Lean4:** `theorem factorial_le_succ (n : ℕ₀) : Le (factorial n) (factorial (σ n))` / `theorem factorial_le_mono {m n : ℕ₀} (h : Le m n) : Le (factorial m) (factorial n)`
+- **Matemática:** Monotonía del factorial
 
 ---
 
-## 15. PeanoNatBinom.lean — `namespace Peano.Binom`
+## 16. Combinatorics/Binom.lean — `namespace Peano.Binom`
 
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatFactorial`*
+*Dependencias: `…Mul`, `Sub`, `Factorial`*
 
-### 15.1. Definiciones
+### 16.1. Definiciones
 
-**[D15.1]** `binom`
+**[D16.1]** `binom`
 
 - **Lean4:**
 
   ```
   def binom : ℕ₀ → ℕ₀ → ℕ₀
-    | 𝟘,   𝟘   => 𝟙
-    | 𝟘,   σ _ => 𝟘
-    | σ _, 𝟘   => 𝟙
-    | σ n, σ k => add (binom n k) (binom n (σ k))
+    | 𝟘,   𝟘    => 𝟙
+    | 𝟘,   σ _  => 𝟘
+    | σ n, 𝟘    => 𝟙
+    | σ n, σ k  => add (binom n k) (binom n (σ k))
   ```
 
-- **Matemática:** C(0,0)=1; C(0,k+1)=0; C(n+1,0)=1; C(n+1,k+1)=C(n,k)+C(n,k+1)  (triángulo de Pascal)
+- **Matemática:** C(0,0)=1; C(0,σk)=0; C(σn,0)=1; C(σn,σk)=C(n,k)+C(n,σk)
 - **Computable:** Sí
-- **Terminado por:** recursión estructural en el primer argumento
-- **Notación:** `C(n, k)` — `notation "C(" n ", " k ")" => binom n k`
-- **Dependencias:** `add`
+- **Terminado por:** recursión estructural
+- **Notación:** `C(n, k)` → `binom n k`
 
-### 15.2. Teoremas principales
+### 16.2. Teoremas principales
 
-**[T15.1]** `binom_zero_zero`
+**[T16.1]** `binom_zero_zero` / `binom_zero_succ` / `binom_succ_zero`
 
-- **Lean4:** `theorem binom_zero_zero : C(𝟘, 𝟘) = 𝟙`
-- **Matemática:** C(0,0) = 1
+- **Lean4:** Casos base
 
-**[T15.2]** `binom_zero_succ`
+**[T16.2]** `binom_pascal`
 
-- **Lean4:** `theorem binom_zero_succ (k : ℕ₀) : C(𝟘, σ k) = 𝟘`
-- **Matemática:** C(0, k+1) = 0
+- **Lean4:** `theorem binom_pascal (n k : ℕ₀) : C(σ n, σ k) = add (binom n k) (binom n (σ k))`
+- **Matemática:** C(n+1, k+1) = C(n, k) + C(n, k+1)  (Triángulo de Pascal)
 
-**[T15.3]** `binom_succ_zero`
+**[T16.3]** `binom_n_zero` / `binom_n_one`
 
-- **Lean4:** `theorem binom_succ_zero (n : ℕ₀) : C(σ n, 𝟘) = 𝟙`
-- **Matemática:** C(n+1, 0) = 1
+- **Lean4:** `theorem binom_n_zero (n : ℕ₀) : C(n, 𝟘) = 𝟙` / `theorem binom_n_one (n : ℕ₀) : C(n, 𝟙) = n`
+- **Matemática:** C(n,0) = 1;  C(n,1) = n
 
-**[T15.4]** `binom_pascal`
-
-- **Lean4:** `theorem binom_pascal (n k : ℕ₀) : C(σ n, σ k) = add C(n, k) C(n, σ k)`
-- **Matemática:** C(n+1, k+1) = C(n,k) + C(n,k+1)  (identidad de Pascal)
-
-**[T15.5]** `binom_n_zero`
-
-- **Lean4:** `theorem binom_n_zero (n : ℕ₀) : C(n, 𝟘) = 𝟙`
-- **Matemática:** C(n,0) = 1
-
-**[T15.6]** `binom_n_one`
-
-- **Lean4:** `theorem binom_n_one (n : ℕ₀) : C(n, 𝟙) = n`
-- **Matemática:** C(n,1) = n
-
-**[T15.7]** `binom_eq_zero_of_gt`
+**[T16.4]** `binom_eq_zero_of_gt`
 
 - **Lean4:** `theorem binom_eq_zero_of_gt {n k : ℕ₀} (h : Lt n k) : C(n, k) = 𝟘`
 - **Matemática:** n < k ⇒ C(n,k) = 0
 
-**[T15.8]** `binom_self`
+**[T16.5]** `binom_self`
 
 - **Lean4:** `theorem binom_self (n : ℕ₀) : C(n, n) = 𝟙`
 - **Matemática:** C(n,n) = 1
 
-**[T15.9]** `binom_pos`
+**[T16.6]** `binom_pos`
 
-- **Lean4:** `theorem binom_pos {n k : ℕ₀} (h : Le k n) : C(n, k) > 𝟘`
+- **Lean4:** `theorem binom_pos {n k : ℕ₀} (h : Le k n) : Gt (binom n k) 𝟘`
 - **Matemática:** k ≤ n ⇒ C(n,k) > 0
 
-**[T15.10]** `binom_one`
+**[T16.7]** `binom_one` / `binom_succ_n_by_n`
 
-- **Lean4:** `theorem binom_one (n : ℕ₀) : C(σ n, 𝟙) = σ n`
-- **Matemática:** C(n+1, 1) = n+1
+- **Lean4:** `theorem binom_one (n : ℕ₀) : C(σ n, 𝟙) = σ n` / `theorem binom_succ_n_by_n (n : ℕ₀) : C(σ n, n) = σ n`
 
-**[T15.11]** `binom_succ_n_by_n`
+**[T16.8]** `binom_mul_factorials`
 
-- **Lean4:** `theorem binom_succ_n_by_n (n : ℕ₀) : C(σ n, n) = σ n`
-- **Matemática:** C(n+1, n) = n+1
-
-**[T15.12]** `binom_mul_factorials`
-
-- **Lean4:** `theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) : mul (mul C(n, k) (factorial k)) (factorial (sub n k)) = factorial n`
-- **Matemática:** k ≤ n ⇒ C(n,k) · k! · (n-k)! = n!
-- **Dependencias:** `factorial`, `sub`, `mul`, `binom_pascal`
+- **Lean4:** `theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) : mul (mul (binom n k) (factorial k)) (factorial (sub n k)) = factorial n`
+- **Matemática:** k ≤ n ⇒ C(n,k) · k! · (n−k)! = n!
 
 ---
 
-## 16. Peano.lean — Módulo Raíz
+## 17. Combinatorics/NewtonBinom.lean — `namespace Peano.NewtonBinom`
 
-**Última actualización:** 2026-03-15 12:00
-
-*Archivo de entrada. No introduce definiciones ni teoremas propios.*
-*Importa y re-exporta todos los módulos de `Peano/`*
-
-```lean4
-import Peano.Peano
-import Peano.PeanoNatAxioms
-import Peano.PeanoNatStrictOrder
-import Peano.PeanoNatOrder
-import Peano.PeanoNatMaxMin
-import Peano.PeanoNatWellFounded
-import Peano.PeanoNatAdd
-import Peano.PeanoNatSub
-import Peano.PeanoNatMul
-import Peano.PeanoNatDiv
-import Peano.PeanoNatArith
-import Peano.PeanoNatPrimes
-import Peano.PeanoNatPow
-import Peano.PeanoNatFactorial
-import Peano.PeanoNatBinom
-import Peano.PeanoNatNewtonBinom
-```
-
----
-
-## 17. PeanoNatNewtonBinom.lean — `namespace Peano.NewtonBinom`
-
-*Dependencias: `Peano`, `PeanoNatAxioms`, `PeanoNatStrictOrder`, `PeanoNatOrder`, `PeanoNatAdd`, `PeanoNatSub`, `PeanoNatMul`, `PeanoNatPow`, `PeanoNatFactorial`, `PeanoNatBinom`*
-
-> **Estado:** Completamente demostrado, compilado sin errores ni `sorry`. Todos los teoremas del módulo están formalmente probados.
+*Dependencias: `…Pow`, `Factorial`, `Binom`*
 
 ### 17.1. Definiciones
 
 **[D17.1]** `finSum`
 
-- **Lean4:** `def finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀` — `𝟘 ↦ f 𝟘`;  `σ n ↦ add (finSum f n) (f (σ n))`
-- **Matemática:** finSum f n = Σ_{k=0}^{n} f(k)
-- **Computable:** Sí; **Terminado por:** recursión estructural sobre `n`
-
-**[D17.2]** `binomTerm`
-
-- **Lean4:** `def binomTerm (a b n k : ℕ₀) : ℕ₀ := mul (mul C(n, k) (pow a k)) (pow b (sub n k))`
-- **Matemática:** T(a, b, n, k) = C(n,k) · aᵏ · b^(n−k)
-- **Computable:** Sí; **Dependencias:** `binom`, `pow`, `sub`
-
-### 17.2. Propiedades del sumatorio finito
-
-**[T17.1]** `finSum_zero` — `finSum f 𝟘 = f 𝟘`
-
-**[T17.2]** `finSum_succ` — `finSum f (σ n) = add (finSum f n) (f (σ n))`
-
-**[T17.3]** `finSum_zero_fn` — `finSum (fun _ => 𝟘) n = 𝟘`
-
-**[T17.4]** `finSum_add_fn`
-
-- **Lean4:** `theorem finSum_add_fn (f g : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum (fun k => add (f k) (g k)) n = add (finSum f n) (finSum g n)`
-- **Matemática:** Σ (f + g) = Σ f + Σ g
-
-**[T17.5]** `finSum_mul_const`
-
-- **Lean4:** `theorem finSum_mul_const (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum (fun k => mul c (f k)) n = mul c (finSum f n)`
-- **Matemática:** Σ (c · f) = c · Σ f
-
-**[T17.6]** `finSum_mul_const_right`
-
-- **Lean4:** `theorem finSum_mul_const_right (c : ℕ₀) (f : ℕ₀ → ℕ₀) (n : ℕ₀) : mul (finSum f n) c = finSum (fun k => mul (f k) c) n`
-- **Matemática:** (Σ f) · c = Σ (f · c)
-
-**[T17.7]** `finSum_le_of_le`
-
-- **Lean4:** `theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) : Le (finSum f n) (finSum g n)`
-- **Matemática:** (∀k, f(k) ≤ g(k)) ⇒ Σ f ≤ Σ g
-
-**[T17.8]** `finSum_pos`
-
-- **Lean4:** `theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) : Lt 𝟘 (finSum f n)`
-- **Matemática:** (∀k, f(k) > 0) ⇒ Σ f > 0
-
-**[T17.9]** `finSum_const`
-
-- **Lean4:** `theorem finSum_const (c n : ℕ₀) : finSum (fun _ => c) n = mul (σ n) c`
-- **Matemática:** Σ_{k=0}^{n} c = (n+1) · c
-
-**[T17.9b]** `finSum_succ_left`
-
-- **Lean4:** `theorem finSum_succ_left (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum f (σ n) = add (f 𝟘) (finSum (fun k => f (σ k)) n)`
-- **Matemática:** Σ_{k=0}^{n+1} f(k) = f(0) + Σ_{k=0}^{n} f(k+1)  (desplazamiento a la izquierda)
-- **Dependencias:** `finSum_succ`, `add_assoc`
-
-**[T17.9c]** `finSum_reverse`
-
-- **Lean4:** `theorem finSum_reverse (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum f n = finSum (fun k => f (sub n k)) n`
-- **Matemática:** Σ_{k=0}^{n} f(k) = Σ_{k=0}^{n} f(n−k)  (invariancia por inversión del índice)
-- **Dependencias:** `finSum_succ_left`, `sub_succ_succ_eq`, `sub_zero`, `add_comm`
-
-### 17.3. Suma de la fila de Pascal y binomio de Newton
-
-**[T17.10]** `sum_binom_eq_pow_two`
-
-- **Lean4:** `theorem sum_binom_eq_pow_two (n : ℕ₀) : finSum (fun k => C(n, k)) n = pow 𝟚 n`
-- **Matemática:** Σ_{k=0}^{n} C(n,k) = 2ⁿ
-- **Dependencias:** `finSum_succ_left`, `finSum_add_fn`, `binom_pascal` (rfl), `binom_succ_zero`, `binom_n_zero`, `binom_eq_zero_of_gt`, `mul_two`, `pow_succ`
-
-**[T17.11]** `binomTerm_zero`
-
-- **Lean4:** `theorem binomTerm_zero (a b n : ℕ₀) : binomTerm a b n 𝟘 = pow b n`
-- **Matemática:** T(a,b,n,0) = bⁿ
-
-**[T17.12]** `binomTerm_self`
-
-- **Lean4:** `theorem binomTerm_self (a b n : ℕ₀) : binomTerm a b n n = pow a n`
-- **Matemática:** T(a,b,n,n) = aⁿ
-
-**[T17.13]** `newton_binom`
-
-- **Lean4:** `theorem newton_binom (a b n : ℕ₀) : pow (add a b) n = finSum (binomTerm a b n) n`
-- **Matemática:** (a+b)ⁿ = Σ_{k=0}^{n} C(n,k) · aᵏ · b^(n−k)
-- **Dependencias:** `binomTerm_pascal_step` (private), `finSum_succ_left`, `finSum_mul_const_right`, `finSum_add_fn`, `mul_ldistr`, `pow_succ`, `mul_two`, `add_succ`, `add_assoc`, `add_comm`
-- **Estrategia:** Inducción; paso: (a+b)ⁿ·(a+b) = ΣT·a + ΣT·b; usar T(n',0)=bⁿ' para separar término frontal, Pascal para interior, álgebra.
-
-### 17.4. Crecimiento comparado
-
-**[T17.14]** `pow_add_split`
-
-- **Lean4:** `theorem pow_add_split (n m k : ℕ₀) : pow n (add m k) = mul (pow n m) (pow n k)`
-- **Matemática:** n^(m+k) = nᵐ · nᵏ  (alias de `pow_add_eq_mul_pow`)
-
-**[T17.15]** `exists_nm_growth`
-
 - **Lean4:**
 
   ```
-  theorem exists_nm_growth :
-      ∃ n m : ℕ₀, ∀ k : ℕ₀, Le 𝟙 k →
-        Lt (pow (add n k) m) (pow n (add m k))
+  def finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀
+    | 𝟘 => f 𝟘
+    | σ n => add (finSum f n) (f (σ n))
   ```
 
-- **Matemática:** ∃n,m ∈ ℕ₀, ∀k ≥ 1, (n+k)ᵐ < n^(m+k)
-- **Testigo:** n=2, m=1; prueba que 2+k < 2·2ᵏ para k ≥ 1 (crecimiento lineal vs. exponencial)
-- **Estrategia:** Inducción en k; base k=1: 3 < 4; paso: σ(2+k) < 2·2ᵏ + 2·2ᵏ usando `lt_add_double_of_lt_of_pos` (privado)
-- **Dependencias:** `pow_add_split`, `pow_one`, `pow_succ`, `mul_two`, `mul_ldistr`, `succ_lt_succ_iff`, `lt_self_add_r`, `lt_nm_then_le_nm_wp`, `lt_of_lt_of_le`, `pow_gt`, `mul_pos`, `zero_lt_succ`
+- **Matemática:** finSum(f, n) = Σ_{k=0}^{n} f(k)
+- **Computable:** Sí
+- **Terminado por:** recursión estructural
+- **Notación:** `∑ k ≤ n, f` — macro
+
+**[D17.2]** `binomTerm`
+
+- **Lean4:** `def binomTerm (a b n k : ℕ₀) : ℕ₀ := mul (mul (binom n k) (pow a k)) (pow b (sub n k))`
+- **Matemática:** binomTerm(a, b, n, k) = C(n,k) · a^k · b^{n−k}
+- **Computable:** Sí
+
+### 17.2. Teoremas principales
+
+**[T17.1]** `finSum_zero` / `finSum_succ`
+
+- **Lean4:** `theorem finSum_zero (f : ℕ₀ → ℕ₀) : finSum f 𝟘 = f 𝟘` / `theorem finSum_succ (f : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum f (σ n) = add (finSum f n) (f (σ n))`
+
+**[T17.2]** `finSum_zero_fn`
+
+- **Lean4:** `theorem finSum_zero_fn (n : ℕ₀) : finSum (fun _ => 𝟘) n = 𝟘`
+- **Matemática:** Σ_{k=0}^{n} 0 = 0
+
+**[T17.3]** `finSum_add_fn`
+
+- **Lean4:** `theorem finSum_add_fn (f g : ℕ₀ → ℕ₀) (n : ℕ₀) : finSum (fun k => add (f k) (g k)) n = add (finSum f n) (finSum g n)`
+- **Matemática:** Σ(f+g) = Σf + Σg
+
+**[T17.4]** `finSum_mul_const` / `finSum_mul_const_right`
+
+- **Lean4:** Distribución de constantes sobre sumas finitas
+
+**[T17.5]** `finSum_le_of_le`
+
+- **Lean4:** `theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) : Le (finSum f n) (finSum g n)`
+- **Matemática:** (∀k, f(k) ≤ g(k)) ⇒ Σf ≤ Σg
+
+**[T17.6]** `finSum_pos`
+
+- **Lean4:** `theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) : Lt 𝟘 (finSum f n)`
+
+**[T17.7]** `finSum_const`
+
+- **Lean4:** `theorem finSum_const (c n : ℕ₀) : finSum (fun _ => c) n = mul (σ n) c`
+- **Matemática:** Σ_{k=0}^{n} c = (n+1)·c
+
+**[T17.8]** `sum_binom_eq_pow_two`
+
+- **Lean4:** `theorem sum_binom_eq_pow_two (n : ℕ₀) : finSum (fun k => binom n k) n = pow 𝟚 n`
+- **Matemática:** Σ_{k=0}^{n} C(n,k) = 2^n
+
+**[T17.9]** `binomTerm_zero` / `binomTerm_self`
+
+- **Lean4:** `theorem binomTerm_zero (a b n : ℕ₀) : binomTerm a b n 𝟘 = pow b n` / `theorem binomTerm_self (a b n : ℕ₀) : binomTerm a b n n = pow a n`
+- **Matemática:** Término k=0 es b^n;  término k=n es a^n
+
+**[T17.10]** `newton_binom` (Binomio de Newton)
+
+- **Lean4:** `theorem newton_binom (a b n : ℕ₀) : pow (add a b) n = finSum (binomTerm a b n) n`
+- **Matemática:** (a + b)^n = Σ_{k=0}^{n} C(n,k) · a^k · b^{n−k}
+
+**[T17.11]** `pow_add_split`
+
+- **Lean4:** `theorem pow_add_split (n m k : ℕ₀) : pow n (add m k) = mul (pow n m) (pow n k)`
+- **Matemática:** n^{m+k} = n^m · n^k
+
+**[T17.12]** `exists_nm_growth`
+
+- **Lean4:** `theorem exists_nm_growth : ∃ n m, ∀ k, Le 𝟙 k → Lt (pow (add n k) m) (pow n (add m k))`
+- **Matemática:** ∃n,m, ∀k≥1, (n+k)^m < n^{m+k}
+
+**[T17.13]** Teoremas adicionales exportados
+
+`finSum_succ_left`, `finSum_reverse`
+
+---
+
+## 18. Isomorph.lean — Módulo de reexportación
+
+*Dependencias: `Sub` y anteriores*
+
+Módulo sin definiciones ni demostraciones nuevas. Reexporta todos los teoremas de isomorfismo Nat ↔ ℕ₀ (vía Λ y Ψ) dispersos en los módulos de la cadena principal.
+
+**Reexporta de `Peano.Axioms`:** `Λ_inj`, `Λ_surj`, `Λ_bij`, `Ψ_inj`, `Ψ_surj`, `Ψ_bij`, `comp_Λ_eq_Ψ`, `comp_Ψ_eq_Λ`, `ΨΛ`, `ΛΨ`, `Ψ_σ_eq_σ_Λ`, `Λ_σ_eq_σ_Ψ`, `Ψ_τ_eq_τ_Λ`, `Λ_τ_eq_τ_Ψ`, `isomorph_0_Λ`, `isomorph_0_Ψ`, `isomorph_σ_Λ`, `isomorph_σ_Ψ`, `isomorph_τ_Λ`, `isomorph_τ_Ψ`, `isomorph_ρ_Ψ`, `isomorph_Λ_ρ`
+
+**Reexporta de `Peano.StrictOrder`:** `isomorph_Λ_lt`, `isomorph_Ψ_lt`
+
+**Reexporta de `Peano.Order`:** `isomorph_Ψ_le`, `isomorph_Λ_le`
+
+**Reexporta de `Peano.MaxMin`:** `isomorph_Λ_max`, `isomorph_Λ_min`, `isomorph_Ψ_max`, `isomorph_Ψ_min`
+
+**Reexporta de `Peano.Add`:** `isomorph_Ψ_add`, `isomorph_Λ_add`
+
+**Reexporta de `Peano.Sub`:** `isomorph_Λ_sub`, `isomorph_Ψ_sub`
+
+---
+
+## 19. Decidable.lean — Módulo de reexportación
+
+*Dependencias: `Order` y anteriores*
+
+Módulo sin definiciones ni demostraciones nuevas. Reúne todas las instancias `Decidable`, funciones booleanas de comparación y sus equivalencias iff.
+
+**Reexporta de `Peano.StrictOrder`:** `blt`, `bgt`, `blt_iff_Lt`, `blt_then_Lt_wp`, `bgt_iff_Gt`, `nblt_iff_nLt`, `nbgt_iff_nGt`, `decidableLt`, `decidableGt`
+
+**Reexporta de `Peano.Order`:** `ble`, `bge`, `ble_iff_Le`, `bge_iff_Ge`, `decidableLe`, `decidableGe`

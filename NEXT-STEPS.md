@@ -23,7 +23,7 @@
 | 9 | Namespace Migration | ✅ Complete (no-op) |
 | 10 | Identifier Naming Migration | ✅ Complete |
 | 11 | Warning Cleanup | ✅ Complete |
-| 12 | Update REFERENCE.md with new names | ❌ Pending |
+| 12 | Update REFERENCE.md with new names | ✅ Complete |
 | 13 | Subdirectory restructure PeanoNat/ | ✅ Complete |
 | 14 | Extract Prelim.lean (shared infrastructure) | ✅ Complete |
 | 15 | Create Isomorph.lean (Nat↔ℕ₀ reexport) | ✅ Complete |
@@ -352,15 +352,15 @@ Removed unused `Nat.sub` simp arg from `PeanoNat/Sub.lean:484`. Build: 19/19, 0 
 ## Phase 12: Update REFERENCE.md with New Names
 
 **Objective**: Regenerate REFERENCE.md to reflect all identifier renames from Phase 10.
-**Status**: ❌ Pending
+**Status**: ✅ Complete (2026-04-09)
 **Dependencies**: Phase 10 and 11 complete
 
-**Steps**:
+Regenerated REFERENCE.md from scratch (~1350 lines, 19 sections) reflecting:
 
-1. "Proyectar" each of the 16 modules into REFERENCE.md per AI-GUIDE §12.
-2. Verify all exported names match the actual `export` blocks.
-3. Update the module table and any cross-references.
-4. Commit: `git commit -m "docs: update REFERENCE.md with new naming conventions"`
+- New file paths from Phase 13 subdirectory restructure
+- Renamed identifiers from Phase 10
+- 3 new modules from Phases 14-16 (Prelim, Isomorph, Decidable)
+- Combinatorics subdirectory from Phase 17
 
 ---
 
@@ -380,7 +380,7 @@ Build: 19/19 OK, 0 warnings.
 ## Phase 14: Extract Prelim.lean (shared infrastructure)
 
 **Objective**: Extract `ExistsUnique` + choice infrastructure from `PeanoNat.lean` into `Peano/Prelim.lean`.
-**Status**: ❌ Pending
+**Status**: ✅ Complete (2026-04-08)
 **Dependencies**: Phase 13 complete
 
 ### Content to extract
@@ -409,7 +409,7 @@ Build: 19/19 OK, 0 warnings.
 ## Phase 15: Create Isomorph.lean (Nat↔ℕ₀ reexport)
 
 **Objective**: Create `Peano/PeanoNat/Isomorph.lean` that re-exports all 26 bridge theorems.
-**Status**: ❌ Pending
+**Status**: ✅ Complete (2026-04-08)
 **Dependencies**: Phase 14 complete
 
 Isomorphism theorems remain in their original modules but are re-exported from a single file.
@@ -420,7 +420,7 @@ Downstream code can `import Peano.PeanoNat.Isomorph` to get all Nat↔ℕ₀ bri
 ## Phase 16: Factor Decidable Module
 
 **Objective**: Extract `blt`/`bgt`/`ble`/`bge` and decidability instances into `PeanoNat/Decidable.lean`.
-**Status**: ❌ Pending
+**Status**: ✅ Complete (2026-04-08)
 **Dependencies**: Phase 15 complete
 
 Separates computational (boolean) decision procedures from pure mathematical theory.
@@ -430,7 +430,7 @@ Separates computational (boolean) decision procedures from pure mathematical the
 ## Phase 17: Factor Combinatorics Subdirectory
 
 **Objective**: Group `Pow`, `Factorial`, `Binom`, `NewtonBinom` under `PeanoNat/Combinatorics/`.
-**Status**: ❌ Pending
+**Status**: ✅ Complete (2026-04-08)
 **Dependencies**: Phase 16 complete
 
 Structure:

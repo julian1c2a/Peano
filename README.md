@@ -6,160 +6,127 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
+> **Build:** 33 jobs · 0 sorry · 0 warnings
 > **Licencia:** MIT
 
 ---
 
 ## Descripción
 
-Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética básica: orden, suma, resta, multiplicación, división entera, máximo/mínimo, bien-fundación, aritmética de divisores (MCD, MCM, primos, Bézout), potenciación, factorial, coeficientes binomiales y el **Teorema del Binomio de Newton**.
+Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética: orden estricto y no estricto, estructura de retícula, bien-fundación e inducción fuerte, suma, resta truncada, multiplicación, división entera con módulo, logaritmo y raíz cuadrada enteros, divisibilidad (MCD, MCM, Bézout), números primos con factorización única (TFA), potenciación, factorial, coeficientes binomiales, **Binomio de Newton**, sumatorias, productorias, sucesión de Fibonacci, conjuntos finitos, paridad y decidabilidad completa.
 
-Toda la biblioteca está **computacionalmente realizada**: las operaciones producen términos de `ℕ₀` evaluables por el kernel de Lean.
+Toda la biblioteca está **computacionalmente realizada**: las operaciones producen términos de `ℕ₀` evaluables por el kernel de Lean. El proyecto registra todas las instancias estándar de Init (`Zero`, `One`, `OfNat`, `Add`, `Mul`, `Sub`, `Div`, `Mod`, `Pow`, `LT`, `LE`, `Ord`, `BEq`, `DecidableEq`, `SizeOf`, `Repr`, `WellFoundedRelation`, `DecidableRel`) para `ℕ₀`, haciendo que las operaciones trabajen con la notación natural de Lean 4.
 
 ---
 
 ## Estructura de módulos
 
 ```
-Peano.lean                           ← entrada; importa toda la librería
+Peano.lean                                  ← entrada; importa toda la librería
 └─ Peano/
-   ├─ PeanoNat.lean               namespace Peano
-   ├─ PeanoNatAxioms.lean            namespace Peano.Axioms
-   ├─ PeanoNatStrictOrder.lean       namespace Peano.StrictOrder
-   ├─ PeanoNatOrder.lean             namespace Peano.Order
-   ├─ Lattice.lean                  namespace Peano.Lattice
-   ├─ PeanoNatWellFounded.lean       namespace Peano.WellFounded
-   ├─ PeanoNatAdd.lean               namespace Peano.Add
-   ├─ PeanoNatSub.lean               namespace Peano.Sub
-   ├─ PeanoNatMul.lean               namespace Peano.Mul
-   ├─ PeanoNatDiv.lean               namespace Peano.Div
-   ├─ PeanoNatArith.lean             namespace Peano.Arith
-   ├─ PeanoNatPrimes.lean            namespace Peano.Primes
-   ├─ PeanoNatPow.lean               namespace Peano.Pow
-   ├─ PeanoNatFactorial.lean         namespace Peano.Factorial
-   ├─ PeanoNatBinom.lean             namespace Peano.Binom
-   └─ PeanoNatNewtonBinom.lean       namespace Peano.NewtonBinom
+   ├─ PeanoNat.lean                         Peano           — ℕ₀, ℕ₁, ℕ₂, constantes, isomorfismos
+   ├─ Prelim.lean                           Peano.Prelim    — infraestructura compartida (DList→List)
+   └─ PeanoNat/
+      ├─ Axioms.lean                        Peano.Axioms       — axiomas de Peano, inducción
+      ├─ StrictOrder.lean                   Peano.StrictOrder   — orden estricto <, tricotomía
+      ├─ Order.lean                         Peano.Order        — orden ≤, totalidad, lt_or_ge
+      ├─ Lattice.lean                       Peano.Lattice      — max, min, retícula distributiva
+      ├─ MaxMin.lean                        Peano.MaxMin       — (legacy, migrado a Lattice)
+      ├─ WellFounded.lean                   Peano.WellFounded  — bien-fundación, inducción fuerte
+      ├─ Add.lean                           Peano.Add          — suma, neutro, conmutatividad
+      ├─ Sub.lean                           Peano.Sub          — resta truncada
+      ├─ Mul.lean                           Peano.Mul          — multiplicación, distributividad
+      ├─ Div.lean                           Peano.Div          — división entera, módulo
+      ├─ Arith.lean                         Peano.Arith        — divisibilidad, MCD/MCM, Bézout, paridad
+      ├─ Primes.lean                        Peano.Primes       — primos, TFA, decidabilidad de Prime
+      ├─ Decidable.lean                     Peano.Decidable    — instancias Ord, DecidableRel
+      ├─ Lists.lean                         Peano.Lists        — listas de ℕ₀
+      ├─ FSet.lean                          Peano.FSet         — conjuntos finitos ordenados
+      ├─ NumberSets.lean                    Peano.NumberSets   — divisores, coprimos, primos ≤ n
+      ├─ Isomorph.lean                      Peano.Isomorph     — isomorfismo Nat↔ℕ₀ completo
+      ├─ Log.lean                           Peano.Log          — logaritmo entero con resto
+      ├─ Sqrt.lean                          Peano.Sqrt         — raíz cuadrada entera con resto
+      └─ Combinatorics/
+         ├─ Pow.lean                        Peano.Pow          — potenciación
+         ├─ Factorial.lean                  Peano.Factorial    — factorial
+         ├─ Binom.lean                      Peano.Binom        — coeficientes binomiales, Pascal
+         ├─ NewtonBinom.lean                Peano.NewtonBinom  — binomio de Newton
+         ├─ Summation.lean                  Peano.Summation    — sumatorias ∑
+         ├─ Product.lean                    Peano.Product      — productorias ∏
+         └─ Fibonacci.lean                  Peano.Fibonacci    — sucesión de Fibonacci
 ```
 
 ---
 
-## Contenido por módulo
+## Contenido destacado
 
-### `Peano` — Tipos base y utilidades
+### Tipos y constantes
 
 | Símbolo | Descripción |
 |---|---|
-| `ℕ₀` | Tipo inductivo (`zero` / `succ`) con `Repr`, `BEq`, `DecidableEq` |
+| `ℕ₀` | Tipo inductivo (`zero` / `succ`) con todas las instancias Init |
 | `ℕ₁` | Subtipo `{n : ℕ₀ // n ≠ 0}` |
-| `ℕ₂` | Subtipo `{n : ℕ₁ // n ≠ 1}` |
+| `ℕ₂` | Subtipo `{n : ℕ₁ // n.val ≠ 1}` |
+| `ℙ` | Subtipo `{n : ℕ₂ // Prime n.val.val}` |
 | `𝟘 𝟙 𝟚 𝟛` | Constantes `0, 1, 2, 3` |
 | `σ n` | Notación para `ℕ₀.succ n` |
-| `Λ`, `Ψ` | Isomorfismos `Nat ↔ ℕ₀` |
-| `ExistsUnique`, `∃¹` | Cuantificador de existencia única |
-| `choose`, `choose_unique` | Elección clásica de testigos |
+| `Λ`, `Ψ` | Isomorfismos `Nat → ℕ₀` y `ℕ₀ → Nat` |
 
-### `Peano.Axioms` — Axiomas de Peano
+### Axiomas de Peano
 
-Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura inductiva:
+Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura inductiva de `ℕ₀`:
 `0 ≠ σ(n)`, inyectividad de `σ`, principio de inducción, etc.
 
-### `Peano.StrictOrder` — Orden estricto `<`
+### Orden y retícula
 
-- `Lt` (Prop), `BLt` (Bool), `Gt`, `BGt`
-- Instancias `LT ℕ₀`, `Decidable (Lt n m)`, `Decidable (Gt n m)`
-- Teoremas: irreflexividad, asimetría, transitividad, **tricotomía**
+- **Orden estricto**: `Lt`, `Gt`, instancias `LT`/`Decidable`, tricotomía
+- **Orden no estricto**: `Le`, `Ge`, totalidad, `lt_or_ge`, `le_or_lt`
+- **Retícula**: `max`/`min` computables, idempotencia, conmutatividad, asociatividad, distributividad, absorción, 18 extensiones Mathlib-style
 
-### `Peano.Order` — Orden no estricto `≤`
+### Bien-fundación e inducción fuerte
 
-- `Le` (`Lt n m ∨ n = m`), `Ge`, `Le'` (def. recursiva equivalente)
-- Instancias `LE ℕ₀`, decisión para `Le` y `Ge`
-- Teoremas: reflexividad, antisimetría, transitividad, totalidad, `lt_succ_iff_le`, `le_iff_exists_add`
-
-### `Peano.Lattice` — Máximo, mínimo y estructura de retículo
-
-- `max`, `min`: computable, usa `BLt`
-- `min_max`, `max_min`: pares ordenados
-- Retícula distributiva completa: idempotencia, conmutatividad, asociatividad, distributividad
-- Extensiones Mathlib-style: absorción, iff, monotonía, left/right comm, sucesor
-
-### `Peano.WellFounded` — Bien-fundación
-
-- `instance : SizeOf ℕ₀` vía `Ψ`
 - `well_founded_lt : WellFounded Lt`
-- `well_ordering_principle`: existencia y unicidad del mínimo de todo conjunto no vacío
-- `isomorph_Ψ_lt`: conexión `n < m ↔ Ψ n < Ψ m` (puente con terminación de Lean)
+- `well_ordering_principle`: existencia y unicidad del mínimo de conjuntos no vacíos
+- `strongRecOn`: recursión fuerte (Sort), `strongInductionOn`: inducción fuerte (Prop)
+- Instancia `WellFoundedRelation ℕ₀`
 
-### `Peano.Add` — Suma `+`
+### Aritmética completa
 
-- `add` (recursión sobre `m`), `add_l` (recursión sobre `n`)
-- Notaciones `n + m`, `n +l m`
-- Teoremas: neutro, conmutatividad, asociatividad, cancelación, `le_iff_exists_add`
+- **Suma**: neutro, conmutatividad, asociatividad, cancelación
+- **Resta truncada**: monus, `sub_self`, `add_k_sub_k`
+- **Multiplicación**: distributividad, `mul_eq_zero`, propiedad arquimediana
+- **División/módulo**: `divMod_eq` ($a = \lfloor a/b \rfloor \cdot b + a \bmod b$), `mod_lt`
+- **Logaritmo entero**: `logMod`, `log`, `logRem`
+- **Raíz cuadrada entera**: `sqrtMod`, `sqrt`, `sqrtRem`
 
-### `Peano.Sub` — Resta truncada `∸`
+### Teoría de números
 
-- `subₕₖ n m h` (resta exacta con prueba `Le m n`), notación `n -( h ) m`
-- `sub n m` (monus: `n - m = 0` si `m > n`), notación `n - m`
-- `termination_by n` con `decreasing_by` via `sub_lt_self`
+- **Divisibilidad**: `Divides`, reflexividad, transitividad, antisimetría
+- **MCD/MCM**: algoritmo de Euclides, `gcd_greatest`, 25 extensiones Mathlib-style
+- **Identidad de Bézout**: `bezout_natform`
+- **Primos**: tres definiciones equivalentes (`Prime`, `Irreducible`, `HasExactlyTwoDivisors`)
+- **Lema de Gauss**: `coprime_dvd_of_dvd_mul`
+- **Teorema Fundamental de la Aritmética**: existencia y unicidad de la factorización prima
+- **Decidabilidad de Prime**: `isPrimeb`, `isPrimeb_iff`, instancia `Decidable (Prime n)`
+- **Paridad**: `IsEven`/`IsOdd` con instancias `Decidable`, 6 teoremas
 
-### `Peano.Mul` — Multiplicación `*`
+### Combinatoria
 
-- `mul` (recursión sobre `m`, prioridad 70)
-- Teoremas: neutro, conmutatividad, asociatividad, distributividad, `mul_eq_zero`, propiedad arquimediana, existencia y unicidad del cociente entero
+- **Potenciación**: `pow_add`, `pow_mul`, monotonía
+- **Factorial**: `factorial_pos`, `factorial_le_mono`
+- **Coeficientes binomiales**: Pascal, fórmula factorial ($C(n,k) \cdot k! \cdot (n-k)! = n!$), simetría
+- **Binomio de Newton**: $(a+b)^n = \sum_{k=0}^{n} C(n,k) \cdot a^k \cdot b^{n-k}$ (demostrado)
+- **Sumatorias/Productorias**: linealidad, monotonía, desplazamiento, inversión
+- **Fibonacci**: identidad de Cassini, `fib_add`, propiedades
 
-### `Peano.Div` — División entera `/` y módulo `%`
+### Decidabilidad completa
 
-- `divMod` (par `(⌊a/b⌋, a mod b)`), terminado por `termination_by a`
-- `div a b`, `mod a b`
-- Teoremas: `divMod_eq` (`a = (a/b)·b + a%b`), `mod_lt_divisor`
+Todas las relaciones y predicados principales son decidibles:
+`DecidableEq ℕ₀`, `Decidable (Lt a b)`, `Decidable (Le a b)`, `Decidable (Divides a b)`, `Decidable (Prime n)`, `Decidable (IsEven n)`, `Decidable (IsOdd n)`.
 
-### `Peano.Arith` — Divisibilidad, MCD, MCM y primos
+### Isomorfismos Nat↔ℕ₀
 
-| Definición | Descripción |
-|---|---|
-| `Divides a b` / `a ∣ b` | ∃k, b = a·k |
-| `IsGCD`, `gcd` | MCD (algoritmo de Euclides) |
-| `IsLCM`, `lcm` | MCM |
-| `Coprime` | gcd(a,b) = 1 |
-| `Prime` | Definición euclídea (Lema de Euclides) |
-| `Divides₁`, `gcd₁`, `Coprime₁` | Variantes en `ℕ₁` |
-| `DList`, `Factors_of`, `DivisorsList` | Listas computables de divisores |
-| `Multiples` | Inductivo de múltiplos |
-
-Teoremas destacados: `bezout_natform`, `gcd_greatest`, `divides_trans`, `multiples_iff_divides`, `gcd_divides_linear_combo`.
-
-### `Peano.Primes` — Números primos y TFA
-
-- `Irreducible`, `HasExactlyTwoDivisors`, `Prime` — tres definiciones equivalentes de primo
-- `prime_iff_irreducible`, `prime_iff_has_exactly_two_divisors` — equivalencias demostradas
-- `coprime_dvd_of_dvd_mul` — **Lema de Gauss**: gcd(a,b) = 1 ∧ a ∣ b·c ⇒ a ∣ c (demostrado)
-- `exists_prime_factorization` — **TFA existencia**: todo n ≥ 2 tiene factorización prima (demostrado)
-- `unique_prime_factorization` — **TFA unicidad**: igualdad de multiplicidades primo a primo (completamente demostrado)
-
-### `Peano.Pow` — Potenciación `^`
-
-- `pow n m` — nᵐ; computable, notación `n ^ m` (prioridad 80)
-- Propiedades: `pow_zero`, `pow_one`, `pow_succ`, `pow_add_eq_mul_pow`, `pow_pow_eq_pow_mul`, `mul_pow_n_m_pow_k_m_eq_pow_nk_m`
-- Monotonía: `pow_lt_mono_exp`, `pow_le_pow_right`, `pow_lt_mono_base`, `pow_le_pow_left`
-
-### `Peano.Factorial` — Factorial `n!`
-
-- `factorial n` — n!; computable (la notación `n!` no es posible en Lean 4)
-- `factorial_pos`, `factorial_ne_zero`, `factorial_ge_one`, `factorial_le_mono`
-
-### `Peano.Binom` — Coeficientes binomiales `C(n,k)`
-
-- `binom n k` — C(n,k) por la recursión de Pascal; notación `C(n, k)`
-- `binom_pascal` — C(n+1,k+1) = C(n,k) + C(n,k+1)
-- `binom_mul_factorials` — **C(n,k)·k!·(n−k)! = n!** (fórmula factorial)
-- `binom_pos`, `binom_eq_zero_of_gt`, `binom_self`, `binom_succ_n_by_n`
-
-### `Peano.NewtonBinom` — Sumatorios y Binomio de Newton
-
-- `finSum f n` — Σ_{k=0}^{n} f(k); linealidad, monotonía, positividad, desplazamiento (`finSum_succ_left`), inversión (`finSum_reverse`)
-- `binomTerm a b n k` — C(n,k)·aᵏ·b^(n−k)
-- `sum_binom_eq_pow_two` — **Σ C(n,k) = 2ⁿ** (demostrado)
-- `newton_binom` — **(a+b)ⁿ = Σ_{k=0}^{n} C(n,k)·aᵏ·b^(n−k)** (demostrado)
-- `exists_nm_growth` — **∃n,m, ∀k≥1, (n+k)ᵐ < n^(m+k)** (demostrado; testigo n=2, m=1)
+14 teoremas de compatibilidad cubriendo: `0`, `σ`, `τ`, `ρ`, `Lt`, `Le`, `max`, `min`, `add`, `sub`, `mul`, `div`, `mod`, `pow`, `gcd`, `lcm`.
 
 ---
 
@@ -173,7 +140,7 @@ cd Peano
 lake build
 ```
 
-La versión de Lean se instala automáticamente desde `lean-toolchain` (`leanprover/lean4:v4.23.0`).
+La versión de Lean se instala automáticamente desde `lean-toolchain` (`leanprover/lean4:v4.29.0`).
 
 ---
 
@@ -189,14 +156,42 @@ require peanolib from git
 Luego importa lo que necesites:
 
 ```lean
-import Peano.PeanoNatArith   -- incluye todo lo anterior
+import Peano                  -- librería completa
+import Peano.PeanoNat.Arith   -- hasta divisibilidad, MCD/MCM, paridad
+import Peano.PeanoNat.Primes  -- incluye primos y TFA
 ```
+
+---
+
+## Hoja de ruta
+
+### En curso (Phase 21 — Completación de ℕ₀)
+
+- [x] Instancias Init completas (Zero, One, OfNat, Add, Mul, Sub, Div, Mod, Pow, Ord, WellFoundedRelation, DecidableRel)
+- [x] Inducción fuerte (`strongRecOn`, `strongInductionOn`)
+- [x] `IsEven`/`IsOdd` decidibles
+- [x] `Decidable (Prime n)`
+- [ ] **Digits.lean** — representación en base *b*
+- [ ] **Pairing.lean** — función de emparejamiento de Cantor
+- [ ] **ModEq.lean** — congruencia modular
+- [ ] **Totient.lean** — función φ de Euler
+- [ ] **ChineseRemainder.lean** — Teorema del Resto Chino
+- [ ] **Fermat.lean** — Pequeño Teorema de Fermat
+
+### Futuro
+
+- **Phase 22**: Extensión a enteros `ℤ` (pares de equivalencia sobre `ℕ₀ × ℕ₀`)
+- **Phase 23**: Extensión a racionales `ℚ`
 
 ---
 
 ## Documentación técnica
 
-Ver [`REFERENCE.md`](REFERENCE.md) para la referencia completa de definiciones, teoremas, notaciones y dependencias entre módulos.
+- [`REFERENCE.md`](REFERENCE.md) — referencia completa de definiciones, teoremas, notaciones y dependencias
+- [`CURRENT-STATUS-PROJECT.md`](CURRENT-STATUS-PROJECT.md) — estado de compilación y módulos
+- [`NEXT-STEPS.md`](NEXT-STEPS.md) — planificación detallada de fases
+- [`CHANGELOG.md`](CHANGELOG.md) — historial de cambios
+- [`NAMING-CONVENTIONS.md`](NAMING-CONVENTIONS.md) — convenciones de nombres Mathlib4-style
 
 ---
 

@@ -80,9 +80,7 @@ namespace Peano
         else
           (p.1, σ p.2)
     termination_by n
-    decreasing_by
-      simp_wf
-      exact (isomorph_Ψ_lt (sub n 𝟙) n).mp _h_term
+    decreasing_by exact _h_term
 
     def sqrt (n : ℕ₀) : ℕ₀ := (sqrtMod n).1
 

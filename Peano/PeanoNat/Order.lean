@@ -1487,6 +1487,22 @@ namespace Peano
         isFalse (bexLe_false_imp_not_exists P Pb h_iff n (Bool.eq_false_iff.mpr h))
 
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § lt_or_ge / le_or_lt
+    -- ══════════════════════════════════════════════════════════════════
+
+    theorem lt_or_ge (a b : ℕ₀) : Lt a b ∨ Le b a :=
+      match trichotomy a b with
+      | Or.inl h_lt => Or.inl h_lt
+      | Or.inr (Or.inl h_eq) => Or.inr (Or.inr h_eq.symm)
+      | Or.inr (Or.inr h_gt) => Or.inr (Or.inl h_gt)
+
+    theorem le_or_lt (a b : ℕ₀) : Le a b ∨ Lt b a :=
+      match trichotomy a b with
+      | Or.inl h_lt => Or.inl (Or.inl h_lt)
+      | Or.inr (Or.inl h_eq) => Or.inl (Or.inr h_eq)
+      | Or.inr (Or.inr h_gt) => Or.inr h_gt
+
   end Order
 end Peano
 
@@ -1594,4 +1610,6 @@ export Peano.Order (
   not_lt_and_not_eq_implies_gt
   bexLe
   decidableBExLe_of_bool
+  lt_or_ge
+  le_or_lt
 )

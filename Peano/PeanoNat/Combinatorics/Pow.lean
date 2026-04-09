@@ -40,7 +40,7 @@ namespace Peano
       | σ m' => mul (pow n m') n
 
     /- Notación para la potenciación. -/
-    infix:80 " ^ " => pow
+    scoped infix:80 " ^ " => pow
 
     /- Propiedades de la potenciación. -/
     theorem pow_zero (n : ℕ₀) :
@@ -395,3 +395,8 @@ export Peano.Pow (
   isomorph_Ψ_pow
   isomorph_Λ_pow
 )
+
+instance : Pow ℕ₀ ℕ₀ where
+  pow := Peano.Pow.pow
+
+@[simp] theorem pow_def (a b : ℕ₀) : a ^ b = Peano.Pow.pow a b := rfl

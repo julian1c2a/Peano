@@ -80,6 +80,10 @@ namespace Peano
     theorem well_founded_lt : WellFounded Lt :=
       WellFounded.intro acc_lt_wf
 
+    instance : WellFoundedRelation ℕ₀ where
+      rel := Lt
+      wf := well_founded_lt
+
     /--
       El Principio de Buen Orden para ℕ₀.
       Afirma que todo conjunto no vacío de números (descrito por una propiedad `P`)
@@ -105,6 +109,21 @@ namespace Peano
       exact ⟨⟨h_Pn, h_least⟩, fun n' ⟨h_Pn', h_least'⟩ =>
         le_antisymm n' n (h_least' n h_Pn) (h_least n' h_Pn')⟩
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Strong recursion / strong induction
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Recursión fuerte sobre ℕ₀: para construir `C n` podemos
+        suponer que ya tenemos `C k` para todo `k < n`. -/
+    noncomputable def strongRecOn {C : ℕ₀ → Sort _} (n : ℕ₀)
+        (h : ∀ m : ℕ₀, (∀ k : ℕ₀, Lt k m → C k) → C m) : C n :=
+      well_founded_lt.recursion n h
+
+    /-- Inducción fuerte sobre ℕ₀ (caso proposicional). -/
+    theorem strongInductionOn {P : ℕ₀ → Prop} (n : ℕ₀)
+        (h : ∀ m : ℕ₀, (∀ k : ℕ₀, Lt k m → P k) → P m) : P n :=
+      strongRecOn n h
+
   end WellFounded
 
 end Peano
@@ -112,4 +131,6 @@ end Peano
 export Peano.WellFounded (
   well_founded_lt
   well_ordering_principle
+  strongRecOn
+  strongInductionOn
 )

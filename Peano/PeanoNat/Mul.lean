@@ -35,6 +35,9 @@ namespace Peano
 
     infix:70 "*" => mul
 
+    instance : Mul ℕ₀ where
+      mul := Mul.mul
+
     theorem mul_zero (n : ℕ₀) :
       mul n 𝟘 = 𝟘
         := by simp [mul]

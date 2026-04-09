@@ -76,6 +76,10 @@ namespace Peano
   instance : Coe Nat ℕ₀ where
     coe n := Λ n
 
+  instance : Zero ℕ₀ where zero := ℕ₀.zero
+  instance : One ℕ₀ where one := one
+  instance (n : Nat) : OfNat ℕ₀ n where ofNat := Λ n
+
   def τ (n : ℕ₀) : ℕ₀ :=
     match n with
     | ℕ₀.zero => 𝟘

@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-10
+**Última actualización:** 2026-04-09
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (30 jobs)
+lake build      →  Build completed successfully (33 jobs)
 sorry count     →  0
 warnings        →  0
 ```
@@ -30,18 +30,18 @@ warnings        →  0
 | `Peano/Prelim.lean` | `Peano.Prelim` | Infraestructura compartida (DList→List) | ✅ Completo |
 | `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
 | `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
-| `Peano/PeanoNat/Order.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans` | ✅ Completo |
+| `Peano/PeanoNat/Order.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans`, `lt_or_ge`, `le_or_lt` | ✅ Completo |
 | `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `max`, `min`, retícula distributiva, 18 extensiones Mathlib-style | ✅ Completo |
-| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt` | ✅ Completo |
+| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt`, `WellFoundedRelation`, `strongRecOn`, `strongInductionOn` | ✅ Completo |
 | `Peano/PeanoNat/Add.lean` | `Peano.Add` | Suma, neutro, conmutatividad, asociatividad | ✅ Completo |
 | `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | Resta truncada, `sub_self`, `add_k_sub_k` | ✅ Completo |
 | `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | Multiplicación, `mul_sub`, `mul_le_mono_right` | ✅ Completo |
 | `Peano/PeanoNat/Div.lean` | `Peano.Div` | División entera, módulo, `divMod_eq`, `mod_lt` | ✅ Completo |
-| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | Divisibilidad, MCD/MCM, Bézout, `ℕ₁`, 25 extensiones GCD/LCM/Coprime Mathlib-style | ✅ Completo |
-| `Peano/PeanoNat/Decidable.lean` | `Peano.Decidable` | Decidabilidad de `=`, `<`, `≤`, `∣` | ✅ Completo |
+| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | Divisibilidad, MCD/MCM, Bézout, `ℕ₁`, 25 extensiones GCD/LCM/Coprime Mathlib-style, `IsEven`/`IsOdd` decidibles | ✅ Completo |
+| `Peano/PeanoNat/Decidable.lean` | `Peano.Decidable` | Decidabilidad de `=`, `<`, `≤`, `∣`; instancias `Ord`, `DecidableRel` LT/LE | ✅ Completo |
 | `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | (Legacy) `max`, `min` — migrado a Lattice.lean | ✅ Completo |
 | `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | Isomorfismo Nat↔ℕ₀ completo (0, σ, τ, ρ, Lt, Le, max, min, add, sub, mul, div, mod, pow, gcd, lcm) | ✅ Completo |
-| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única | ✅ Completo |
+| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única, `Decidable (Prime n)` | ✅ Completo |
 | `Peano/PeanoNat/Lists.lean` | `Peano.Lists` | Listas de ℕ₀, FSet, operaciones | ✅ Completo |
 | `Peano/PeanoNat/FSet.lean` | `Peano.FSet` | Conjuntos finitos con UniqueKeys+SortedByKey | ✅ Completo |
 | `Peano/PeanoNat/NumberSets.lean` | `Peano.NumberSets` | Divisores, coprimos, primos ≤ n | ✅ Completo |
@@ -88,13 +88,20 @@ warnings        →  0
 - **NumberSets.lean**: `DivisorsOf`, `CoprimesOf`, `PrimesUpTo` como FSet.
 - **Isomorph.lean (§ 20.5)**: 14 teoremas de isomorfismo Nat↔ℕ₀ para mul, div, mod, pow, gcd, lcm. Reexporta desde Mul, Div, Pow y Arith.
 
+### Phase 21 — Instancias Init y decidabilidad (2026-04-09)
+
+- **21.7a**: Todas las instancias Init (Mul, Sub, Div, Mod, Pow, Zero, One, OfNat, Ord).
+- **21.7b**: `WellFoundedRelation ℕ₀`, `lt_or_ge`, `le_or_lt`, `strongRecOn`, `strongInductionOn`, `DecidableRel` para LT/LE.
+- **21.8**: `IsEven`/`IsOdd` con instancias `Decidable` + 6 teoremas.
+- **21.9**: `Decidable (Prime n)` vía `isPrimeb` + `isPrimeb_iff`.
+
 ---
 
 ## Próximos objetivos
 
-- **Instancias algebraicas**: HSub/HDiv/HMod/HPow/DecidableRel para ℕ₀.
-- **Digits/Pairing**: Representación en base b, función de emparejamiento de Cantor.
-- **Futuro**: Extensión a enteros ℤ (pares de equivalencia).
+- **Phase 21 (en curso)**: Digits.lean, Pairing.lean, ModEq.lean, Totient.lean, ChineseRemainder.lean, Fermat.lean.
+- **Phase 22**: Extensión a enteros ℤ (pares de equivalencia).
+- **Phase 23**: Extensión a racionales ℚ.
 
 ---
 

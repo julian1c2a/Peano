@@ -851,6 +851,49 @@ namespace Peano
         Computable: No (Prop). Dependencias: `ℕ₂`, `Prime`. -/
     def ℙ : Type := {n : ℕ₂ // Prime n.val.val}
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 9. Decidabilidad de Prime
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Si `p` es primo, `smallestDivisor p = p`. -/
+    theorem prime_imp_smallestDivisor_eq_self {p : ℕ₀} (hp : Prime p) :
+        smallestDivisor p = p := by
+      have h2 : Le 𝟚 p := prime_ge_two hp
+      have h_dvd := smallestDivisor_dvd h2
+      have h_ge2 := smallestDivisor_ge_two h2
+      rcases prime_divisors hp h_dvd with h1 | heq
+      · -- smallestDivisor p = 𝟙, contradice ≥ 2
+        exfalso
+        rw [h1] at h_ge2
+        exact le_then_ngt 𝟚 𝟙 h_ge2 (lt_succ_self 𝟙)
+      · exact heq
+
+    /-- Test booleano de primalidad: computable. -/
+    def isPrimeb (n : ℕ₀) : Bool :=
+      ble 𝟚 n && decide (smallestDivisor n = n)
+
+    /-- `isPrimeb n = true ↔ Prime n`. -/
+    theorem isPrimeb_iff {n : ℕ₀} :
+        isPrimeb n = true ↔ Prime n := by
+      constructor
+      · intro h
+        simp [isPrimeb, Bool.and_eq_true] at h
+        obtain ⟨h_ble, h_sd⟩ := h
+        have h2 : Le 𝟚 n := (ble_iff_Le 𝟚 n).mp h_ble
+        have hirr := smallestDivisor_eq_self_imp_irreducible h2 h_sd
+        have hn0 : n ≠ 𝟘 := by
+          rintro rfl; exact lt_zero 𝟚 (Or.resolve_right h2 (succ_neq_zero 𝟙))
+        exact irreducible_imp_prime hn0 hirr
+      · intro hp
+        simp [isPrimeb, Bool.and_eq_true]
+        exact ⟨(ble_iff_Le 𝟚 n).mpr (prime_ge_two hp),
+               prime_imp_smallestDivisor_eq_self hp⟩
+
+    instance decidablePrime (n : ℕ₀) : Decidable (Prime n) :=
+      if h : isPrimeb n = true
+      then isTrue (isPrimeb_iff.mp h)
+      else isFalse (fun hp => h (isPrimeb_iff.mpr hp))
+
   end Primes
 
 end Peano
@@ -877,4 +920,7 @@ export Peano.Primes (
     unique_prime_factorization
     smallestDivisor
     factorize
+    isPrimeb
+    isPrimeb_iff
+    decidablePrime
 )

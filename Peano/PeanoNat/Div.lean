@@ -71,20 +71,22 @@ namespace Peano
                 let (a', b') : ℕ₀ × ℕ₀ := divMod (sub a b) b
                 (σ a', b')
     termination_by a
-    decreasing_by
-      simp_wf
-      apply lt_sizeOf
-      exact h_sub_a_b_lt_a
+    decreasing_by exact h_sub_a_b_lt_a
 
     def div (a b : ℕ₀) : ℕ₀ :=
       (divMod a b).1
 
-    notation a " / " b => div a b
-
     def mod (a b : ℕ₀) : ℕ₀ :=
       (divMod a b).2
 
-    notation a " % " b => mod a b
+    instance : Div ℕ₀ where
+      div := Div.div
+
+    instance : Mod ℕ₀ where
+      mod := Div.mod
+
+    @[simp] theorem div_def (a b : ℕ₀) : a / b = div a b := rfl
+    @[simp] theorem mod_def (a b : ℕ₀) : a % b = mod a b := rfl
 
     /--
       Teorema general de la división euclídea.
@@ -138,6 +140,7 @@ namespace Peano
       Lt (a % b) b := by
       induction a using well_founded_lt.induction
       rename_i a ih
+      show Lt (mod a b) b
       unfold mod divMod
       if h_b_zero : b = 𝟘 then
         exact False.elim (h_b_neq_0 h_b_zero)
@@ -222,6 +225,7 @@ namespace Peano
     -/
     theorem div_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
       (a / b) = 𝟘 := by
+      show div a b = 𝟘
       unfold div divMod
       if h_b_zero : b = 𝟘 then
         have h_a_lt_zero : Lt a 𝟘 := by rw [h_b_zero] at h_lt; exact h_lt
@@ -245,6 +249,7 @@ namespace Peano
     -/
     theorem mod_of_lt (a b : ℕ₀) (h_lt : Lt a b) :
       (a % b) = a := by
+      show mod a b = a
       unfold mod divMod
       if h_b_zero : b = 𝟘 then
         have h_a_lt_zero : Lt a 𝟘 := by rw [h_b_zero] at h_lt; exact h_lt
@@ -558,6 +563,8 @@ export Peano.Div (
   divMod
   div
   mod
+  div_def
+  mod_def
   divMod_spec
   mod_lt
   div_le_self

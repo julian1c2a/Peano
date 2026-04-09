@@ -58,9 +58,7 @@ namespace Peano
         let p : ℕ₀ × ℕ₀ := logMod b (n / b)
         (σ p.1, add (mul p.2 b) (n % b))
     termination_by n
-    decreasing_by
-      simp_wf
-      exact (isomorph_Ψ_lt (n / b) n).mp _h_div_lt_n
+    decreasing_by exact _h_div_lt_n
 
     def log (b n : ℕ₀) : ℕ₀ := (logMod b n).1
 
@@ -87,9 +85,11 @@ namespace Peano
       intro h_div_0
       have h_b_ne_0 : b ≠ 𝟘 := b_neq_zero_of_gt_one h_b
       have h_spec := divMod_spec n b h_b_ne_0
+      simp only [div_def] at h_div_0
       unfold div at h_div_0
       rw [h_div_0, zero_mul, zero_add] at h_spec
       have h_mod_lt := mod_lt n b h_b_ne_0
+      simp only [mod_def] at h_mod_lt
       unfold mod at h_mod_lt
       rw [← h_spec] at h_mod_lt
       exact h_nlt h_mod_lt

@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-09 23:00
+**Última actualización:** 2026-04-09 23:30
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -78,8 +78,8 @@
 | `n - m` | infijo | 65 | `Peano.Sub` | `Sub.lean` |
 | `n -( h ) m` | notación con prueba | 65 | `Peano.Sub` | `Sub.lean` |
 | `n * m` | infijo | 70 | `Peano.Mul` | `Mul.lean` |
-| `a / b` | notación | — | `Peano.Div` | `Div.lean` |
-| `a % b` | notación | — | `Peano.Div` | `Div.lean` |
+| `a / b` | instancia `Div ℕ₀` | — | `Peano.Div` | `Div.lean` |
+| `a % b` | instancia `Mod ℕ₀` | — | `Peano.Div` | `Div.lean` |
 | `n < m` | instancia `LT ℕ₀` | — | `Peano.StrictOrder` | `StrictOrder.lean` |
 | `n ≤ m` | instancia `LE ℕ₀` | — | `Peano.Order` | `Order.lean` |
 | `a ∣ b` | infijo | 50 | `Peano.Arith` | `Arith.lean` |
@@ -795,9 +795,19 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Lean4:** `theorem well_ordering_principle {P : ℕ₀ → Prop} (h : ∃ n, P n) : ∃ n, P n ∧ ∀ m, Lt m n → ¬P m`
 - **Matemática:** Todo conjunto no vacío de ℕ₀ tiene un elemento minimal para <
 
+**[T5.17]** `lt_or_ge`
+
+- **Lean4:** `theorem lt_or_ge (a b : ℕ₀) : Lt a b ∨ Le b a`
+- **Matemática:** ∀a, b ∈ ℕ₀, a < b ∨ b ≤ a
+
+**[T5.18]** `le_or_lt`
+
+- **Lean4:** `theorem le_or_lt (a b : ℕ₀) : Le a b ∨ Lt b a`
+- **Matemática:** ∀a, b ∈ ℕ₀, a ≤ b ∨ b < a
+
 **[T5.16]** Teoremas adicionales exportados
 
-`lt_imp_le_wp`, `le_of_eq`, `le_of_eq_wp`, `le_self_of_eq_self`, `le_0_of_eq_0`, `le_then_le_succ`, `le_succ_self`, `le_succ`, `le_1_succ`, `le_zero_eq_zero`, `le_succ_zero_zero`, `le_1_0_then_false`, `le_succ_iff_le_or_eq`, `le_succ_then_le_or_eq`, `le_or_eq_then_le_succ`, `lt_of_le_neq`, `lt_of_le_neq_wp`, `le_zero_eq_wp`, `succ_le_succ_then`, `succ_le_succ_then_wp`, `succ_le_succ_if`, `succ_le_succ_if_wp`, `succ_le_succ_iff_wp`, `succ_le_succ'_then_wp`, `lt_of_le_of_ne`, `lt_iff_le_not_le`, `lt_succ_iff_lt_or_eq_alt`, `le_succ_iff_le_or_eq_alt`, `le_of_succ_le_succ`, `nle_then_gt`, `nle_then_gt_wp`, `gt_then_nle`, `gt_then_nle_wp`, `le_1_m_then_m_neq_0`, `le_1_m_then_m_neq_0_wp`, `m_neq_0_proved_lt_1_m`, `le_m_1_then_m_eq_0or1_wp`, `le_n_m_then_m_neq_0`, `le_n_m_n_neq_0_then_m_neq_0`, `m_neq_0_proved_lt_1_m_wp`, `le_0_succ_then_lt_0_succ`, `le_0_succ_then_lt_0_succ_wp`, `lt_0_succ_then_le_0_succ`, `lt_0_succ_then_le_0_succ_wp`, `le_0_succ_iff_lt_0_succ`, `le_then_lt_succ`, `le_then_lt_succ_wp`, `le_succ_then_le_or_eq_wp`, `le_or_eq_then_le_succ_wp`, `le_succ_k_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n_wp`, `le_succ_k_n_then_lt_k_n`, `le_succ_k_n_then_lt_k_n_wp`, `le_succ_then_le`, `le_succ_then_le_wp`, `le_k_n_then_le_k_sn_wp`, `le_n_m_then_le_n_sm`, `le_n_m_then_le_n_sm_wp`, `le_sn_m_then_le_n_m_or_succ`, `le_sn_m_then_le_n_m_or_succ_wp`, `le_then_lt_or_eq`, `nle_σn_n`, `le_σn_n_then_false`, `lt_0n_then_le_1n`, `lt_0n_then_le_1n_wp`, `lt_nm_then_le_nm`, `lt_nm_then_le_nm_wp`, `le_then_ngt`, `le_then_ngt_wp`, `ngt_then_le`, `ngt_then_le_wp`, `le_succ_then_lt`, `le_succ_then_lt_wp`, `lt_then_le_succ_wp`, `lt_then_le_succ`, `ngt_iff_le`
+`lt_imp_le_wp`, `le_of_eq`, `le_of_eq_wp`, `le_self_of_eq_self`, `le_0_of_eq_0`, `le_then_le_succ`, `le_succ_self`, `le_succ`, `le_1_succ`, `le_zero_eq_zero`, `le_succ_zero_zero`, `le_1_0_then_false`, `le_succ_iff_le_or_eq`, `le_succ_then_le_or_eq`, `le_or_eq_then_le_succ`, `lt_of_le_neq`, `lt_of_le_neq_wp`, `le_zero_eq_wp`, `succ_le_succ_then`, `succ_le_succ_then_wp`, `succ_le_succ_if`, `succ_le_succ_if_wp`, `succ_le_succ_iff_wp`, `succ_le_succ'_then_wp`, `lt_of_le_of_ne`, `lt_iff_le_not_le`, `lt_succ_iff_lt_or_eq_alt`, `le_succ_iff_le_or_eq_alt`, `le_of_succ_le_succ`, `nle_then_gt`, `nle_then_gt_wp`, `gt_then_nle`, `gt_then_nle_wp`, `le_1_m_then_m_neq_0`, `le_1_m_then_m_neq_0_wp`, `m_neq_0_proved_lt_1_m`, `le_m_1_then_m_eq_0or1_wp`, `le_n_m_then_m_neq_0`, `le_n_m_n_neq_0_then_m_neq_0`, `m_neq_0_proved_lt_1_m_wp`, `le_0_succ_then_lt_0_succ`, `le_0_succ_then_lt_0_succ_wp`, `lt_0_succ_then_le_0_succ`, `lt_0_succ_then_le_0_succ_wp`, `le_0_succ_iff_lt_0_succ`, `le_then_lt_succ`, `le_then_lt_succ_wp`, `le_succ_then_le_or_eq_wp`, `le_or_eq_then_le_succ_wp`, `le_succ_k_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n`, `lt_k_succ_n_then_le_k_n_wp`, `le_succ_k_n_then_lt_k_n`, `le_succ_k_n_then_lt_k_n_wp`, `le_succ_then_le`, `le_succ_then_le_wp`, `le_k_n_then_le_k_sn_wp`, `le_n_m_then_le_n_sm`, `le_n_m_then_le_n_sm_wp`, `le_sn_m_then_le_n_m_or_succ`, `le_sn_m_then_le_n_m_or_succ_wp`, `le_then_lt_or_eq`, `nle_σn_n`, `le_σn_n_then_false`, `lt_0n_then_le_1n`, `lt_0n_then_le_1n_wp`, `lt_nm_then_le_nm`, `lt_nm_then_le_nm_wp`, `le_then_ngt`, `le_then_ngt_wp`, `ngt_then_le`, `ngt_then_le_wp`, `le_succ_then_lt`, `le_succ_then_lt_wp`, `lt_then_le_succ_wp`, `lt_then_le_succ`, `ngt_iff_le`, `lt_or_ge`, `le_or_lt`
 
 ---
 
@@ -1019,7 +1029,14 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Descripción:** Conecta la relación `Lt` con la terminación de Lean vía el isomorfismo Ψ: ℕ₀ → Nat
 - **Computable:** Sí (Ψ es computable)
 
-### 7.2. Teoremas principales
+### 7.2. Instancias
+
+**[I7.1]** `WellFoundedRelation ℕ₀`
+
+- **Lean4:** `instance : WellFoundedRelation ℕ₀ where rel := Lt; wf := well_founded_lt`
+- **Descripción:** Registra `Lt` como relación bien fundada para `ℕ₀`, habilitando `termination_by` y `decreasing_by` con hipótesis `Lt` directas.
+
+### 7.3. Teoremas principales
 
 **[T7.1]** `acc_lt_wf`
 
@@ -1030,6 +1047,17 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem well_founded_lt : WellFounded Lt`
 - **Matemática:** < es una relación bien fundada en ℕ₀
+
+**[T7.3]** `strongRecOn` (recursión fuerte)
+
+- **Lean4:** `noncomputable def strongRecOn {C : ℕ₀ → Sort _} (n : ℕ₀) (h : ∀ m : ℕ₀, (∀ k : ℕ₀, Lt k m → C k) → C m) : C n`
+- **Matemática:** Para construir C(n), basta suponer C(k) para todo k < n.
+- **Computable:** No (`noncomputable`, depende de `WellFounded.recursion`)
+
+**[T7.4]** `strongInductionOn` (inducción fuerte)
+
+- **Lean4:** `theorem strongInductionOn {P : ℕ₀ → Prop} (n : ℕ₀) (h : ∀ m : ℕ₀, (∀ k : ℕ₀, Lt k m → P k) → P m) : P n`
+- **Matemática:** Para probar P(n), basta suponer P(k) para todo k < n.
 
 ---
 
@@ -1748,6 +1776,62 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - **Lean4:** `theorem isomorph_Λ_lcm (n m : Nat) : Λ (Nat.lcm n m) = lcm (Λ n) (Λ m)`
 - **Matemática:** Λ(lcmₙ(n,m)) = lcm(Λ(n), Λ(m))
 
+### 12.9. IsEven / IsOdd
+
+**[D12.12]** `IsEven`
+
+- **Lean4:** `def IsEven (n : ℕ₀) : Prop := n % 𝟚 = 𝟘`
+- **Matemática:** IsEven(n) ⟺ n mod 2 = 0
+- **Computable:** No (Prop)
+- **Decidable:** Sí (`decidableIsEven`)
+
+**[D12.13]** `IsOdd`
+
+- **Lean4:** `def IsOdd (n : ℕ₀) : Prop := n % 𝟚 = 𝟙`
+- **Matemática:** IsOdd(n) ⟺ n mod 2 = 1
+- **Computable:** No (Prop)
+- **Decidable:** Sí (`decidableIsOdd`)
+
+**[I12.1]** `decidableIsEven`
+
+- **Lean4:** `instance decidableIsEven (n : ℕ₀) : Decidable (IsEven n)`
+- **Descripción:** Decidabilidad de paridad vía `DecidableEq`
+
+**[I12.2]** `decidableIsOdd`
+
+- **Lean4:** `instance decidableIsOdd (n : ℕ₀) : Decidable (IsOdd n)`
+- **Descripción:** Decidabilidad de imparidad vía `DecidableEq`
+
+**[T12.47]** `even_zero`
+
+- **Lean4:** `theorem even_zero : IsEven 𝟘`
+- **Matemática:** 0 es par
+
+**[T12.48]** `odd_one`
+
+- **Lean4:** `theorem odd_one : IsOdd 𝟙`
+- **Matemática:** 1 es impar
+
+**[T12.49]** `even_or_odd`
+
+- **Lean4:** `theorem even_or_odd (n : ℕ₀) : IsEven n ∨ IsOdd n`
+- **Matemática:** ∀n ∈ ℕ₀, n es par ∨ n es impar
+
+**[T12.50]** `not_even_and_odd`
+
+- **Lean4:** `theorem not_even_and_odd {n : ℕ₀} : ¬(IsEven n ∧ IsOdd n)`
+- **Matemática:** Ningún n es par e impar a la vez
+
+**[T12.51]** `not_even_iff_odd`
+
+- **Lean4:** `theorem not_even_iff_odd {n : ℕ₀} : ¬IsEven n ↔ IsOdd n`
+- **Matemática:** ¬par(n) ⟺ impar(n)
+
+**[T12.52]** `not_odd_iff_even`
+
+- **Lean4:** `theorem not_odd_iff_even {n : ℕ₀} : ¬IsOdd n ↔ IsEven n`
+- **Matemática:** ¬impar(n) ⟺ par(n)
+
 ---
 
 ## 13. Primes.lean — `namespace Peano.Primes`
@@ -1882,6 +1966,30 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem unique_prime_factorization ...`
 - **Matemática:** La factorización en primos es única salvo permutación
+
+### 13.7. Decidabilidad de `Prime`
+
+**[D13.6]** `isPrimeb`
+
+- **Lean4:** `def isPrimeb (n : ℕ₀) : Bool := ble 𝟚 n && decide (smallestDivisor n = n)`
+- **Matemática:** Test booleano de primalidad
+- **Computable:** Sí
+- **Decidable:** `isPrimeb n = true ↔ Prime n`
+
+**[T13.22]** `prime_imp_smallestDivisor_eq_self`
+
+- **Lean4:** `theorem prime_imp_smallestDivisor_eq_self {p : ℕ₀} (hp : Prime p) : smallestDivisor p = p`
+- **Matemática:** p primo ⇒ smallestDivisor(p) = p
+
+**[T13.23]** `isPrimeb_iff`
+
+- **Lean4:** `theorem isPrimeb_iff {n : ℕ₀} : isPrimeb n = true ↔ Prime n`
+- **Matemática:** isPrimeb(n) = true ⟺ n es primo
+
+**[I13.1]** `decidablePrime`
+
+- **Lean4:** `instance decidablePrime (n : ℕ₀) : Decidable (Prime n)`
+- **Descripción:** Decidabilidad de la primalidad vía `isPrimeb`
 
 ---
 
@@ -2244,7 +2352,24 @@ Módulo sin definiciones ni demostraciones nuevas. Reúne todas las instancias `
 
 **Reexporta de `Peano.StrictOrder`:** `blt`, `bgt`, `blt_iff_Lt`, `blt_then_Lt_wp`, `bgt_iff_Gt`, `nblt_iff_nLt`, `nbgt_iff_nGt`, `decidableLt`, `decidableGt`
 
-**Reexporta de `Peano.Order`:** `ble`, `bge`, `ble_iff_Le`, `bge_iff_Ge`, `decidableLe`, `decidableGe`
+**Reexporta de `Peano.Order`:** `ble`, `bge`, `ble_iff_Le`, `bge_iff_Ge`, `decidableLe`, `decidableGe`, `bexLe`, `decidableBExLe_of_bool`
+
+### 19.1. Instancias propias
+
+**[I19.1]** `Ord ℕ₀`
+
+- **Lean4:** `instance : Ord ℕ₀ where compare a b := if Lt a b then .lt else if Lt b a then .gt else .eq`
+- **Descripción:** Comparación ternaria basada en `Lt`
+
+**[I19.2]** `DecidableRel (@LT.lt ℕ₀ _)`
+
+- **Lean4:** `instance : DecidableRel (@LT.lt ℕ₀ _) := fun a b => Peano.StrictOrder.decidableLt a b`
+- **Descripción:** Decidabilidad de `<` vía typeclass `LT`
+
+**[I19.3]** `DecidableRel (@LE.le ℕ₀ _)`
+
+- **Lean4:** `instance : DecidableRel (@LE.le ℕ₀ _) := fun a b => Peano.Order.decidableLe a b`
+- **Descripción:** Decidabilidad de `≤` vía typeclass `LE`
 
 ---
 

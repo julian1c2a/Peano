@@ -194,12 +194,7 @@ namespace Peano
     def gcd (a b : ℕ₀) : ℕ₀ :=
       if b = 𝟘 then a else gcd b (a % b)
     termination_by b
-    decreasing_by
-      simp_wf
-      -- Goal: sizeOf (a % b) < sizeOf b under the else branch (b ≠ 𝟘)
-      -- Convert Lt to sizeOf ordering
-      apply Peano.Div.lt_sizeOf
-      exact Peano.Div.mod_lt a b (by assumption)
+    decreasing_by exact Peano.Div.mod_lt a b (by assumption)
 
     def lcm (a b : ℕ₀) : ℕ₀ :=
       (mul a b) / (gcd a b)
@@ -223,10 +218,7 @@ namespace Peano
       if hr : (a.val % b.val) = 𝟘 then b
       else gcd₁ b ⟨a.val % b.val, hr⟩
     termination_by b.val
-    decreasing_by
-      simp_wf
-      apply Peano.Div.lt_sizeOf
-      exact Peano.Div.mod_lt a.val b.val b.property
+    decreasing_by exact Peano.Div.mod_lt a.val b.val b.property
 
     -- Coprimalidad para ℕ₁
     def Coprime₁ (a b : ℕ₁) : Prop :=
@@ -253,6 +245,7 @@ namespace Peano
           divides_mul_left h_gcd_div_b
         have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
           divides_add h_div_prod h_gcd_div_mod
+        simp only [div_def, mod_def] at h_div_sum
         unfold div mod at h_div_sum
         rw [← divMod_spec a b h_b_is_zero] at h_div_sum
         exact h_div_sum
@@ -280,6 +273,7 @@ namespace Peano
           divides_mul_left h_gcd_div_b
         have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
           divides_add h_div_prod h_gcd_div_mod
+        simp only [div_def, mod_def] at h_div_sum
         unfold div mod at h_div_sum
         rw [← divMod_spec a b h_b_is_zero] at h_div_sum
         exact h_div_sum
@@ -401,6 +395,7 @@ namespace Peano
             divides_mul_left h1
           have h4 : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
             divides_add h3 h2
+          simp only [div_def, mod_def] at h4
           unfold div mod at h4
           rw [← divMod_spec a b hb] at h4
           exact h4
@@ -907,7 +902,10 @@ namespace Peano
           simp [gcd, Ψ]
         · -- gcd a b = gcd b (a % b),  con Lt (a % b) b
           have h_mod_lt := mod_lt a b h_b
-          rw [gcd_step a b h_b, ih (mod a b) h_mod_lt b, isomorph_Ψ_mod a b h_b]
+          simp only [mod_def] at h_mod_lt
+          rw [gcd_step a b h_b]
+          simp only [mod_def]
+          rw [ih (mod a b) h_mod_lt b, isomorph_Ψ_mod a b h_b]
           -- Goal: Nat.gcd (Ψ b) (Nat.mod (Ψ a) (Ψ b)) = Nat.gcd (Ψ a) (Ψ b)
           have : Nat.gcd (Ψ b) ((Ψ a) % (Ψ b)) = Nat.gcd (Ψ a) (Ψ b) := by
             rw [Nat.gcd_comm (Ψ b), ← Nat.gcd_rec, Nat.gcd_comm]
@@ -926,6 +924,7 @@ namespace Peano
       Ψ (lcm a b) = Nat.lcm (Ψ a) (Ψ b)
         := by
       unfold lcm Nat.lcm
+      simp only [div_def]
       rw [isomorph_Ψ_div, isomorph_Ψ_mul, isomorph_Ψ_gcd]
       rfl
 
@@ -937,6 +936,50 @@ namespace Peano
       have := congrArg Λ h
       rw [ΛΨ] at this
       exact this.symm
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § IsEven / IsOdd
+    -- ══════════════════════════════════════════════════════════════════
+
+    def IsEven (n : ℕ₀) : Prop := n % 𝟚 = 𝟘
+    def IsOdd  (n : ℕ₀) : Prop := n % 𝟚 = 𝟙
+
+    instance decidableIsEven (n : ℕ₀) : Decidable (IsEven n) :=
+      inferInstanceAs (Decidable (n % 𝟚 = 𝟘))
+
+    instance decidableIsOdd (n : ℕ₀) : Decidable (IsOdd n) :=
+      inferInstanceAs (Decidable (n % 𝟚 = 𝟙))
+
+    theorem even_zero : IsEven 𝟘 :=
+      mod_of_lt 𝟘 𝟚 (lt_zero_succ (σ 𝟘))
+
+    theorem odd_one : IsOdd 𝟙 :=
+      mod_of_lt 𝟙 𝟚 (lt_succ_self 𝟙)
+
+    theorem even_or_odd (n : ℕ₀) : IsEven n ∨ IsOdd n := by
+      have h_lt : Lt (n % 𝟚) 𝟚 := mod_lt n 𝟚 (succ_neq_zero 𝟙)
+      have h_le : Le (n % 𝟚) 𝟙 := (lt_succ_iff_le (n % 𝟚) 𝟙).mp h_lt
+      rcases h_le with h_lt1 | h_eq1
+      · exact Or.inl (lt_b_1_then_b_eq_0 h_lt1)
+      · exact Or.inr h_eq1
+
+    theorem not_even_and_odd {n : ℕ₀} : ¬(IsEven n ∧ IsOdd n) := by
+      intro ⟨he, ho⟩
+      exact absurd (he.symm.trans ho).symm (succ_neq_zero 𝟘)
+
+    theorem not_even_iff_odd {n : ℕ₀} : ¬IsEven n ↔ IsOdd n := by
+      constructor
+      · intro hne
+        exact (even_or_odd n).resolve_left hne
+      · intro ho he
+        exact not_even_and_odd ⟨he, ho⟩
+
+    theorem not_odd_iff_even {n : ℕ₀} : ¬IsOdd n ↔ IsEven n := by
+      constructor
+      · intro hno
+        exact (even_or_odd n).resolve_right hno
+      · intro he ho
+        exact not_even_and_odd ⟨he, ho⟩
 
   end Arith
 
@@ -1032,4 +1075,15 @@ export Peano.Arith (
   isomorph_Λ_gcd
   isomorph_Ψ_lcm
   isomorph_Λ_lcm
+  -- § IsEven / IsOdd
+  IsEven
+  IsOdd
+  decidableIsEven
+  decidableIsOdd
+  even_zero
+  odd_one
+  even_or_odd
+  not_even_and_odd
+  not_even_iff_odd
+  not_odd_iff_even
 )

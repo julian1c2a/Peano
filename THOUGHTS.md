@@ -616,3 +616,193 @@ La comparación dadas dos fracciones `z₁ / n₁` y `z₂ / n₂` se puede defi
 - Integer extension (ℤ from ℕ₀)
 - Rational numbers (ℚ from ℤ)
 - Connection to Lean 4's native `Nat` type
+
+---
+
+## 2026-04-09 — Typeclasses de orden y álgebra: ¿LinearOrder, CommSemiring, ring?
+
+### Contexto
+
+Se plantean dos líneas de trabajo:
+
+**Línea A (orden):** Instanciar `LinearOrder ℕ₀`, derivar `le_total`, `lt_or_ge`,
+`le_or_lt`, `sup_eq_max`, `inf_eq_min`, `WellFoundedRelation ℕ₀`,
+`ℕ₀.strongRecOn`, `ℕ₀.strongInductionOn`.
+
+**Línea B (álgebra):** Instanciar `CommSemiring ℕ₀`, `OrderedSemiring ℕ₀`,
+`CanonicallyOrderedCommSemiring ℕ₀`, y alguna forma de `Ring` (commutativa, sin
+divisores de cero) para habilitar la táctica `ring`.
+
+### Inventario de disponibilidad en Lean 4.29.0 Init (sin Mathlib)
+
+Se verificó experimentalmente qué typeclasses existen en `Init`:
+
+| Typeclass | ¿En Init? | Notas |
+|-----------|-----------|-------|
+| `WellFoundedRelation` | ✅ Sí | `rel : α → α → Prop`, `wf : WellFounded rel` |
+| `Add`, `Mul`, `Sub`, `Div`, `Mod` | ✅ Sí | Clases básicas de operaciones |
+| `HPow`, `HSub`, `HDiv`, `HMod` | ✅ Sí | Versiones heterogéneas |
+| `Zero`, `One`, `OfNat` | ✅ Sí | Literales numéricos |
+| `LT`, `LE` | ✅ Sí | Orden (ya instanciados) |
+| `Ord` | ✅ Sí | `compare : α → α → Ordering` |
+| `LinearOrder` | ❌ **Mathlib** | `Preorder` + `PartialOrder` + `le_total` + `decidable_le` |
+| `Preorder` | ❌ **Mathlib** | `le_refl`, `le_trans` |
+| `PartialOrder` | ❌ **Mathlib** | `Preorder` + `le_antisymm` |
+| `Monoid`, `CommMonoid` | ❌ **Mathlib** | Estructuras multiplicativas |
+| `AddMonoid`, `AddCommMonoid` | ❌ **Mathlib** | Estructuras aditivas |
+| `Semiring`, `CommSemiring` | ❌ **Mathlib** | Anillo sin resta |
+| `Ring` | ❌ **Mathlib** | Anillo con grupo aditivo |
+| `OrderedSemiring` | ❌ **Mathlib** | Semianillo + orden compatible |
+| `WellFoundedLT` | ❌ **Mathlib** | `WellFounded (· < ·)` |
+
+**Conclusión clave:** `LinearOrder`, `CommSemiring`, `OrderedSemiring`,
+`CanonicallyOrderedCommSemiring` y **toda la jerarquía algebraica son de Mathlib**.
+Sin Mathlib, **no existen** esas typeclasses.
+
+### Línea A: Orden — Análisis
+
+#### A.1. Lo que ya tenemos (sin typeclasses formales)
+
+| Propiedad | Teorema existente | Archivo |
+|-----------|------------------|---------|
+| `le_refl` | `le_refl` | Order.lean |
+| `le_trans` | `le_trans` | Order.lean |
+| `le_antisymm` | `le_antisymm` | Order.lean |
+| `le_total` | `le_total` | Order.lean (línea 445) |
+| `lt_iff_le_not_le` | Derivable de `lt_imp_le` + `lt_then_neq` | — |
+| `decidable_le` | `decidableLe` (instancia) | Order.lean |
+| `decidable_lt` | `decidableLt` (instancia) | StrictOrder.lean |
+| `well_founded_lt` | `well_founded_lt` | WellFounded.lean |
+| `max`/`min` | `max`, `min` con 18+ teoremas | Lattice.lean |
+
+#### A.2. Lo que falta para la semántica de LinearOrder
+
+Aunque no podemos instanciar `LinearOrder` (no existe sin Mathlib), podemos
+**implementar todos los teoremas equivalentes** con nombres Mathlib-compatibles:
+
+| Teorema | Estado | Cómo implementar |
+|---------|--------|-------------------|
+| `le_total` | ✅ Ya existe | Order.lean |
+| `lt_or_ge (a b : ℕ₀) : Lt a b ∨ Le b a` | ❌ Falta | Directo de `le_total` + `le_iff_lt_or_eq` |
+| `le_or_lt (a b : ℕ₀) : Le a b ∨ Lt b a` | ❌ Falta | Simétrico de `lt_or_ge` |
+| `sup_eq_max` / `inf_eq_min` | ❌ Falta | Definir `Sup`/`Inf` como alias de `max`/`min` |
+| `strongRecOn` | ❌ Falta | Via `WellFounded.recursion well_founded_lt` |
+| `strongInductionOn` | ❌ Falta | Variante proposicional de `strongRecOn` |
+
+#### A.3. WellFoundedRelation ℕ₀
+
+**Sí es factible.** `WellFoundedRelation` está en Init:
+
+```lean
+instance : WellFoundedRelation ℕ₀ where
+  rel := Lt
+  wf  := well_founded_lt
+```
+
+Esto habilita recursión con `termination_by` sobre `ℕ₀` usando `Lt`.
+
+#### A.4. Recomendación Línea A
+
+**Implementar** — es autocontenido, de complejidad baja-media, y desbloquea:
+
+- `termination_by` nativo sobre `ℕ₀` (vía `WellFoundedRelation`)
+- `strongRecOn`/`strongInductionOn` (herramientas de demostración potentes)
+- Nombres Mathlib-compatibles para teoremas de orden existentes
+
+**Ubicación:** Nuevos teoremas en `Order.lean` y `WellFounded.lean`.
+Instancia `WellFoundedRelation` en `WellFounded.lean`.
+
+### Línea B: Álgebra — Análisis
+
+#### B.1. El problema fundamental
+
+Sin Mathlib no existen las typeclasses `CommSemiring`, `OrderedSemiring`, etc.
+Hay **tres opciones**:
+
+**Opción B1: Importar Mathlib.**
+
+- Pro: Acceso inmediato a toda la jerarquía + tácticas `ring`, `linarith`, `field_simp`.
+- Contra: **Rompe la filosofía del proyecto** ("self-contained, no Mathlib").
+  Compila ~2000 archivos. El tiempo de build pasa de ~15s a ~15min.
+
+**Opción B2: Definir nuestras propias typeclasses (mini-álgebra Peano).**
+
+- Pro: Autocontenido. Podemos adaptarlas a nuestras necesidades.
+- Contra: Duplicación enorme. La jerarquía Mathlib tiene ~40 clases interrelacionadas.
+  Incluso un subset mínimo (`AddCommMonoid` → `CommMonoidWithZero` → `Semiring` →
+  `CommSemiring` → `OrderedCommSemiring`) son ~8 clases con ~30 axiomas totales.
+  Y la táctica `ring` **no funciona con clases custom** — es un plugin de Lean/Mathlib
+  que despacha específicamente sobre la jerarquía de Mathlib.
+
+**Opción B3: No instanciar typeclasses algebraicas, pero implementar un mini-ring₀.**
+
+- Pro: Pragmático. Los teoremas ya existen (`add_comm`, `mul_assoc`, `mul_add`, etc.).
+  Una macro de táctica `ring₀` puede normalizar expresiones reescribiendo con esos lemas.
+- Contra: La táctica sería rudimentaria (no un decision procedure completo).
+
+#### B.2. La táctica `ring` — qué necesita realmente
+
+La táctica `ring` de Lean 4 / Mathlib:
+
+1. Refleja la expresión del goal en un tipo de datos `RingExpr`.
+2. Normaliza a una forma canónica (polinomio en variables ordenadas).
+3. Compara ambos lados normalizados.
+4. Produce un proof term usando lemas de `CommSemiring`/`CommRing`.
+
+**Puntos clave:**
+
+- Requiere **exactamente** las typeclasses de Mathlib (despacha por nombre).
+- No se puede "engañar" con clases propias a menos que se reimplemente el plugin.
+- Reimplementar `ring` desde cero es un proyecto de ~1000 líneas de metaprogramación.
+
+#### B.3. Alternativa práctica: `ring₀` como macro rewriter
+
+En lugar de `ring`, podemos crear una táctica `ring₀` que:
+
+1. Intente `simp only [add_comm, add_assoc, mul_comm, mul_assoc, mul_add, add_mul,
+   mul_zero, zero_mul, add_zero, zero_add, mul_one, one_mul]`
+2. Si no resuelve, aplique `omega` via el bridge `Λ`/`Ψ`.
+3. Como fallback, use `decide` para instancias concretas.
+
+Esto cubriría ~80% de los usos reales de `ring` en nuestro contexto.
+
+#### B.4. Recomendación Línea B
+
+**Posponer la instanciación de typeclasses algebraicas.** No merece la pena sin
+Mathlib — el esfuerzo de definir la jerarquía es grande y la táctica `ring` no
+funcionaría con clases propias.
+
+**Sí implementar:** instancias de `Init` que faltan (`Mul`, `Sub`, `HPow`, `Zero`,
+`One`, `OfNat`, `Ord`) + una macro `ring₀` pragmática. Esto **es** el contenido
+del punto 21.7 de NEXT-STEPS.md.
+
+### Relación con la fase 21.7 de NEXT-STEPS.md
+
+**Sí, hay relación directa.** La fase 21.7 planifica exactamente:
+
+> `instance : HSub ℕ₀ ℕ₀ ℕ₀`, `HDiv`, `HMod`, `HPow`,
+> `DecidableRel (@LT.lt ℕ₀ _)`, `DecidableRel (@LE.le ℕ₀ _)`
+
+La Línea A extiende 21.7 con:
+
+- `WellFoundedRelation ℕ₀` (nueva)
+- `strongRecOn` / `strongInductionOn` (nueva)
+- `lt_or_ge`, `le_or_lt` (nuevos)
+- `Ord ℕ₀` (nueva, con `compare`)
+
+La Línea B (en su versión pragmática) extiende 21.7 con:
+
+- `Zero ℕ₀`, `One ℕ₀`, `OfNat ℕ₀ n` (nuevas, permiten escribir `(0 : ℕ₀)`, `(1 : ℕ₀)`)
+- Instancias `Mul`, `Sub` (actualmente solo hay `Add`)
+- Macro `ring₀` (futura, no es una instancia)
+
+**Propuesta:** Fusionar Línea A + la versión pragmática de Línea B en una
+**fase 21.7 ampliada**, con dos sub-fases:
+
+```
+21.7a — Instancias Init:  Mul, Sub, HDiv, HMod, HPow, Zero, One, OfNat, Ord
+21.7b — Orden avanzado:   WellFoundedRelation, lt_or_ge, le_or_lt,
+                           strongRecOn, strongInductionOn, sup_eq_max, inf_eq_min
+```
+
+La macro `ring₀` queda para una fase separada (requiere metaprogramación).

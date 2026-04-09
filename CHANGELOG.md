@@ -4,6 +4,30 @@
 
 ### Added (2026-04-09)
 
+- **Phase 21.7b — Orden avanzado**:
+  - **Order.lean**: `lt_or_ge (a b : ℕ₀) : Lt a b ∨ Le b a`,
+    `le_or_lt (a b : ℕ₀) : Le a b ∨ Lt b a` + exportados.
+  - **WellFounded.lean**: `noncomputable strongRecOn {C : ℕ₀ → Sort _} (n) (h) : C n`
+    (recursión fuerte), `strongInductionOn {P : ℕ₀ → Prop} (n) (h) : P n` (inducción
+    fuerte). Ambos vía `well_founded_lt.recursion`.
+  - **Decidable.lean**: `instance : DecidableRel (@LT.lt ℕ₀ _)` (envuelve `decidableLt`),
+    `instance : DecidableRel (@LE.le ℕ₀ _)` (envuelve `decidableLe`).
+  - Build: 33 jobs, 0 warnings, 0 sorry.
+
+- **Phase 21 — Decidable Prime**:
+  - **Primes.lean**: `prime_imp_smallestDivisor_eq_self` (p primo ⇒ smallestDivisor p = p),
+    `isPrimeb` (test booleano: `ble 𝟚 n && decide (smallestDivisor n = n)`),
+    `isPrimeb_iff` (iff a `Prime n`), `decidablePrime (n : ℕ₀) : Decidable (Prime n)`.
+  - Build: 33 jobs, 0 warnings, 0 sorry.
+
+- **Phase 21.8 — IsEven/IsOdd**:
+  - **Arith.lean**: `IsEven (n) := n % 𝟚 = 𝟘`, `IsOdd (n) := n % 𝟚 = 𝟙`,
+    `decidableIsEven`, `decidableIsOdd`, `even_zero`, `odd_one`, `even_or_odd`,
+    `not_even_and_odd`, `not_even_iff_odd`, `not_odd_iff_even`. Exportados 12 símbolos nuevos.
+  - Build: 33 jobs, 0 warnings, 0 sorry.
+
+### Added (2026-04-09) [earlier]
+
 - **Isomorfismos Nat↔ℕ₀ completos para mul, div, mod, pow, gcd, lcm (§ 20.5)**:
   Completados los 14 teoremas de isomorfismo restantes en 4 módulos:
   - **Mul.lean**: `isomorph_Ψ_mul`, `isomorph_Λ_mul` (inducción sobre `m`, cadena `calc`)

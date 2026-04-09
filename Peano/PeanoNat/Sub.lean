@@ -37,9 +37,7 @@ namespace Peano
     | σ n', σ m' =>
       subₕₖ n' m' (succ_le_succ_then h)
   termination_by n
-  decreasing_by
-    simp_wf
-    apply Nat.lt_succ_self
+  decreasing_by exact lt_succ_self n'
 
   def sub (n m : ℕ₀) : ℕ₀ :=
     if h: Le m n then
@@ -48,6 +46,10 @@ namespace Peano
       𝟘
 
   infix:65 " - " => sub
+
+  instance : Sub ℕ₀ where
+    sub := Sub.sub
+
   notation:65 n " -( " h " ) " m => subₕₖ n m h
 
   theorem subₕₖ_zero (n : ℕ₀) :

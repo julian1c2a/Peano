@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-10
+**Last updated:** 2026-04-09
 **Author**: Julián Calderón Almendros
 
 > This file tracks planned development phases. Each phase includes
@@ -615,18 +615,45 @@ Teoremas:
 
 **Complejidad**: Muy Alta
 
-### 21.7. Instancias algebraicas pendientes
+### 21.7a. Instancias Init — operaciones y literales
 
-**En PeanoNat.lean o módulo dedicado:**
+**En módulos existentes (Add, Sub, Mul, Div, Pow) + PeanoNat.lean:**
 
-- `instance : HSub ℕ₀ ℕ₀ ℕ₀` (envolviendo `sub`)
-- `instance : HDiv ℕ₀ ℕ₀ ℕ₀` (envolviendo `div`)
-- `instance : HMod ℕ₀ ℕ₀ ℕ₀` (envolviendo `mod`)
-- `instance : HPow ℕ₀ ℕ₀ ℕ₀` (envolviendo `pow`)
-- `instance : DecidableRel (@LT.lt ℕ₀ _)` (envolviendo `decidableLt`)
-- `instance : DecidableRel (@LE.le ℕ₀ _)` (envolviendo `decidableLe`)
+Instancias de typeclasses que existen en Lean 4 Init (sin Mathlib):
 
-**Complejidad**: Baja (mecánico)
+- `instance : Mul ℕ₀` (envolviendo `mul`) — en Mul.lean
+- `instance : Sub ℕ₀` (envolviendo `sub`) — en Sub.lean
+- `instance : Div ℕ₀` (envolviendo `div`) — en Div.lean
+- `instance : Mod ℕ₀` (envolviendo `mod`) — en Div.lean
+- `instance : Pow ℕ₀ ℕ₀` (envolviendo `pow`) — en Pow.lean
+- `instance : Zero ℕ₀` — en PeanoNat.lean
+- `instance : One ℕ₀` — en PeanoNat.lean
+- `instance : OfNat ℕ₀ n` — en PeanoNat.lean (permite `(0 : ℕ₀)`, `(1 : ℕ₀)`, `(2 : ℕ₀)`)
+- `instance : Ord ℕ₀` (con `compare`) — en Decidable.lean
+
+**Complejidad**: Baja (mecánico, 1-3 líneas cada una)
+
+### 21.7b. Orden avanzado — WellFounded, strong induction, tricotomía
+
+**Status: ✅ Complete (2026-04-09)**
+
+**En Order.lean, WellFounded.lean, Decidable.lean:**
+
+Instancias implementadas:
+
+- ✅ `instance : WellFoundedRelation ℕ₀` (vía `well_founded_lt`) — en WellFounded.lean
+- ✅ `instance : DecidableRel (@LT.lt ℕ₀ _)` — en Decidable.lean
+- ✅ `instance : DecidableRel (@LE.le ℕ₀ _)` — en Decidable.lean
+
+Teoremas implementados:
+
+- ✅ `lt_or_ge (a b : ℕ₀) : Lt a b ∨ Le b a` — en Order.lean
+- ✅ `le_or_lt (a b : ℕ₀) : Le a b ∨ Lt b a` — en Order.lean
+- ✅ `strongRecOn {C : ℕ₀ → Sort _} (n : ℕ₀) (h) : C n` — en WellFounded.lean (noncomputable)
+- ✅ `strongInductionOn {P : ℕ₀ → Prop} (n : ℕ₀) (h) : P n` — en WellFounded.lean
+- `sup_eq_max` / `inf_eq_min` — pospuestos (Sup/Inf son Mathlib-only)
+
+**Complejidad**: Baja-Media
 
 ### 21.8. IsEven/IsOdd
 
@@ -642,8 +669,10 @@ Teoremas:
 ### Orden de ejecución dentro de Phase 21
 
 ```
-21.7 Instancias algebraicas (HSub, HDiv, HMod, HPow, DecidableRel)
-21.8 IsEven/IsOdd
+21.7a Instancias Init (Mul, Sub, Div, Mod, Pow, Zero, One, OfNat, Ord) ✅
+21.7b Orden avanzado (WellFoundedRelation, lt_or_ge, le_or_lt, strongRecOn, strongInductionOn, DecidableRel) ✅
+21.8 IsEven/IsOdd ✅
+21.9 Decidable Prime ✅
 21.1 Digits.lean
 21.2 Pairing.lean
 21.3 ModEq.lean

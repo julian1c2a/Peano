@@ -41,3 +41,22 @@ export Peano.Order (
   bexLe
   decidableBExLe_of_bool
 )
+
+-- ─────────────────────────────────────────────────────────────────
+-- Ord: instancia de comparación para ℕ₀
+-- ─────────────────────────────────────────────────────────────────
+open Peano.StrictOrder in
+instance : Ord ℕ₀ where
+  compare a b :=
+    if Lt a b then .lt
+    else if Lt b a then .gt
+    else .eq
+
+-- ─────────────────────────────────────────────────────────────────
+-- DecidableRel para LT.lt y LE.le
+-- ─────────────────────────────────────────────────────────────────
+instance : DecidableRel (@LT.lt ℕ₀ _) := fun a b =>
+  Peano.StrictOrder.decidableLt a b
+
+instance : DecidableRel (@LE.le ℕ₀ _) := fun a b =>
+  Peano.Order.decidableLe a b

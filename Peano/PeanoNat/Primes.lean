@@ -158,6 +158,15 @@ namespace Peano
       · exact h1
       · exact absurd (hp_eq ▸ gcd_dvd_right p a) hna
 
+
+    /--
+    Si `p` es primo y `p ∤ a`, entonces `gcd p a = 1`.
+    Esta es la forma directa del lema fundamental para la línea de Euler/Fermat.
+    -/
+    theorem gcd_eq_one_of_prime_not_dvd {p a : ℕ₀} (hp : Prime p) (hna : ¬ p ∣ a) :
+        gcd p a = 𝟙 :=
+      prime_not_dvd_imp_coprime hp hna
+
     theorem prime_coprime_or_dvd {p n : ℕ₀} (hp : Prime p) : p ∣ n ∨ Coprime p n := by
       have hp0 := prime_ne_zero hp
       by_cases h : (n % p) = 𝟘

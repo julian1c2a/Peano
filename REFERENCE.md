@@ -893,7 +893,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 - `theorem max_le (n m k : ℕ₀) (h₁ : Le n k) (h₂ : Le m k) : Le (max n m) k`
 - `theorem le_min (k n m : ℕ₀) (h₁ : Le k n) (h₂ : Le k m) : Le k (min n m)`
 
-**[T6.6]** Distributividad (retícula distributiva)
+**[T6.6]** Distributividad (retículo distributiva)
 
 - `theorem max_distrib_min (n m k : ℕ₀) : max n (min m k) = min (max n m) (max n k)`
 - `theorem min_distrib_max (n m k : ℕ₀) : min n (max m k) = max (min n m) (min n k)`
@@ -1333,8 +1333,8 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 **[T10.13]** `isomorph_Ψ_mul`
 
-- **Lean4:** `theorem isomorph_Ψ_mul (n m : ℕ₀) : Ψ (mul n m) = Nat.mul (Ψ n) (Ψ m)`
-- **Matemática:** Ψ(n·m) = Ψ(n) ×ₙ Ψ(m)
+- **Lean4:** `theorem isomorph_Ψ_mul (n m : ℕ₀) : Ψ (mul n m) = Nat.pow (Ψ n) (Ψ m)`
+- **Matemática:** Ψ(n·m) = Ψ(n)^ₙ Ψ(m)
 
 **[T10.14]** `isomorph_Λ_mul`
 
@@ -2508,7 +2508,7 @@ $\varphi(n) \geq 1$ para $n \geq 1$, ya que $\gcd(1, n) = 1$.
 ### 22.5. Totient de un primo [T]
 
 **[T22.14]** `totient_prime {p} (hp : Arith.Prime p) : totient p = sub p 𝟙`
-$\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, \ldots, p-1\}$ son coprimos con $p$.
+$\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, ..., p-1\}$ son coprimos con $p$.
 
 ### 22.6. Infraestructura [I]
 
@@ -2524,6 +2524,7 @@ $\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, \ldots, p-1\}$ son co
 ### 23.1. Teorema chino del resto [T]
 
 **[T23.1]** `chinese_remainder {m n : ℕ₀} (hcop : Coprime m n) (a b : ℕ₀) : ∃ x : ℕ₀, ModEq m x a ∧ ModEq n x b`
+
 - **Tipo**: `Coprime m n → ∀ (a b : ℕ₀), ∃ x, ModEq m x a ∧ ModEq n x b`
 - **Descripción**: Teorema chino del resto (existencia). Si `m` y `n` son coprimos, para cualesquiera `a` y `b` existe `x` con `x ≡ a [MOD m]` y `x ≡ b [MOD n]`.
 - **Estrategia**: Usa la identidad de Bézout (`bezout_natform`) para construir un inverso modular, luego construye explícitamente el testigo `x = add a (mul (mul c s) m)` donde `c = sub (add b n) (mod a n)`.

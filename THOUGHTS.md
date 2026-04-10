@@ -806,3 +806,60 @@ La Línea B (en su versión pragmática) extiende 21.7 con:
 ```
 
 La macro `ring₀` queda para una fase separada (requiere metaprogramación).
+
+----------------------------------------------------------------------------------------
+
+**PROPUESTA INFORMAL**
+Este es un enfoque brillante para un proyecto pedagógico o de fundamentación en Lean 4. Estás diseñando una "escalera lógica" donde cada peldaño requiere una renuncia a una propiedad computacional a cambio de una ganancia en potencia matemática.
+
+Para mostrar esos "momentos intermedios" y las necesidades lógicas que los disparan, te sugiero estructurar tu progresión en estos cuatro estadios:
+
+---
+
+### 1. El Estadio de la Aproximación (Computabilidad Pura)
+
+Aquí es donde vives ahora. Todo es `decidable`. Un número no es un "punto", sino una **interfaz** que responde con un racional ante una petición de precisión.
+
+- **Herramienta lógica:** Funciones de precisión fija $f : \mathbb{N} \to \mathbb{Q}$ con un módulo de convergencia $g : \mathbb{Q} \to \mathbb{N}$.
+- **Decidibilidad:** Puedes decidir si $approx(x, \epsilon) < approx(y, \epsilon)$, pero **no** puedes decidir si $x < y$.
+- **Limitación:** No puedes demostrar que $\sqrt{2} \cdot \sqrt{2} = 2$ de forma exacta; solo puedes demostrar que la diferencia es menor que cualquier $\epsilon$ que elijas.
+
+### 2. El Estadio de la Relación de Equivalencia (Salto a la No-Decidibilidad)
+
+Para que los Reales sean un "cuerpo" en el sentido algebraico, necesitas que $x - x = 0$. Pero con tus funciones, $f_x(n) - f_x(n)$ es una función que tiende a cero, no el cero racional.
+
+- **Necesidad Lógica:** El **Cociente de Tipos** (`Quotient`).
+- **Consecuencia:** En el momento en que defines $\mathbb{R} := \text{Cauchy} / \sim$, pierdes la capacidad de usar `if x = y`. Lean no tiene un algoritmo para colapsar todas las funciones que tienden al mismo límite en un solo punto booleano.
+- **Momento de transición:** Aquí los reales dejan de ser "programas" y pasan a ser "clases de equivalencia".
+
+### 3. El Estadio de la Completitud (Salto a la No-Computabilidad)
+
+Hasta aquí, solo tienes los reales computables (como $\pi, e, \sqrt{2}$). Pero si quieres el **Axioma del Supremo** para _cualquier_ conjunto acotado, entras en terreno no computable.
+
+- **El Problema:** Imagina un conjunto de reales definido por una propiedad que depende de si una máquina de Turing se detiene. El supremo de ese conjunto existe matemáticamente, pero no hay forma de construir su función de aproximación $f(n)$.
+- **Necesidad Lógica:** El **Axioma de Elección (`Classical.choice`)**. Lo necesitas para "extraer" una sucesión de Cauchy de un conjunto de reales del cual solo sabes que tiene una cota superior, sin tener una receta para calcular los elementos de esa sucesión.
+
+### 4. El Estadio de la Lógica Clásica (El Real Matemático)
+
+Este es el último peldaño. Aquí ya no te importa la computación; tratas a $\mathbb{R}$ como una estructura completa y perfecta.
+
+- **Necesidad Lógica:** **Tercero Excluido (`em`)**. Lo necesitas para demostrar, por ejemplo, que para cualquier par de reales, $x < y \lor x = y \lor x > y$ (Tricotomía). Aunque parezca obvio, en el Estadio 1 esto es falso porque podrías estar comparando dos números tan cercanos que tu precisión actual no permite distinguir.
+
+---
+
+### Resumen de la "Escalera de Peano" en Lean 4
+
+| Estadio | Objeto Lógico | Propiedad que se gana | Propiedad que se pierde |
+| :--- | :--- | :--- | :--- |
+| **I. Aproximación** | `Structure` (f, g) | Computabilidad total | Igualdad verdadera ($x - x \neq 0$ como objeto) |
+| **II. Cociente** | `Quotient` | Estructura de Cuerpo ($\mathbb{R}$ es grupo) | Decidibilidad de la igualdad |
+| **III. Supremo** | `Nonempty` + `Choice` | Completitud (Análisis Real) | Constructibilidad (Números "fantasma") |
+| **IV. Clásico** | `Classical.em` | Tricotomía y Topología | Intuicionismo |
+
+### Propuesta de implementación en tu código
+
+Para mostrar estos "momentos", podrías definir un namespace para cada uno:
+
+1. `Peano.ApproxReal`: Solo estructuras y funciones.
+2. `Peano.ExactReal`: El cociente del anterior (aquí dejas de usar `decidable`).
+3. `Peano.ClassicalReal`: Donde abres `Classical` y defines el Supremo.

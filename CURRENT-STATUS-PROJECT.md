@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (37 jobs)
+lake build      →  Build completed successfully (38 jobs)
 sorry count     →  0
 warnings        →  0
 ```
@@ -58,6 +58,7 @@ warnings        →  0
 | `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | Función de emparejamiento de Cantor y su inversa | ✅ Completo |
 | `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | Congruencia modular `ModEq`, propiedades algebraicas | ✅ Completo |
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | Función de Euler φ, `totient_prime`, `totient_pos` | ✅ Completo |
+| `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | Teorema chino del resto (existencia), `chinese_remainder` | ✅ Completo |
 
 ---
 
@@ -103,7 +104,7 @@ warnings        →  0
 
 ## Próximos objetivos
 
-- **Phase 21 (en curso)**: Digits ✅, Pairing ✅, ModEq ✅, Totient ✅, ChineseRemainder.lean, Fermat.lean.
+- **Phase 21 (en curso)**: Digits ✅, Pairing ✅, ModEq ✅, Totient ✅, ChineseRemainder ✅, Fermat.lean.
 - **Phase 22**: Extensión a enteros ℤ (pares de equivalencia).
 - **Phase 23**: Extensión a racionales ℚ.
 

@@ -2513,3 +2513,17 @@ $\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, \ldots, p-1\}$ son co
 ### 22.6. Infraestructura [I]
 
 **[I22.1]** `instDecidableEqTotient (n m : ℕ₀) : Decidable (totient n = m)`
+
+---
+
+## 23. NumberTheory/ChineseRemainder.lean — `namespace Peano.CRT`
+
+**Archivo**: `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean`
+**Dependencias**: ModEq, Arith (Coprime, bezout_natform), Primes (gcd_eq_one_iff_coprime)
+
+### 23.1. Teorema chino del resto [T]
+
+**[T23.1]** `chinese_remainder {m n : ℕ₀} (hcop : Coprime m n) (a b : ℕ₀) : ∃ x : ℕ₀, ModEq m x a ∧ ModEq n x b`
+- **Tipo**: `Coprime m n → ∀ (a b : ℕ₀), ∃ x, ModEq m x a ∧ ModEq n x b`
+- **Descripción**: Teorema chino del resto (existencia). Si `m` y `n` son coprimos, para cualesquiera `a` y `b` existe `x` con `x ≡ a [MOD m]` y `x ≡ b [MOD n]`.
+- **Estrategia**: Usa la identidad de Bézout (`bezout_natform`) para construir un inverso modular, luego construye explícitamente el testigo `x = add a (mul (mul c s) m)` donde `c = sub (add b n) (mod a n)`.

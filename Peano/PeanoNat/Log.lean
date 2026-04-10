@@ -220,6 +220,84 @@ namespace Peano
         exact lt_of_lt_of_le h_n_lt_succ_mul (mul_le_mono_right b h_succ_le)
 
 
+
+    /-!
+    ## § 6. Ceiling logarithm (clog)
+
+    `clog b n` returns `⌈log_b(n)⌉`:
+    - If `n` is an exact power of `b`, `clog b n = log b n`.
+    - Otherwise, `clog b n = log b n + 1`.
+    !-/
+
+    private theorem sub_succ_one (k : ℕ₀) : sub (σ k) 𝟙 = k := by
+      rw [← one_add k, add_k_sub_k]
+
+    private theorem succ_sub_one' (n : ℕ₀) (h : n ≠ 𝟘) : σ (sub n 𝟙) = n := by
+      cases n with
+      | zero => exact absurd rfl h
+      | succ n' => rw [sub_succ_one n']
+
+    /-- Ceiling logarithm: `⌈log_b(n)⌉`. -/
+    def clog (b n : ℕ₀) : ℕ₀ :=
+      if logRem b n = 𝟘 then log b n else σ (log b n)
+
+    theorem clog_zero (b : ℕ₀) : clog b 𝟘 = 𝟘 := by
+      unfold clog
+      rw [logRem_zero, if_pos rfl, log_zero]
+
+    theorem clog_one {b : ℕ₀} (h_b : Lt 𝟙 b) : clog b 𝟙 = 𝟘 := by
+      unfold clog
+      rw [logRem_one h_b, if_pos rfl, log_one h_b]
+
+    /-- `n ≤ b^⌈log_b(n)⌉` — ceiling log gives an exponent at least as large. -/
+    theorem le_clog_pow {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) :
+        Le n (pow b (clog b n)) := by
+      by_cases h_rem : logRem b n = 𝟘
+      · -- Exact power: clog = log, n = b^(log b n)
+        have h_clog : clog b n = log b n := by unfold clog; rw [if_pos h_rem]
+        rw [h_clog]
+        unfold log
+        unfold logRem at h_rem
+        have h_spec := logMod_spec h_b h_n
+        rw [h_rem, add_zero] at h_spec
+        exact (le_iff_lt_or_eq n (pow b (logMod b n).1)).mpr (Or.inr h_spec)
+      · -- Not exact power: clog = σ (log b n), use log_upper_bound
+        have h_clog : clog b n = σ (log b n) := by unfold clog; rw [if_neg h_rem]
+        rw [h_clog]
+        unfold log
+        exact (le_iff_lt_or_eq n (pow b (σ (logMod b n).1))).mpr
+              (Or.inl (log_upper_bound h_b h_n))
+
+    /-- `⌈log_b(n)⌉ ≠ 0 → b^(⌈log_b(n)⌉ − 1) < n` — ceiling is tight from below. -/
+    theorem clog_lower {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘)
+        (h : clog b n ≠ 𝟘) : Lt (pow b (sub (clog b n) 𝟙)) n := by
+      by_cases h_rem : logRem b n = 𝟘
+      · -- clog = log b n ≠ 𝟘, n = b^(log b n) exactly
+        have h_clog : clog b n = log b n := by unfold clog; rw [if_pos h_rem]
+        rw [h_clog] at h ⊢
+        unfold log at h ⊢
+        unfold logRem at h_rem
+        have h_spec := logMod_spec h_b h_n
+        rw [h_rem, add_zero] at h_spec
+        have h_succ_pred := succ_sub_one' (logMod b n).1 h
+        have h_b_ne := b_neq_zero_of_gt_one h_b
+        have h_lt_mul := mul_lt_left (pow b (sub (logMod b n).1 𝟙)) b
+          (pow_ne_zero h_b_ne _) h_b
+        rw [← pow_succ, h_succ_pred, ← h_spec] at h_lt_mul
+        exact h_lt_mul
+      · -- clog = σ (log b n), logRem ≠ 0
+        have h_clog : clog b n = σ (log b n) := by unfold clog; rw [if_neg h_rem]
+        rw [h_clog, sub_succ_one]
+        unfold log
+        unfold logRem at h_rem
+        have h_spec := logMod_spec h_b h_n
+        have h_lt :=
+          (add_lt_add_left_iff (pow b (logMod b n).1) 𝟘 (logMod b n).2).mpr
+          (neq_0_then_lt_0 h_rem)
+        rw [add_zero, ← h_spec] at h_lt
+        exact h_lt
+
+
   end Log
 end Peano
 
@@ -237,4 +315,9 @@ export Peano.Log (
   logRem_one
   logMod_spec
   log_upper_bound
+  clog
+  clog_zero
+  clog_one
+  le_clog_pow
+  clog_lower
 )

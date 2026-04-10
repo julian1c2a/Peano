@@ -14,7 +14,7 @@ License: MIT
 -- § 5. Longitud en ℕ₀ (lengthₚ)
 -- § 6. Sorted (via Pairwise)
 -- § 7. Decidabilidad de pertenencia a listas
--- § 8. Alias de tipos para listas tipadas
+-- § 8. Segmento inicial Fin₀ y alias de tipos
 
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
@@ -147,6 +147,13 @@ namespace Peano
     -- § 7. Alias de tipos para listas tipadas
     -- ══════════════════════════════════════════════════════════════════
 
+    /-- Segmento inicial: `Fin₀ b` es el subtipo de `ℕ₀` con `x < b`. -/
+    def Fin₀ (b : ℕ₀) := {x : ℕ₀ // Lt x b}
+
+    instance instDecidableEqFin0 (b : ℕ₀) : DecidableEq (Fin₀ b) := fun a c =>
+      if h : a.val = c.val then isTrue (Subtype.ext h)
+      else isFalse (fun hac => h (congrArg Subtype.val hac))
+
     /-- Lista de naturales ℕ₀. -/
     abbrev Nat0List := List ℕ₀
 
@@ -158,6 +165,9 @@ namespace Peano
 
     /-- Lista de pares (primo, exponente) para factorizaciones. -/
     abbrev FactList := List (ℕ₂ × ℕ₁)
+
+    /-- Lista de dígitos en base `b`. -/
+    abbrev DigitList (b : ℕ₀) := List (Fin₀ b)
 
   end Lists
 
@@ -188,4 +198,7 @@ export Peano.Lists (
   Nat1List
   Nat2List
   FactList
+  Fin₀
+  instDecidableEqFin0
+  DigitList
 )

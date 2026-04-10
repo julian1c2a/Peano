@@ -35,6 +35,9 @@ import Peano.PeanoNat.Isomorph
 import Peano.PeanoNat.Decidable
 import Peano.PeanoNat.Log
 import Peano.PeanoNat.Sqrt
+import Peano.PeanoNat.Digits
+import Peano.PeanoNat.Pairing
+import Peano.PeanoNat.NumberTheory.ModEq
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (Prelim/ExistsUnique.lean — constructivo)

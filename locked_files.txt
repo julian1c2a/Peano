@@ -32,3 +32,7 @@ Peano/PeanoNat/Combinatorics/NewtonBinom.lean
 Peano/PeanoNat/Combinatorics/Summation.lean
 Peano/PeanoNat/Combinatorics/Product.lean
 Peano/PeanoNat/Combinatorics/Fibonacci.lean
+Peano/PeanoNat/Sqrt.lean
+Peano/PeanoNat/Log.lean
+Peano/PeanoNat/NumberTheory/ModEq.lean
+Peano.lean

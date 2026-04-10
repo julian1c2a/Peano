@@ -240,6 +240,80 @@ namespace Peano
       exact h_lt_add
 
 
+
+    /-!
+    ## § 7. Ceiling square root (csqrt)
+
+    `csqrt n` returns `⌈√n⌉`:
+    - If `n` is a perfect square, `csqrt n = sqrt n`.
+    - Otherwise, `csqrt n = sqrt n + 1`.
+    !-/
+
+    private theorem sub_succ_one (k : ℕ₀) : sub (σ k) 𝟙 = k := by
+      rw [← one_add k, add_k_sub_k]
+
+    /-- Ceiling square root: `⌈√n⌉`. -/
+    def csqrt (n : ℕ₀) : ℕ₀ :=
+      if sqrtRem n = 𝟘 then sqrt n else σ (sqrt n)
+
+    theorem csqrt_zero : csqrt 𝟘 = 𝟘 := by
+      unfold csqrt
+      rw [sqrtRem_zero, if_pos rfl, sqrt_zero]
+
+    theorem csqrt_one : csqrt 𝟙 = 𝟙 := by
+      unfold csqrt
+      rw [sqrtRem_one, if_pos rfl, sqrt_one]
+
+    /-- `n ≤ ⌈√n⌉²` — ceiling square root squares to at least `n`. -/
+    theorem le_csqrt_sq (n : ℕ₀) : Le n (pow (csqrt n) 𝟚) := by
+      by_cases h_rem : sqrtRem n = 𝟘
+      · -- Perfect square: csqrt = sqrt, n = (sqrt n)²
+        have h_csqrt : csqrt n = sqrt n := by unfold csqrt; rw [if_pos h_rem]
+        rw [h_csqrt]
+        unfold sqrt
+        unfold sqrtRem at h_rem
+        have h_spec := sqrtMod_spec n
+        rw [h_rem, add_zero] at h_spec
+        exact (le_iff_lt_or_eq n (pow (sqrtMod n).1 𝟚)).mpr (Or.inr h_spec)
+      · -- Not perfect square: csqrt = σ (sqrt n), use sqrt_upper_bound
+        have h_csqrt : csqrt n = σ (sqrt n) := by unfold csqrt; rw [if_neg h_rem]
+        rw [h_csqrt]
+        unfold sqrt
+        exact (le_iff_lt_or_eq n (pow (σ (sqrtMod n).1) 𝟚)).mpr
+              (Or.inl (sqrt_upper_bound n))
+
+    /-- `⌈√n⌉ ≠ 0 → (⌈√n⌉ − 1)² < n` — ceiling is tight from below. -/
+    theorem csqrt_lower (n : ℕ₀) (h : csqrt n ≠ 𝟘) :
+        Lt (pow (sub (csqrt n) 𝟙) 𝟚) n := by
+      by_cases h_rem : sqrtRem n = 𝟘
+      · -- csqrt = sqrt n ≠ 𝟘, n = (sqrt n)²
+        have h_csqrt : csqrt n = sqrt n := by unfold csqrt; rw [if_pos h_rem]
+        rw [h_csqrt] at h ⊢
+        unfold sqrt at h ⊢
+        unfold sqrtRem at h_rem
+        have h_spec := sqrtMod_spec n
+        rw [h_rem, add_zero] at h_spec
+        have h_succ_pred := succ_sub_one (sqrtMod n).1 h
+        have h_pos : Lt 𝟘 (add (add (sub (sqrtMod n).1 𝟙) (sub (sqrtMod n).1 𝟙)) 𝟙) := by
+          rw [add_one]; exact neq_0_then_lt_0 (succ_neq_zero _)
+        have h_lt :=
+          (add_lt_add_left_iff (pow (sub (sqrtMod n).1 𝟙) 𝟚) 𝟘
+            (add (add (sub (sqrtMod n).1 𝟙) (sub (sqrtMod n).1 𝟙)) 𝟙)).mpr h_pos
+        rw [add_zero, ← succ_sq, h_succ_pred, ← h_spec] at h_lt
+        exact h_lt
+      · -- csqrt = σ (sqrt n), n = (sqrt n)² + sqrtRem n with sqrtRem ≠ 0
+        have h_csqrt : csqrt n = σ (sqrt n) := by unfold csqrt; rw [if_neg h_rem]
+        rw [h_csqrt, sub_succ_one]
+        unfold sqrt
+        unfold sqrtRem at h_rem
+        have h_spec := sqrtMod_spec n
+        have h_lt :=
+          (add_lt_add_left_iff (pow (sqrtMod n).1 𝟚) 𝟘 (sqrtMod n).2).mpr
+          (neq_0_then_lt_0 h_rem)
+        rw [add_zero, ← h_spec] at h_lt
+        exact h_lt
+
+
   end Sqrt
 end Peano
 
@@ -256,4 +330,9 @@ export Peano.Sqrt (
   sqrtMod_spec
   sqrtRem_lt
   sqrt_upper_bound
+  csqrt
+  csqrt_zero
+  csqrt_one
+  le_csqrt_sq
+  csqrt_lower
 )

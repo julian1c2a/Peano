@@ -38,6 +38,7 @@ import Peano.PeanoNat.Sqrt
 import Peano.PeanoNat.Digits
 import Peano.PeanoNat.Pairing
 import Peano.PeanoNat.NumberTheory.ModEq
+import Peano.PeanoNat.NumberTheory.Totient
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (Prelim/ExistsUnique.lean — constructivo)

@@ -2455,3 +2455,61 @@ Cota del resto: $r < 2k + 1$.
 
 **[T21.7]** `sqrt_upper_bound (n : ℕ₀) : Lt n (pow (σ (sqrtMod n).1) 𝟚)`
 Cota superior: $n < (k+1)^2$. Se deriva de [T21.5] + [T21.6] + la identidad $(k+1)^2 = k^2 + (2k+1)$.
+
+---
+
+## 22. NumberTheory/Totient.lean — `namespace Peano.Totient`
+
+*Dependencias: `Arith` (gcd), `Lists` (lengthₚ, range_from_one), `Primes` (Prime, prime_coprime_or_dvd), `Sub` (sub_one)*
+
+Función de Euler φ(n): cuenta los enteros en {1, …, n} coprimos con n.
+Incluye lemas auxiliares sobre `lengthₚ`, `List.filter` y `range_from_one`.
+
+### 22.1. Lemas auxiliares [T]
+
+**[T22.1]** `lengthₚ_append {α} (l₁ l₂ : List α) : lengthₚ (l₁ ++ l₂) = add (lengthₚ l₁) (lengthₚ l₂)`
+
+**[T22.2]** `lengthₚ_singleton {α} (x : α) : lengthₚ [x] = 𝟙`
+
+**[T22.3]** `lengthₚ_range_from_one (n : ℕ₀) : lengthₚ (range_from_one n) = n`
+
+**[T22.4]** `lengthₚ_filter_le {α} (p : α → Bool) (l : List α) : Le (lengthₚ (List.filter p l)) (lengthₚ l)`
+
+**[T22.5]** `filter_append_singleton {α} (p : α → Bool) (l : List α) (x : α) : List.filter p (l ++ [x]) = if p x then List.filter p l ++ [x] else List.filter p l`
+
+**[T22.6]** `filter_all_true {α} (p : α → Bool) (l : List α) (h : ∀ x ∈ l, p x = true) : List.filter p l = l`
+
+**[T22.7]** `mem_range_from_one_pos {k n} (h : k ∈ range_from_one n) : k ≠ 𝟘`
+
+**[T22.8]** `mem_range_from_one_le {k n} (h : k ∈ range_from_one n) : Le k n`
+
+### 22.2. Definiciones [D]
+
+**[D22.1]** `totient (n : ℕ₀) : ℕ₀`
+$\varphi(n) := |\{k \in \{1, \ldots, n\} : \gcd(k, n) = 1\}|$.
+Implementado como `lengthₚ ((range_from_one n).filter (fun d => decide (gcd d n = 𝟙)))`.
+
+### 22.3. Valores básicos [T]
+
+**[T22.9]** `totient_zero : totient 𝟘 = 𝟘`
+
+**[T22.10]** `totient_one : totient 𝟙 = 𝟙`
+
+**[T22.11]** `totient_two : totient 𝟚 = 𝟙`
+
+### 22.4. Cotas [T]
+
+**[T22.12]** `totient_le (n : ℕ₀) : Le (totient n) n`
+$\varphi(n) \leq n$.
+
+**[T22.13]** `totient_pos {n} (h : n ≠ 𝟘) : Le 𝟙 (totient n)`
+$\varphi(n) \geq 1$ para $n \geq 1$, ya que $\gcd(1, n) = 1$.
+
+### 22.5. Totient de un primo [T]
+
+**[T22.14]** `totient_prime {p} (hp : Arith.Prime p) : totient p = sub p 𝟙`
+$\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, \ldots, p-1\}$ son coprimos con $p$.
+
+### 22.6. Infraestructura [I]
+
+**[I22.1]** `instDecidableEqTotient (n m : ℕ₀) : Decidable (totient n = m)`

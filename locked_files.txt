@@ -2,7 +2,6 @@
 # Use: bash git-lock.bash lock/unlock <file>
 # See AI-GUIDE.md §20 for the session locking protocol.
 
-Peano.lean
 Peano/PeanoNat.lean
 Peano/Prelim.lean
 Peano/_template.lean
@@ -35,4 +34,3 @@ Peano/PeanoNat/Combinatorics/Fibonacci.lean
 Peano/PeanoNat/Sqrt.lean
 Peano/PeanoNat/Log.lean
 Peano/PeanoNat/NumberTheory/ModEq.lean
-Peano.lean

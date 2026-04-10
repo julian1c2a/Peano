@@ -675,8 +675,8 @@ Teoremas implementados:
 21.9 Decidable Prime ✅
 21.1 Digits.lean
 21.2 Pairing.lean
-21.3 ModEq.lean
-21.4 Totient.lean
+21.3 ModEq.lean ✅
+21.4 Totient.lean ✅
 21.5 ChineseRemainder.lean
 21.6 Fermat.lean
 ```

@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (33 jobs)
+lake build      →  Build completed successfully (37 jobs)
 sorry count     →  0
 warnings        →  0
 ```
@@ -54,6 +54,10 @@ warnings        →  0
 | `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | Sucesión de Fibonacci, propiedades | ✅ Completo |
 | `Peano/PeanoNat/Log.lean` | `Peano.Log` | Logaritmo entero con resto: `logMod`, `log`, `logRem` | ✅ Completo |
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | Raíz cuadrada entera con resto: `sqrtMod`, `sqrt`, `sqrtRem` | ✅ Completo |
+| `Peano/PeanoNat/Digits.lean` | `Peano.Digits` | Dígitos en base arbitraria, representación posicional | ✅ Completo |
+| `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | Función de emparejamiento de Cantor y su inversa | ✅ Completo |
+| `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | Congruencia modular `ModEq`, propiedades algebraicas | ✅ Completo |
+| `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | Función de Euler φ, `totient_prime`, `totient_pos` | ✅ Completo |
 
 ---
 
@@ -99,7 +103,7 @@ warnings        →  0
 
 ## Próximos objetivos
 
-- **Phase 21 (en curso)**: Digits.lean, Pairing.lean, ModEq.lean, Totient.lean, ChineseRemainder.lean, Fermat.lean.
+- **Phase 21 (en curso)**: Digits ✅, Pairing ✅, ModEq ✅, Totient ✅, ChineseRemainder.lean, Fermat.lean.
 - **Phase 22**: Extensión a enteros ℤ (pares de equivalencia).
 - **Phase 23**: Extensión a racionales ℚ.
 

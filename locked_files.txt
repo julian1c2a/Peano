@@ -34,3 +34,5 @@ Peano/PeanoNat/Combinatorics/Fibonacci.lean
 Peano/PeanoNat/Sqrt.lean
 Peano/PeanoNat/Log.lean
 Peano/PeanoNat/NumberTheory/ModEq.lean
+Peano/PeanoNat/NumberTheory/Totient.lean
+Peano.lean

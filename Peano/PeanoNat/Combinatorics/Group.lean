@@ -13,23 +13,49 @@ set_option autoImplicit false
 
 namespace Peano
   namespace Group
-      open Peano.FSet
+    open Peano.FSet
 
-      /-!
-      ## Definición de grupo finito polimórfico
-      -/
-      structure FinGroup where
-        carrier : ℕ₀FSet
-        op : ℕ₀ → ℕ₀ → ℕ₀
-        id : ℕ₀
-        inv : ℕ₀ → ℕ₀
-        op_closed : ∀ a b, a ∈ carrier.elems → b ∈ carrier.elems → op a b ∈ carrier.elems
-        id_in : id ∈ carrier.elems
-        inv_in : ∀ a, a ∈ carrier.elems → inv a ∈ carrier.elems
-        op_assoc : ∀ a b c, a ∈ carrier.elems → b ∈ carrier.elems → c ∈ carrier.elems →
-          op (op a b) c = op a (op b c)
-        op_id : ∀ a, a ∈ carrier.elems → op a id = a ∧ op id a = a
-        op_inv : ∀ a, a ∈ carrier.elems → op a (inv a) = id ∧ op (inv a) a = id
+    /-!
+    ## Definición de grupo finito polimórfico
+    -/
+    structure FinGroup where
+      carrier : ℕ₀FSet
+      op : ℕ₀ → ℕ₀ → ℕ₀
+      id : ℕ₀
+      inv : ℕ₀ → ℕ₀
+      op_closed :
+        ∀ a b,
+          a ∈ carrier.elems → b ∈ carrier.elems → op a b ∈ carrier.elems
+      id_in :
+        id ∈ carrier.elems
+      inv_in :
+        ∀ a,
+          a ∈ carrier.elems → inv a ∈ carrier.elems
+      op_assoc :
+        ∀ a b c,
+          a ∈ carrier.elems → b ∈ carrier.elems → c ∈ carrier.elems →
+            op (op a b) c = op a (op b c)
+      op_id :
+        ∀ a,
+          a ∈ carrier.elems → op a id = a ∧ op id a = a
+      op_inv :
+        ∀ a,
+          a ∈ carrier.elems → op a (inv a) = id ∧ op (inv a) a = id
+
+    /--
+    En cualquier `FinGroup`, el elemento neutro es único.
+    -/
+    theorem id_unique (G : FinGroup) (e' : ℕ₀)
+        (h_e'_in : e' ∈ G.carrier.elems)
+        (h_is_id : ∀ a, a ∈ G.carrier.elems → G.op a e' = a ∧ G.op e' a = a) :
+        e' = G.id := by
+      -- La prueba se basa en que G.id = G.op G.id e' (por la propiedad de e')
+      -- y e' = G.op G.id e' (por la propiedad de G.id).
+      -- Por tanto, e' = G.id.
+      let h_id_op_e' := (h_is_id G.id G.id_in).1
+      let h_e'_op_id := (G.op_id e' h_e'_in).2
+      exact h_e'_op_id.trans h_id_op_e'.symm
+
     /-!
     ## Definición de grupo finito
     -/
@@ -78,10 +104,23 @@ namespace Peano
     ## § 2. Ejemplo: grupo simétrico (grupo de permutaciones)
     !-/
 
+    /-- Una función `f` es inyectiva sobre un conjunto `A`. -/
+    def InjectiveOn (f : ℕ₀ → ℕ₀) (A : List ℕ₀) : Prop :=
+      ∀ a b, a ∈ A → b ∈ A → f a = f b → a = b
+
+    /-- Una función `f` es sobreyectiva de `A` a `B`. -/
+    def SurjectiveOn (f : ℕ₀ → ℕ₀) (A B : List ℕ₀) : Prop :=
+      ∀ b, b ∈ B → ∃ a, a ∈ A ∧ f a = b
+
+    /-- Una función `f` es biyectiva sobre un conjunto `A`. -/
+    structure BijectiveOn (f : ℕ₀ → ℕ₀) (A : List ℕ₀) : Prop where
+      inj : InjectiveOn f A
+      surj : SurjectiveOn f A A
+
     -- Definición de Permutación: función biyectiva de A en A
     structure Perm (A : ℕ₀FSet) where
       toFun : ℕ₀ → ℕ₀
-      -- bijective : Function.Bijective toFun -- (comentado para compilar)
+      bijective : BijectiveOn toFun A.elems
       map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ A.elems
 
 

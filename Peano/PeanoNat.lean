@@ -52,16 +52,41 @@ namespace Peano
   set_option trace.Meta.Tactic.simp true
 
   notation "σ" n:max => ℕ₀.succ n
-  def cero : ℕ₀ := ℕ₀.zero
-  notation "𝟘" => ℕ₀.zero
 
-  def one : ℕ₀ := σ 𝟘
+
+  def zero : ℕ₀ := ℕ₀.zero
+  def one : ℕ₀ := σ zero
   def two : ℕ₀ := σ one
   def three : ℕ₀ := σ two
+  def four : ℕ₀ := σ three
+  def five : ℕ₀ := σ four
+  def six : ℕ₀ := σ five
+  def seven : ℕ₀ := σ six
+  def eight : ℕ₀ := σ seven
+  def nine : ℕ₀ := σ eight
+  def ten : ℕ₀ := σ nine
+  def eleven : ℕ₀ := σ ten
+  def twelve : ℕ₀ := σ eleven
+  def thirteen : ℕ₀ := σ twelve
+  def fourteen : ℕ₀ := σ thirteen
+  def fifteen : ℕ₀ := σ fourteen
 
+  notation "𝟘" => ℕ₀.zero
   notation "𝟙" => one
   notation "𝟚" => two
   notation "𝟛" => three
+  notation "𝟜" => four
+  notation "𝟝" => five
+  notation "𝟞" => six
+  notation "𝟟" => seven
+  notation "𝟠" => eight
+  notation "𝟡" => nine
+  notation "Α" => ten
+  notation "Β" => eleven
+  notation "Γ" => twelve
+  notation "Δ" => thirteen
+  notation "Ε" => fourteen
+  notation "Ζ" => fifteen
 
   def Λ(n : Nat) : ℕ₀ :=
     match n with
@@ -90,6 +115,12 @@ namespace Peano
     | ℕ₀.zero =>
       False.elim (h_n_neq_0 rfl)
     | ℕ₀.succ k => k
+
+  inductive Nats : Type
+    | ℕ₀
+    | ℕ₁
+    | ℕ₂
+    deriving Repr, BEq, DecidableEq
 
 end Peano
 

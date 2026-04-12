@@ -21,6 +21,7 @@
 | `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder`, `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
 | `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
 | `Peano/PeanoNat/Order.lean` | `Peano.Order` | `PeanoNat`, `Axioms`, `StrictOrder` | `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
+| `Peano/PeanoNat/Tuple.lean` | `Peano` | `PeanoNat`, `StrictOrder` | |
 | `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
 | `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes` |
 | `Peano/PeanoNat/Add.lean` | `Peano.Add` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `WellFounded` | `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
@@ -46,6 +47,7 @@
 | `Peano.Axioms` | `PeanoNat/Axioms.lean` | `Peano` |
 | `Peano.StrictOrder` | `PeanoNat/StrictOrder.lean` | `Peano` |
 | `Peano.Order` | `PeanoNat/Order.lean` | `Peano` |
+| `Peano.Tuple` | `PeanoNat/Tuple.lean` | `Peano` |
 | `Peano.Lattice` | `PeanoNat/Lattice.lean` | `Peano` |
 | `Peano.WellFounded` | `PeanoNat/WellFounded.lean` | `Peano` |
 | `Peano.Add` | `PeanoNat/Add.lean` | `Peano` |
@@ -252,23 +254,34 @@ Tipo inductivo básico `ℕ₀`, subtipos, isomorfismo con `Nat`, tuplas.
 - **Matemática:** ρ(n, n≠0) = predecesor de n (con prueba n ≠ 0)
 - **Computable:** Sí
 
-**[D2.9]** `Tuple` (tuplas de dimensión finita)
+### 2.2. Instancias
+
+- `Coe Nat ℕ₀` (coerción vía `Λ`)
+
+---
+
+## 2.bis. Tuple.lean — `namespace Peano`
+
+*Dependencias: `PeanoNat`, `StrictOrder`*
+
+Tuplas de naturales de Peano de longitud finita.
+
+### 2.bis.1. Definiciones
+
+**[D2b.1]** `Tuple` (tuplas de dimensión finita)
 
 - **Lean4:**
-
   ```
   def Tuple : ℕ₀ → Type
     | 𝟘 => Unit
     | σ n => ℕ₀ × Tuple n
   ```
-
 - **Matemática:** Tuple(0) = Unit; Tuple(σ n) = ℕ₀ × Tuple(n)
 - **Computable:** Sí
 
-**[D2.10]** Operaciones sobre tuplas
+**[D2b.2]** Operaciones sobre tuplas
 
 - **Lean4:**
-
   ```
   def emptyTuple : Tuple 𝟘 := ()
   def consTuple {n : ℕ₀} (x : ℕ₀) (xs : Tuple n) : Tuple (σ n) := (x, xs)
@@ -276,16 +289,34 @@ Tipo inductivo básico `ℕ₀`, subtipos, isomorfismo con `Nat`, tuplas.
   def tailTuple {n : ℕ₀} (t : Tuple (σ n)) : Tuple n := t.2
   def mkTuple : (n : ℕ₀) → (f : ℕ₀ → ℕ₀) → Tuple n
   ```
-
 - **Matemática:** Constructor vacío, cons, proyecciones cabeza/cola, construcción desde función
 - **Computable:** Sí
-- **Notación:** `⟨⟩` → `emptyTuple`; `⟨x⟩` → `consTuple x emptyTuple`
 
-### 2.2. Instancias
+**[D2b.3]** Orden lexicográfico
 
-- `Coe Nat ℕ₀` (coerción vía `Λ`)
+- **Lean4:**
+  ```
+  def lexLt {n : ℕ₀} : Tuple n → Tuple n → Prop
+  def lexLe {n : ℕ₀} : Tuple n → Tuple n → Prop
+  ```
+- **Matemática:** Orden lexicográfico estricto y no estricto.
+- **Computable:** No (Prop).
+
+### 2.bis.2. Instancias
+
 - `tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)`
 - `tupleRepr : (n : ℕ₀) → Repr (Tuple n)`
+- `instLTTuple {n : ℕ₀} : LT (Tuple n)`
+- `instLETuple {n : ℕ₀} : LE (Tuple n)`
+- `instDecidableRelLtTuple {n : ℕ₀} : DecidableRel (@lexLt n)`
+- `instDecidableRelLeTuple {n : ℕ₀} : DecidableRel (@lexLe n)`
+
+### 2.bis.3. Notaciones
+
+| Símbolo | Expansión |
+|---|---|
+| `⟨⟩` | `emptyTuple` |
+| `⟨x⟩` | `consTuple x emptyTuple` |
 
 ---
 

@@ -20,13 +20,13 @@ set_option autoImplicit false
   3] Deberíamos generalizar MapOn a funciones entre conjuntos finitos arbitrarios, no solo de ℕ₀ a ℕ₀. Esto implicaría cambiar la definición de MapOn para que sea algo como:
      structure MapOn (A B : ℕ₀FSet) where
        toFun : A.elems → B.elems
-       map_underset : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
+       map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
      Esto haría que la composición y las propiedades de inyectividad/sobreyectividad sean más naturales.
   4] Más aún, deberíamos poder generalizar MapOn no solo a dos conjuntos finitos sino a una familia finita de ellos.
      finita de ellos. Esto implicaría definir algo como:
      structure MapOn (A : ℕ₀FSet) (B : ℕ₀FSet) where
        toFun : A.elems → B.elems
-       map_underset : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
+       map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
      Esto haría que la composición y las propiedades de inyectividad/sobreyectividad sean más naturales.
   5]
 -/
@@ -46,13 +46,13 @@ namespace Peano
     -/
     structure MapOn (A B : ℕ₀FSet) where
       toFun : ℕ₀ → ℕ₀
-      map_underset : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
+      map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
 
     /-- Composición de dos `MapOn`. Si `f : MapOn A B` y `g : MapOn B C`,
         entonces `g.comp f` es un `MapOn A C`. -/
     def MapOn.comp {A B C : ℕ₀FSet} (g : MapOn B C) (f : MapOn A B) : MapOn A C where
       toFun := g.toFun ∘ f.toFun
-      map_underset := fun a ha => g.map_underset (f.toFun a) (f.map_underset a ha)
+      map_carrier := fun a ha => g.map_carrier (f.toFun a) (f.map_carrier a ha)
 
     /-- Una función `f` es inyectiva sobre un conjunto `A`. -/
     def InjectiveOn (f : ℕ₀ → ℕ₀) (A : ℕ₀FSet) : Prop :=
@@ -81,8 +81,8 @@ namespace Peano
       unfold MapOn.Injective InjectiveOn MapOn.comp
       intro a₁ a₂ ha₁ ha₂ h_comp_eq
       -- Por la inyectividad de g, g(f(a₁)) = g(f(a₂)) → f(a₁) = f(a₂)
-      have h_fa₁_in_B : f.toFun a₁ ∈ B.elems := f.map_underset a₁ ha₁
-      have h_fa₂_in_B : f.toFun a₂ ∈ B.elems := f.map_underset a₂ ha₂
+      have h_fa₁_in_B : f.toFun a₁ ∈ B.elems := f.map_carrier a₁ ha₁
+      have h_fa₂_in_B : f.toFun a₂ ∈ B.elems := f.map_carrier a₂ ha₂
       let h_f_eq := hg_inj (f.toFun a₁) (f.toFun a₂) h_fa₁_in_B h_fa₂_in_B h_comp_eq
       -- Por la inyectividad de f, f(a₁) = f(a₂) → a₁ = a₂
       exact hf_inj a₁ a₂ ha₁ ha₂ h_f_eq
@@ -161,7 +161,7 @@ namespace Peano
       constructor
       · intro h_inj
         -- Si es inyectiva, por el palomar también es sobreyectiva.
-        have h_surj := (injective_iff_surjective_of_card_eq h_card_eq f).mp h_inj
+        have h_surj := (MapOn.injective_iff_surjective_of_card_eq h_card_eq f).mp h_inj
         -- Inyectiva y sobreyectiva es biyectiva por definición.
         exact { inj := h_inj, surj := h_surj }
       · intro h_bij
@@ -174,7 +174,7 @@ namespace Peano
       constructor
       · intro h_surj
         -- Si es sobreyectiva, por el palomar también es inyectiva.
-        have h_inj := (injective_iff_surjective_of_card_eq h_card_eq f).mpr h_surj
+        have h_inj := (MapOn.injective_iff_surjective_of_card_eq h_card_eq f).mpr h_surj
         -- Inyectiva y sobreyectiva es biyectiva por definición.
         exact { inj := h_inj, surj := h_surj }
       · intro h_bij
@@ -187,7 +187,7 @@ namespace Peano
     -/
     structure BinOpOn (A : ℕ₀FSet) where
       toFun : ℕ₀ → ℕ₀ → ℕ₀
-      map_underset : ∀ a b, a ∈ A.elems → b ∈ A.elems → toFun a b ∈ A.elems
+      map_carrier : ∀ a b, a ∈ A.elems → b ∈ A.elems → toFun a b ∈ A.elems
 
     /-!
     # § 3. Coerción a funciones
@@ -205,29 +205,29 @@ namespace Peano
     -/
 
     structure FinGroup where
-      underset : ℕ₀FSet
-      op : BinOpOn underset
+      carrier : ℕ₀FSet
+      op : BinOpOn carrier
       id : ℕ₀
-      inv : MapOn underset underset
+      inv : MapOn carrier carrier
       id_in :
-        id ∈ underset.elems
+        id ∈ carrier.elems
       op_assoc :
         ∀ a b c,
-          a ∈ underset.elems → b ∈ underset.elems → c ∈ underset.elems →
+          a ∈ carrier.elems → b ∈ carrier.elems → c ∈ carrier.elems →
             op (op a b) c = op a (op b c)
       op_id :
         ∀ a,
-          a ∈ underset.elems → op a id = a ∧ op id a = a
+          a ∈ carrier.elems → op a id = a ∧ op id a = a
       op_inv :
         ∀ a,
-          a ∈ underset.elems → op a (inv a) = id ∧ op (inv a) a = id
+          a ∈ carrier.elems → op a (inv a) = id ∧ op (inv a) a = id
 
     /--
     En cualquier `FinGroup`, el elemento neutro es único.
     -/
     theorem id_unique (G : FinGroup) (e' : ℕ₀)
-        (h_e'_in : e' ∈ G.underset.elems)
-        (h_is_id : ∀ a, a ∈ G.underset.elems → G.op a e' = a ∧ G.op e' a = a) :
+        (h_e'_in : e' ∈ G.carrier.elems)
+        (h_is_id : ∀ a, a ∈ G.carrier.elems → G.op a e' = a ∧ G.op e' a = a) :
         e' = G.id := by
       -- La prueba se basa en que G.id = G.op G.id e' (por la propiedad de e') y e' = G.op G.id e' (por la propiedad de G.id).
       -- Por tanto, e' = G.id.
@@ -243,12 +243,12 @@ namespace Peano
     Un subgrupo de un grupo finito G es un subconjunto no vacío cerrado por la operación y la inversa, con la misma operación.
     -/
     structure Subgroup (G : FinGroup) where
-      underset : ℕ₀FSet
-      nonempty : ∃ a, a ∈ underset.elems
-      subset : ∀ a, a ∈ underset.elems → a ∈ G.underset.elems
-      op_closed : ∀ a b, a ∈ underset.elems → b ∈ underset.elems → G.op a b ∈ underset.elems
-      id_in : G.id ∈ underset.elems
-      inv_closed : ∀ a, a ∈ underset.elems → G.inv a ∈ underset.elems
+      carrier : ℕ₀FSet
+      nonempty : ∃ a, a ∈ carrier.elems
+      subset : ∀ a, a ∈ carrier.elems → a ∈ G.carrier.elems
+      op_closed : ∀ a b, a ∈ carrier.elems → b ∈ carrier.elems → G.op a b ∈ carrier.elems
+      id_in : G.id ∈ carrier.elems
+      inv_closed : ∀ a, a ∈ carrier.elems → G.inv a ∈ carrier.elems
 
     /-!
     # § 6. Homomorfismos
@@ -258,11 +258,11 @@ namespace Peano
     Un morfismo de grupos finitos es una función que respeta la operación, el neutro y la inversa.
     -/
     structure GroupHom (G H : FinGroup) where
-      map : MapOn G.underset H.underset
-      map_op : ∀ a b, a ∈ G.underset.elems → b ∈ G.underset.elems →
+      map : MapOn G.carrier H.carrier
+      map_op : ∀ a b, a ∈ G.carrier.elems → b ∈ G.carrier.elems →
         map (G.op a b) = H.op (map a) (map b)
       map_id : map G.id = H.id
-      map_inv : ∀ a, a ∈ G.underset.elems → map (G.inv a) = H.inv (map a)
+      map_inv : ∀ a, a ∈ G.carrier.elems → map (G.inv a) = H.inv (map a)
 
     /-!
     # § 7. Grupo Simétrico (Permutaciones)
@@ -279,15 +279,15 @@ namespace Peano
     El grupo simétrico sobre A: conjunto de todas las permutaciones de A, con composición.
     -/
     def Sym (A : ℕ₀FSet) : FinGroup where
-      underset := sorry  -- El conjunto de todas las permutaciones de A, codificadas como ℕ₀
+      carrier := sorry  -- El conjunto de todas las permutaciones de A, codificadas como ℕ₀
       op := {
         toFun := fun p₁ p₂ => sorry,
-        map_underset := sorry
+        map_carrier := sorry
       }
       id := sorry      -- La permutación identidad
       inv := {
         toFun := fun p => sorry,
-        map_underset := sorry
+        map_carrier := sorry
       }
       id_in := sorry
       op_assoc := sorry

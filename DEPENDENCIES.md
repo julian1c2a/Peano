@@ -40,6 +40,7 @@ graph TD;
         Add --> WellFounded;
         WellFounded --> Lattice;
         Lattice --> Order;
+        Tuple --> StrictOrder;
         Order --> StrictOrder;
         StrictOrder --> Axioms;
         Axioms --> PeanoNat;
@@ -60,6 +61,7 @@ graph TD;
 | `Axioms` | `Peano/PeanoNat/Axioms.lean` | `PeanoNat` |
 | `StrictOrder` | `Peano/PeanoNat/StrictOrder.lean` | `PeanoNat`, `Axioms` |
 | `Order` | `Peano/PeanoNat/Order.lean` | `…StrictOrder` |
+| `Tuple` | `Peano/PeanoNat/Tuple.lean` | `PeanoNat`, `StrictOrder` |
 | `Lattice` | `Peano/PeanoNat/Lattice.lean` | `…Order` |
 | `WellFounded` | `Peano/PeanoNat/WellFounded.lean` | `…Lattice`, `Init.Classical` |
 | `Add` | `Peano/PeanoNat/Add.lean` | `…WellFounded` |

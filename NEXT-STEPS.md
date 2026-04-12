@@ -36,6 +36,7 @@
 | 21 | Naturals completion (ℕ₀) | 🔶 In progress |
 | 22 | Integer extension (ℤ) | ❌ Pending |
 | 23 | Rational extension (ℚ) | ❌ Pending |
+| 24 | FSet Generalization | 🔶 In progress |
 
 ---
 

@@ -30,6 +30,7 @@ Peano.lean                                  ← entrada; importa toda la librer�
       ├─ Axioms.lean                        Peano.Axioms       — axiomas de Peano, inducción
       ├─ StrictOrder.lean                   Peano.StrictOrder   — orden estricto <, tricotomía
       ├─ Order.lean                         Peano.Order        — orden ≤, totalidad, lt_or_ge
+      ├─ Tuple.lean                         Peano              — tuplas de longitud n, orden lexicográfico
       ├─ Lattice.lean                       Peano.Lattice      — max, min, retícula distributiva
       ├─ MaxMin.lean                        Peano.MaxMin       — (legacy, migrado a Lattice)
       ├─ WellFounded.lean                   Peano.WellFounded  — bien-fundación, inducción fuerte

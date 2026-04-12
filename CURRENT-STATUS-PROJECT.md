@@ -31,6 +31,7 @@ warnings        →  0
 | `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | Axiomas, `𝟘`, `succ`, `𝟙`, inducción | ✅ Completo |
 | `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | Orden estricto `<`, `lt_of_lt_of_le` | ✅ Completo |
 | `Peano/PeanoNat/Order.lean` | `Peano.Order` | Orden `≤`, `le_antisymm`, `le_trans`, `lt_or_ge`, `le_or_lt` | ✅ Completo |
+| `Peano/PeanoNat/Tuple.lean` | `Peano` | Tuplas de longitud `n`, constructores, orden lexicográfico | ✅ Completo |
 | `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `max`, `min`, retícula distributiva, 18 extensiones Mathlib-style | ✅ Completo |
 | `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | Inducción bien fundada, `well_founded_lt`, `WellFoundedRelation`, `strongRecOn`, `strongInductionOn` | ✅ Completo |
 | `Peano/PeanoNat/Add.lean` | `Peano.Add` | Suma, neutro, conmutatividad, asociatividad | ✅ Completo |

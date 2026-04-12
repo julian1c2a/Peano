@@ -5,21 +5,18 @@ License: MIT
 -/
 
 -- Peano/PeanoNat/FSet.lean
--- Conjuntos finitos decidibles sobre ℕ₀, ℕ₁, ℕ₂ y ℕ₂ × ℕ₁.
+-- Conjuntos finitos decidibles, genéricos sobre cualquier tipo con orden.
 -- Representación: listas estrictamente ordenadas (forma canónica).
 --
--- § 1. ℕ₀FSet — conjuntos finitos de ℕ₀
--- § 2. ℕ₁FSet — conjuntos finitos de ℕ₁ (positivos)
--- § 3. ℕ₂FSet — conjuntos finitos de ℕ₂ (≥ 2)
--- § 4. FactFSet — conjuntos finitos de ℕ₂ × ℕ₁ (factorizaciones)
--- § 5. Constructores básicos (empty, singleton)
--- § 6. Cardinal (cardinalidad en ℕ₀)
--- § 7. Pertenencia (Membership)
--- § 8. Inserción ordenada sobre List ℕ₀
--- § 9. insert y ofList para ℕ₀FSet
--- § 10. Filtrado preservando orden
--- § 11. Notación {[ ... ]} para ℕ₀FSet
--- § 12. Operaciones sobre FactFSet (addFactor, lookup)
+-- § 0. FSet α   — estructura genérica (cualquier α con DecidableEq + LT)
+-- § 1. Aliases  — ℕ₀FSet, ℕ₁FSet, ℕ₂FSet
+-- § 2. FactFSet — conjunto especial de factorizaciones (ℕ₂ × ℕ₁, claves únicas)
+-- § 3. Operaciones genéricas (empty, singleton, card, membership, filter)
+-- § 4. Inserción ordenada sobre ℕ₀ (sortedInsert + proof de correctitud)
+-- § 5. Operaciones ℕ₀FSet (insert, ofList, filter) — compatibilidad backward
+-- § 6. Operaciones básicas ℕ₁FSet y ℕ₂FSet
+-- § 7. Notación {[ ... ]} para ℕ₀FSet
+-- § 8. Operaciones sobre FactFSet (addFactor, lookup)
 
 import Peano.PeanoNat.Lists
 import Peano.PeanoNat.Add
@@ -32,41 +29,46 @@ namespace Peano
   namespace FSet
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 1. ℕ₀FSet — conjuntos finitos de ℕ₀
+    -- § 0. FSet α — estructura genérica
     -- ══════════════════════════════════════════════════════════════════
 
-    /-- Conjunto finito de naturales ℕ₀, representado como lista
-        estrictamente ordenada. La invariante `Sorted (· < ·)` garantiza
-        unicidad de representación (forma canónica) y ausencia de duplicados. -/
-    structure ℕ₀FSet where
-      elems : List ℕ₀
+    /-- Conjunto finito genérico sobre un tipo `α` con igualdad decidible y
+        orden estricto. Representado como lista estrictamente ordenada
+        (`Sorted (· < ·)`), que garantiza unicidad de representación
+        (forma canónica) y ausencia de duplicados.
+
+        Requisitos mínimos:
+        - `DecidableEq α` — para decidir pertenencia.
+        - `LT α`          — para el invariante de ordenación. -/
+    structure FSet (α : Type) [DecidableEq α] [LT α] where
+      elems  : List α
       sorted : Sorted (· < ·) elems
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 2. ℕ₁FSet — conjuntos finitos de ℕ₁
+    -- § 1. Aliases de tipos concretos
     -- ══════════════════════════════════════════════════════════════════
+
+    /-- Conjunto finito de naturales ℕ₀. -/
+    abbrev ℕ₀FSet := FSet ℕ₀
 
     /-- Conjunto finito de naturales positivos ℕ₁. -/
-    structure ℕ₁FSet where
-      elems : List ℕ₁
-      sorted : Sorted (· < ·) elems
-
-    -- ══════════════════════════════════════════════════════════════════
-    -- § 3. ℕ₂FSet — conjuntos finitos de ℕ₂
-    -- ══════════════════════════════════════════════════════════════════
+    abbrev ℕ₁FSet := FSet ℕ₁
 
     /-- Conjunto finito de naturales ≥ 2 (ℕ₂). -/
-    structure ℕ₂FSet where
-      elems : List ℕ₂
-      sorted : Sorted (· < ·) elems
+    abbrev ℕ₂FSet := FSet ℕ₂
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 4. FactFSet — conjuntos finitos de ℕ₂ × ℕ₁ (factorizaciones)
+    -- § 2. FactFSet — conjunto especial de factorizaciones (ℕ₂ × ℕ₁)
+    --
+    -- A diferencia de FSet (ℕ₂ × ℕ₁), FactFSet exige dos invariantes
+    -- adicionales: claves únicas (ninguna base se repite) y orden por
+    -- la primera componente (base). Esto refleja su semántica como
+    -- representación canónica de una factorización prima.
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Claves únicas en una lista de pares: ninguna base se repite. -/
     def UniqueKeys : List (ℕ₂ × ℕ₁) → Prop
-      | [] => True
+      | []            => True
       | (p, _) :: rest => (∀ q e, (q, e) ∈ rest → q ≠ p) ∧ UniqueKeys rest
 
     /-- Lista ordenada estrictamente por la primera componente (base). -/
@@ -93,68 +95,64 @@ namespace Peano
         Ordenado estrictamente por la primera componente (base),
         lo que garantiza unicidad de representación y claves únicas. -/
     structure FactFSet where
-      elems : List (ℕ₂ × ℕ₁)
+      elems       : List (ℕ₂ × ℕ₁)
       sortedByKey : SortedByKey elems
-      uniqueKeys : UniqueKeys elems
+      uniqueKeys  : UniqueKeys elems
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 5. Constructores básicos
+    -- § 3. Operaciones genéricas sobre FSet α
     -- ══════════════════════════════════════════════════════════════════
 
-    def ℕ₀FSet.empty : ℕ₀FSet := ⟨[], sorted_nil _⟩
-    def ℕ₁FSet.empty : ℕ₁FSet := ⟨[], sorted_nil _⟩
-    def ℕ₂FSet.empty : ℕ₂FSet := ⟨[], sorted_nil _⟩
-    def FactFSet.empty : FactFSet :=
-      FactFSet.mk [] (sorted_nil _) trivial
+    /-- Conjunto vacío. -/
+    def FSet.empty {α : Type} [DecidableEq α] [LT α] : FSet α :=
+      ⟨[], sorted_nil _⟩
 
-    def ℕ₀FSet.singleton (x : ℕ₀) : ℕ₀FSet := ⟨[x], sorted_singleton _ x⟩
-    def ℕ₁FSet.singleton (x : ℕ₁) : ℕ₁FSet := ⟨[x], sorted_singleton _ x⟩
-    def ℕ₂FSet.singleton (x : ℕ₂) : ℕ₂FSet := ⟨[x], sorted_singleton _ x⟩
-    def FactFSet.singleton (x : ℕ₂ × ℕ₁) : FactFSet :=
-      FactFSet.mk [x] (sorted_singleton _ x) ⟨fun _ _ h => absurd h List.not_mem_nil, trivial⟩
+    /-- Singleton: conjunto con un único elemento. -/
+    def FSet.singleton {α : Type} [DecidableEq α] [LT α] (x : α) : FSet α :=
+      ⟨[x], sorted_singleton _ x⟩
 
-    -- ══════════════════════════════════════════════════════════════════
-    -- § 6. Cardinal (cardinalidad en ℕ₀)
-    -- ══════════════════════════════════════════════════════════════════
+    /-- Cardinalidad del conjunto (número de elementos). -/
+    def FSet.card {α : Type} [DecidableEq α] [LT α] (s : FSet α) : ℕ₀ :=
+      lengthₚ s.elems
 
-    def ℕ₀FSet.card (s : ℕ₀FSet) : ℕ₀ := lengthₚ s.elems
-    def ℕ₁FSet.card (s : ℕ₁FSet) : ℕ₀ := lengthₚ s.elems
-    def ℕ₂FSet.card (s : ℕ₂FSet) : ℕ₀ := lengthₚ s.elems
-    def FactFSet.card (s : FactFSet) : ℕ₀ := lengthₚ s.elems
+    /-- Pertenencia genérica: `x ∈ s` iff `x ∈ s.elems`.
+        Marcada `@[reducible]` para que `x ∈ s` y `x ∈ s.elems` sean
+        definitoriamente iguales en todos los contextos. -/
+    @[reducible] instance {α : Type} [DecidableEq α] [LT α] :
+      Membership α (FSet α) where
+        mem (s : FSet α) (x : α) := List.Mem x s.elems
 
-    -- ══════════════════════════════════════════════════════════════════
-    -- § 7. Pertenencia (Membership)
-    -- ══════════════════════════════════════════════════════════════════
-
-    instance : Membership ℕ₀ ℕ₀FSet :=
-      Membership.mk (fun (s : ℕ₀FSet) (x : ℕ₀) => x ∈ s.elems)
-    instance : Membership ℕ₁ ℕ₁FSet :=
-      Membership.mk (fun (s : ℕ₁FSet) (x : ℕ₁) => x ∈ s.elems)
-    instance : Membership ℕ₂ ℕ₂FSet :=
-      Membership.mk (fun (s : ℕ₂FSet) (x : ℕ₂) => x ∈ s.elems)
-    instance : Membership (ℕ₂ × ℕ₁) FactFSet :=
-      Membership.mk (fun (s : FactFSet) (x : ℕ₂ × ℕ₁) => x ∈ s.elems)
-
-    instance instDecMemN0FSet (x : ℕ₀) (s : ℕ₀FSet) : Decidable (x ∈ s) :=
-      decidableMemList x s.elems
-    instance instDecMemN1FSet (x : ℕ₁) (s : ℕ₁FSet) : Decidable (x ∈ s) :=
-      decidableMemList x s.elems
-    instance instDecMemN2FSet (x : ℕ₂) (s : ℕ₂FSet) : Decidable (x ∈ s) :=
+    /-- La pertenencia en `FSet α` es decidible (requiere `DecidableEq α`). -/
+    instance {α : Type} [DecidableEq α] [LT α] (x : α) (s : FSet α) :
+        Decidable (x ∈ s)
+          :=
       decidableMemList x s.elems
 
+    /-- Filtrado genérico preservando el invariante de orden. -/
+    def FSet.filter {α : Type} [DecidableEq α] [LT α]
+      (p : α → Bool) (s : FSet α) :
+        FSet α
+          :=
+      ⟨s.elems.filter p, List.Pairwise.filter p s.sorted⟩
+
     -- ══════════════════════════════════════════════════════════════════
-    -- § 8. Inserción ordenada sobre List ℕ₀
+    -- § 4. Inserción ordenada sobre List ℕ₀
+    --
+    -- La función `sortedInsert` es genérica en su definición, pero la
+    -- demostración de correctitud (`sorted_sortedInsert`) usa propiedades
+    -- específicas de `ℕ₀` (transitividad y tricotomía de `Lt`).
+    -- Para generalizar el proof se necesitaría una clase `LinearOrder α`.
     -- ══════════════════════════════════════════════════════════════════
 
     open Peano.StrictOrder in
     /-- Inserta `x` en una lista ordenada de ℕ₀ manteniendo el orden
         estricto y descartando duplicados. -/
     def sortedInsert (x : ℕ₀) : List ℕ₀ → List ℕ₀
-      | [] => [x]
+      | []      => [x]
       | y :: ys =>
-        if Lt x y then x :: y :: ys
-        else if x = y then y :: ys
-        else y :: sortedInsert x ys
+        if Lt x y      then x :: y :: ys
+        else if x = y  then y :: ys
+        else                y :: sortedInsert x ys
 
     /-- Lema de pertenencia para `sortedInsert`. -/
     theorem mem_sortedInsert_iff {z x : ℕ₀} {l : List ℕ₀} :
@@ -164,8 +162,7 @@ namespace Peano
       | cons y ys ih =>
         simp only [sortedInsert]
         split
-        · -- Lt x y → resultado = x :: y :: ys
-          constructor
+        · constructor
           · intro h
             rcases List.mem_cons.mp h with rfl | h
             · exact Or.inl rfl
@@ -175,16 +172,14 @@ namespace Peano
             · exact List.mem_cons.mpr (Or.inl rfl)
             · exact List.mem_cons.mpr (Or.inr h)
         · split
-          · -- x = y → resultado = y :: ys
-            rename_i _ heq
+          · rename_i _ heq
             constructor
             · intro h; exact Or.inr h
             · intro h
               rcases h with rfl | h
               · rw [heq]; exact List.mem_cons.mpr (Or.inl rfl)
               · exact h
-          · -- else → resultado = y :: sortedInsert x ys
-            constructor
+          · constructor
             · intro h
               rcases List.mem_cons.mp h with rfl | h
               · exact Or.inr (List.mem_cons.mpr (Or.inl rfl))
@@ -199,7 +194,8 @@ namespace Peano
                 · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inr hmem)))
 
     open Peano.StrictOrder in
-    /-- La inserción ordenada preserva `Sorted (· < ·)`. -/
+    /-- La inserción ordenada preserva `Sorted (· < ·)` sobre `List ℕ₀`.
+        (La prueba usa `lt_trans_wp` y `trichotomy`, específicos de ℕ₀.) -/
     theorem sorted_sortedInsert {l : List ℕ₀}
         (hs : Sorted (· < ·) l) (x : ℕ₀) :
         Sorted (· < ·) (sortedInsert x l) := by
@@ -224,44 +220,61 @@ namespace Peano
               (fun z hz =>
                 match mem_sortedInsert_iff.mp hz with
                 | Or.inl h => h ▸ (match trichotomy x y with
-                    | Or.inl hlt => absurd hlt (by assumption)
+                    | Or.inl hlt  => absurd hlt (by assumption)
                     | Or.inr (Or.inl heq) => absurd heq hneq
                     | Or.inr (Or.inr hgt) => hgt)
                 | Or.inr h => List.rel_of_pairwise_cons hs h)
               (ih hys)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 9. insert y ofList para ℕ₀FSet
+    -- § 5. Operaciones ℕ₀FSet (compatibilidad backward)
+    --
+    -- Estas definiciones mantienen los nombres `ℕ₀FSet.xxx` que usan
+    -- los clientes existentes (NumberSets.lean, Group.lean, etc.).
+    -- Internamente delegan a las operaciones genéricas o a sortedInsert.
     -- ══════════════════════════════════════════════════════════════════
 
-    /-- Inserta un elemento en un `ℕ₀FSet`, manteniendo la
-        forma canónica (ordenada y sin duplicados). -/
-    def ℕ₀FSet.insert (x : ℕ₀) (s : ℕ₀FSet) : ℕ₀FSet :=
-      ℕ₀FSet.mk (sortedInsert x s.elems) (sorted_sortedInsert s.sorted x)
+    namespace ℕ₀FSet
 
-    /-- Construye un `ℕ₀FSet` a partir de una lista, insertando
-        cada elemento en orden. -/
-    def ℕ₀FSet.ofList : List ℕ₀ → ℕ₀FSet
-      | [] => ℕ₀FSet.empty
-      | x :: xs => (ℕ₀FSet.ofList xs).insert x
+      def empty    : FSet ℕ₀ := FSet.empty
+      def singleton (x : ℕ₀) : FSet ℕ₀ := FSet.singleton x
 
-    -- ══════════════════════════════════════════════════════════════════
-    -- § 10. Filtrado preservando orden
-    -- ══════════════════════════════════════════════════════════════════
+      /-- Inserta `x` en un `ℕ₀FSet`, manteniendo la forma canónica. -/
+      def insert (x : ℕ₀) (s : FSet ℕ₀) : FSet ℕ₀ :=
+        ⟨sortedInsert x s.elems, sorted_sortedInsert s.sorted x⟩
 
-    /-- El filtrado de una lista ordenada es ordenado. -/
-    theorem sorted_filter {l : List ℕ₀} (p : ℕ₀ → Bool)
-        (hs : Sorted (· < ·) l) :
-        Sorted (· < ·) (List.filter p l) :=
-      List.Pairwise.filter p hs
+      /-- Construye un `ℕ₀FSet` a partir de una lista. -/
+      def ofList : List ℕ₀ → FSet ℕ₀
+        | []      => empty
+        | x :: xs => insert x (ofList xs)
 
-    /-- Filtra un `ℕ₀FSet` según un predicado decidible,
-        preservando la forma canónica. -/
-    def ℕ₀FSet.filter (p : ℕ₀ → Bool) (s : ℕ₀FSet) : ℕ₀FSet :=
-      ℕ₀FSet.mk (s.elems.filter p) (sorted_filter p s.sorted)
+      /-- Filtra un `ℕ₀FSet` según un predicado decidible. -/
+      def filter (p : ℕ₀ → Bool) (s : FSet ℕ₀) : FSet ℕ₀ :=
+        FSet.filter p s
+
+    end ℕ₀FSet
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 11. Notación {[ ... ]} para ℕ₀FSet
+    -- § 6. Operaciones básicas ℕ₁FSet y ℕ₂FSet
+    -- ══════════════════════════════════════════════════════════════════
+
+    namespace ℕ₁FSet
+      def empty    : FSet ℕ₁ := FSet.empty
+      def singleton (x : ℕ₁) : FSet ℕ₁ := FSet.singleton x
+    end ℕ₁FSet
+
+    namespace ℕ₂FSet
+      def empty    : FSet ℕ₂ := FSet.empty
+      def singleton (x : ℕ₂) : FSet ℕ₂ := FSet.singleton x
+    end ℕ₂FSet
+
+    -- FactFSet básicos
+    def FactFSet.empty : FactFSet :=
+      FactFSet.mk [] (sorted_nil _) trivial
+    def FactFSet.card (s : FactFSet) : ℕ₀ := lengthₚ s.elems
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 7. Notación {[ ... ]} para ℕ₀FSet
     -- ══════════════════════════════════════════════════════════════════
 
     /-- `{[ a, b, c ]}` construye un `ℕ₀FSet` con los elementos dados. -/
@@ -281,7 +294,7 @@ namespace Peano
       | `({[ $s | $p ]}) => `(ℕ₀FSet.filter $p $s)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 12. Operaciones sobre FactFSet (addFactor, lookup)
+    -- § 8. Operaciones sobre FactFSet (addFactor, lookup)
     -- ══════════════════════════════════════════════════════════════════
 
     open Peano.Axioms in
@@ -297,7 +310,7 @@ namespace Peano
     /-- Busca el exponente asociado a la base `n` en una lista de factores.
         Devuelve `none` si `n` no aparece como primera componente. -/
     def factListLookup (n : ℕ₂) : List (ℕ₂ × ℕ₁) → Option ℕ₁
-      | [] => none
+      | []           => none
       | (p, c) :: rest => if p = n then some c else factListLookup n rest
 
     /-- Añade un factor `n` a una lista de factores ordenada por clave:
@@ -305,15 +318,14 @@ namespace Peano
         — si aparece como `(n, c)`, lo reemplaza por `(n, σ c)`.
         Preserva el orden por clave y la unicidad de claves. -/
     def factListAddFactor (n : ℕ₂) : List (ℕ₂ × ℕ₁) → List (ℕ₂ × ℕ₁)
-      | [] => [(n, oneN1)]
+      | []           => [(n, oneN1)]
       | (p, c) :: rest =>
-        if n < p then (n, oneN1) :: (p, c) :: rest
-        else if p = n then (n, succN1 c) :: rest
-        else (p, c) :: factListAddFactor n rest
+        if n < p       then (n, oneN1) :: (p, c) :: rest
+        else if p = n  then (n, succN1 c) :: rest
+        else                (p, c) :: factListAddFactor n rest
 
     open Peano.StrictOrder in
-    /-- `factListAddFactor` preserva las claves: la primera componente
-        de cada par del resultado es clave original o `n`. -/
+    /-- `factListAddFactor` preserva las claves. -/
     private theorem factListAddFactor_keys (n : ℕ₂)
         (l : List (ℕ₂ × ℕ₁)) :
         ∀ x, x ∈ factListAddFactor n l →
@@ -327,17 +339,14 @@ namespace Peano
         intro x hx
         simp only [factListAddFactor] at hx
         split at hx
-        · -- n < hd.1: resultado = (n, oneN1) :: hd :: tl
-          rcases List.mem_cons.mp hx with rfl | htail
+        · rcases List.mem_cons.mp hx with rfl | htail
           · exact Or.inl rfl
           · exact Or.inr ⟨x.2, htail⟩
         · split at hx
-          · -- hd.1 = n: resultado = (n, succN1 _) :: tl
-            rcases List.mem_cons.mp hx with rfl | htail
+          · rcases List.mem_cons.mp hx with rfl | htail
             · exact Or.inl rfl
             · exact Or.inr ⟨x.2, List.mem_cons.mpr (Or.inr htail)⟩
-          · -- otro: resultado = hd :: factListAddFactor n tl
-            rcases List.mem_cons.mp hx with rfl | htail
+          · rcases List.mem_cons.mp hx with rfl | htail
             · exact Or.inr ⟨hd.2, List.mem_cons.mpr (Or.inl rfl)⟩
             · rcases ih x htail with h | ⟨e, he⟩
               · exact Or.inl h
@@ -355,7 +364,6 @@ namespace Peano
         have ⟨hall, htl⟩ := List.pairwise_cons.mp hs
         split
         next h_n_lt =>
-          -- n < hd.1 → resultado = (n, _) :: hd :: tl
           exact List.Pairwise.cons
             (fun z hz => match List.mem_cons.mp hz with
               | Or.inl h => h ▸ h_n_lt
@@ -364,11 +372,9 @@ namespace Peano
         next h_nlt =>
           split
           next h_eq =>
-            -- hd.1 = n → resultado = (n, succN1 _) :: tl
             exact List.Pairwise.cons
               (fun z hz => h_eq ▸ hall z hz) htl
           next h_neq =>
-            -- hd.1 < n (por tricotomía) → resultado = hd :: factListAddFactor n tl
             have h_hd_lt_n : hd.1 < n := by
               rcases trichotomy hd.1.val.val n.val.val with h | h | h
               · exact h
@@ -406,8 +412,17 @@ namespace Peano
 end Peano
 
 export Peano.FSet (
+  FSet
   ℕ₀FSet
   ℕ₁FSet
   ℕ₂FSet
   FactFSet
+  UniqueKeys
+  SortedByKey
+  sortedByKey_imp_uniqueKeys
+  sortedInsert
+  mem_sortedInsert_iff
+  sorted_sortedInsert
+  sortedByKey_factListAddFactor
+  uniqueKeys_factListAddFactor
 )

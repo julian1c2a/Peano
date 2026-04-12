@@ -91,71 +91,6 @@ namespace Peano
       False.elim (h_n_neq_0 rfl)
     | ℕ₀.succ k => k
 
-  -- Tuplas de dimensión finita sobre ℕ₀
-
-  def Tuple : ℕ₀ → Type
-    | 𝟘 => Unit
-    | σ n => ℕ₀ × Tuple n
-
-  -- Constructor de tupla vacía
-  def emptyTuple : Tuple 𝟘 := ()
-
-  -- Constructor de tupla por concatenación (cons)
-  def consTuple {n : ℕ₀} (x : ℕ₀) (xs : Tuple n) : Tuple (σ n) :=
-    (x, xs)
-
-  -- Proyección: obtener la cabeza de una tupla no vacía
-  def headTuple {n : ℕ₀} (t : Tuple (σ n)) : ℕ₀ :=
-    t.1
-
-  -- Proyección: obtener la cola de una tupla no vacía
-  def tailTuple {n : ℕ₀} (t : Tuple (σ n)) : Tuple n :=
-    t.2
-
-  -- Notación para tuplas
-  notation "⟨⟩" => emptyTuple
-  notation "⟨" x "⟩" => consTuple x emptyTuple
-
-  -- Igualdad decidible para tuplas
-  instance tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)
-    | 𝟘 => fun _ _ => isTrue rfl
-    | σ n => fun t1 t2 =>
-        match decEq t1.1 t2.1, tupleDecEq n t1.2 t2.2 with
-        | isTrue h1, isTrue h2 => isTrue (by
-            have : t1.1 = t2.1 := h1
-            have : t1.2 = t2.2 := h2
-            cases t1; cases t2
-            congr)
-        | isFalse h1, _ => isFalse (fun h => h1 (by cases h; rfl))
-        | _, isFalse h2 => isFalse (fun h => h2 (by cases h; rfl))
-
-  -- Representación para tuplas
-  instance tupleRepr : (n : ℕ₀) → Repr (Tuple n)
-    | 𝟘 => ⟨fun _ _ => "⟨⟩"⟩
-    | σ n => ⟨fun t _ =>
-        let head := repr t.1
-        let tailRepr := (tupleRepr n).reprPrec t.2 0
-        let tailStr := toString tailRepr
-        if tailStr = "⟨⟩" then
-          s!"⟨{head}⟩"
-        else
-          s!"⟨{head}, {tailStr.drop 1}"⟩
-
-  -- Función para obtener el i-ésimo elemento de una tupla (con prueba de bounds)
-  -- NOTA: Esta función requiere Lt de PeanoNatStrictOrder, por lo que se deja
-  -- comentada hasta que ese módulo esté disponible
-  /-
-  def getTuple : (n : ℕ₀) → Tuple n → (i : ℕ₀) → (h : Lt i n) → ℕ₀
-    | σ n, t, 𝟘, _ => headTuple t
-    | σ n, t, σ i, h => getTuple n (tailTuple t) i (by sorry)
-    | 𝟘, _, _, h => absurd h (by sorry)
-  -/
-
-  -- Función para construir una tupla desde una función
-  def mkTuple : (n : ℕ₀) → (f : ℕ₀ → ℕ₀) → Tuple n
-    | 𝟘, _ => emptyTuple
-    | σ n, f => consTuple (f 𝟘) (mkTuple n (fun k => f (σ k)))
-
 end Peano
 
 -- Ahora puedes exportar todo lo que está dentro del namespace Peano
@@ -169,11 +104,5 @@ export Peano (
   eqFn2
   eqFnNat
   Λ Ψ τ ρ
-  Tuple
-  emptyTuple
-  consTuple
-  headTuple
-  tailTuple
-  mkTuple
 )
 -- (legacy comment removed)

@@ -32,3 +32,4 @@ wdIn.txt
 # LSP logs
 LSP_2026*.log
 .claude/settings.local.json
+.claude/settings.local.json

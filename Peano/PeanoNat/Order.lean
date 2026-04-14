@@ -597,7 +597,7 @@ namespace Peano
             induction b with
             | zero =>
               have equiv_calc : Le a (σ 𝟘) ↔ (a = 𝟘 ∨ a = 𝟙) := calc
-                Le a (σ 𝟘) ↔ Le a 𝟙 := by simp [one]
+                Le a (σ 𝟘) ↔ Le a 𝟙 := by rfl
                 _ ↔ Lt a 𝟙 ∨ a = 𝟙 := by rfl
                 _ ↔ (a = 𝟘 ∨ a = 𝟙) := by
                   constructor

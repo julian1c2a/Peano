@@ -18,8 +18,10 @@ namespace Peano
     deriving Repr, BEq, DecidableEq
 
   def ℕ₁ : Type := {n : ℕ₀ // n ≠ ℕ₀.zero}
+  deriving Repr, DecidableEq
 
   def ℕ₂ : Type := {n : ℕ₁ // n.val ≠ ℕ₀.succ ℕ₀.zero}
+  deriving Repr, DecidableEq
 
   def idℕ₀ (n : ℕ₀) : ℕ₀ := n
   def idNat (n : Nat) : Nat := n
@@ -117,16 +119,16 @@ namespace Peano
     | ℕ₀.succ k => k
 
   inductive Nats : Type
-    | ℕ₀
-    | ℕ₁
-    | ℕ₂
+    | nat0
+    | nat1
+    | nat2
     deriving Repr, BEq, DecidableEq
 
   @[reducible]
   def Nats.toType : Nats → Type
-    | Nats.ℕ₀ => ℕ₀
-    | Nats.ℕ₁ => ℕ₁
-    | Nats.ℕ₂ => ℕ₂
+    | Nats.nat0 => ℕ₀
+    | Nats.nat1 => ℕ₁
+    | Nats.nat2 => ℕ₂
 
   /-- Coerción para usar las etiquetas de `Nats` como si fueran los tipos reales -/
   instance : CoeSort Nats Type := ⟨Nats.toType⟩
@@ -140,6 +142,8 @@ end Peano
 -- Ahora puedes exportar todo lo que está dentro del namespace Peano
 export Peano (
   ℕ₀ ℕ₁ ℕ₂
+  Nats
+  Nats.toType
   idℕ₀
   idNat
   eqFnGen

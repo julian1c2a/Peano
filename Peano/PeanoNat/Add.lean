@@ -103,10 +103,10 @@ namespace Peano
       := by
         induction n with
         | zero =>
-            simp [add_l, one, add_zero]
+            simp [add_l, one, zero, add_zero]
         | succ n' ih =>
             calc
-              add_l 𝟙 (σ n') = σ (add 𝟘 (σ n')) := by simp [add_l, one]
+              add_l 𝟙 (σ n') = σ (add 𝟘 (σ n')) := by simp [add_l, one, zero]
               _ = σ (σ (add 𝟘 n')) := by rfl
               _ = σ (σ n') := by simp [zero_add]
 

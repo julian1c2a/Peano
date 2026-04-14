@@ -1,4 +1,10 @@
-/-
+import Peano.PeanoNat
+import Peano.PeanoNat.Axioms
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.Tuple
+
+/-!
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -14,13 +20,10 @@ License: MIT
 -- § 5. Longitud en ℕ₀ (lengthₚ)
 -- § 6. Sorted (via Pairwise)
 -- § 7. Decidabilidad de pertenencia a listas
--- § 8. Segmento inicial Fin₀ y alias de tipos
-
-import Peano.PeanoNat
-import Peano.PeanoNat.Axioms
-import Peano.PeanoNat.StrictOrder
-import Peano.PeanoNat.Order
-
+-- § 7. Segmento inicial Fin₀ y alias de tipos para listas básicas
+-- § 8. Alias de tipos para listas de tuplas
+-- § 9. Listas de listas
+-- § 10. Tipo suma `PeanoVal` y lista heterogénea
 
 namespace Peano
   open Peano
@@ -169,6 +172,151 @@ namespace Peano
     /-- Lista de dígitos en base `b`. -/
     abbrev DigitList (b : ℕ₀) := List (Fin₀ b)
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 8. Alias de tipos para listas de tuplas
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Lista de tuplas homogéneas de ℕ₀ de longitud `n`. -/
+    abbrev TupleList (n : ℕ₀) := List (Tuple n)
+
+    /-- Lista de tuplas heterogéneas sobre esquema `ts : List Nats`. -/
+    abbrev NatsTupleList (ts : List Nats) := List (NatsTuple ts)
+
+    /-- Lista de tuplas homogéneas genéricas de tipo `α` y longitud `n`. -/
+    abbrev GTupleList (α : Type) (n : ℕ₀) := List (GTuple α n)
+
+    /-- Lista de tuplas heterogéneas con esquema de tipos `ts : List Type`. -/
+    abbrev HTupleList (ts : List Type) := List (HTuple ts)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 9. Listas de listas
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Lista de listas de ℕ₀. -/
+    abbrev Nat0ListList := List Nat0List
+
+    /-- Lista de listas de ℕ₁. -/
+    abbrev Nat1ListList := List Nat1List
+
+    /-- Lista de listas de ℕ₂. -/
+    abbrev Nat2ListList := List Nat2List
+
+    /-- Lista de listas de pares (primo, exponente). -/
+    abbrev FactListList := List FactList
+
+    /-- Lista de listas de tuplas homogéneas de ℕ₀ de longitud `n`. -/
+    abbrev TupleListList (n : ℕ₀) := List (TupleList n)
+
+    /-- Lista de listas de NatsTuple con esquema `ts`. -/
+    abbrev NatsTupleListList (ts : List Nats) := List (NatsTupleList ts)
+
+    /-- Lista de listas de GTuple de tipo `α` y longitud `n`. -/
+    abbrev GTupleListList (α : Type) (n : ℕ₀) := List (GTupleList α n)
+
+    /-- Lista de listas de HTuple con esquema `ts`. -/
+    abbrev HTupleListList (ts : List Type) := List (HTupleList ts)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 10. Tipo suma `PeanoVal` y lista heterogénea
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Tipo suma que unifica en un único tipo:
+        · naturales ℕ₀/ℕ₁/ℕ₂  (vía el índice `Nats`),
+        · listas de naturales,
+        · tuplas homogéneas `Tuple n` y heterogéneas `NatsTuple ts`,
+        · listas de tuplas `TupleList n` y `NatsTupleList ts`. -/
+    inductive PeanoVal : Type where
+      | ofNat           (k : Nats)       (x  : k.toType)            : PeanoVal
+      | ofNatList       (k : Nats)       (xs : List k.toType)       : PeanoVal
+      | ofTuple         (n : ℕ₀)         (t  : Tuple n)             : PeanoVal
+      | ofNatsTuple     (ts : List Nats) (t  : NatsTuple ts)        : PeanoVal
+      | ofTupleList     (n : ℕ₀)         (ts : TupleList n)         : PeanoVal
+      | ofNatsTupleList (ts : List Nats) (xs : NatsTupleList ts)    : PeanoVal
+
+    /-- `DecidableEq` para `PeanoVal`. -/
+    instance instDecidableEqPeanoVal : DecidableEq PeanoVal := by
+      intro a b
+      match a, b with
+      | .ofNat k1 x1, .ofNat k2 x2 =>
+          by_cases hk : k1 = k2
+          · subst hk
+            cases instDecidableEqNatsType k1 x1 x2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofNat k1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hk (by cases e; rfl))
+      | .ofNatList k1 xs1, .ofNatList k2 xs2 =>
+          by_cases hk : k1 = k2
+          · subst hk
+            haveI := instDecidableEqNatsType k1
+            cases decEq xs1 xs2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofNatList k1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hk (by cases e; rfl))
+      | .ofTuple n1 t1, .ofTuple n2 t2 =>
+          by_cases hn : n1 = n2
+          · subst hn
+            cases tupleDecEq n1 t1 t2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofTuple n1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hn (by cases e; rfl))
+      | .ofNatsTuple ts1 t1, .ofNatsTuple ts2 t2 =>
+          by_cases hts : ts1 = ts2
+          · subst hts
+            cases natsTupleDecEq ts1 t1 t2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofNatsTuple ts1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hts (by cases e; rfl))
+      | .ofTupleList n1 ts1, .ofTupleList n2 ts2 =>
+          by_cases hn : n1 = n2
+          · subst hn
+            haveI := tupleDecEq n1
+            cases decEq ts1 ts2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofTupleList n1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hn (by cases e; rfl))
+      | .ofNatsTupleList ts1 xs1, .ofNatsTupleList ts2 xs2 =>
+          by_cases hts : ts1 = ts2
+          · subst hts
+            haveI := natsTupleDecEq ts1
+            cases decEq xs1 xs2 with
+            | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofNatsTupleList ts1) h)
+            | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
+          · exact isFalse (fun e => hts (by cases e; rfl))
+      -- 30 casos cross-constructor: diferentes constructores nunca son iguales
+      | .ofNat _ _,           .ofNatList _ _        => exact isFalse (by intro h; cases h)
+      | .ofNat _ _,           .ofTuple _ _          => exact isFalse (by intro h; cases h)
+      | .ofNat _ _,           .ofNatsTuple _ _      => exact isFalse (by intro h; cases h)
+      | .ofNat _ _,           .ofTupleList _ _      => exact isFalse (by intro h; cases h)
+      | .ofNat _ _,           .ofNatsTupleList _ _  => exact isFalse (by intro h; cases h)
+      | .ofNatList _ _,       .ofNat _ _            => exact isFalse (by intro h; cases h)
+      | .ofNatList _ _,       .ofTuple _ _          => exact isFalse (by intro h; cases h)
+      | .ofNatList _ _,       .ofNatsTuple _ _      => exact isFalse (by intro h; cases h)
+      | .ofNatList _ _,       .ofTupleList _ _      => exact isFalse (by intro h; cases h)
+      | .ofNatList _ _,       .ofNatsTupleList _ _  => exact isFalse (by intro h; cases h)
+      | .ofTuple _ _,         .ofNat _ _            => exact isFalse (by intro h; cases h)
+      | .ofTuple _ _,         .ofNatList _ _        => exact isFalse (by intro h; cases h)
+      | .ofTuple _ _,         .ofNatsTuple _ _      => exact isFalse (by intro h; cases h)
+      | .ofTuple _ _,         .ofTupleList _ _      => exact isFalse (by intro h; cases h)
+      | .ofTuple _ _,         .ofNatsTupleList _ _  => exact isFalse (by intro h; cases h)
+      | .ofNatsTuple _ _,     .ofNat _ _            => exact isFalse (by intro h; cases h)
+      | .ofNatsTuple _ _,     .ofNatList _ _        => exact isFalse (by intro h; cases h)
+      | .ofNatsTuple _ _,     .ofTuple _ _          => exact isFalse (by intro h; cases h)
+      | .ofNatsTuple _ _,     .ofTupleList _ _      => exact isFalse (by intro h; cases h)
+      | .ofNatsTuple _ _,     .ofNatsTupleList _ _  => exact isFalse (by intro h; cases h)
+      | .ofTupleList _ _,     .ofNat _ _            => exact isFalse (by intro h; cases h)
+      | .ofTupleList _ _,     .ofNatList _ _        => exact isFalse (by intro h; cases h)
+      | .ofTupleList _ _,     .ofTuple _ _          => exact isFalse (by intro h; cases h)
+      | .ofTupleList _ _,     .ofNatsTuple _ _      => exact isFalse (by intro h; cases h)
+      | .ofTupleList _ _,     .ofNatsTupleList _ _  => exact isFalse (by intro h; cases h)
+      | .ofNatsTupleList _ _, .ofNat _ _            => exact isFalse (by intro h; cases h)
+      | .ofNatsTupleList _ _, .ofNatList _ _        => exact isFalse (by intro h; cases h)
+      | .ofNatsTupleList _ _, .ofTuple _ _          => exact isFalse (by intro h; cases h)
+      | .ofNatsTupleList _ _, .ofNatsTuple _ _      => exact isFalse (by intro h; cases h)
+      | .ofNatsTupleList _ _, .ofTupleList _ _      => exact isFalse (by intro h; cases h)
+
+    /-- Lista heterogénea de valores de Peano. -/
+    abbrev PeanoValList := List PeanoVal
+
   end Lists
 
 end Peano
@@ -201,4 +349,19 @@ export Peano.Lists (
   Fin₀
   instDecidableEqFin0
   DigitList
+  TupleList
+  NatsTupleList
+  GTupleList
+  HTupleList
+  Nat0ListList
+  Nat1ListList
+  Nat2ListList
+  FactListList
+  TupleListList
+  NatsTupleListList
+  GTupleListList
+  HTupleListList
+  PeanoVal
+  instDecidableEqPeanoVal
+  PeanoValList
 )

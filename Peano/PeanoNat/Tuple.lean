@@ -27,7 +27,7 @@ namespace Peano
       El esquema es una lista de etiquetas `Nats` que Lean convierte a tipos. -/
   def NatsTuple : List Nats → Type
   | [] => Unit
-  | (t :: ts) => t × NatsTuple ts
+  | (t :: ts) => t.toType × NatsTuple ts
 
   /-- Tupla homogénea genérica. Construye `α^n`. Todos los elementos son de tipo `α`. -/
   def GTuple (α : Type) : ℕ₀ → Type
@@ -81,7 +81,7 @@ namespace Peano
 
   /-- Constructor por concatenación (NatsTuple). -/
   def consNatsTuple {t : Nats} {ts : List Nats}
-    (x : t) (xs : NatsTuple ts) :
+    (x : Nats.toType t) (xs : NatsTuple ts) :
       NatsTuple (t :: ts)
         :=
     (x, xs)
@@ -89,7 +89,7 @@ namespace Peano
   /-- Proyección de la cabeza (NatsTuple). -/
   def headNatsTuple {t : Nats} {ts : List Nats}
     (x : NatsTuple (t :: ts)) :
-      t
+      t.toType
         :=
     x.1
 
@@ -99,6 +99,11 @@ namespace Peano
       NatsTuple ts
         :=
     x.2
+
+  /-- Construir un NatsTuple desde una función. -/
+  def mkNatsTuple : (ts : List Nats) → (proj : ℕ₀ → (t : Nats) → Nats.toType t) → NatsTuple ts
+    | [], _ => emptyNatsTuple
+    | t :: ts, proj => consNatsTuple (proj 𝟘 t) (mkNatsTuple ts (fun k => proj (σ k)))
 
   /-- Constructor de tupla vacía (GTuple). -/
   def emptyGTuple {α : Type} : GTuple α 𝟘 := ()
@@ -153,6 +158,11 @@ namespace Peano
         :=
     x.2
 
+  /-- Construir un HTuple desde una función. -/
+  def mkHTuple : (ts : List Type) → (proj : ℕ₀ → (α : Type) → α) → HTuple ts
+    | [], _ => emptyHTuple
+    | α :: ts, proj => consHTuple (proj 𝟘 α) (mkHTuple ts (fun k => proj (σ k)))
+
   -- ══════════════════════════════════════════════════════════════════
   -- § 3. Igualdad decidible y representación
   -- ══════════════════════════════════════════════════════════════════
@@ -180,18 +190,18 @@ namespace Peano
         if tailStr = "⟨⟩" then
           s!"⟨{head}⟩"
         else
-          s!"⟨{head}, {tailStr.drop 1}"⟩
+          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
 
   -- Instancias auxiliares para Nats
   instance instDecidableEqNatsType : (t : Nats) → DecidableEq t
-    | Nats.ℕ₀ => inferInstance
-    | Nats.ℕ₁ => inferInstance
-    | Nats.ℕ₂ => inferInstance
+    | Nats.nat0 => inferInstance
+    | Nats.nat1 => inferInstance
+    | Nats.nat2 => inferInstance
 
   instance instReprNatsType : (t : Nats) → Repr t
-    | Nats.ℕ₀ => inferInstance
-    | Nats.ℕ₁ => inferInstance
-    | Nats.ℕ₂ => inferInstance
+    | Nats.nat0 => inferInstance
+    | Nats.nat1 => inferInstance
+    | Nats.nat2 => inferInstance
 
   /-- Igualdad decidible para NatsTuple. -/
   instance natsTupleDecEq : (ts : List Nats) → DecidableEq (NatsTuple ts)
@@ -212,7 +222,7 @@ namespace Peano
         if tailStr = "⟨⟩" then
           s!"⟨{head}⟩"
         else
-          s!"⟨{head}, {tailStr.drop 1}"⟩
+          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
 
   /-- Igualdad decidible para GTuple. -/
   instance gtupleDecEq {α : Type} [DecidableEq α] : (n : ℕ₀) → DecidableEq (GTuple α n)
@@ -233,7 +243,7 @@ namespace Peano
         if tailStr = "⟨⟩" then
           s!"⟨{head}⟩"
         else
-          s!"⟨{head}, {tailStr.drop 1}"⟩
+          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
 
   -- Nota: HTupleDecidableEq ya está implementada en la sección § 7.
 
@@ -251,7 +261,7 @@ namespace Peano
       if tailStr = "⟨⟩" then
         s!"⟨{head}⟩"
       else
-        s!"⟨{head}, {tailStr.drop 1}"
+        s!"⟨{head}, {tailStr.drop 1}⟩"
 
   instance htupleRepr {ts : List Type} [HTupleRepr ts] : Repr (HTuple ts) :=
     ⟨HTupleRepr.reprPrec⟩
@@ -311,9 +321,9 @@ namespace Peano
 
   /-- Extrae el valor `ℕ₀` subyacente de cualquier elemento de un `NatsTuple` de forma dinámica. -/
   def natsVal : (t : Nats) → t → ℕ₀
-    | Nats.ℕ₀, x => x
-    | Nats.ℕ₁, x => x.val
-    | Nats.ℕ₂, x => x.val.val
+    | Nats.nat0, x => x
+    | Nats.nat1, x => x.val
+    | Nats.nat2, x => x.val.val
 
   /-- Orden lexicográfico estricto para NatsTuple apoyado en los valores `ℕ₀`. -/
   def natsLexLt : {ts : List Nats} → NatsTuple ts → NatsTuple ts → Prop
@@ -416,7 +426,7 @@ namespace Peano
         | isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
       | isFalse h1 => isFalse (fun h => h1 (congrArg Prod.fst h))
 
-  instance instDecidableEqHTuple {ts : List Type} [HTupleDecidableEq ts] : DecidableEq (HTuple ts) :=
+  instance htupleDecEq {ts : List Type} [HTupleDecidableEq ts] : DecidableEq (HTuple ts) :=
     HTupleDecidableEq.decEq
 
   class HTupleLT (ts : List Type) where
@@ -440,6 +450,12 @@ namespace Peano
     le x y := x.1 < y.1 ∨ (x.1 = y.1 ∧ HTupleLE.le x.2 y.2)
 
   instance instLEHTuple {ts : List Type} [HTupleLE ts] : LE (HTuple ts) := ⟨HTupleLE.le⟩
+
+  /-- Orden lexicográfico estricto para HTuple. -/
+  def hlexLt {ts : List Type} [HTupleLT ts] (x y : HTuple ts) : Prop := HTupleLT.lt x y
+
+  /-- Orden lexicográfico no estricto para HTuple. -/
+  def hlexLe {ts : List Type} [HTupleLE ts] (x y : HTuple ts) : Prop := HTupleLE.le x y
 
   class HTupleDecidableLT (ts : List Type) [HTupleLT ts] where
     decLt : (x y : HTuple ts) → Decidable (x < y)
@@ -497,6 +513,7 @@ export Peano (
   consNatsTuple
   headNatsTuple
   tailNatsTuple
+  mkNatsTuple
   instDecidableEqNatsType
   instReprNatsType
   natsTupleDecEq
@@ -512,6 +529,7 @@ export Peano (
   consHTuple
   headHTuple
   tailHTuple
+  mkHTuple
   HTupleRepr
   instHTupleReprNil
   instHTupleReprCons
@@ -538,7 +556,7 @@ export Peano (
   HTupleDecidableEq
   instHTupleDecEqNil
   instHTupleDecEqCons
-  instDecidableEqHTuple
+  htupleDecEq
   HTupleLT
   instHTupleLTNil
   instHTupleLTCons
@@ -547,6 +565,8 @@ export Peano (
   instHTupleLENil
   instHTupleLECons
   instLEHTuple
+  hlexLt
+  hlexLe
   HTupleDecidableLT
   instHTupleDecLTNil
   instHTupleDecLTCons

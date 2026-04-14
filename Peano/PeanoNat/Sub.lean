@@ -52,19 +52,12 @@ namespace Peano
 
   notation:65 n " -( " h " ) " m => subₕₖ n m h
 
-  theorem subₕₖ_zero (n : ℕ₀) :
-    subₕₖ n 𝟘 (zero_le n) = n
+  theorem subₕₖ_zero (n : ℕ₀) {h : Le 𝟘 n} :
+    subₕₖ n 𝟘 h = n
       := by
     induction n with
-    | zero =>
-      calc
-        subₕₖ 𝟘 𝟘 (zero_le 𝟘) = 𝟘 := by simp [subₕₖ]
-        _ = 𝟘 := rfl
-    | succ n' ih =>
-      calc
-        subₕₖ (σ n') 𝟘 (zero_le (σ n')) = σ n'
-            := by simp [subₕₖ]
-        _ = σ n' := rfl
+    | zero => simp [subₕₖ]
+    | succ n' ih => simp [subₕₖ]
 
   theorem zero_subₕₖ (n : ℕ₀) (h : Le n 𝟘) :
     subₕₖ 𝟘 n h = 𝟘
@@ -156,13 +149,10 @@ namespace Peano
         exfalso
         exact not_succ_le_zero 𝟘 h
       | succ n' => -- Caso n = σ n'
-        calc
-          subₕₖ (σ n') 𝟙 h = subₕₖ n' 𝟘 (succ_le_succ_then h)
-              := by simp only [subₕₖ, one]
-          _ = n'
-              := by rw [subₕₖ_zero n']
-          _ = ρ (σ n') (m_neq_0_proved_lt_1_m h)
-              := by simp [ρ]
+        have h1 : subₕₖ (σ n') 𝟙 h = n' := by
+          simp [one, zero, subₕₖ]
+        rw [h1]
+        simp [ρ]
 
   theorem sub_one (n : ℕ₀) :
     sub n 𝟙 = τ n
@@ -186,9 +176,9 @@ namespace Peano
           exfalso
           have h_one_le_succ : Le 𝟙 (σ n') := by
             cases n' with
-            | zero => simp [one, Le]
+            | zero => simp [one, Le, zero]
             | succ n'' =>
-              simp [one, Le]
+              simp [one, Le, zero]
               exact zero_lt_succ (σ n'')
           exact h h_one_le_succ
       rw [h_n_eq_zero]
@@ -209,10 +199,7 @@ namespace Peano
     · -- Caso 2: h_1_eq_m : 𝟙 = m
       left
       rw [← h_1_eq_m]
-      calc
-        sub 𝟙 𝟙 = subₕₖ 𝟙 𝟙 (le_refl 𝟙) := by rfl
-        _ = subₕₖ 𝟘 𝟘 (succ_le_succ_then (le_refl 𝟙)) := by simp [subₕₖ, one]
-        _ = 𝟘 := by simp [subₕₖ]
+      simp [sub, le_refl, one, zero, subₕₖ]
     · -- Caso 3: h_m_lt_1 : m < 𝟙
       right
       have h_m_eq_zero : m = 𝟘 := by

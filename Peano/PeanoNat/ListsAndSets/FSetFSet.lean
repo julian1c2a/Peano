@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNat/FSetFSet.lean
+-- Peano/PeanoNat/ListsAndSets/FSetFSet.lean
 -- Conjuntos finitos de tipos "peso 3" (listas).
 -- Alias y operaciones básicas para FSet de los tipos definidos en ListLists.lean.
 --
@@ -16,8 +16,8 @@ License: MIT
 --       `DecidableEq (List α)` también viene de la stdlib cuando `DecidableEq α`.
 --       `LT PeanoVal` y `DecidableEq PeanoVal` vienen de ListLists.lean y Lists.lean.
 
-import Peano.PeanoNat.FSet
-import Peano.PeanoNat.ListLists
+import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.ListsAndSets.ListLists
 
 namespace Peano
   open Peano

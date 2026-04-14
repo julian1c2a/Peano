@@ -14,7 +14,7 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Lattice
-import Peano.PeanoNat.Lists
+import Peano.PeanoNat.ListsAndSets.Lists
 
 
 namespace Peano

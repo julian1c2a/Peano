@@ -1,4 +1,4 @@
-import Peano.PeanoNat.Lists
+import Peano.PeanoNat.ListsAndSets.Lists
 
 /-!
 Copyright (c) 2026. All rights reserved.
@@ -6,7 +6,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNat/ListLists.lean
+-- Peano/PeanoNat/ListsAndSets/ListLists.lean
 -- Órdenes avanzados sobre listas y el tipo suma `PeanoVal`.
 --
 -- § 11. LE y DecidableRel (≤) para List α

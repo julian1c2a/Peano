@@ -94,6 +94,63 @@ namespace Peano
 
     def lengthₚ {α : Type} (l : List α) : ℕ₀ := Λ l.length
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 4b. Acceso por índice (getD) e índice de un elemento (indexOfₚ)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Acceso por índice en `ℕ₀`.  Devuelve `dflt` si el índice está fuera de rango. -/
+    def getDₚ {α : Type} (dflt : α) : List α → ℕ₀ → α
+      | [],       _   => dflt
+      | x :: _,  𝟘   => x
+      | _ :: xs, σ i  => getDₚ dflt xs i
+
+    /-- `getDₚ` en posición cero de una lista no vacía. -/
+    theorem getDₚ_cons_zero {α : Type} (dflt x : α) (xs : List α) :
+        getDₚ dflt (x :: xs) 𝟘 = x := rfl
+
+    /-- `getDₚ` en posición sucesor. -/
+    @[simp] theorem getDₚ_cons_succ {α : Type} (dflt x : α) (xs : List α) (i : ℕ₀) :
+        getDₚ dflt (x :: xs) (σ i) = getDₚ dflt xs i := rfl
+
+    /-- Si `i < lengthₚ l`, entonces `getDₚ dflt l i ∈ l`. -/
+    theorem getDₚ_mem {α : Type} (dflt : α) (l : List α) (i : ℕ₀)
+        (hi : Lt i (lengthₚ l)) : getDₚ dflt l i ∈ l :=
+      sorry  -- por inducción: nil → absurd (nlt_n_0); cons → casos 0/succ
+
+    /-- Primera posición de `a` en `l` (en ℕ₀); devuelve `𝟘` si no está. -/
+    def List.indexOfₚ {α : Type} [DecidableEq α] (a : α) : List α → ℕ₀
+      | []       => 𝟘
+      | x :: xs  => if x = a then 𝟘 else σ (List.indexOfₚ a xs)
+
+    @[simp] theorem List.indexOfₚ_nil {α : Type} [DecidableEq α] (a : α) :
+        List.indexOfₚ a [] = 𝟘 := rfl
+
+    theorem List.indexOfₚ_cons_eq {α : Type} [DecidableEq α] (a x : α) (xs : List α)
+        (h : x = a) : List.indexOfₚ a (x :: xs) = 𝟘 := by
+      simp [List.indexOfₚ, h]
+
+    theorem List.indexOfₚ_cons_ne {α : Type} [DecidableEq α] (a x : α) (xs : List α)
+        (h : x ≠ a) : List.indexOfₚ a (x :: xs) = σ (List.indexOfₚ a xs) := by
+      simp [List.indexOfₚ, h]
+
+    /-- Si `a ∈ l`, entonces `getD dflt l (indexOfₚ a l) = a`. -/
+    theorem List.getD_indexOfₚ {α : Type} [DecidableEq α] (dflt a : α) (l : List α)
+        (hmem : a ∈ l) : getDₚ dflt l (List.indexOfₚ a l) = a := by
+      induction l with
+      | nil => cases hmem
+      | cons x xs ih =>
+        by_cases hxa : x = a
+        · -- indexOfₚ a (x::xs) = 𝟘, getD dflt (x::xs) 𝟘 = x = a
+          rw [List.indexOfₚ_cons_eq a x xs hxa, List.getD_cons_zero, hxa]
+        · have hmem' : a ∈ xs := (List.mem_cons.mp hmem).resolve_left (Ne.symm hxa)
+          rw [List.indexOfₚ_cons_ne a x xs hxa, List.getD_cons_succ]
+          exact ih hmem'
+
+    /-- `indexOfₚ a l < lengthₚ l` cuando `a ∈ l`. -/
+    theorem List.indexOfₚ_lt_length {α : Type} [DecidableEq α] (a : α) (l : List α)
+        (hmem : a ∈ l) : Lt (List.indexOfₚ a l) (lengthₚ l) :=
+      sorry  -- por inducción: nil → contradicción; cons → casos x=a/x≠a
+
     @[simp] theorem lengthₚ_nil {α : Type} :
       lengthₚ ([] : List α) = 𝟘 := rfl
 
@@ -360,4 +417,14 @@ export Peano.Lists (
   PeanoVal
   instDecidableEqPeanoVal
   PeanoValList
+  getDₚ
+  getDₚ_cons_zero
+  getDₚ_cons_succ
+  getDₚ_mem
+  List.indexOfₚ
+  List.indexOfₚ_nil
+  List.indexOfₚ_cons_eq
+  List.indexOfₚ_cons_ne
+  getDₚ_indexOfₚ
+  List.indexOfₚ_lt_length
 )

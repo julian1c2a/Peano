@@ -15,7 +15,7 @@ License: MIT
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.Mul
-import Peano.PeanoNat.FSet
+import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Combinatorics.Pow
 
 

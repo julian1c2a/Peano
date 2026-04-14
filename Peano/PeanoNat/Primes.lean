@@ -1,4 +1,8 @@
-/-
+import Peano.PeanoNat.Arith
+import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.Combinatorics.Product
+
+/-!
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -16,10 +20,6 @@ License: MIT
 -- § 6. Existencia de factorización prima (TFA — Existencia)
 -- § 7. Unicidad de la factorización prima  (TFA — Unicidad)
 -- § 8. Factorización computable (factorize : ℕ₂ → FactFSet)
-
-import Peano.PeanoNat.Arith
-import Peano.PeanoNat.Lists
-import Peano.PeanoNat.Combinatorics.Product
 
 namespace Peano
   open Peano

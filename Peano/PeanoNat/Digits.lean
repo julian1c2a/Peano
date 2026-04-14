@@ -23,7 +23,7 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.Lists
+import Peano.PeanoNat.ListsAndSets.Lists
 import Peano.PeanoNat.Log
 import Peano.PeanoNat.Combinatorics.Pow
 

@@ -72,58 +72,8 @@ namespace Peano
             -- have heuler : mod (pow a (Totient.totient p)) p = 𝟙 := sorry -- TODO: implementar o importar teorema de Euler
             sorry -- TODO: completar el caso coprimo usando Euler
 
-            -- Paso 3: Reescribir a^p = a * a^(p-1)
-            -- (usamos la definición de pow y la aritmética de sucesor)
-            -- have hpow : pow a p = mul a (pow a (sub p 𝟙)) := by
-            --    rw [←pow_succ, sub_add_cancel]
-            --    exact rfl
-            --    exact Arith.prime_ne_zero p hp
-
-            -- Paso 4: Modularidad: (a * b) mod p = ((a mod p) * (b mod p)) mod p
-            -- (usar ModEq.mul_mod)
-            -- have hmodmul : mod (mul a (pow a (sub p 𝟙))) p = mod (mul (mod a p) (mod (pow a (sub p 𝟙)) p)) p :=
-            --    by apply ModEq.mul_mod
-
-            -- Paso 5: Sustituir el resultado de Euler
-            -- (reemplazar pow a (p-1) mod p por 1)
-            -- rw [hpow, hmodmul, heuler]
-            -- rw [mul_one]
-
-             · -- CASO 2: p divide a (¬Coprime a p)
-                --
-                -- Paso 1: p ∣ a equivale a ¬Coprime a p
-                have hdiv : p ∣ a := by
-                   rw [Arith.Coprime] at hcop
-                   push_neg at hcop
-                   exact hcop
-
-                -- Paso 2: a = k * p para algún k
-                rcases hdiv with ⟨k, hk⟩
-
-                -- Paso 3: pow a p = pow (k * p) p
-                have hpow : pow a p = pow (mul k p) p := by rw [hk]
-
-                -- Paso 4: a mod p = 0 (por ser múltiplo)
-                have hmoda : mod a p = 𝟘 := by rw [hk, Arith.mod_mul_right]
-
-                -- Paso 5: pow a p mod p = 0 (todo término es múltiplo de p)
-                have hmodpow : mod (pow a p) p = 𝟘 := by
-                   rw [hk]
-                   -- Demostración inductiva: (k*p)^p es múltiplo de p para todo p > 0
-                   induction p with
-                   | zero =>
-                      -- pow (k * p) 0 = 1, pero p = 0 imposible (primo)
-                      exfalso; exact Primes.prime_ne_zero p hp rfl
-                   | succ p' ih =>
-                      -- pow (k * p) (succ p') = (pow (k * p) p') * (k * p)
-                      rw [pow_succ]
-                      -- Por hipótesis de inducción, pow (k * p) p' es múltiplo de p o 1 si p' = 0
-                      -- Pero en cualquier caso, al multiplicar por p, el resultado es múltiplo de p
-                      -- Así, mod (mul (pow (k * p) p') (k * p)) p = 0
-                      rw [Arith.mod_mul_right]
-
-                -- Paso 6: Igualdad final: ambos lados son 0
-                rw [hmodpow, hmoda]
+         · -- CASO 2: p divide a (¬Coprime a p)
+            sorry -- TODO: cuando p ∣ a, ambos lados son 0 mod p
 
    end Fermat
 end Peano

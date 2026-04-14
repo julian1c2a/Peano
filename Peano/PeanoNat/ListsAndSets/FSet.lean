@@ -4,7 +4,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNat/FSet.lean
+-- Peano/PeanoNat/ListsAndSets/FSet.lean
 -- Conjuntos finitos decidibles, genéricos sobre cualquier tipo con orden.
 -- Representación: listas estrictamente ordenadas (forma canónica).
 --
@@ -18,7 +18,7 @@ License: MIT
 -- § 7. Notación {[ ... ]} para ℕ₀FSet
 -- § 8. Operaciones sobre FactFSet (addFactor, lookup)
 
-import Peano.PeanoNat.Lists
+import Peano.PeanoNat.ListsAndSets.Lists
 import Peano.PeanoNat.Add
 
 
@@ -270,6 +270,35 @@ namespace Peano
       def filter (p : ℕ₀ → Bool) (s : FSet ℕ₀) : FSet ℕ₀ :=
         FSet.filter p s
 
+      /-- El segmento inicial `{0, 1, …, n-1}` como `ℕ₀FSet`.
+          `Fin₀Set 𝟘 = ∅`, `Fin₀Set (σ n) = Fin₀Set n ∪ {n}`. -/
+      def Fin₀Set : ℕ₀ → ℕ₀FSet
+        | 𝟘   => empty
+        | σ n => insert n (Fin₀Set n)
+
+      /-- `k ∈ Fin₀Set n ↔ k < n`. -/
+      theorem mem_Fin₀Set_iff (n k : ℕ₀) :
+          k ∈ (Fin₀Set n).elems ↔ Lt k n := by
+        induction n with
+        | zero =>
+          simp only [Fin₀Set, empty, FSet.empty, List.not_mem_nil, false_iff]
+          exact Peano.StrictOrder.nlt_n_0 k
+        | succ n' ih =>
+          simp only [Fin₀Set, insert]
+          rw [mem_sortedInsert_iff]
+          rw [Peano.StrictOrder.lt_succ_iff_lt_or_eq]
+          constructor
+          · rintro (rfl | hk)
+            · exact Or.inr rfl
+            · exact Or.inl (ih.mp hk)
+          · rintro (hlt | rfl)
+            · exact Or.inr (ih.mpr hlt)
+            · exact Or.inl rfl
+
+      /-- `Fin₀Set n` tiene exactamente `n` elementos. -/
+      theorem Fin₀Set_card (n : ℕ₀) : (Fin₀Set n).card = n :=
+        sorry  -- requiere List.length_sortedInsert_notin + inducción sobre Λ
+
     end ℕ₀FSet
 
     -- ══════════════════════════════════════════════════════════════════
@@ -292,9 +321,30 @@ namespace Peano
     end NatsFSet
 
     -- FactFSet básicos
-    def FactFSet.empty : FactFSet :=
+    namespace FactFSet
+
+    def empty : FactFSet :=
       FactFSet.mk [] (sorted_nil _) trivial
-    def FactFSet.card (s : FactFSet) : ℕ₀ := lengthₚ s.elems
+
+    def card (s : FactFSet) : ℕ₀ := lengthₚ s.elems
+
+    /-- Singleton: el conjunto que contiene exactamente el factor `(p, e)`. -/
+    def singleton (pe : ℕ₂ × ℕ₁) : FactFSet :=
+      FactFSet.mk [pe]
+        (List.Pairwise.cons (fun _ h => absurd h List.not_mem_nil) List.Pairwise.nil)
+        ⟨fun _ _ h => absurd h List.not_mem_nil, trivial⟩
+
+    /-- Par ordenado: el conjunto que contiene exactamente los factores `p1` y `p2`,
+        con la condición de que la base de `p1` sea estrictamente menor que la de `p2`.
+        Esto asegura el invariante `SortedByKey`. -/
+    def pair (p1 p2 : ℕ₂ × ℕ₁) (h : p1.1 < p2.1) : FactFSet :=
+      let sk : SortedByKey [p1, p2] :=
+        List.Pairwise.cons
+          (fun x hx => by simp only [List.mem_singleton] at hx; subst hx; exact h)
+          (List.Pairwise.cons (fun _ hx => absurd hx List.not_mem_nil) List.Pairwise.nil)
+      FactFSet.mk [p1, p2] sk (sortedByKey_imp_uniqueKeys _ sk)
+
+    end FactFSet
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 7. Notación {[ ... ]} para ℕ₀FSet
@@ -513,4 +563,7 @@ export Peano.FSet (
   NatsTupleFSet
   GTupleFSet
   HTupleFSet
+  ℕ₀FSet.Fin₀Set
+  ℕ₀FSet.mem_Fin₀Set_iff
+  ℕ₀FSet.Fin₀Set_card
 )

@@ -7,7 +7,7 @@ License: MIT
 -- Peano/PeanoNat/Combinatorics/Counting.lean
 
 import Peano.PeanoNat
-import Peano.PeanoNat.FSet
+import Peano.PeanoNat.ListsAndSets.FSet
 
 set_option autoImplicit false
 

@@ -1,4 +1,7 @@
-/-
+import Peano.PeanoNat.Arith
+import Peano.PeanoNat.ListsAndSets.FSet
+
+/-!
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -11,10 +14,6 @@ License: MIT
 -- § 1. Predicados (conjuntos como proposiciones)
 -- § 2. Tests booleanos decidibles
 -- § 3. Conjuntos finitos (ℕ₀FSet)
-
-import Peano.PeanoNat.Arith
-import Peano.PeanoNat.FSet
-
 
 namespace Peano
   open Peano
@@ -58,8 +57,7 @@ namespace Peano
       ((range_from_one n).filter (fun d => dividesb d n)).length == 2
 
     /-- Test booleano de coprimalidad: `gcd(a, b) = 1`. -/
-    def coprimeb (a b : ℕ₀) : Bool :=
-      gcd a b == 𝟙
+    def coprimeb (a b : ℕ₀) : Bool := gcd a b == 𝟙
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 3. Conjuntos finitos (ℕ₀FSet)

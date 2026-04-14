@@ -1,14 +1,14 @@
-/-
+import Peano.PeanoNat
+import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.Combinatorics.Group
+
+/-!
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
 -/
 
 -- Peano/PeanoNat/Combinatorics/Orbit.lean
-
-import Peano.PeanoNat
-import Peano.PeanoNat.FSet
-import Peano.PeanoNat.Combinatorics.Group
 
 set_option autoImplicit false
 

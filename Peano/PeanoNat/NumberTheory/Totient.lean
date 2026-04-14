@@ -16,8 +16,8 @@ import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Arith
-import Peano.PeanoNat.Lists
-import Peano.PeanoNat.FSet
+import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.NumberSets
 import Peano.PeanoNat.Primes
 

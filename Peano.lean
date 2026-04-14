@@ -1,13 +1,3 @@
-/-
-Copyright (c) 2026. All rights reserved.
-Author: Julián Calderón Almendros
-License: MIT
--/
-
--- Peano.lean
--- Módulo raíz: importa todos los módulos de Peano/ y re-exporta
--- sus declaraciones públicas para consumo sin calificación.
-
 import Peano.Prelim
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
@@ -19,8 +9,8 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.Lists
-import Peano.PeanoNat.FSet
+import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Primes
 import Peano.PeanoNat.NumberSets
@@ -40,6 +30,17 @@ import Peano.PeanoNat.Pairing
 import Peano.PeanoNat.NumberTheory.ChineseRemainder
 import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.Totient
+
+/-!
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
+-- Peano.lean
+-- Módulo raíz: importa todos los módulos de Peano/ y re-exporta
+-- sus declaraciones públicas para consumo sin calificación.
+
 
 -- ─────────────────────────────────────────────────────────────────
 -- namespace Peano  (Prelim/ExistsUnique.lean — constructivo)
@@ -73,7 +74,7 @@ export Peano (
   eqFn
   eqFn2
   eqFnNat
-  cero
+  zero
   one
   two
   three

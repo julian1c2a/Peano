@@ -7,7 +7,7 @@ License: MIT
 -- Peano/PeanoNat/Combinatorics/Sign.lean
 
 import Peano.PeanoNat
-import Peano.PeanoNat.FSet
+import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Combinatorics.Perm
 
 set_option autoImplicit false

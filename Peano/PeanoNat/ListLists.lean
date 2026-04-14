@@ -1,136 +1,224 @@
-/-!
-# ListLists.lean
-
-Este módulo define:
-- El orden lexicográfico genérico para `List α` (con instancias `LT`, `LE`, `DecidableLT`, `DecidableLE`).
-- Alias para listas de tuplas y listas de listas: `NatsTupleList`, `GTupleList`, `HTupleList`, etc.
-- El tipo suma `PeanoVal` que agrupa naturales, tuplas, listas, etc., y su lista `PeanoValList`.
-- Un "orden global" sobre `PeanoVal` y sus listas, basado en pesos.
-
----
-
 import Peano.PeanoNat.Lists
-import Peano.PeanoNat.Tuple
-import Peano.PeanoNat.Nats
-import Peano.PeanoNat.HTuple
 
-namespace PeanoNat
+/-!
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
 
-/-! ## Orden lexicográfico genérico para listas -/
+-- Peano/PeanoNat/ListLists.lean
+-- Órdenes avanzados sobre listas y el tipo suma `PeanoVal`.
+--
+-- § 11. LE y DecidableRel (≤) para List α
+--       (LT ya viene de Lean 4 stdlib via List.Lex)
+-- § 12. LT, LE, DecidableRel para Nats   (nat0 < nat1 < nat2)
+-- § 13. Codificación canónica PeanoVal → List Nat
+-- § 14. LT, LE, DecidableRel para PeanoVal (por pesos vía codificación)
+-- § 15. Repr para PeanoVal
 
-def listLexLt {α : Type} [LT α] : List α → List α → Prop
-| [], []         => False
-| [], _ :: _     => True
-| _ :: _, []     => False
-| a :: as, b :: bs => a < b ∨ (a = b ∧ listLexLt as bs)
+namespace Peano
+  open Peano
 
-instance instLTList {α : Type} [LT α] : LT (List α) := ⟨listLexLt⟩
+  namespace Lists
+    open Peano.StrictOrder
 
-/-! Instancia LE (≤) para listas -/
-def listLexLe {α : Type} [LT α] [DecidableEq α] : List α → List α → Prop :=
-  fun as bs => (as < bs) ∨ as = bs
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 11. LE y Decidable para List α
+    -- ══════════════════════════════════════════════════════════════════
 
-instance instLEList {α : Type} [LT α] [DecidableEq α] : LE (List α) := ⟨listLexLe⟩
+    /-- Lean 4 stdlib provee `LT (List α)` = `List.Lex (· < ·)`.
+        Aquí añadimos `LE`: `as ≤ bs ↔ as < bs ∨ as = bs`. -/
+    instance instLEList {α : Type} [LT α] [DecidableEq α] : LE (List α) :=
+      ⟨fun as bs => as < bs ∨ as = bs⟩
 
-/-! Instancias Decidable para < y ≤ en listas -/
-instance instDecidableRelLtList {α} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] :
-    DecidableRel (@LT.lt (List α) _) :=
-  λ as bs =>
-    match as, bs with
-    | [], []         => isFalse (by intro h; cases h)
-    | [], _ :: _     => isTrue (by left; trivial)
-    | _ :: _, []     => isFalse (by intro h; cases h)
-    | a :: as, b :: bs =>
-      match (decidableLt a b), (decEq a b), (instDecidableRelLtList as bs) with
-      | isTrue hab, _, _ => isTrue (by left; exact hab)
-      | isFalse _, isTrue heq, hlt =>
-        match hlt with
-        | isTrue h => isTrue (by right; exact ⟨heq, h⟩)
-        | isFalse _ => isFalse (by intro h; cases h; contradiction)
-      | isFalse _, isFalse _, _ => isFalse (by intro h; cases h; contradiction)
-  where
-    decidableLt := @LT.lt α _
-    decEq := @DecidableEq α _
+    /-- Decidabilidad de `≤` sobre `List α` cuando los elementos
+        tienen igualdad y orden estricto decidibles. -/
+    instance instDecidableLeList {α : Type} [LT α] [DecidableEq α]
+        [DecidableRel (@LT.lt α _)] :
+        DecidableRel (@LE.le (List α) instLEList) :=
+      fun as bs =>
+        let hlt : Decidable (as < bs) := inferInstance
+        match hlt, (inferInstance : Decidable (as = bs)) with
+        | isTrue h,   _           => isTrue (Or.inl h)
+        | isFalse _,  isTrue heq  => isTrue (Or.inr heq)
+        | isFalse hn, isFalse hne => isFalse (fun h => h.elim hn hne)
 
-instance instDecidableRelLeList {α} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] :
-    DecidableRel (@LE.le (List α) _) :=
-  λ as bs =>
-    match instDecidableRelLtList as bs with
-    | isTrue _ => isTrue (by left; assumption)
-    | isFalse _ =>
-      match decEq as bs with
-      | isTrue heq => isTrue (by right; exact heq)
-      | isFalse _ => isFalse (by intro h; cases h; contradiction)
-  where
-    decEq := @DecidableEq (List α) _
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 12. Orden sobre Nats  (nat0 < nat1 < nat2)
+    -- ══════════════════════════════════════════════════════════════════
 
-/-! ## Alias para listas de tuplas y listas de listas -/
+    /-- Orden estricto finito sobre las etiquetas de tipo `Nats`:
+        `nat0 < nat1 < nat2`. -/
+    @[reducible]
+    def natsKindLt : Nats → Nats → Prop
+      | .nat0, .nat1 | .nat0, .nat2 | .nat1, .nat2  => True
+      | _,     _                                    => False
 
-abbrev NatsTupleList (ts : List Nats) := List (NatsTuple ts)
-abbrev GTupleList (α : Type) (n : ℕ₀) := List (GTuple α n)
-abbrev HTupleList (ts : List Type) := List (HTuple ts)
-abbrev NatsList := List Nats
-abbrev Nat0List := List ℕ₀
-abbrev Nat1List := List ℕ₁
-abbrev Nat2List := List ℕ₂
+    instance instLTNats : LT Nats := ⟨natsKindLt⟩
 
-/-! ## Tipo suma PeanoVal y su lista -/
+    /-- `a ≤ b` si `a < b` o `a = b`. -/
+    instance instLENats : LE Nats :=
+      ⟨fun a b => natsKindLt a b ∨ a = b⟩
 
-inductive PeanoVal
-| nat0 (n : ℕ₀)
-| nat1 (n : ℕ₁)
-| nat2 (n : ℕ₂)
-| nats (ns : Nats)
-| tuple0 (t : GTuple ℕ₀ 2)
-| tuple1 (t : GTuple ℕ₁ 2)
-| tuple2 (t : GTuple ℕ₂ 2)
-| natsTuple (ts : NatsTuple (List.replicate 2 Nats))
-| htuple (ts : HTuple (List.replicate 2 Type))
-| natsList (l : NatsList)
-| nat0List (l : Nat0List)
-| nat1List (l : Nat1List)
-| nat2List (l : Nat2List)
-| natsTupleList (l : NatsTupleList (List.replicate 2 Nats))
-| gtupleList (l : GTupleList ℕ₀ 2)
-| htupleList (l : HTupleList (List.replicate 2 Type))
+    /-- Decidabilidad de `<` en `Nats` (9 casos explícitos). -/
+    instance instDecidableRelLtNats : DecidableRel (@LT.lt Nats instLTNats) :=
+      fun a b => match a, b with
+        | .nat0, .nat1 => isTrue  trivial
+        | .nat0, .nat2 => isTrue  trivial
+        | .nat1, .nat2 => isTrue  trivial
+        | .nat0, .nat0 => isFalse id
+        | .nat1, .nat0 => isFalse id
+        | .nat1, .nat1 => isFalse id
+        | .nat2, .nat0 => isFalse id
+        | .nat2, .nat1 => isFalse id
+        | .nat2, .nat2 => isFalse id
 
-deriving DecidableEq, Repr
+    /-- Decidabilidad de `≤` en `Nats`. -/
+    instance instDecidableRelLeNats : DecidableRel (@LE.le Nats instLENats) :=
+      fun a b =>
+        match instDecidableRelLtNats a b with
+        | isTrue h  => isTrue (Or.inl h)
+        | isFalse hn =>
+          match decEq a b with
+          | isTrue heq  => isTrue (Or.inr heq)
+          | isFalse hne => isFalse (fun h => h.elim hn hne)
 
-abbrev PeanoValList := List PeanoVal
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 13. Codificación canónica  PeanoVal → List Nat
+    -- ══════════════════════════════════════════════════════════════════
 
-/-! ## Orden global por peso sobre PeanoVal -/
+    /-- Convierte una etiqueta `Nats` a un índice `Nat` (0, 1, 2). -/
+    private def natsKindNat : Nats → Nat
+      | .nat0 => 0 | .nat1 => 1 | .nat2 => 2
 
-def peanoValWeight : PeanoVal → Nat
-| .nat0 _ | .nat1 _ | .nat2 _ | .nats _ => 1
-| .tuple0 _ | .tuple1 _ | .tuple2 _ | .natsTuple _ | .htuple _ => 2
-| .natsList _ | .nat0List _ | .nat1List _ | .nat2List _ | .natsTupleList _ | .gtupleList _ | .htupleList _ => 3
+    /-- Aplana un `Tuple n` en una lista de `Nat`
+        proyectando cada componente `ℕ₀` via `Ψ`. -/
+    private def tupleToNatList : {n : ℕ₀} → Tuple n → List Nat
+      | 𝟘,    _          => []
+      | σ _, (x, xs)    => Ψ x :: tupleToNatList xs
 
-instance : LT PeanoVal where
-  lt a b :=
-    let wa := peanoValWeight a
-    let wb := peanoValWeight b
-    wa < wb ∨ (wa = wb ∧ toString a < toString b)
+    /-- Aplana un `NatsTuple ts` en una lista de `Nat`
+        proyectando cada componente al ℕ₀ subyacente vía `natsVal`. -/
+    private def natstupleToNatList : {ts : List Nats} → NatsTuple ts → List Nat
+      | [],     _        => []
+      | t :: _, (x, xs)  => Ψ (natsVal t x) :: natstupleToNatList xs
 
-instance : DecidableRel (@LT.lt PeanoVal _) :=
-  λ a b =>
-    let wa := peanoValWeight a
-    let wb := peanoValWeight b
-    match Nat.decLt wa wb, Nat.decEq wa wb with
-    | isTrue hlt, _ => isTrue (by left; exact hlt)
-    | isFalse _, isTrue heq =>
-      match decEq (toString a) (toString b), decide (toString a < toString b) with
-      | isFalse _, isTrue hlt => isTrue (by right; exact ⟨heq, hlt⟩)
-      | _, _ => isFalse (by intro h; cases h; contradiction)
-    | isFalse _, isFalse _ => isFalse (by intro h; cases h; contradiction)
-  where
-    decEq := @DecidableEq String _
+    /-- Codificación canónica de un `PeanoVal` como `List Nat`.
 
-end PeanoNat
+        Estructura:
+          posición 0 — peso (1 = nat escalar, 2 = tupla, 3 = lista)
+          posición 1 — índice de constructor dentro del mismo peso
+          resto      — contenido, codificado lex-inyectivamente.
 
-/-! Exporta los principales nombres -/
-export PeanoNat (
-  listLexLt listLexLe
-  NatsTupleList GTupleList HTupleList
-  NatsList Nat0List Nat1List Nat2List
-  PeanoVal PeanoValList peanoValWeight
+        Jerarquía semántica por la codificación:
+          Peso 1 (nat individual)
+            0: ofNat k x           → [1, 0, kind_k, val_ℕ₀]
+          Peso 2 (tuplas)
+            0: ofTuple n t         → [2, 0, Ψ n, t₁, t₂, ...]
+            1: ofNatsTuple ts tup  → [2, 1, |ts|, k₁...kₘ, v₁...vₘ]
+          Peso 3 (listas)
+            0: ofNatList k xs      → [3, 0, kind_k, x₁, x₂, ...]
+            1: ofTupleList n ts    → [3, 1, Ψ n, |ts|, t₁₁...tₘₙ]
+            2: ofNatsTupleList ts  → [3, 2, |ts|, k₁...kₘ, v₁₁...vₘₙ]
+
+        El prefijo de peso + prefijo de esquema (|ts| + kinds) garantiza
+        inyectividad: valores con distintos esquemas no colisionan. -/
+    def peanoValEncode : PeanoVal → List Nat
+      | .ofNat k x =>
+          [1, 0, natsKindNat k, Ψ (natsVal k x)]
+      | .ofTuple n t =>
+          2 :: 0 :: Ψ n :: tupleToNatList t
+      | .ofNatsTuple ts tup =>
+          2 :: 1 :: ts.length :: (ts.map natsKindNat ++ natstupleToNatList tup)
+      | .ofNatList k xs =>
+          3 :: 0 :: natsKindNat k :: xs.map (fun x => Ψ (natsVal k x))
+      | .ofTupleList n ts =>
+          3 :: 1 :: Ψ n :: ts.length :: ts.flatMap tupleToNatList
+      | .ofNatsTupleList ts xs =>
+          3 :: 2 :: ts.length :: (ts.map natsKindNat ++ xs.flatMap natstupleToNatList)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 14. LT, LE, DecidableRel para PeanoVal
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Orden estricto sobre `PeanoVal` inducido por la codificación canónica
+        y el orden lexicográfico de `List Nat` (stdlib).
+
+        Jerarquía efectiva:
+          Peso 1 < Peso 2 < Peso 3      (nats < tuplas < listas)
+          Dentro del mismo peso, menor índice de constructor primero.
+          Mismo constructor y mismo esquema: lex de los valores. -/
+    instance instLTPeanoVal : LT PeanoVal :=
+      ⟨fun a b => List.lt (peanoValEncode a) (peanoValEncode b)⟩
+
+    /-- `a ≤ b` si `a < b` o `a = b`. -/
+    instance instLEPeanoVal : LE PeanoVal :=
+      ⟨fun a b => a < b ∨ a = b⟩
+
+    /-- Decidabilidad de `<` sobre `PeanoVal`.
+        Lean 4 infiere `DecidableRel (· < ·)` sobre `List Nat` a partir de
+        `Nat.decLt` + `DecidableEq Nat` + `instDecidableListLex` (core). -/
+    instance instDecidableRelLtPeanoVal : DecidableRel (@LT.lt PeanoVal instLTPeanoVal) :=
+      fun a b =>
+        let ea := peanoValEncode a
+        let eb := peanoValEncode b
+        (inferInstance : Decidable (ea < eb))
+
+    /-- Decidabilidad de `≤` sobre `PeanoVal`. -/
+    instance instDecidableRelLePeanoVal : DecidableRel (@LE.le PeanoVal instLEPeanoVal) :=
+      fun a b =>
+        match instDecidableRelLtPeanoVal a b with
+        | isTrue h   => isTrue (Or.inl h)
+        | isFalse hn =>
+          match instDecidableEqPeanoVal a b with
+          | isTrue heq  => isTrue (Or.inr heq)
+          | isFalse hne => isFalse (fun h => h.elim hn hne)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 15. Repr PeanoVal
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Función auxiliar: representa una lista como cadena usando
+        el `Repr` de sus elementos. -/
+    private def reprListFmt {α : Type} (r : Repr α) (l : List α) : String :=
+      "[" ++ String.intercalate ", "
+        (l.map (fun x => toString (r.reprPrec x 0))) ++ "]"
+
+    /-- Representación legible para `PeanoVal`.
+        Los parámetros `ℕ₀` se muestran como su valor decimal (vía `Ψ`). -/
+    instance instReprPeanoVal : Repr PeanoVal where
+      reprPrec pv _ :=
+        let s : String := match pv with
+          | .ofNat k x =>
+              s!"ofNat .{repr k} {(instReprNatsType k).reprPrec x 0}"
+          | .ofNatList k xs =>
+              s!"ofNatList .{repr k} {reprListFmt (instReprNatsType k) xs}"
+          | .ofTuple n t =>
+              s!"ofTuple {Ψ n} {(tupleRepr n).reprPrec t 0}"
+          | .ofNatsTuple ts tup =>
+              s!"ofNatsTuple {repr ts} {(natsTupleRepr ts).reprPrec tup 0}"
+          | .ofTupleList n ts =>
+              s!"ofTupleList {Ψ n} {reprListFmt (tupleRepr n) ts}"
+          | .ofNatsTupleList ts xs =>
+              s!"ofNatsTupleList {repr ts} {reprListFmt (natsTupleRepr ts) xs}"
+        s
+
+  end Lists
+
+end Peano
+
+export Peano.Lists (
+  instLEList
+  instDecidableLeList
+  natsKindLt
+  instLTNats
+  instLENats
+  instDecidableRelLtNats
+  instDecidableRelLeNats
+  peanoValEncode
+  instLTPeanoVal
+  instLEPeanoVal
+  instDecidableRelLtPeanoVal
+  instDecidableRelLePeanoVal
+  instReprPeanoVal
 )

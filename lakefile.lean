@@ -11,7 +11,6 @@ lean_lib «Peano» where
   -- Configuramos múltiples roots: Peano y todos los módulos de Peano/
   srcDir := "."
   roots := #[`Peano]
-    import ./Peano/PeanoNat/ListLists.lean
   globs := #[Glob.submodules `Peano]
 
 -- Opcional: si quieres importar Mathlib para tácticas u otras utilidades

@@ -86,7 +86,7 @@ namespace Peano
 
     /-- Claves únicas en una lista de pares: ninguna base se repite. -/
     def UniqueKeys : List (ℕ₂ × ℕ₁) → Prop
-      | []            => True
+      | []             => True
       | (p, _) :: rest => (∀ q e, (q, e) ∈ rest → q ≠ p) ∧ UniqueKeys rest
 
     /-- Lista ordenada estrictamente por la primera componente (base). -/
@@ -430,6 +430,66 @@ namespace Peano
         (sortedByKey_factListAddFactor n s.elems s.sortedByKey)
         (uniqueKeys_factListAddFactor n s.elems s.sortedByKey)
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 9. FSet para tipos de peso 2 (tuplas)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Conjunto finito de tuplas homogéneas de ℕ₀ de longitud `n`.
+        Requiere `LT (Tuple n)` (via `instLTTuple`) y
+        `DecidableEq (Tuple n)` (via `tupleDecEq`). -/
+    abbrev TupleFSet (n : ℕ₀) := FSet (Tuple n)
+
+    /-- Conjunto finito de tuplas heterogéneas con esquema `ts : List Nats`.
+        Requiere `instLTNatsTuple` y `natsTupleDecEq`. -/
+    abbrev NatsTupleFSet (ts : List Nats) := FSet (NatsTuple ts)
+
+    /-- Conjunto finito de tuplas homogéneas genéricas de tipo `α` y longitud `n`.
+        Requiere `[LT α]`, `[DecidableEq α]` para poder instanciar `FSet`. -/
+    abbrev GTupleFSet (α : Type) [LT α] [DecidableEq α] (n : ℕ₀) :=
+      FSet (GTuple α n)
+
+    /-- Conjunto finito de tuplas heterogéneas con esquema `ts : List Type`.
+        Requiere las typeclasses `HTupleDecidableEq ts` y `HTupleLT ts`. -/
+    abbrev HTupleFSet (ts : List Type)
+        [HTupleDecidableEq ts] [HTupleLT ts] :=
+      FSet (HTuple ts)
+
+    namespace TupleFSet
+      def empty (n : ℕ₀) : TupleFSet n := FSet.empty
+      def singleton (n : ℕ₀) (t : Tuple n) : TupleFSet n := FSet.singleton t
+      /-- Construye un `TupleFSet` desde una lista ya ordenada. -/
+      def ofSortedList (n : ℕ₀) (l : List (Tuple n))
+          (h : Sorted (· < ·) l) : TupleFSet n := ⟨l, h⟩
+    end TupleFSet
+
+    namespace NatsTupleFSet
+      def empty (ts : List Nats) : NatsTupleFSet ts := FSet.empty
+      def singleton (ts : List Nats) (t : NatsTuple ts) : NatsTupleFSet ts :=
+        FSet.singleton t
+      def ofSortedList (ts : List Nats) (l : List (NatsTuple ts))
+          (h : Sorted (· < ·) l) : NatsTupleFSet ts := ⟨l, h⟩
+    end NatsTupleFSet
+
+    namespace GTupleFSet
+      def empty (α : Type) [LT α] [DecidableEq α] (n : ℕ₀) :
+          GTupleFSet α n := FSet.empty
+      def singleton (α : Type) [LT α] [DecidableEq α] (n : ℕ₀)
+          (t : GTuple α n) : GTupleFSet α n := FSet.singleton t
+      def ofSortedList (α : Type) [LT α] [DecidableEq α] (n : ℕ₀)
+          (l : List (GTuple α n)) (h : Sorted (· < ·) l) :
+          GTupleFSet α n := ⟨l, h⟩
+    end GTupleFSet
+
+    namespace HTupleFSet
+      def empty (ts : List Type) [HTupleDecidableEq ts] [HTupleLT ts] :
+          HTupleFSet ts := FSet.empty
+      def singleton (ts : List Type) [HTupleDecidableEq ts] [HTupleLT ts]
+          (t : HTuple ts) : HTupleFSet ts := FSet.singleton t
+      def ofSortedList (ts : List Type) [HTupleDecidableEq ts] [HTupleLT ts]
+          (l : List (HTuple ts)) (h : Sorted (· < ·) l) :
+          HTupleFSet ts := ⟨l, h⟩
+    end HTupleFSet
+
   end FSet
 
 end Peano
@@ -449,4 +509,8 @@ export Peano.FSet (
   sorted_sortedInsert
   sortedByKey_factListAddFactor
   uniqueKeys_factListAddFactor
+  TupleFSet
+  NatsTupleFSet
+  GTupleFSet
+  HTupleFSet
 )

@@ -8,11 +8,12 @@ import Peano.PeanoNat.Tuple
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
--/
-
--- Peano/PeanoNat/Lists.lean
--- Infraestructura base para listas tipadas sobre ℕ₀, ℕ₁, ℕ₂.
---
+/-! Exporta los principales nombres atómicos (alias avanzados en ListLists.lean) -/
+export PeanoNat (
+  -- Aquí solo los alias simples y tipos atómicos
+  -- Ejemplo:
+  -- Nats, ℕ₀, ℕ₁, ℕ₂, Sorted, Fin₀, etc.
+)
 -- § 1. DecidableEq para ℕ₁ y ℕ₂
 -- § 2. Órdenes inducidos sobre ℕ₁ y ℕ₂
 -- § 3. Decidabilidad de órdenes sobre subtipos

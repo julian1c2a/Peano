@@ -122,12 +122,14 @@ namespace Peano
     | ℕ₂
     deriving Repr, BEq, DecidableEq
 
-  /-- Coerción para usar las etiquetas de `Nats` como si fueran los tipos reales -/
-  instance : CoeSort Nats Type where
-    coe
+  @[reducible]
+  def Nats.toType : Nats → Type
     | Nats.ℕ₀ => ℕ₀
     | Nats.ℕ₁ => ℕ₁
     | Nats.ℕ₂ => ℕ₂
+
+  /-- Coerción para usar las etiquetas de `Nats` como si fueran los tipos reales -/
+  instance : CoeSort Nats Type := ⟨Nats.toType⟩
 
   /-- Coerciones para extraer el valor ℕ₀ subyacente de los subtipos ℕ₁ y ℕ₂ de forma automática -/
   instance : Coe ℕ₁ ℕ₀ where coe n := n.val

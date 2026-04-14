@@ -76,6 +76,83 @@ namespace Peano
     | 𝟘, _ => emptyTuple
     | σ n, proj => consTuple (proj 𝟘) (mkTuple n (fun k => proj (σ k)))
 
+  /-- Constructor de tupla vacía (NatsTuple). -/
+  def emptyNatsTuple : NatsTuple [] := ()
+
+  /-- Constructor por concatenación (NatsTuple). -/
+  def consNatsTuple {t : Nats} {ts : List Nats}
+    (x : t) (xs : NatsTuple ts) :
+      NatsTuple (t :: ts)
+        :=
+    (x, xs)
+
+  /-- Proyección de la cabeza (NatsTuple). -/
+  def headNatsTuple {t : Nats} {ts : List Nats}
+    (x : NatsTuple (t :: ts)) :
+      t
+        :=
+    x.1
+
+  /-- Proyección de la cola (NatsTuple). -/
+  def tailNatsTuple {t : Nats} {ts : List Nats}
+    (x : NatsTuple (t :: ts)) :
+      NatsTuple ts
+        :=
+    x.2
+
+  /-- Constructor de tupla vacía (GTuple). -/
+  def emptyGTuple {α : Type} : GTuple α 𝟘 := ()
+
+  /-- Constructor por concatenación (GTuple). -/
+  def consGTuple {α : Type} {n : ℕ₀}
+    (x : α) (xs : GTuple α n) :
+      GTuple α (σ n)
+        :=
+    (x, xs)
+
+  /-- Proyección de la cabeza (GTuple). -/
+  def headGTuple {α : Type} {n : ℕ₀}
+    (x : GTuple α (σ n)) :
+      α
+        :=
+    x.1
+
+  /-- Proyección de la cola (GTuple). -/
+  def tailGTuple {α : Type} {n : ℕ₀}
+    (x : GTuple α (σ n)) :
+      GTuple α n
+        :=
+    x.2
+
+  /-- Construir una GTuple desde una función. -/
+  def mkGTuple {α : Type} : (n : ℕ₀) → (proj : ℕ₀ → α) → GTuple α n
+    | 𝟘, _ => emptyGTuple
+    | σ n, proj => consGTuple (proj 𝟘) (mkGTuple n (fun k => proj (σ k)))
+
+  /-- Constructor de tupla vacía (HTuple). -/
+  def emptyHTuple : HTuple [] := ()
+
+  /-- Constructor por concatenación (HTuple). -/
+  def consHTuple {α : Type} {ts : List Type}
+    (x : α) (xs : HTuple ts) :
+      HTuple (α :: ts)
+        :=
+    (x, xs)
+
+  /-- Proyección de la cabeza (HTuple). -/
+  def headHTuple {α : Type} {ts : List Type}
+    (x : HTuple (α :: ts)) :
+      α
+        :=
+    x.1
+
+  /-- Proyección de la cola (HTuple). -/
+  def tailHTuple {α : Type} {ts : List Type}
+    (x : HTuple (α :: ts)) :
+      HTuple ts
+        :=
+    x.2
+
   -- ══════════════════════════════════════════════════════════════════
   -- § 3. Igualdad decidible y representación
   -- ══════════════════════════════════════════════════════════════════
@@ -104,6 +181,80 @@ namespace Peano
           s!"⟨{head}⟩"
         else
           s!"⟨{head}, {tailStr.drop 1}"⟩
+
+  -- Instancias auxiliares para Nats
+  instance instDecidableEqNatsType : (t : Nats) → DecidableEq t
+    | Nats.ℕ₀ => inferInstance
+    | Nats.ℕ₁ => inferInstance
+    | Nats.ℕ₂ => inferInstance
+
+  instance instReprNatsType : (t : Nats) → Repr t
+    | Nats.ℕ₀ => inferInstance
+    | Nats.ℕ₁ => inferInstance
+    | Nats.ℕ₂ => inferInstance
+
+  /-- Igualdad decidible para NatsTuple. -/
+  instance natsTupleDecEq : (ts : List Nats) → DecidableEq (NatsTuple ts)
+    | [] => fun _ _ => isTrue rfl
+    | _ :: ts => fun t1 t2 =>
+        match decEq t1.1 t2.1, natsTupleDecEq ts t1.2 t2.2 with
+        | isTrue h1, isTrue h2 => isTrue (Prod.ext h1 h2)
+        | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
+        | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
+
+  /-- Representación para NatsTuple. -/
+  instance natsTupleRepr : (ts : List Nats) → Repr (NatsTuple ts)
+    | [] => ⟨fun _ _ => "⟨⟩"⟩
+    | _ :: ts => ⟨fun tup _ =>
+        let head := repr tup.1
+        let tailRepr := (natsTupleRepr ts).reprPrec tup.2 0
+        let tailStr := toString tailRepr
+        if tailStr = "⟨⟩" then
+          s!"⟨{head}⟩"
+        else
+          s!"⟨{head}, {tailStr.drop 1}"⟩
+
+  /-- Igualdad decidible para GTuple. -/
+  instance gtupleDecEq {α : Type} [DecidableEq α] : (n : ℕ₀) → DecidableEq (GTuple α n)
+    | 𝟘 => fun _ _ => isTrue rfl
+    | σ n => fun t1 t2 =>
+        match decEq t1.1 t2.1, gtupleDecEq n t1.2 t2.2 with
+        | isTrue h1, isTrue h2 => isTrue (Prod.ext h1 h2)
+        | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
+        | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
+
+  /-- Representación para GTuple. -/
+  instance gtupleRepr {α : Type} [Repr α] : (n : ℕ₀) → Repr (GTuple α n)
+    | 𝟘 => ⟨fun _ _ => "⟨⟩"⟩
+    | σ n => ⟨fun tup _ =>
+        let head := repr tup.1
+        let tailRepr := (gtupleRepr n).reprPrec tup.2 0
+        let tailStr := toString tailRepr
+        if tailStr = "⟨⟩" then
+          s!"⟨{head}⟩"
+        else
+          s!"⟨{head}, {tailStr.drop 1}"⟩
+
+  -- Nota: HTupleDecidableEq ya está implementada en la sección § 7.
+
+  class HTupleRepr (ts : List Type) where
+    reprPrec : HTuple ts → Nat → Std.Format
+
+  instance instHTupleReprNil : HTupleRepr [] where
+    reprPrec _ _ := "⟨⟩"
+
+  instance instHTupleReprCons {α : Type} {ts : List Type} [Repr α] [HTupleRepr ts] : HTupleRepr (α :: ts) where
+    reprPrec tup _ :=
+      let head := repr tup.1
+      let tailRepr := HTupleRepr.reprPrec tup.2 0
+      let tailStr := toString tailRepr
+      if tailStr = "⟨⟩" then
+        s!"⟨{head}⟩"
+      else
+        s!"⟨{head}, {tailStr.drop 1}"
+
+  instance htupleRepr {ts : List Type} [HTupleRepr ts] : Repr (HTuple ts) :=
+    ⟨HTupleRepr.reprPrec⟩
 
   -- ══════════════════════════════════════════════════════════════════
   -- § 4. Orden lexicográfico (lexLt, lexLe)
@@ -342,6 +493,29 @@ export Peano (
   mkTuple
   tupleDecEq
   tupleRepr
+  emptyNatsTuple
+  consNatsTuple
+  headNatsTuple
+  tailNatsTuple
+  instDecidableEqNatsType
+  instReprNatsType
+  natsTupleDecEq
+  natsTupleRepr
+  emptyGTuple
+  consGTuple
+  headGTuple
+  tailGTuple
+  mkGTuple
+  gtupleDecEq
+  gtupleRepr
+  emptyHTuple
+  consHTuple
+  headHTuple
+  tailHTuple
+  HTupleRepr
+  instHTupleReprNil
+  instHTupleReprCons
+  htupleRepr
   lexLt
   lexLe
   instLTTuple

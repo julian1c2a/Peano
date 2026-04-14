@@ -23,6 +23,22 @@ namespace Peano
     | 𝟘 => Unit
     | σ n => ℕ₀ × Tuple n
 
+  /-- Tupla heterogénea específica para el sistema numérico.
+      El esquema es una lista de etiquetas `Nats` que Lean convierte a tipos. -/
+  def NatsTuple : List Nats → Type
+  | [] => Unit
+  | (t :: ts) => t × NatsTuple ts
+
+  /-- Tupla homogénea genérica. Construye `α^n`. Todos los elementos son de tipo `α`. -/
+  def GTuple (α : Type) : ℕ₀ → Type
+  | 𝟘 => Unit
+  | σ n => α × GTuple α n
+
+  /-- Tupla heterogénea genérica (HList). El esquema es una lista explícita de tipos.
+      Permite instanciar, por ejemplo: `HTuple [ℕ₀, ℕ₁, Bool]`. -/
+  def HTuple : List Type → Type
+  | [] => Unit
+  | (α :: αs) => α × HTuple αs
   -- ══════════════════════════════════════════════════════════════════
   -- § 2. Constructores y proyecciones
   -- ══════════════════════════════════════════════════════════════════
@@ -31,15 +47,24 @@ namespace Peano
   def emptyTuple : Tuple 𝟘 := ()
 
   /-- Constructor de tupla por concatenación (cons). -/
-  def consTuple {n : ℕ₀} (x : ℕ₀) (xs : Tuple n) : Tuple (σ n) :=
+  def consTuple {n : ℕ₀}
+    (x : ℕ₀) (xs : Tuple n) :
+      Tuple (σ n)
+        :=
     (x, xs)
 
   /-- Proyección: obtener la cabeza de una tupla no vacía. -/
-  def headTuple {n : ℕ₀} (t : Tuple (σ n)) : ℕ₀ :=
+  def headTuple {n : ℕ₀}
+    (t : Tuple (σ n)) :
+      ℕ₀
+        :=
     t.1
 
   /-- Proyección: obtener la cola de una tupla no vacía. -/
-  def tailTuple {n : ℕ₀} (t : Tuple (σ n)) : Tuple n :=
+  def tailTuple {n : ℕ₀}
+    (t : Tuple (σ n)) :
+      Tuple n
+        :=
     t.2
 
   -- Notación para tuplas
@@ -129,10 +154,187 @@ namespace Peano
         | isFalse h_neq =>
           isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
 
+  -- ══════════════════════════════════════════════════════════════════
+  -- § 5. Orden lexicográfico para NatsTuple
+  -- ══════════════════════════════════════════════════════════════════
+
+  /-- Extrae el valor `ℕ₀` subyacente de cualquier elemento de un `NatsTuple` de forma dinámica. -/
+  def natsVal : (t : Nats) → t → ℕ₀
+    | Nats.ℕ₀, x => x
+    | Nats.ℕ₁, x => x.val
+    | Nats.ℕ₂, x => x.val.val
+
+  /-- Orden lexicográfico estricto para NatsTuple apoyado en los valores `ℕ₀`. -/
+  def natsLexLt : {ts : List Nats} → NatsTuple ts → NatsTuple ts → Prop
+    | [], _, _ => False
+    | (t :: _ts), (x, xs), (y, ys) =>
+      Lt (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLt xs ys)
+
+  /-- Orden lexicográfico no estricto para NatsTuple. -/
+  def natsLexLe : {ts : List Nats} → NatsTuple ts → NatsTuple ts → Prop
+    | [], _, _ => True
+    | (t :: _ts), (x, xs), (y, ys) =>
+      Lt (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLe xs ys)
+
+  instance instLTNatsTuple {ts : List Nats} : LT (NatsTuple ts) := ⟨natsLexLt⟩
+  instance instLENatsTuple {ts : List Nats} : LE (NatsTuple ts) := ⟨natsLexLe⟩
+
+  instance instDecidableRelLtNatsTuple : {ts : List Nats} → DecidableRel (@natsLexLt ts)
+    | [], _, _ => isFalse id
+    | t :: _ts, (x, xs), (y, ys) =>
+      match decidableLt (natsVal t x) (natsVal t y) with
+      | isTrue h_lt => isTrue (Or.inl h_lt)
+      | isFalse h_nlt =>
+        match decEq (natsVal t x) (natsVal t y) with
+        | isTrue h_eq =>
+          match instDecidableRelLtNatsTuple xs ys with
+          | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
+          | isFalse h_rest_nlt =>
+            isFalse (fun h => (Or.resolve_left h h_nlt).right |> h_rest_nlt)
+        | isFalse h_neq =>
+          isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
+
+  instance instDecidableRelLeNatsTuple : {ts : List Nats} → DecidableRel (@natsLexLe ts)
+    | [], _, _ => isTrue trivial
+    | t :: _ts, (x, xs), (y, ys) =>
+      match decidableLt (natsVal t x) (natsVal t y) with
+      | isTrue h_lt => isTrue (Or.inl h_lt)
+      | isFalse h_nlt =>
+        match decEq (natsVal t x) (natsVal t y) with
+        | isTrue h_eq =>
+          match instDecidableRelLeNatsTuple xs ys with
+          | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
+          | isFalse h_rest_nle =>
+            isFalse (fun h => (Or.resolve_left h h_nlt).right |> h_rest_nle)
+        | isFalse h_neq =>
+          isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
+
+  -- ══════════════════════════════════════════════════════════════════
+  -- § 6. Orden lexicográfico para GTuple
+  -- ══════════════════════════════════════════════════════════════════
+
+  /-- Orden lexicográfico estricto para GTuple. -/
+  def glexLt {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
+    | 𝟘, _, _ => False
+    | (σ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLt xs ys)
+
+  /-- Orden lexicográfico no estricto para GTuple. -/
+  def glexLe {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
+    | 𝟘, _, _ => True
+    | (σ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLe xs ys)
+
+  instance instLTGTuple {α : Type} [LT α] {n : ℕ₀} : LT (GTuple α n) := ⟨glexLt⟩
+  instance instLEGTuple {α : Type} [LT α] {n : ℕ₀} : LE (GTuple α n) := ⟨glexLe⟩
+
+  instance instDecidableRelLtGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLt α _ n)
+    | 𝟘, _, _ => isFalse id
+    | σ _, (x, xs), (y, ys) =>
+      if h_lt : x < y then isTrue (Or.inl h_lt)
+      else if h_eq : x = y then
+        match instDecidableRelLtGTuple xs ys with
+        | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
+        | isFalse h_rest_nlt => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nlt)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
+
+  instance instDecidableRelLeGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLe α _ n)
+    | 𝟘, _, _ => isTrue trivial
+    | σ _, (x, xs), (y, ys) =>
+      if h_lt : x < y then isTrue (Or.inl h_lt)
+      else if h_eq : x = y then
+        match instDecidableRelLeGTuple xs ys with
+        | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
+        | isFalse h_rest_nle => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nle)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
+
+  -- ══════════════════════════════════════════════════════════════════
+  -- § 7. Igualdad y Orden lexicográfico para HTuple
+  -- ══════════════════════════════════════════════════════════════════
+
+  class HTupleDecidableEq (ts : List Type) where
+    decEq : (x y : HTuple ts) → Decidable (x = y)
+
+  instance instHTupleDecEqNil : HTupleDecidableEq [] where
+    decEq | (), () => isTrue rfl
+
+  instance instHTupleDecEqCons {α : Type} {ts : List Type} [DecidableEq α] [HTupleDecidableEq ts] : HTupleDecidableEq (α :: ts) where
+    decEq x y :=
+      match decEq x.1 y.1 with
+      | isTrue h1 =>
+        match HTupleDecidableEq.decEq x.2 y.2 with
+        | isTrue h2 => isTrue (Prod.ext h1 h2)
+        | isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
+      | isFalse h1 => isFalse (fun h => h1 (congrArg Prod.fst h))
+
+  instance instDecidableEqHTuple {ts : List Type} [HTupleDecidableEq ts] : DecidableEq (HTuple ts) :=
+    HTupleDecidableEq.decEq
+
+  class HTupleLT (ts : List Type) where
+    lt : HTuple ts → HTuple ts → Prop
+
+  instance instHTupleLTNil : HTupleLT [] where
+    lt _ _ := False
+
+  instance instHTupleLTCons {α : Type} {ts : List Type} [LT α] [HTupleLT ts] : HTupleLT (α :: ts) where
+    lt x y := x.1 < y.1 ∨ (x.1 = y.1 ∧ HTupleLT.lt x.2 y.2)
+
+  instance instLTHTuple {ts : List Type} [HTupleLT ts] : LT (HTuple ts) := ⟨HTupleLT.lt⟩
+
+  class HTupleLE (ts : List Type) where
+    le : HTuple ts → HTuple ts → Prop
+
+  instance instHTupleLENil : HTupleLE [] where
+    le _ _ := True
+
+  instance instHTupleLECons {α : Type} {ts : List Type} [LT α] [HTupleLE ts] : HTupleLE (α :: ts) where
+    le x y := x.1 < y.1 ∨ (x.1 = y.1 ∧ HTupleLE.le x.2 y.2)
+
+  instance instLEHTuple {ts : List Type} [HTupleLE ts] : LE (HTuple ts) := ⟨HTupleLE.le⟩
+
+  class HTupleDecidableLT (ts : List Type) [HTupleLT ts] where
+    decLt : (x y : HTuple ts) → Decidable (x < y)
+
+  instance instHTupleDecLTNil : HTupleDecidableLT [] where
+    decLt _ _ := isFalse id
+
+  instance instHTupleDecLTCons {α : Type} {ts : List Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)]
+      [HTupleLT ts] [HTupleDecidableLT ts] : HTupleDecidableLT (α :: ts) where
+    decLt x y :=
+      if h_lt : x.1 < y.1 then isTrue (Or.inl h_lt)
+      else if h_eq : x.1 = y.1 then
+        match HTupleDecidableLT.decLt x.2 y.2 with
+        | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
+        | isFalse h_rest_nlt => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nlt)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
+
+  instance instDecidableRelLtHTuple {ts : List Type} [HTupleLT ts] [HTupleDecidableLT ts] : DecidableRel (@LT.lt (HTuple ts) _) :=
+    HTupleDecidableLT.decLt
+
+  class HTupleDecidableLE (ts : List Type) [HTupleLE ts] where
+    decLe : (x y : HTuple ts) → Decidable (x ≤ y)
+
+  instance instHTupleDecLENil : HTupleDecidableLE [] where
+    decLe _ _ := isTrue trivial
+
+  instance instHTupleDecLECons {α : Type} {ts : List Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)]
+      [HTupleLE ts] [HTupleDecidableLE ts] : HTupleDecidableLE (α :: ts) where
+    decLe x y :=
+      if h_lt : x.1 < y.1 then isTrue (Or.inl h_lt)
+      else if h_eq : x.1 = y.1 then
+        match HTupleDecidableLE.decLe x.2 y.2 with
+        | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
+        | isFalse h_rest_nle => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nle)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
+
+  instance instDecidableRelLeHTuple {ts : List Type} [HTupleLE ts] [HTupleDecidableLE ts] : DecidableRel (@LE.le (HTuple ts) _) :=
+    HTupleDecidableLE.decLe
+
 end Peano
 
 export Peano (
   Tuple
+  NatsTuple
+  GTuple
+  HTuple
   emptyTuple
   consTuple
   headTuple
@@ -146,4 +348,37 @@ export Peano (
   instLETuple
   instDecidableRelLtTuple
   instDecidableRelLeTuple
+  natsVal
+  natsLexLt
+  natsLexLe
+  instLTNatsTuple
+  instLENatsTuple
+  instDecidableRelLtNatsTuple
+  instDecidableRelLeNatsTuple
+  glexLt
+  glexLe
+  instLTGTuple
+  instLEGTuple
+  instDecidableRelLtGTuple
+  instDecidableRelLeGTuple
+  HTupleDecidableEq
+  instHTupleDecEqNil
+  instHTupleDecEqCons
+  instDecidableEqHTuple
+  HTupleLT
+  instHTupleLTNil
+  instHTupleLTCons
+  instLTHTuple
+  HTupleLE
+  instHTupleLENil
+  instHTupleLECons
+  instLEHTuple
+  HTupleDecidableLT
+  instHTupleDecLTNil
+  instHTupleDecLTCons
+  instDecidableRelLtHTuple
+  HTupleDecidableLE
+  instHTupleDecLENil
+  instHTupleDecLECons
+  instDecidableRelLeHTuple
 )

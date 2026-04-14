@@ -81,12 +81,12 @@ namespace Peano
   notation "𝟟" => seven
   notation "𝟠" => eight
   notation "𝟡" => nine
-  notation "Α" => ten
-  notation "Β" => eleven
-  notation "Γ" => twelve
-  notation "Δ" => thirteen
-  notation "Ε" => fourteen
-  notation "Ζ" => fifteen
+  notation "𝔸" => ten
+  notation "𝔹" => eleven
+  notation "ℂ" => twelve
+  notation "𝔻" => thirteen
+  notation "𝔼" => fourteen
+  notation "𝔽" => fifteen
 
   def Λ(n : Nat) : ℕ₀ :=
     match n with
@@ -121,6 +121,17 @@ namespace Peano
     | ℕ₁
     | ℕ₂
     deriving Repr, BEq, DecidableEq
+
+  /-- Coerción para usar las etiquetas de `Nats` como si fueran los tipos reales -/
+  instance : CoeSort Nats Type where
+    coe
+    | Nats.ℕ₀ => ℕ₀
+    | Nats.ℕ₁ => ℕ₁
+    | Nats.ℕ₂ => ℕ₂
+
+  /-- Coerciones para extraer el valor ℕ₀ subyacente de los subtipos ℕ₁ y ℕ₂ de forma automática -/
+  instance : Coe ℕ₁ ℕ₀ where coe n := n.val
+  instance : Coe ℕ₂ ℕ₀ where coe n := n.val.val
 
 end Peano
 

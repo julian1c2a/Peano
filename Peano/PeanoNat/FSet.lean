@@ -57,6 +57,9 @@ namespace Peano
     /-- Conjunto finito de naturales ≥ 2 (ℕ₂). -/
     abbrev ℕ₂FSet := FSet ℕ₂
 
+    /-- Conjunto finito de naturales Nats. -/
+    abbrev NatsFSet := FSet Nats
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 2. FactFSet — conjunto especial de factorizaciones (ℕ₂ × ℕ₁)
     --
@@ -268,6 +271,11 @@ namespace Peano
       def singleton (x : ℕ₂) : FSet ℕ₂ := FSet.singleton x
     end ℕ₂FSet
 
+    namespace NatsFSet
+      def empty    : FSet Nats := FSet.empty
+      def singleton (x : Nats) : FSet Nats := FSet.singleton x
+    end NatsFSet
+
     -- FactFSet básicos
     def FactFSet.empty : FactFSet :=
       FactFSet.mk [] (sorted_nil _) trivial
@@ -416,6 +424,7 @@ export Peano.FSet (
   ℕ₀FSet
   ℕ₁FSet
   ℕ₂FSet
+  NatsFSet
   FactFSet
   UniqueKeys
   SortedByKey

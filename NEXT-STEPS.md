@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-09
+**Last updated:** 2026-04-15
 **Author**: Julián Calderón Almendros
 
 > This file tracks planned development phases. Each phase includes
@@ -1078,6 +1078,83 @@ Phase 23 (ℚ) ──────────┬─── Rational/Basic.lean
                         ├─── Rational/Arithmetic.lean
                         └─── Rational/Embedding.lean
 ```
+
+---
+
+## Build Issues (2026-04-15)
+
+**Toolchain**: leanprover/lean4:v4.29.0
+**Build command**: `lake build`
+**Result**: 50/51 modules OK, 1 module fails (FSetFunction.lean)
+
+### Warnings (non-blocking)
+
+| File | Line | Warning |
+|------|------|---------|
+| `Peano/PeanoNat/Digits.lean` | 67 | unused variable `h_n` |
+| `Peano/PeanoNat/NumberTheory/Fermat.lean` | 60 | declaration uses `sorry` |
+
+### Errors — `FSetFunction.lean`
+
+All errors are in `Peano/PeanoNat/ListsAndSets/FSetFunction.lean`. These are **pre-existing** proof gaps (pigeonhole-related lemmas), not caused by the recent renames.
+
+#### Error 1: `injective_imp_card_Im_eq` (line 243)
+
+```
+Tactic `apply` failed: could not unify the conclusion of `@nodup_length_eq_of_same_elems`
+  List.length ?l₁ = List.length ?l₂
+with the goal
+  f.Im.elems.length = A.elems.length
+```
+
+**Goal**: `f.Im.elems.length = A.elems.length`
+**Issue**: `nodup_length_eq_of_same_elems` works on `List.length` but `FSet.card` uses `lengthₚ`. Need a bridge lemma or rewrite `FSet.card` in terms of `List.length`.
+
+#### Error 2: `card_Im_eq_imp_injective` (line 270–277)
+
+```
+unsolved goals
+⊢ a₁ = a₂
+```
+
+**Context**: Given `f.Im.card = A.card`, `f.toFun a₁ = f.toFun a₂`, prove `a₁ = a₂`.
+**Issue**: Proof incomplete — needs pigeonhole argument to derive injectivity from equal cardinality.
+
+#### Error 3: `card_Im_eq_cod_imp_surjective` (lines 349–363)
+
+```
+unsolved goals (line 361):
+  x : β, hx : x ∈ B.elems ⊢ x ∈ f.Im.elems
+
+unsolved goals (line 349):
+  hnd_Im, hnd_B, h_len, h_Im_sub_B, h_B_sub_Im ⊢ ∃ a, a ∈ A.elems ∧ f.toFun a = b
+```
+
+**Issue**: Two sub-goals incomplete:
+1. Show `B.elems ⊆ f.Im.elems` from equal lengths + `f.Im.elems ⊆ B.elems` (pigeonhole/list inclusion).
+2. Extract witness `a` from `b ∈ f.Im.elems`.
+
+#### Error 4: `BinOpOn.comp` (line 525)
+
+```
+Function expected at
+  applyElem_mem g b dflt (f.mem_all b hb_in_table)
+but this term has type
+  g.applyElem b dflt ∈ A.elems
+```
+
+**Issue**: Type mismatch — `applyElem_mem` returns a membership proof, not a function. The application `... hdflt` expects a function. Need to restructure the term or use a different combinator.
+
+### Summary of TODO
+
+| # | File | Line(s) | Description | Priority |
+|---|------|---------|-------------|----------|
+| 1 | `FSetFunction.lean` | 243 | `injective_imp_card_Im_eq`: bridge `lengthₚ` ↔ `List.length` for `nodup_length_eq_of_same_elems` | Medium |
+| 2 | `FSetFunction.lean` | 270–277 | `card_Im_eq_imp_injective`: complete pigeonhole proof | Medium |
+| 3 | `FSetFunction.lean` | 349–363 | `card_Im_eq_cod_imp_surjective`: complete reverse inclusion + witness extraction | Medium |
+| 4 | `FSetFunction.lean` | 525 | `BinOpOn.comp`: fix `applyElem_mem` application type | Low |
+| 5 | `Digits.lean` | 67 | Remove unused variable `h_n` | Low |
+| 6 | `Fermat.lean` | 60 | Complete `sorry` in Fermat's little theorem proof | High |
 
 ---
 

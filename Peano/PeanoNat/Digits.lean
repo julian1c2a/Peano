@@ -64,12 +64,12 @@ namespace Peano
         Devuelve `List (Fin₀ b)` donde `b := base.val.val`.
         `digits base 𝟘 = []`. -/
     def digits (base : ℕ₂) (n : ℕ₀) : List (Fin₀ base.val.val) :=
-      if h_n : n = 𝟘 then []
+      if _h_n : n = 𝟘 then []
       else
         ⟨mod n base.val.val, mod_lt n base.val.val (base_neq_zero base)⟩ ::
           digits base (div n base.val.val)
     termination_by n
-    decreasing_by exact div_lt_self n base.val.val (base_gt_one base) h_n
+    decreasing_by exact div_lt_self n base.val.val (base_gt_one base) _h_n
 
     /-- Reconstruye un número desde una lista de dígitos en base `b` (LSB primero). -/
     def ofDigits (b : ℕ₀) : List ℕ₀ → ℕ₀

@@ -37,11 +37,11 @@ namespace Peano
 
     /-- Composición de dos permutaciones. -/
     def FunPerm.comp {A : ℕ₀FSet}
-        (g f : FunPerm A) (dflt : ℕ₀) (hdflt : dflt ∈ A.elems) :
+        (g f : FunPerm A) (dflt : ℕ₀) :
         FunPerm A where
-      table   := (FunTable.comp g.toFunTable f.toFunTable dflt hdflt).table
-      len_eq  := (FunTable.comp g.toFunTable f.toFunTable dflt hdflt).len_eq
-      mem_all := (FunTable.comp g.toFunTable f.toFunTable dflt hdflt).mem_all
+      table   := (FunTable.comp g.toFunTable f.toFunTable dflt).table
+      len_eq  := (FunTable.comp g.toFunTable f.toFunTable dflt).len_eq
+      mem_all := (FunTable.comp g.toFunTable f.toFunTable dflt).mem_all
       is_perm := by
         -- table = f.table.map (g.applyElem · dflt)
         -- f.is_perm : f.table ~ A.elems

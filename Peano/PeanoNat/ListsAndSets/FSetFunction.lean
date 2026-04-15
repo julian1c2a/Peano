@@ -228,6 +228,103 @@ namespace Peano
     private theorem Λ_inj_local (n m : Nat) : Λ n = Λ m → n = m :=
       Peano.Axioms.Λ_inj n m
 
+    /-- Lema auxiliar: lista nodup contenida (como conjunto) en otra → longitud ≤. -/
+    private theorem nodup_subset_length_le {α : Type} [DecidableEq α] :
+        ∀ {l₁ l₂ : List α}, l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) →
+        l₁.length ≤ l₂.length
+      | [], _ => fun _ _ => Nat.zero_le _
+      | a :: l₁', l₂ => fun hnd hsub => by
+        rw [List.nodup_cons] at hnd
+        obtain ⟨ha_nin, hnd'⟩ := hnd
+        have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+        have hsub' : ∀ x, x ∈ l₁' → x ∈ l₂.erase a := by
+          intro x hx
+          have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx)
+          exact (List.mem_erase_of_ne hx_ne_a).mpr (hsub x (List.mem_cons_of_mem a hx))
+        have h_ih := nodup_subset_length_le hnd' hsub'
+        rw [List.length_cons]
+        have h_erase_len := List.length_erase_of_mem ha2
+        have h_pos : 0 < l₂.length := by
+          cases l₂ with
+          | nil => exact absurd ha2 List.not_mem_nil
+          | cons _ _ => exact Nat.zero_lt_succ _
+        omega
+
+    /-- Lema auxiliar: si `l` es nodup, `a₁ ≠ a₂`, ambos en `l`, y `f a₁ = f a₂`,
+        entonces `l.map f` no es nodup. -/
+    private theorem not_nodup_map_of_ne_of_eq {α β : Type} [DecidableEq α] [DecidableEq β]
+        {a₁ a₂ : α} {f : α → β}
+        (h_ne : a₁ ≠ a₂) (heq : f a₁ = f a₂) :
+        ∀ {l : List α}, l.Nodup → a₁ ∈ l → a₂ ∈ l →
+        ¬ (l.map f).Nodup
+      | [], _, ha₁, _ => absurd ha₁ List.not_mem_nil
+      | x :: xs, hnd, ha₁, ha₂ => fun hnd_map => by
+        rw [List.nodup_cons] at hnd
+        obtain ⟨hx_nin, hnd_xs⟩ := hnd
+        rw [List.map_cons, List.nodup_cons] at hnd_map
+        obtain ⟨hfx_nin, hnd_map_xs⟩ := hnd_map
+        rcases List.mem_cons.mp ha₁ with rfl | ha₁_xs
+        · -- a₁ = x
+          rcases List.mem_cons.mp ha₂ with rfl | ha₂_xs
+          · exact h_ne rfl
+          · exact hfx_nin (heq ▸ List.mem_map_of_mem ha₂_xs)
+        · rcases List.mem_cons.mp ha₂ with rfl | ha₂_xs
+          · exact hfx_nin (heq.symm ▸ List.mem_map_of_mem ha₁_xs)
+          · exact not_nodup_map_of_ne_of_eq h_ne heq hnd_xs ha₁_xs ha₂_xs hnd_map_xs
+
+    /-- Lema auxiliar: si `l₁` es nodup, `l₁` y `l₂` tienen los mismos elementos,
+        y la misma longitud, entonces `l₂` es nodup. -/
+    private theorem nodup_of_nodup_same_elems_length_eq {α : Type} [DecidableEq α] :
+        ∀ {l₁ l₂ : List α},
+        l₁.Nodup →
+        (∀ x, x ∈ l₁ → x ∈ l₂) →
+        (∀ x, x ∈ l₂ → x ∈ l₁) →
+        l₁.length = l₂.length →
+        l₂.Nodup
+      | [], l₂, _, _, _, hlen => by
+        have : l₂ = [] := List.eq_nil_of_length_eq_zero hlen.symm
+        subst this; exact List.nodup_nil
+      | a :: l₁', l₂, hnd₁, h12, h21, hlen => by
+        rw [List.nodup_cons] at hnd₁
+        obtain ⟨ha_nin, hnd'⟩ := hnd₁
+        have ha2 : a ∈ l₂ := h12 a List.mem_cons_self
+        -- Key: a ∉ l₂.erase a (por nodup_subset_length_le)
+        have ha_not_erase : a ∉ l₂.erase a := by
+          intro h_in_erase
+          have h_le : (a :: l₁').length ≤ (l₂.erase a).length := by
+            apply nodup_subset_length_le (List.nodup_cons.mpr ⟨ha_nin, hnd'⟩)
+            intro x hx
+            rcases List.mem_cons.mp hx with rfl | hx'
+            · exact h_in_erase
+            · have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx')
+              exact (List.mem_erase_of_ne hx_ne_a).mpr
+                (h12 x (List.mem_cons_of_mem a hx'))
+          rw [List.length_cons] at h_le hlen
+          have h_erase := List.length_erase_of_mem ha2
+          omega
+        -- l₂.erase a has same elements as l₁' and same length
+        have h12' : ∀ x, x ∈ l₁' → x ∈ l₂.erase a := by
+          intro x hx
+          have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx)
+          exact (List.mem_erase_of_ne hx_ne_a).mpr
+            (h12 x (List.mem_cons_of_mem a hx))
+        have h21' : ∀ x, x ∈ l₂.erase a → x ∈ l₁' := by
+          intro x hx
+          have hx_ne_a : x ≠ a := fun heq => ha_not_erase (heq ▸ hx)
+          have hx_l2 : x ∈ l₂ := (List.mem_erase_of_ne hx_ne_a).mp hx
+          rcases List.mem_cons.mp (h21 x hx_l2) with rfl | hx'
+          · exact absurd hx ha_not_erase
+          · exact hx'
+        have hlen' : l₁'.length = (l₂.erase a).length := by
+          rw [List.length_cons] at hlen
+          have := List.length_erase_of_mem ha2
+          omega
+        have hnd_erase : (l₂.erase a).Nodup :=
+          nodup_of_nodup_same_elems_length_eq hnd' h12' h21' hlen'
+        -- l₂ = Perm(a :: l₂.erase a), and a :: l₂.erase a is nodup
+        exact (List.perm_cons_erase ha2).nodup_iff.mpr
+          (List.nodup_cons.mpr ⟨ha_not_erase, hnd_erase⟩)
+
     -- ── Los cuatro lemas del Palomar ──────────────────────────────────
 
     /-- Lema 1: función inyectiva → imagen tiene la misma cardinalidad que el dominio. -/
@@ -239,26 +336,30 @@ namespace Peano
         f.Im.card = A.card := by
       -- Im.elems y (A.elems.map f.toFun) tienen los mismos elementos y ambos son nodup
       unfold FSet.card
-      apply congrArg Λ
-      apply nodup_length_eq_of_same_elems
-      · -- Im.elems es nodup (está ordenada)
-        exact sorted_nodup f.Im.sorted
-      · -- A.elems.map f.toFun es nodup (A.elems nodup + f inyectiva)
-        apply nodup_map_of_inj_on
-        · exact sorted_nodup A.sorted
-        · intro a b ha hb hab; exact h_inj a b ha hb hab
-      · -- Im.elems ⊆ A.elems.map f.toFun
-        intro b hb
-        rw [List.mem_map]
-        rw [(mem_Im_elems_iff f b)] at hb
-        obtain ⟨a, ha, rfl⟩ := hb
-        exact ⟨a, ha, rfl⟩
-      · -- A.elems.map f.toFun ⊆ Im.elems
-        intro b hb
-        rw [List.mem_map] at hb
-        obtain ⟨a, ha, rfl⟩ := hb
-        rw [mem_Im_elems_iff]
-        exact ⟨a, ha, rfl⟩
+      unfold lengthₚ
+      congr 1
+      -- Goal: f.Im.elems.length = A.elems.length (Nat)
+      have h_eq_map : f.Im.elems.length = (A.elems.map f.toFun).length := by
+        apply nodup_length_eq_of_same_elems
+        · -- Im.elems es nodup (está ordenada)
+          exact sorted_nodup f.Im.sorted
+        · -- A.elems.map f.toFun es nodup (A.elems nodup + f inyectiva)
+          apply nodup_map_of_inj_on
+          · exact sorted_nodup A.sorted
+          · intro a b ha hb hab; exact h_inj a b ha hb hab
+        · -- Im.elems ⊆ A.elems.map f.toFun
+          intro b hb
+          rw [List.mem_map]
+          rw [(mem_Im_elems_iff f b)] at hb
+          obtain ⟨a, ha, rfl⟩ := hb
+          exact ⟨a, ha, rfl⟩
+        · -- A.elems.map f.toFun ⊆ Im.elems
+          intro b hb
+          rw [List.mem_map] at hb
+          obtain ⟨a, ha, rfl⟩ := hb
+          rw [mem_Im_elems_iff]
+          exact ⟨a, ha, rfl⟩
+      rw [h_eq_map]; exact List.length_map _
 
     /-- Lema 2: imagen con la misma cardinalidad que el dominio → función inyectiva. -/
     theorem injective_of_card_image {α β : Type}
@@ -270,53 +371,29 @@ namespace Peano
           := by
       unfold MapOn.Injective InjectiveOn
       intro a₁ a₂ ha₁ ha₂ heq
-      -- Supongamos a₁ ≠ a₂. En A.elems.map f.toFun aparecen f(a₁) y f(a₂)=f(a₁) dos veces.
-      -- Pero Im.elems no tiene duplicados y card Im = card A.
-      -- Esto lo formalizamos por contradicción vía nodup_map_of_inj_on:
-      -- si f no fuera inyectiva, (A.elems.map f.toFun).Nodup fallaría.
-      by_contra h_ne
-      -- Construimos un nodup_map_of_inj_on sobre A.elems\{a₂} para mostrar contradicción
-      -- Más directo: (A.elems.map f.toFun) tiene duplicados si a₁ ≠ a₂ y f a₁ = f a₂
-      have hnd_A : A.elems.Nodup := sorted_nodup A.sorted
-      have hnd_Im : f.Im.elems.Nodup := sorted_nodup f.Im.sorted
-      -- f.Im.card = A.card implica (via Λ_inj) |Im.elems| = |A.elems|
-      have h_len : f.Im.elems.length = A.elems.length := by
-        apply Λ_inj_local
-        exact h_card
-      -- Im.elems ⊆ A.elems.map f.toFun
-      have h_sub : ∀ b, b ∈ f.Im.elems → b ∈ A.elems.map f.toFun := fun b hb => by
-        rw [List.mem_map]
-        obtain ⟨a, ha, hfa⟩ := (mem_Im_elems_iff f b).mp hb
-        exact ⟨a, ha, hfa⟩
-      -- (A.elems.map f.toFun).length = A.elems.length
-      have h_map_len : (A.elems.map f.toFun).length = A.elems.length :=
-        List.length_map f.toFun
-      -- Como a₁ ≠ a₂, f a₁ = f a₂, ambos ∈ A.elems, A.elems nodup → colisión en map
-      -- Usamos que Im.elems.length = map.length y Im nodup ⊆ map → map nodup
-      -- Pero map tiene f(a₁) dos veces → contradicción
-      have hnd_map : (A.elems.map f.toFun).Nodup := by
-        apply nodup_map_of_inj_on
-        · exact hnd_A
-        · intro a b ha hb hab
-          -- Si f a = f b con a,b ∈ A.elems y h_ne dice que no siempre son iguales...
-          -- Aquí usamos que Im.elems (nodup, longitud = A.elems) ⊆ map (misma longitud)
-          -- implica map nodup. Pero es circular. Usamos nodup_length_eq_of_same_elems al revés:
-          -- si Im nodup ⊆ map y |Im| = |map|, entonces map ⊆ Im, luego map nodup.
-          -- Para un solo paso: basta que map nodup sea consecuencia de Im nodup + |Im|=|map|
-          -- + Im ⊆ map. Si map tuviera duplicado b₀, contaría ≥2 en map, pero ≤1 en Im,
-          -- contradiciendo |Im|=|map|.
-          --
-          -- Para este sorry, nótese que si el "por_contra" vale tenemos a₁≠a₂ con f a₁ = f a₂.
-          -- Necesitamos exactamente que si a₁≠a₂ ∧ a₁,a₂ ∈ A.elems ∧ f a₁=f a₂ entonces
-          -- map tiene duplicado ⇒ count (f a₁) (map f A.elems) ≥ 2 ⇒ count en Im ≤ 1 < 2
-          -- ⇒ map no puede estar contenido en Im de forma que las longitudes coincidan.
-          -- Esto es correcto matemáticamente pero requiere un lema auxiliar no disponible aún.
-          -- Lo dejamos como sorry provisional.
-          sorry
-      -- Si map es nodup y Im nodup y Im ⊆ map y |Im|=|map|, entonces Im = map (como sets)
-      -- luego map ⊆ Im. Pero mapa tiene f(a₁)=f(a₂) dos veces si a₁≠a₂ → contradicción nodup_map.
-      -- El argumento completo requiere el lema de colisión; sorry provisional.
-      exact absurd rfl h_ne
+      by_cases h_eq : a₁ = a₂
+      · exact h_eq
+      · exfalso
+        have hnd_A : A.elems.Nodup := sorted_nodup A.sorted
+        -- (A.elems.map f.toFun) no es nodup: a₁ ≠ a₂ en lista nodup y f a₁ = f a₂
+        have h_not_nodup : ¬ (A.elems.map f.toFun).Nodup :=
+          not_nodup_map_of_ne_of_eq h_eq heq hnd_A ha₁ ha₂
+        -- Pero Im nodup ↔ map (mismos elementos) y |Im|=|map| → map nodup → contradicción
+        have hnd_Im : f.Im.elems.Nodup := sorted_nodup f.Im.sorted
+        have h_len : f.Im.elems.length = A.elems.length :=
+          Λ_inj_local _ _ h_card
+        have h_Im_to_map : ∀ b, b ∈ f.Im.elems → b ∈ A.elems.map f.toFun := fun b hb => by
+          rw [List.mem_map]
+          obtain ⟨a, ha, hfa⟩ := (mem_Im_elems_iff f b).mp hb
+          exact ⟨a, ha, hfa⟩
+        have h_map_to_Im : ∀ b, b ∈ A.elems.map f.toFun → b ∈ f.Im.elems := fun b hb => by
+          rw [List.mem_map] at hb
+          obtain ⟨a, ha, rfl⟩ := hb
+          rw [mem_Im_elems_iff]; exact ⟨a, ha, rfl⟩
+        have hnd_map : (A.elems.map f.toFun).Nodup :=
+          nodup_of_nodup_same_elems_length_eq hnd_Im h_Im_to_map h_map_to_Im
+            (by rw [h_len]; exact (List.length_map _).symm)
+        exact h_not_nodup hnd_map
 
     /-- Lema 3: función sobreyectiva → imagen tiene la misma cardinalidad que el codominio. -/
     theorem card_image_of_surjective {α β : Type}
@@ -357,17 +434,22 @@ namespace Peano
       have h_Im_sub_B : ∀ x, x ∈ f.Im.elems → x ∈ B.elems := fun x hx => by
         obtain ⟨a, ha, rfl⟩ := (mem_Im_elems_iff f x).mp hx
         exact f.map_carrier a ha
-      -- Por nodup_length_eq_of_same_elems al revés: si Im ⊆ B, |Im|=|B|, ambos nodup → B ⊆ Im
+      -- Por nodup_subset_length_le: si x ∈ B \ Im, entonces x :: Im.elems
+      -- es nodup y ⊆ B, con longitud |Im| + 1 > |B| → contradicción.
       have h_B_sub_Im : ∀ x, x ∈ B.elems → x ∈ f.Im.elems := by
         intro x hx
-        by_contra hnx
-        -- Im ⊊ B estrictamente → |Im| < |B| (contamos: Im nodup ⊆ B nodup, Im ≠ B)
-        have h_lt : f.Im.elems.length < B.elems.length := by
-          apply List.Nodup.length_lt_of_sublist_of_ne_of_nodup hnd_Im hnd_B
-          · exact List.Nodup.sublist_of_subset hnd_Im h_Im_sub_B
-          · intro h_eq_list
-            exact hnx (h_eq_list ▸ hx)
-        omega
+        -- Si x ∉ Im, entonces x :: Im.elems es nodup, ⊆ B, longitud |Im|+1 > |B|
+        by_cases hnx : x ∈ f.Im.elems
+        · exact hnx
+        · exfalso
+          have h_le : (x :: f.Im.elems).length ≤ B.elems.length := by
+            apply nodup_subset_length_le (List.nodup_cons.mpr ⟨hnx, hnd_Im⟩)
+            intro y hy
+            rcases List.mem_cons.mp hy with rfl | hy'
+            · exact hx
+            · exact h_Im_sub_B y hy'
+          rw [List.length_cons] at h_le
+          omega
       -- Ahora b ∈ B.elems → b ∈ Im.elems → ∃ a, ...
       obtain ⟨a, ha, hfa⟩ := (mem_Im_elems_iff f b).mp (h_B_sub_Im b hb)
       exact ⟨a, ha, hfa⟩
@@ -512,7 +594,7 @@ namespace Peano
 
       /-- `FunTable` de composición: `(g.comp f).table[i] = g(f.table[i])`. -/
       def comp {α : Type} [DecidableEq α] [LT α] {A : FSet α}
-          (g f : FunTable A) (dflt : α) (hdflt : dflt ∈ A.elems) :
+          (g f : FunTable A) (dflt : α) :
           FunTable A where
         table   := f.table.map (fun a => g.applyElem a dflt)
         len_eq  := by
@@ -522,7 +604,7 @@ namespace Peano
         mem_all := fun a ha => by
           rw [List.mem_map] at ha
           obtain ⟨b, hb_in_table, rfl⟩ := ha
-          exact g.applyElem_mem b dflt (f.mem_all b hb_in_table) hdflt
+          exact g.applyElem_mem b dflt (f.mem_all b hb_in_table)
 
     end FunTable
 

@@ -133,17 +133,17 @@ namespace Peano
         (h : x ≠ a) : List.indexOfₚ a (x :: xs) = σ (List.indexOfₚ a xs) := by
       simp [List.indexOfₚ, h]
 
-    /-- Si `a ∈ l`, entonces `getD dflt l (indexOfₚ a l) = a`. -/
-    theorem List.getD_indexOfₚ {α : Type} [DecidableEq α] (dflt a : α) (l : List α)
+    /-- Si `a ∈ l`, entonces `getDₚ dflt l (indexOfₚ a l) = a`. -/
+    theorem getDₚ_indexOfₚ {α : Type} [DecidableEq α] (dflt a : α) (l : List α)
         (hmem : a ∈ l) : getDₚ dflt l (List.indexOfₚ a l) = a := by
       induction l with
       | nil => cases hmem
       | cons x xs ih =>
         by_cases hxa : x = a
-        · -- indexOfₚ a (x::xs) = 𝟘, getD dflt (x::xs) 𝟘 = x = a
-          rw [List.indexOfₚ_cons_eq a x xs hxa, List.getD_cons_zero, hxa]
+        · -- indexOfₚ a (x::xs) = 𝟘, getDₚ dflt (x::xs) 𝟘 = x = a
+          rw [List.indexOfₚ_cons_eq a x xs hxa, getDₚ_cons_zero, hxa]
         · have hmem' : a ∈ xs := (List.mem_cons.mp hmem).resolve_left (Ne.symm hxa)
-          rw [List.indexOfₚ_cons_ne a x xs hxa, List.getD_cons_succ]
+          rw [List.indexOfₚ_cons_ne a x xs hxa, getDₚ_cons_succ]
           exact ih hmem'
 
     /-- `indexOfₚ a l < lengthₚ l` cuando `a ∈ l`. -/

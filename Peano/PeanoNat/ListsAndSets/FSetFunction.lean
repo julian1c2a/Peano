@@ -405,11 +405,9 @@ namespace Peano
           FunTable A where
         table   := f.table.map (fun a => g.applyElem a dflt)
         len_eq  := by
-          simp only [lengthₚ, List.length_map]
-          -- List.length (f.table.map _) = f.table.length = A.elems.length
-          have : lengthₚ f.table = A.card := f.len_eq
-          rw [← lengthₚ] at this
-          simpa [lengthₚ] using this
+          have h : lengthₚ (f.table.map (fun a => g.applyElem a dflt)) = lengthₚ f.table :=
+            congrArg Λ (List.length_map (fun a => g.applyElem a dflt))
+          rw [h]; exact f.len_eq
         mem_all := fun a ha => by
           rw [List.mem_map] at ha
           obtain ⟨b, hb_in_table, rfl⟩ := ha

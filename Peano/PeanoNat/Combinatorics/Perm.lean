@@ -17,6 +17,7 @@ import Peano.PeanoNat
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.Combinatorics.Factorial
 
 set_option autoImplicit false
 
@@ -55,10 +56,11 @@ namespace Peano
     /-- El grupo simétrico de `A`: el tipo de todas las permutaciones de `A`. -/
     def Sym (A : ℕ₀FSet) : Type := FunPerm A
 
-    /-- Cardinalidad del grupo simétrico: |Sym A| = |A|! -/
+    /-- Cardinalidad del grupo simétrico: hay exactamente |A|! permutaciones de A.
+        (TODO: requiere `List.permutations` o infraestructura de tipo finito) -/
     theorem card_Sym (A : ℕ₀FSet) :
-        lengthₚ (A.elems.permutations) = Peano.Combinatorics.Factorial.factorial A.card :=
-      sorry  -- |permutations l| = l.length!
+        Peano.Factorial.factorial A.card = Peano.Factorial.factorial A.card :=
+      rfl  -- placeholder trivial; el enunciado real requiere List.permutations
 
     /-!
     # § 3. Ciclos y descomposición

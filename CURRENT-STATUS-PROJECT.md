@@ -1,4 +1,4 @@
-# Estado Actual del Proyecto: Peano
+﻿# Estado Actual del Proyecto: Peano
 
 **Última actualización:** 2026-04-09
 **Autor**: Julián Calderón Almendros
@@ -43,7 +43,7 @@ warnings        →  0
 | `Peano/PeanoNat/MaxMin.lean` | `Peano.MaxMin` | (Legacy) `max`, `min` — migrado a Lattice.lean | ✅ Completo |
 | `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | Isomorfismo Nat↔ℕ₀ completo (0, σ, τ, ρ, Lt, Le, max, min, add, sub, mul, div, mod, pow, gcd, lcm) | ✅ Completo |
 | `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, irreducibles, factorización única, `Decidable (Prime n)` | ✅ Completo |
-| `Peano/PeanoNat/Lists.lean` | `Peano.Lists` | Listas de ℕ₀, FSet, operaciones | ✅ Completo |
+| `Peano/PeanoNat/List.lean` | `Peano.List` | Listas de ℕ₀, FSet, operaciones | ✅ Completo |
 | `Peano/PeanoNat/FSet.lean` | `Peano.FSet` | Conjuntos finitos con UniqueKeys+SortedByKey | ✅ Completo |
 | `Peano/PeanoNat/NumberSets.lean` | `Peano.NumberSets` | Divisores, coprimos, primos ≤ n | ✅ Completo |
 | `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | Potenciación, `pow_add`, `pow_mul` | ✅ Completo |

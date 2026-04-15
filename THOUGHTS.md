@@ -1,4 +1,4 @@
-# Thoughts — Peano
+﻿# Thoughts — Peano
 
 **Last updated:** 2026-04-10
 **Author**: Julián Calderón Almendros
@@ -517,7 +517,7 @@ Todas las operaciones siguientes son **computables** (no `noncomputable`) y
 
 | Módulo | Namespace | Contenido |
 |--------|-----------|-----------|
-| `Peano/PeanoNat/Lists.lean` | `Peano.Lists` | Definiciones base: `Nat0List`, `Nat1List`, `Nat2List`, `FactList`. Órdenes inducidos sobre `ℕ₁`, `ℕ₂`, `ℕ₂ × ℕ₁`. Relación de equivalencia `ListEquiv`. Forma canónica `canonicalize`. Teoremas de equivalencia y unicidad. |
+| `Peano/PeanoNat/List.lean` | `Peano.List` | Definiciones base: `Nat0List`, `Nat1List`, `Nat2List`, `FactList`. Órdenes inducidos sobre `ℕ₁`, `ℕ₂`, `ℕ₂ × ℕ₁`. Relación de equivalencia `ListEquiv`. Forma canónica `canonicalize`. Teoremas de equivalencia y unicidad. |
 | `Peano/PeanoNat/FSet.lean` | `Peano.FSet` | Setoides. Structures `ℕ₀FSet`, `ℕ₁FSet`, `ℕ₂FSet`, `ℕ₂×ℕ₁FSet`. Smart constructors (`empty`, `singleton`, `insert`, `fromList`). Operaciones de conjunto (`union`, `inter`, `diff`, `subset`, `mem`). Instancias `Decidable`, `DecidableEq`, `Membership`, `Union`, `Inter`. Propiedades algebraicas. |
 
 **Dependencias:**
@@ -529,7 +529,7 @@ Axioms.lean
     ↓
 StrictOrder.lean + Order.lean (órdenes para ℕ₀)
     ↓
-Lists.lean (listas tipadas, equivalencia, forma canónica)
+List.lean (listas tipadas, equivalencia, forma canónica)
     ↓
 FSet.lean (conjuntos finitos, operaciones)
     ↓
@@ -538,7 +538,7 @@ Arith.lean (usa FSet para factorsOf, DivisorsList, etc.)
 
 #### 11.7. Migración de `DList` — plan de transición
 
-1. Crear `Lists.lean` y `FSet.lean` con la nueva infraestructura.
+1. Crear `List.lean` y `FSet.lean` con la nueva infraestructura.
 2. En `Arith.lean`: reemplazar `DList ℕ₀` por `List ℕ₀` (o por `ℕ₀FSet` donde
    corresponda). Eliminar las 40 líneas de definición de `DList` y sus operaciones.
 3. `DivisorsList` pasa a ser un `ℕ₁FSet` (divisores son positivos).

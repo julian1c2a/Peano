@@ -59,8 +59,8 @@ namespace Peano
     /- `finProd f n` = Π_{k=0}^{n} f(k).
        Computable. Terminado por recursión estructural en n. -/
     def finProd (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀
-      | 𝟘   => f 𝟘
-      | σ n => mul (finProd f n) (f (σ n))
+      | .zero   => f 𝟘
+      | .succ n => mul (finProd f n) (f (σ n))
 
     /- Notación: `∏ k ≤ n, f k` = finProd (fun k => f k) n = Π_{k=0}^{n} f(k). -/
     macro "∏ " k:ident " ≤ " n:term ", " f:term : term => `(finProd (fun $k => $f) $n)
@@ -133,13 +133,13 @@ namespace Peano
       let val := pow p.val.val e.val   -- : ℕ₀
       -- val ≠ 𝟘
       have h_ne_zero : val ≠ 𝟘 := pow_ne_zero p.val.2 e.val
-      -- Lt 𝟙 p.val.val  (p ≥ 2 → p.val.val > 1)
-      have h_p_gt_1 : Lt 𝟙 p.val.val :=
+      -- lt₀ 𝟙 p.val.val  (p ≥ 2 → p.val.val > 1)
+      have h_p_gt_1 : lt₀ 𝟙 p.val.val :=
         neq_01_then_gt_1 p.val.val ⟨p.val.2, p.2⟩
       -- e.val ≠ 𝟘  (e ≥ 1)
       have h_e_ne_zero : e.val ≠ 𝟘 := e.2
-      -- Lt 𝟙 val
-      have h_gt_1 : Lt 𝟙 val := one_lt_pow h_p_gt_1 h_e_ne_zero
+      -- lt₀ 𝟙 val
+      have h_gt_1 : lt₀ 𝟙 val := one_lt_pow h_p_gt_1 h_e_ne_zero
       -- val ≠ 𝟙
       have h_ne_one : val ≠ σ 𝟘 := Ne.symm (ne_of_lt 𝟙 val h_gt_1)
       Subtype.mk (Subtype.mk val h_ne_zero) h_ne_one

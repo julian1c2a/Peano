@@ -29,8 +29,8 @@ namespace Peano
     /-- `fibPair n` devuelve `(fib n, fib (n+1))` calculado iterativamente.
         Evita la doble recursión del cómputo ingenuo. -/
     def fibPair : ℕ₀ → ℕ₀ × ℕ₀
-      | 𝟘   => (𝟘, 𝟙)
-      | σ n => let (a, b) := fibPair n; (b, add a b)
+      | .zero   => (𝟘, 𝟙)
+      | .succ n => let (a, b) := fibPair n; (b, add a b)
 
     /-- `fib n` = n-ésimo número de Fibonacci.
         fib 0 = 0, fib 1 = 1, fib (n+2) = fib (n+1) + fib n.
@@ -40,8 +40,8 @@ namespace Peano
     /-- `fibList n` = [fib 0, fib 1, …, fib n].
         Construida iterativamente aprovechando `fibPair`. -/
     def fibList : ℕ₀ → List ℕ₀
-      | 𝟘   => [𝟘]
-      | σ n => fibList n ++ [fib (σ n)]
+      | .zero   => [𝟘]
+      | .succ n => fibList n ++ [fib (σ n)]
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 2. Propiedades básicas de fib

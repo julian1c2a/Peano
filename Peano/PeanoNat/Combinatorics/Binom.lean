@@ -110,10 +110,10 @@ namespace Peano
     /- Coeficiente binomial C(n, k) por la recursión de Pascal.
        Termina por inducción estructural en el primer argumento n. -/
     def binom : ℕ₀ → ℕ₀ → ℕ₀
-      | 𝟘,   𝟘   => 𝟙
-      | 𝟘,   σ _ => 𝟘
-      | σ _, 𝟘   => 𝟙
-      | σ n, σ k => add (binom n k) (binom n (σ k))
+      | .zero,   .zero   => 𝟙
+      | .zero,   .succ _ => 𝟘
+      | .succ _, .zero   => 𝟙
+      | .succ n, .succ k => add (binom n k) (binom n (σ k))
 
     /- Notación C(n, k). -/
     notation "C(" n ", " k ")" => binom n k
@@ -143,7 +143,7 @@ namespace Peano
           _ = add 𝟙 n'               := by rw [binom_n_zero]
           _ = σ n'                    := by rw [add_comm, add_one]
 
-    theorem binom_eq_zero_of_gt {n k : ℕ₀} (h : Lt n k) : C(n, k) = 𝟘 := by
+    theorem binom_eq_zero_of_gt {n k : ℕ₀} (h : lt₀ n k) : C(n, k) = 𝟘 := by
       induction n generalizing k with
       | zero    =>
           cases k with
@@ -154,8 +154,8 @@ namespace Peano
           | zero    => exact absurd h (lt_zero (σ n'))
           | succ k' =>
               rw [binom_pascal]
-              have h' : Lt n' k' := (succ_lt_succ_iff n' k').mp h
-              have h'' : Lt n' (σ k') := lt_trans n' k' (σ k') h' (lt_succ_self k')
+              have h' : lt₀ n' k' := (succ_lt_succ_iff n' k').mp h
+              have h'' : lt₀ n' (σ k') := lt_trans n' k' (σ k') h' (lt_succ_self k')
               rw [ih h', ih h'', add_zero]
 
     theorem binom_self (n : ℕ₀) : C(n, n) = 𝟙 := by
@@ -177,7 +177,7 @@ namespace Peano
           _ = 𝟙                          := by rw [add_zero]
     -- ── Lema auxiliar: a ≤ a + b ──────────────────────────────────────────────────
 
-    private theorem le_add_right (a b : ℕ₀) : Le a (add a b) := by
+    private theorem le_add_right (a b : ℕ₀) : le₀ a (add a b) := by
       induction b with
       | zero    => exact le_refl a
       | succ b' ih =>
@@ -186,7 +186,7 @@ namespace Peano
 
     -- ── C(n, k) > 0 cuando k ≤ n ──────────────────────────────────────────────────
 
-    theorem binom_pos {n k : ℕ₀} (h : Le k n) : C(n, k) > 𝟘 := by
+    theorem binom_pos {n k : ℕ₀} (h : le₀ k n) : C(n, k) > 𝟘 := by
       induction n generalizing k with
       | zero    =>
           have hk : k = 𝟘 := by
@@ -199,7 +199,7 @@ namespace Peano
           | zero    => rw [binom_succ_zero]; exact lt_succ_self 𝟘
           | succ k' =>
               rw [binom_pascal]
-              have h_le : Le k' n' := by
+              have h_le : le₀ k' n' := by
                 rcases (le_iff_lt_or_eq (σ k') (σ n')).mp h with h_lt | h_eq
                 · exact lt_imp_le_wp ((succ_lt_succ_iff k' n').mp h_lt)
                 · exact Or.inr (succ_inj k' n' h_eq)
@@ -228,9 +228,9 @@ namespace Peano
     private theorem mul_swap_last (a b c : ℕ₀) : mul (mul a b) c = mul (mul a c) b := by
       rw [mul_assoc b a c, mul_comm b c, ← mul_assoc c a b]
 
-    private theorem sub_eq_succ_of_lt {n k : ℕ₀} (h_lt : Lt k n) :
+    private theorem sub_eq_succ_of_lt {n k : ℕ₀} (h_lt : lt₀ k n) :
         sub n k = σ (sub n (σ k)) := by
-      have h_sk_le_n : Le (σ k) n :=
+      have h_sk_le_n : le₀ (σ k) n :=
         (lt_succ_iff_le (σ k) n).mp ((succ_lt_succ_iff k n).mpr h_lt)
       have h_sub_ne0 : sub n k ≠ 𝟘 := lt_b_a_then_sub_a_b_neq_0 n k h_lt
       have h_eq : sub n (σ k) = τ (sub n k) := succ_sub n k h_sk_le_n
@@ -238,16 +238,16 @@ namespace Peano
         rw [h_eq, tau_eq_rho_if_ne_zero _ h_sub_ne0, σ_ρ_eq_self]
       exact h_eq2.symm
 
-    private theorem factorial_sub_succ {n k : ℕ₀} (h_lt : Lt k n) :
+    private theorem factorial_sub_succ {n k : ℕ₀} (h_lt : lt₀ k n) :
         factorial (sub n k) = mul (factorial (sub n (σ k))) (sub n k) := by
       have h_eq := sub_eq_succ_of_lt h_lt; rw [h_eq, factorial_succ, ← h_eq]
 
-    private theorem add_succ_sub_self {n k : ℕ₀} (h_le : Le k n) :
+    private theorem add_succ_sub_self {n k : ℕ₀} (h_le : le₀ k n) :
         add (σ k) (sub n k) = σ n := by
       rw [succ_add, add_comm, sub_k_add_k n k h_le]
 
     /- Teorema principal: C(n, k) · k! · (n - k)! = n! para k ≤ n. -/
-    theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) :
+    theorem binom_mul_factorials {n k : ℕ₀} (h : le₀ k n) :
         mul (mul C(n, k) (factorial k)) (factorial (sub n k)) = factorial n := by
       induction n generalizing k with
       | zero =>
@@ -259,11 +259,11 @@ namespace Peano
           | zero =>
               rw [binom_succ_zero, sub_zero, factorial_zero, one_mul, one_mul]
           | succ k' =>
-              have h_k'_le_n' : Le k' n' := (succ_le_succ_iff k' n').mp h
+              have h_k'_le_n' : le₀ k' n' := (succ_le_succ_iff k' n').mp h
               rcases (le_iff_lt_or_eq k' n').mp h_k'_le_n' with h_lt | h_eq
               · -- Caso k' < n'
-                have h_le_k' : Le k' n' := lt_imp_le_wp h_lt
-                have h_le_sk' : Le (σ k') n' := (lt_succ_iff_le _ _).mp ((succ_lt_succ_iff _ _).mpr h_lt)
+                have h_le_k' : le₀ k' n' := lt_imp_le_wp h_lt
+                have h_le_sk' : le₀ (σ k') n' := (lt_succ_iff_le _ _).mp ((succ_lt_succ_iff _ _).mpr h_lt)
                 -- term1: C(n',k')·(k'+1)!·(n'-k')! = n'!·(k'+1)
                 -- factorial(σk') = factorial(k')·σk', extraemos σk' con mul_swap_last
                 have term1_rw : mul (mul (C(n', k')) (factorial (σ k'))) (factorial (sub n' k')) = mul (factorial n') (σ k') := by

@@ -1,4 +1,4 @@
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 
 /-!
 Copyright (c) 2026. All rights reserved.
@@ -6,7 +6,7 @@ Author: Julián Calderón Almendros
 License: MIT
 -/
 
--- Peano/PeanoNat/ListsAndSets/ListLists.lean
+-- Peano/PeanoNat/ListsAndSets/ListList.lean
 -- Órdenes avanzados sobre listas y el tipo suma `PeanoVal`.
 --
 -- § 11. LE y DecidableRel (≤) para List α
@@ -19,7 +19,7 @@ License: MIT
 namespace Peano
   open Peano
 
-  namespace Lists
+  namespace List
     open Peano.StrictOrder
 
     -- ══════════════════════════════════════════════════════════════════
@@ -94,8 +94,8 @@ namespace Peano
     /-- Aplana un `Tuple n` en una lista de `Nat`
         proyectando cada componente `ℕ₀` via `Ψ`. -/
     private def tupleToNatList : {n : ℕ₀} → Tuple n → List Nat
-      | 𝟘,    _          => []
-      | σ _, (x, xs)    => Ψ x :: tupleToNatList xs
+      | .zero,    _          => []
+      | .succ _, (x, xs)    => Ψ x :: tupleToNatList xs
 
     /-- Aplana un `NatsTuple ts` en una lista de `Nat`
         proyectando cada componente al ℕ₀ subyacente vía `natsVal`. -/
@@ -203,11 +203,11 @@ namespace Peano
               s!"ofNatsTupleList {repr ts} {reprListFmt (natsTupleRepr ts) xs}"
         s
 
-  end Lists
+  end List
 
 end Peano
 
-export Peano.Lists (
+export Peano.List (
   instLEList
   instDecidableLeList
   natsKindLt

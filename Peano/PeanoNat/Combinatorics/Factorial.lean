@@ -29,8 +29,8 @@ namespace Peano
 
     /- Definición recursiva del factorial. -/
     def factorial : ℕ₀ → ℕ₀
-      | 𝟘   => 𝟙
-      | σ n => mul (factorial n) (σ n)
+      | .zero   => 𝟙
+      | .succ n => mul (factorial n) (σ n)
 
     -- ── Valores concretos ──────────────────────────────────────────
 
@@ -67,9 +67,9 @@ namespace Peano
     -- ── Monotonicidad ──────────────────────────────────────────────
 
     /- factorial n ≤ factorial (n+1). -/
-    theorem factorial_le_succ (n : ℕ₀) : Le (factorial n) (factorial (σ n)) := by
+    theorem factorial_le_succ (n : ℕ₀) : le₀ (factorial n) (factorial (σ n)) := by
       rw [factorial_succ]
-      have h_ge1 : Le 𝟙 (σ n) := by
+      have h_ge1 : le₀ 𝟙 (σ n) := by
         rcases lt_0n_then_le_1n_wp (pos_of_ne_zero (σ n) (succ_neq_zero n)) with h | h
         · exact Or.inl h
         · exact Or.inr h
@@ -77,7 +77,7 @@ namespace Peano
       rwa [one_mul, mul_comm] at h
 
     /- m ≤ n → factorial m ≤ factorial n. -/
-    theorem factorial_le_mono {m n : ℕ₀} (h : Le m n) : Le (factorial m) (factorial n) := by
+    theorem factorial_le_mono {m n : ℕ₀} (h : le₀ m n) : le₀ (factorial m) (factorial n) := by
       induction n with
       | zero    =>
           have hm : m = 𝟘 := by
@@ -87,7 +87,7 @@ namespace Peano
           subst hm; exact le_refl (factorial 𝟘)
       | succ n' ih =>
           rcases (le_iff_lt_or_eq m (σ n')).mp h with h_lt | h_eq
-          · have h_le : Le m n' := (lt_succ_iff_le m n').mp h_lt
+          · have h_le : le₀ m n' := (lt_succ_iff_le m n').mp h_lt
             exact le_trans (factorial m) (factorial n') (factorial (σ n'))
                     (ih h_le) (factorial_le_succ n')
           · subst h_eq; exact le_refl (factorial (σ n'))

@@ -97,8 +97,8 @@ namespace Peano
 
   def Ψ (n : ℕ₀) : Nat :=
     match n with
-    | ℕ₀.zero => Nat.zero
-    | ℕ₀.succ k => Nat.succ (Ψ k)
+    | .zero => Nat.zero
+    | .succ k => Nat.succ (Ψ k)
 
   instance : Coe Nat ℕ₀ where
     coe n := Λ n
@@ -109,14 +109,14 @@ namespace Peano
 
   def τ (n : ℕ₀) : ℕ₀ :=
     match n with
-    | ℕ₀.zero => 𝟘
-    | ℕ₀.succ k => k
+    | .zero => 𝟘
+    | .succ k => k
 
   def ρ (n : ℕ₀) (h_n_neq_0 : n ≠ 𝟘) : ℕ₀ :=
     match n with
-    | ℕ₀.zero =>
+    | .zero =>
       False.elim (h_n_neq_0 rfl)
-    | ℕ₀.succ k => k
+    | .succ k => k
 
   inductive Nats : Type
     | nat0

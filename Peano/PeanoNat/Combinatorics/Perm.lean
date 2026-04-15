@@ -16,7 +16,7 @@ License: MIT
 import Peano.PeanoNat
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.Combinatorics.Factorial
 
 set_option autoImplicit false
@@ -26,7 +26,7 @@ namespace Peano
 
     open Peano.FSet
     open Peano.FSetFunction
-    open Peano.Lists
+    open Peano.List
 
     /-!
     # § 1. FunPerm  (re-exportado de FSetFunction)

@@ -49,12 +49,12 @@ namespace Peano
       Edge cases: `logMod b 0 = (0, 0)` and `logMod b n = (0, 0)` when `b ≤ 1`.
     -/
     def logMod (b n : ℕ₀) : ℕ₀ × ℕ₀ :=
-      if h_b : Le b 𝟙 then (𝟘, 𝟘)
+      if h_b : le₀ b 𝟙 then (𝟘, 𝟘)
       else if h_n : n = 𝟘 then (𝟘, 𝟘)
-      else if _ : Lt n b then (𝟘, sub n 𝟙)
+      else if _ : lt₀ n b then (𝟘, sub n 𝟙)
       else
-        have h_b_gt_1 : Lt 𝟙 b := (nle_iff_gt b 𝟙).mp h_b
-        have _h_div_lt_n : Lt (n / b) n := div_lt_self n b h_b_gt_1 h_n
+        have h_b_gt_1 : lt₀ 𝟙 b := (nle_iff_gt b 𝟙).mp h_b
+        have _h_div_lt_n : lt₀ (n / b) n := div_lt_self n b h_b_gt_1 h_n
         let p : ℕ₀ × ℕ₀ := logMod b (n / b)
         (σ p.1, add (mul p.2 b) (n % b))
     termination_by n
@@ -69,18 +69,18 @@ namespace Peano
     ## § 2. Helper lemmas
     !-/
 
-    private theorem one_le_of_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) : Le 𝟙 n := by
+    private theorem one_le_of_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) : le₀ 𝟙 n := by
       cases n with
       | zero => exact absurd rfl h
       | succ n' =>
         cases n' with
         | zero => exact Or.inr rfl
-        | succ _ => exact Or.inl (by unfold Lt; trivial)
+        | succ _ => exact Or.inl (by unfold lt₀; trivial)
 
-    private theorem b_neq_zero_of_gt_one {b : ℕ₀} (h : Lt 𝟙 b) : b ≠ 𝟘 :=
+    private theorem b_neq_zero_of_gt_one {b : ℕ₀} (h : lt₀ 𝟙 b) : b ≠ 𝟘 :=
       (gt_imp_neq_zero_one b h).1
 
-    private theorem div_ne_zero_of_ge {n b : ℕ₀} (h_b : Lt 𝟙 b) (h_nlt : ¬(Lt n b)) (_h_n : n ≠ 𝟘) :
+    private theorem div_ne_zero_of_ge {n b : ℕ₀} (h_b : lt₀ 𝟙 b) (h_nlt : ¬(lt₀ n b)) (_h_n : n ≠ 𝟘) :
         (n / b) ≠ 𝟘 := by
       intro h_div_0
       have h_b_ne_0 : b ≠ 𝟘 := b_neq_zero_of_gt_one h_b
@@ -111,24 +111,24 @@ namespace Peano
       · rfl
       · rfl
 
-    theorem log_of_lt {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : Lt n b) :
+    theorem log_of_lt {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : lt₀ n b) :
         log b n = 𝟘 := by
       unfold log logMod
-      have h_nle : ¬(Le b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
+      have h_nle : ¬(le₀ b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
       rw [dif_neg h_nle, dif_neg h_n, dif_pos h_lt]
 
-    theorem logRem_of_lt {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : Lt n b) :
+    theorem logRem_of_lt {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘) (h_lt : lt₀ n b) :
         logRem b n = sub n 𝟙 := by
       unfold logRem logMod
-      have h_nle : ¬(Le b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
+      have h_nle : ¬(le₀ b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
       rw [dif_neg h_nle, dif_neg h_n, dif_pos h_lt]
 
-    theorem log_one {b : ℕ₀} (h_b : Lt 𝟙 b) : log b 𝟙 = 𝟘 :=
+    theorem log_one {b : ℕ₀} (h_b : lt₀ 𝟙 b) : log b 𝟙 = 𝟘 :=
       log_of_lt h_b (succ_neq_zero 𝟘) h_b
 
-    theorem logRem_one {b : ℕ₀} (h_b : Lt 𝟙 b) : logRem b 𝟙 = 𝟘 := by
+    theorem logRem_one {b : ℕ₀} (h_b : lt₀ 𝟙 b) : logRem b 𝟙 = 𝟘 := by
       unfold logRem logMod
-      have h_nle : ¬(Le b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
+      have h_nle : ¬(le₀ b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
       rw [dif_neg h_nle]
       -- The condition is `one = 𝟘` (≠ `σ 𝟘 = 𝟘` syntactically)
       have h_one_ne : one ≠ 𝟘 := succ_neq_zero 𝟘
@@ -142,21 +142,21 @@ namespace Peano
     /--
       Main specification: `n = b^(log b n) + logRem b n` when `b > 1` and `n ≠ 0`.
     -/
-    theorem logMod_spec {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) :
+    theorem logMod_spec {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘) :
         n = add (pow b (logMod b n).1) (logMod b n).2 := by
       induction n using well_founded_lt.induction
       rename_i n ih
       unfold logMod
-      have h_nle : ¬(Le b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
+      have h_nle : ¬(le₀ b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
       rw [dif_neg h_nle, dif_neg h_n]
-      if h_lt : Lt n b then
+      if h_lt : lt₀ n b then
         rw [dif_pos h_lt, pow_zero, add_comm]
         exact (sub_k_add_k n 𝟙 (one_le_of_ne_zero h_n)).symm
       else
         rw [dif_neg h_lt]
         simp only
         have h_b_ne_0 : b ≠ 𝟘 := b_neq_zero_of_gt_one h_b
-        have h_div_lt : Lt (n / b) n := div_lt_self n b h_b h_n
+        have h_div_lt : lt₀ (n / b) n := div_lt_self n b h_b h_n
         have h_div_ne_0 : (n / b) ≠ 𝟘 := div_ne_zero_of_ge h_b h_lt h_n
         have h_ih := ih (n / b) h_div_lt h_div_ne_0
         -- Work backwards from goal to divMod_spec:
@@ -177,17 +177,17 @@ namespace Peano
     /--
       Upper bound: `n < b^(⌊log_b(n)⌋ + 1)` when `b > 1` and `n ≠ 0`.
     -/
-    theorem log_upper_bound {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) :
-        Lt n (pow b (σ (logMod b n).1)) := by
+    theorem log_upper_bound {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘) :
+        lt₀ n (pow b (σ (logMod b n).1)) := by
       induction n using well_founded_lt.induction
       rename_i n ih
       unfold logMod
-      have h_nle : ¬(Le b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
+      have h_nle : ¬(le₀ b 𝟙) := (nle_iff_gt b 𝟙).mpr h_b
       rw [dif_neg h_nle, dif_neg h_n]
-      if h_lt : Lt n b then
+      if h_lt : lt₀ n b then
         rw [dif_pos h_lt]
         simp only []
-        -- Goal: Lt n (pow b (σ 𝟘))
+        -- Goal: lt₀ n (pow b (σ 𝟘))
         -- Use pow_succ + pow_zero + one_mul to avoid `pow_one` notation mismatch
         rw [pow_succ, pow_zero, one_mul]
         exact h_lt
@@ -195,7 +195,7 @@ namespace Peano
         rw [dif_neg h_lt]
         dsimp only []
         have h_b_ne_0 : b ≠ 𝟘 := b_neq_zero_of_gt_one h_b
-        have h_div_lt : Lt (n / b) n := div_lt_self n b h_b h_n
+        have h_div_lt : lt₀ (n / b) n := div_lt_self n b h_b h_n
         have h_div_ne_0 : (n / b) ≠ 𝟘 := div_ne_zero_of_ge h_b h_lt h_n
         have h_ih_ub := ih (n / b) h_div_lt h_div_ne_0
         have h_dm := divMod_spec n b h_b_ne_0
@@ -203,15 +203,15 @@ namespace Peano
         unfold mod at h_mod_lt
         unfold div at h_ih_ub
         -- Step 1: n < mul (σ (divMod n b).fst) b
-        have h_n_lt_succ_mul : Lt n (mul (σ (divMod n b).fst) b) := by
+        have h_n_lt_succ_mul : lt₀ n (mul (σ (divMod n b).fst) b) := by
           rw [succ_mul]
           calc n
               = add (mul (divMod n b).fst b) (divMod n b).snd := h_dm
             _ < add (mul (divMod n b).fst b) b :=
                 (add_lt_add_left_iff (mul (divMod n b).fst b) (divMod n b).snd b).mpr h_mod_lt
-        -- Step 2: Le (σ (divMod n b).fst) (pow b (σ k))
-        --   From h_ih_ub: Lt x y, and Le (σ x) y ↔ Lt (σ x) (σ y) = Lt x y
-        have h_succ_le : Le (σ (divMod n b).fst)
+        -- Step 2: le₀ (σ (divMod n b).fst) (pow b (σ k))
+        --   From h_ih_ub: lt₀ x y, and le₀ (σ x) y ↔ lt₀ (σ x) (σ y) = lt₀ x y
+        have h_succ_le : le₀ (σ (divMod n b).fst)
             (pow b (σ (logMod b (divMod n b).fst).fst)) :=
           (le_iff_lt_succ (σ (divMod n b).fst)
             (pow b (σ (logMod b (divMod n b).fst).fst))).mpr h_ih_ub
@@ -245,13 +245,13 @@ namespace Peano
       unfold clog
       rw [logRem_zero, if_pos rfl, log_zero]
 
-    theorem clog_one {b : ℕ₀} (h_b : Lt 𝟙 b) : clog b 𝟙 = 𝟘 := by
+    theorem clog_one {b : ℕ₀} (h_b : lt₀ 𝟙 b) : clog b 𝟙 = 𝟘 := by
       unfold clog
       rw [logRem_one h_b, if_pos rfl, log_one h_b]
 
     /-- `n ≤ b^⌈log_b(n)⌉` — ceiling log gives an exponent at least as large. -/
-    theorem le_clog_pow {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘) :
-        Le n (pow b (clog b n)) := by
+    theorem le_clog_pow {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘) :
+        le₀ n (pow b (clog b n)) := by
       by_cases h_rem : logRem b n = 𝟘
       · -- Exact power: clog = log, n = b^(log b n)
         have h_clog : clog b n = log b n := by unfold clog; rw [if_pos h_rem]
@@ -269,8 +269,8 @@ namespace Peano
               (Or.inl (log_upper_bound h_b h_n))
 
     /-- `⌈log_b(n)⌉ ≠ 0 → b^(⌈log_b(n)⌉ − 1) < n` — ceiling is tight from below. -/
-    theorem clog_lower {b n : ℕ₀} (h_b : Lt 𝟙 b) (h_n : n ≠ 𝟘)
-        (h : clog b n ≠ 𝟘) : Lt (pow b (sub (clog b n) 𝟙)) n := by
+    theorem clog_lower {b n : ℕ₀} (h_b : lt₀ 𝟙 b) (h_n : n ≠ 𝟘)
+        (h : clog b n ≠ 𝟘) : lt₀ (pow b (sub (clog b n) 𝟙)) n := by
       by_cases h_rem : logRem b n = 𝟘
       · -- clog = log b n ≠ 𝟘, n = b^(log b n) exactly
         have h_clog : clog b n = log b n := by unfold clog; rw [if_pos h_rem]

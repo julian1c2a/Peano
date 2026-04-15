@@ -21,7 +21,7 @@ namespace Peano
   open Peano.StrictOrder
   open Peano.Order
   open Peano.Arith
-  open Peano.Lists
+  open Peano.List
   open Peano.FSet
 
   namespace NumberSets
@@ -53,7 +53,7 @@ namespace Peano
     /-- Test booleano de primalidad: `n > 1` y sus únicos divisores
         en `{1, …, n}` son exactamente dos (`1` y `n`). -/
     def isPrimeb (n : ℕ₀) : Bool :=
-      blt 𝟙 n &&
+      blt₀ 𝟙 n &&
       ((range_from_one n).filter (fun d => dividesb d n)).length == 2
 
     /-- Test booleano de coprimalidad: `gcd(a, b) = 1`. -/

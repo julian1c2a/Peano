@@ -18,13 +18,13 @@ License: MIT
 -- § 7. Notación {[ ... ]} para ℕ₀FSet
 -- § 8. Operaciones sobre FactFSet (addFactor, lookup)
 
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.Add
 
 
 namespace Peano
   open Peano
-  open Peano.Lists
+  open Peano.List
 
   namespace FSet
 
@@ -158,7 +158,7 @@ namespace Peano
     --
     -- La función `sortedInsert` es genérica en su definición, pero la
     -- demostración de correctitud (`sorted_sortedInsert`) usa propiedades
-    -- específicas de `ℕ₀` (transitividad y tricotomía de `Lt`).
+    -- específicas de `ℕ₀` (transitividad y tricotomía de `lt₀`).
     -- Para generalizar el proof se necesitaría una clase `LinearOrder α`.
     -- ══════════════════════════════════════════════════════════════════
 
@@ -168,7 +168,7 @@ namespace Peano
     def sortedInsert (x : ℕ₀) : List ℕ₀ → List ℕ₀
       | []      => [x]
       | y :: ys =>
-        if Lt x y      then x :: y :: ys
+        if lt₀ x y      then x :: y :: ys
         else if x = y  then y :: ys
         else                y :: sortedInsert x ys
 
@@ -273,12 +273,12 @@ namespace Peano
       /-- El segmento inicial `{0, 1, …, n-1}` como `ℕ₀FSet`.
           `Fin₀Set 𝟘 = ∅`, `Fin₀Set (σ n) = Fin₀Set n ∪ {n}`. -/
       def Fin₀Set : ℕ₀ → ℕ₀FSet
-        | 𝟘   => empty
-        | σ n => insert n (Fin₀Set n)
+        | .zero   => empty
+        | .succ n => insert n (Fin₀Set n)
 
       /-- `k ∈ Fin₀Set n ↔ k < n`. -/
       theorem mem_Fin₀Set_iff (n k : ℕ₀) :
-          k ∈ (Fin₀Set n).elems ↔ Lt k n := by
+          k ∈ (Fin₀Set n).elems ↔ lt₀ k n := by
         induction n with
         | zero =>
           simp only [Fin₀Set, empty, FSet.empty, List.not_mem_nil, false_iff]
@@ -307,7 +307,7 @@ namespace Peano
           have hnotin_ys : x ∉ ys := fun h => hnotin (List.mem_cons.mpr (Or.inr h))
           have hxney : x ≠ y := fun heq => hnotin (heq ▸ List.mem_cons.mpr (Or.inl rfl))
           unfold sortedInsert
-          by_cases hlt : Lt x y
+          by_cases hlt : lt₀ x y
           · rw [if_pos hlt]; simp [List.length_cons]
           · rw [if_neg hlt, if_neg hxney]
             simp [List.length_cons, ih hnotin_ys]

@@ -20,20 +20,20 @@ namespace Peano
   def isZero : ℕ₀ -> Prop :=
     fun n =>
       match n with
-      | ℕ₀.zero   => True
-      | ℕ₀.succ _ => False
+      | .zero   => True
+      | .succ _ => False
 
   def isSucc : ℕ₀ -> Prop :=
     fun n =>
       match n with
-      | ℕ₀.zero => False
-      | ℕ₀.succ _ => True
+      | .zero => False
+      | .succ _ => True
 
   def returnBranch : ℕ₀ -> Prop :=
     fun n =>
       match n with
-      | ℕ₀.zero   => isZero n
-      | ℕ₀.succ _ => isSucc n
+      | .zero   => isZero n
+      | .succ _ => isSucc n
 
   theorem noConfusion (n: ℕ₀) :
     (isZero n → ¬ isSucc n) ∧ (isSucc n → ¬ isZero n)
@@ -211,19 +211,19 @@ namespace Peano
   def BIs_zero : ℕ₀ -> Bool :=
     fun n =>
       match n with
-      | ℕ₀.zero   => true
-      | ℕ₀.succ _ => false
+      | .zero   => true
+      | .succ _ => false
 
   def BIs_succ : ℕ₀ -> Bool :=
     fun n =>
       match n with
-      | ℕ₀.zero   => false
-      | ℕ₀.succ _ => true
+      | .zero   => false
+      | .succ _ => true
 
   def category_by_constructor (n : ℕ₀) : ℕ₀ -> Prop :=
     match n with
-    | ℕ₀.zero   => isZero
-    | ℕ₀.succ _ => isSucc
+    | .zero   => isZero
+    | .succ _ => isSucc
 
   theorem neq_succ (k : ℕ₀) : k ≠ σ k := by
     induction k with

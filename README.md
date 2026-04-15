@@ -1,4 +1,4 @@
-# Peano
+﻿# Peano
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
@@ -41,7 +41,7 @@ Peano.lean                                  ← entrada; importa toda la librer�
       ├─ Arith.lean                         Peano.Arith        — divisibilidad, MCD/MCM, Bézout, paridad
       ├─ Primes.lean                        Peano.Primes       — primos, TFA, decidabilidad de Prime
       ├─ Decidable.lean                     Peano.Decidable    — instancias Ord, DecidableRel
-      ├─ Lists.lean                         Peano.Lists        — listas de ℕ₀
+      ├─ List.lean                         Peano.List        — listas de ℕ₀
       ├─ FSet.lean                          Peano.FSet         — conjuntos finitos ordenados
       ├─ NumberSets.lean                    Peano.NumberSets   — divisores, coprimos, primos ≤ n
       ├─ Isomorph.lean                      Peano.Isomorph     — isomorfismo Nat↔ℕ₀ completo

@@ -13,15 +13,15 @@ License: MIT
 -- § 4. Orden lexicográfico (lexLt, lexLe)
 
 import Peano.PeanoNat
-import Peano.PeanoNat.StrictOrder -- For Lt
+import Peano.PeanoNat.StrictOrder -- For lt₀
 
 namespace Peano
 
   /-- Tuplas de naturales de Peano de longitud `n`.
       `Tuple 𝟘` es `Unit`, `Tuple (σ n)` es `ℕ₀ × Tuple n`. -/
   def Tuple : ℕ₀ → Type
-    | 𝟘 => Unit
-    | σ n => ℕ₀ × Tuple n
+    | .zero => Unit
+    | .succ n => ℕ₀ × Tuple n
 
   /-- Tupla heterogénea específica para el sistema numérico.
       El esquema es una lista de etiquetas `Nats` que Lean convierte a tipos. -/
@@ -31,8 +31,8 @@ namespace Peano
 
   /-- Tupla homogénea genérica. Construye `α^n`. Todos los elementos son de tipo `α`. -/
   def GTuple (α : Type) : ℕ₀ → Type
-  | 𝟘 => Unit
-  | σ n => α × GTuple α n
+  | .zero => Unit
+  | .succ n => α × GTuple α n
 
   /-- Tupla heterogénea genérica (HList). El esquema es una lista explícita de tipos.
       Permite instanciar, por ejemplo: `HTuple [ℕ₀, ℕ₁, Bool]`. -/
@@ -73,8 +73,8 @@ namespace Peano
 
   /-- Función para construir una tupla desde una función. -/
   def mkTuple : (n : ℕ₀) → (proj : ℕ₀ → ℕ₀) → Tuple n
-    | 𝟘, _ => emptyTuple
-    | σ n, proj => consTuple (proj 𝟘) (mkTuple n (fun k => proj (σ k)))
+    | .zero, _ => emptyTuple
+    | .succ n, proj => consTuple (proj 𝟘) (mkTuple n (fun k => proj (σ k)))
 
   /-- Constructor de tupla vacía (NatsTuple). -/
   def emptyNatsTuple : NatsTuple [] := ()
@@ -131,8 +131,8 @@ namespace Peano
 
   /-- Construir una GTuple desde una función. -/
   def mkGTuple {α : Type} : (n : ℕ₀) → (proj : ℕ₀ → α) → GTuple α n
-    | 𝟘, _ => emptyGTuple
-    | σ n, proj => consGTuple (proj 𝟘) (mkGTuple n (fun k => proj (σ k)))
+    | .zero, _ => emptyGTuple
+    | .succ n, proj => consGTuple (proj 𝟘) (mkGTuple n (fun k => proj (σ k)))
 
   /-- Constructor de tupla vacía (HTuple). -/
   def emptyHTuple : HTuple [] := ()
@@ -169,8 +169,8 @@ namespace Peano
 
   /-- Igualdad decidible para tuplas. -/
   instance tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)
-    | 𝟘 => fun _ _ => isTrue rfl
-    | σ n => fun t1 t2 =>
+    | .zero => fun _ _ => isTrue rfl
+    | .succ n => fun t1 t2 =>
         match decEq t1.1 t2.1, tupleDecEq n t1.2 t2.2 with
         | isTrue h1, isTrue h2 => isTrue (by
             have : t1.1 = t2.1 := h1
@@ -182,8 +182,8 @@ namespace Peano
 
   /-- Representación para tuplas. -/
   instance tupleRepr : (n : ℕ₀) → Repr (Tuple n)
-    | 𝟘 => ⟨fun _ _ => "⟨⟩"⟩
-    | σ n => ⟨fun t _ =>
+    | .zero => ⟨fun _ _ => "⟨⟩"⟩
+    | .succ n => ⟨fun t _ =>
         let head := repr t.1
         let tailRepr := (tupleRepr n).reprPrec t.2 0
         let tailStr := toString tailRepr
@@ -226,8 +226,8 @@ namespace Peano
 
   /-- Igualdad decidible para GTuple. -/
   instance gtupleDecEq {α : Type} [DecidableEq α] : (n : ℕ₀) → DecidableEq (GTuple α n)
-    | 𝟘 => fun _ _ => isTrue rfl
-    | σ n => fun t1 t2 =>
+    | .zero => fun _ _ => isTrue rfl
+    | .succ n => fun t1 t2 =>
         match decEq t1.1 t2.1, gtupleDecEq n t1.2 t2.2 with
         | isTrue h1, isTrue h2 => isTrue (Prod.ext h1 h2)
         | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
@@ -235,8 +235,8 @@ namespace Peano
 
   /-- Representación para GTuple. -/
   instance gtupleRepr {α : Type} [Repr α] : (n : ℕ₀) → Repr (GTuple α n)
-    | 𝟘 => ⟨fun _ _ => "⟨⟩"⟩
-    | σ n => ⟨fun tup _ =>
+    | .zero => ⟨fun _ _ => "⟨⟩"⟩
+    | .succ n => ⟨fun tup _ =>
         let head := repr tup.1
         let tailRepr := (gtupleRepr n).reprPrec tup.2 0
         let tailStr := toString tailRepr
@@ -274,20 +274,20 @@ namespace Peano
 
   /-- Orden lexicográfico estricto para tuplas. -/
   def lexLt : {n : ℕ₀} → Tuple n → Tuple n → Prop
-    | 𝟘, _, _ => False
-    | (σ _), (x, xs), (y, ys) => Lt x y ∨ (x = y ∧ lexLt xs ys)
+    | .zero, _, _ => False
+    | (.succ _), (x, xs), (y, ys) => lt₀ x y ∨ (x = y ∧ lexLt xs ys)
 
   /-- Orden lexicográfico no estricto para tuplas. -/
   def lexLe : {n : ℕ₀} → Tuple n → Tuple n → Prop
-    | 𝟘, _, _ => True
-    | (σ _), (x, xs), (y, ys) => Lt x y ∨ (x = y ∧ lexLe xs ys)
+    | .zero, _, _ => True
+    | (.succ _), (x, xs), (y, ys) => lt₀ x y ∨ (x = y ∧ lexLe xs ys)
 
   instance instLTTuple {n : ℕ₀} : LT (Tuple n) := ⟨lexLt⟩
   instance instLETuple {n : ℕ₀} : LE (Tuple n) := ⟨lexLe⟩
 
   instance instDecidableRelLtTuple : {n : ℕ₀} → DecidableRel (@lexLt n)
-    | 𝟘, _, _ => isFalse id
-    | σ _, (x, xs), (y, ys) =>
+    | .zero, _, _ => isFalse id
+    | .succ _, (x, xs), (y, ys) =>
       match decidableLt x y with
       | isTrue h_lt => isTrue (Or.inl h_lt)
       | isFalse h_nlt =>
@@ -301,8 +301,8 @@ namespace Peano
           isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
 
   instance instDecidableRelLeTuple : {n : ℕ₀} → DecidableRel (@lexLe n)
-    | 𝟘, _, _ => isTrue trivial
-    | σ _, (x, xs), (y, ys) =>
+    | .zero, _, _ => isTrue trivial
+    | .succ _, (x, xs), (y, ys) =>
       match decidableLt x y with
       | isTrue h_lt => isTrue (Or.inl h_lt)
       | isFalse h_nlt =>
@@ -329,13 +329,13 @@ namespace Peano
   def natsLexLt : {ts : List Nats} → NatsTuple ts → NatsTuple ts → Prop
     | [], _, _ => False
     | (t :: _ts), (x, xs), (y, ys) =>
-      Lt (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLt xs ys)
+      lt₀ (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLt xs ys)
 
   /-- Orden lexicográfico no estricto para NatsTuple. -/
   def natsLexLe : {ts : List Nats} → NatsTuple ts → NatsTuple ts → Prop
     | [], _, _ => True
     | (t :: _ts), (x, xs), (y, ys) =>
-      Lt (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLe xs ys)
+      lt₀ (natsVal t x) (natsVal t y) ∨ (natsVal t x = natsVal t y ∧ natsLexLe xs ys)
 
   instance instLTNatsTuple {ts : List Nats} : LT (NatsTuple ts) := ⟨natsLexLt⟩
   instance instLENatsTuple {ts : List Nats} : LE (NatsTuple ts) := ⟨natsLexLe⟩
@@ -376,20 +376,20 @@ namespace Peano
 
   /-- Orden lexicográfico estricto para GTuple. -/
   def glexLt {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
-    | 𝟘, _, _ => False
-    | (σ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLt xs ys)
+    | .zero, _, _ => False
+    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLt xs ys)
 
   /-- Orden lexicográfico no estricto para GTuple. -/
   def glexLe {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
-    | 𝟘, _, _ => True
-    | (σ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLe xs ys)
+    | .zero, _, _ => True
+    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLe xs ys)
 
   instance instLTGTuple {α : Type} [LT α] {n : ℕ₀} : LT (GTuple α n) := ⟨glexLt⟩
   instance instLEGTuple {α : Type} [LT α] {n : ℕ₀} : LE (GTuple α n) := ⟨glexLe⟩
 
   instance instDecidableRelLtGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLt α _ n)
-    | 𝟘, _, _ => isFalse id
-    | σ _, (x, xs), (y, ys) =>
+    | .zero, _, _ => isFalse id
+    | .succ _, (x, xs), (y, ys) =>
       if h_lt : x < y then isTrue (Or.inl h_lt)
       else if h_eq : x = y then
         match instDecidableRelLtGTuple xs ys with
@@ -398,8 +398,8 @@ namespace Peano
       else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
 
   instance instDecidableRelLeGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLe α _ n)
-    | 𝟘, _, _ => isTrue trivial
-    | σ _, (x, xs), (y, ys) =>
+    | .zero, _, _ => isTrue trivial
+    | .succ _, (x, xs), (y, ys) =>
       if h_lt : x < y then isTrue (Or.inl h_lt)
       else if h_eq : x = y then
         match instDecidableRelLeGTuple xs ys with

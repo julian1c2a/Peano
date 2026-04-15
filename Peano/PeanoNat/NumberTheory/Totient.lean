@@ -16,7 +16,7 @@ import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Arith
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.NumberSets
 import Peano.PeanoNat.Primes
@@ -36,7 +36,7 @@ namespace Peano
     open Peano.Mul
     open Peano.Div
     open Peano.Arith
-    open Peano.Lists
+    open Peano.List
     open Peano.FSet
     open Peano.NumberSets
 
@@ -73,7 +73,7 @@ namespace Peano
 
     /-- Filtering does not increase length. -/
     theorem lengthₚ_filter_le {α : Type} (p : α → Bool) (l : List α) :
-        Le (lengthₚ (List.filter p l)) (lengthₚ l) := by
+        le₀ (lengthₚ (List.filter p l)) (lengthₚ l) := by
       induction l with
       | nil => exact le_refl 𝟘
       | cons x xs ih =>
@@ -124,7 +124,7 @@ namespace Peano
 
     /-- Every element of `range_from_one n` is `≤ n`. -/
     theorem mem_range_from_one_le {k n : ℕ₀}
-        (h : k ∈ range_from_one n) : Le k n := by
+        (h : k ∈ range_from_one n) : le₀ k n := by
       induction n with
       | zero => simp [range_from_one] at h
       | succ n' ih =>
@@ -133,9 +133,9 @@ namespace Peano
         · exact le_trans k n' (σ n') (ih h_left) (Or.inl (lt_succ_self n'))
         · rw [h_right]; exact le_refl (σ n')
 
-    /-- `Le k n → Lt k (σ n)`. -/
-    private theorem le_imp_lt_succ {k n : ℕ₀} (h : Le k n) :
-        Lt k (σ n) := by
+    /-- `le₀ k n → lt₀ k (σ n)`. -/
+    private theorem le_imp_lt_succ {k n : ℕ₀} (h : le₀ k n) :
+        lt₀ k (σ n) := by
       rcases h with h_lt | h_eq
       · exact lt_trans_wp h_lt (lt_succ_self n)
       · rw [h_eq]; exact lt_succ_self n
@@ -173,7 +173,7 @@ namespace Peano
     !-/
 
     /-- `φ(n) ≤ n`. -/
-    theorem totient_le (n : ℕ₀) : Le (totient n) n := by
+    theorem totient_le (n : ℕ₀) : le₀ (totient n) n := by
       unfold totient
       have h1 := lengthₚ_filter_le (fun d => decide (gcd d n = 𝟙)) (range_from_one n)
       rw [lengthₚ_range_from_one] at h1
@@ -207,7 +207,7 @@ namespace Peano
 
     /-- A nonempty list has `lengthₚ ≥ 1`. -/
     private theorem lengthₚ_pos_of_mem {α : Type} {l : List α} {x : α}
-        (h : x ∈ l) : Le 𝟙 (lengthₚ l) := by
+        (h : x ∈ l) : le₀ 𝟙 (lengthₚ l) := by
       cases l with
       | nil => simp at h
       | cons y ys =>
@@ -215,7 +215,7 @@ namespace Peano
         exact (succ_le_succ_iff 𝟘 (lengthₚ ys)).mpr (zero_le (lengthₚ ys))
 
     /-- `φ(n) ≥ 1` for `n ≥ 1`. -/
-    theorem totient_pos {n : ℕ₀} (h : n ≠ 𝟘) : Le 𝟙 (totient n) := by
+    theorem totient_pos {n : ℕ₀} (h : n ≠ 𝟘) : le₀ 𝟙 (totient n) := by
       cases n with
       | zero => exact absurd rfl h
       | succ n' =>
@@ -234,7 +234,7 @@ namespace Peano
 
     /-- For `k < p` with `k ≠ 0` and `p` prime, `gcd(k, p) = 1`. -/
     private theorem gcd_eq_one_of_lt_prime {k p : ℕ₀}
-        (hp : Arith.Prime p) (hk_pos : k ≠ 𝟘) (hk_lt : Lt k p) :
+        (hp : Arith.Prime p) (hk_pos : k ≠ 𝟘) (hk_lt : lt₀ k p) :
         gcd k p = 𝟙 := by
       have h_dvd_or_cop := @Peano.Primes.prime_coprime_or_dvd p k hp
       rcases h_dvd_or_cop with h_dvd | h_cop

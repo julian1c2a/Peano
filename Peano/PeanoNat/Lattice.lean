@@ -26,12 +26,12 @@ namespace Peano
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
     def max (n m : ℕ₀) : ℕ₀ :=
         match n, m with
-        | 𝟘 , m => m
-        | n , 𝟘 => n
-        | σ n' , σ m' =>
+        | .zero , m => m
+        | n , .zero => n
+        | .succ n' , .succ m' =>
             if n' = m' then
                 σ m'
-            else if blt n' m' then
+            else if blt₀ n' m' then
                 σ m'
             else
                 σ n'
@@ -40,12 +40,12 @@ namespace Peano
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
     def min (n m : ℕ₀) : ℕ₀ :=
         match n, m with
-        | 𝟘 , _ => 𝟘
-        | _ , 𝟘 => 𝟘
-        | σ n' , σ m' =>
+        | .zero , _ => 𝟘
+        | _ , .zero => 𝟘
+        | .succ n' , .succ m' =>
             if n' = m' then
                 σ n'
-            else if blt n' m' then
+            else if blt₀ n' m' then
                 σ n'
             else
                 σ m'
@@ -54,12 +54,12 @@ namespace Peano
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
     def min_max (n m : ℕ₀) : ℕ₀×ℕ₀ :=
         match n, m with
-        | 𝟘 , m => (𝟘 , m)
-        | n , 𝟘 => (𝟘 , n)
-        | σ n' , σ m' =>
+        | .zero , m => (𝟘 , m)
+        | n , .zero => (𝟘 , n)
+        | .succ n' , .succ m' =>
             if n' = m' then
                 (σ n' , σ n')
-            else if blt n' m' then
+            else if blt₀ n' m' then
                 (σ n' , σ m')
             else
                 (σ m' , σ n')
@@ -68,12 +68,12 @@ namespace Peano
          def Ψ(n : ℕ₀) : Nat  de_Pea_a_Nat !--/
     def max_min (n m : ℕ₀) : ℕ₀×ℕ₀ :=
         match n, m with
-        | 𝟘 , m => (m , 𝟘)
-        | n , 𝟘 => (n , 𝟘)
-        | σ n' , σ m' =>
+        | .zero , m => (m , 𝟘)
+        | n , .zero => (n , 𝟘)
+        | .succ n' , .succ m' =>
             if n' = m' then
                 (σ n' , σ n')
-            else if blt n' m' then
+            else if blt₀ n' m' then
                 (σ m' , σ n')
             else
                 (σ n' , σ m')
@@ -148,13 +148,13 @@ theorem eq_of_max_eq_min(n m : ℕ₀) :
             apply h_eq_or_neq
             rw [h_preds_eq_contra]
           simp [max, min, if_neg h_neq_preds] at h_max_eq_min_hyp
-          by_cases h_blt_eval : blt n' m'
-          · -- Caso blt n' m' = true
+          by_cases h_blt_eval : blt₀ n' m'
+          · -- Caso blt₀ n' m' = true
             simp [h_blt_eval] at h_max_eq_min_hyp
             have h_preds_eq_from_hyp : m' = n' :=
               h_max_eq_min_hyp
             exact h_neq_preds (Eq.symm h_preds_eq_from_hyp)
-          · -- Caso blt n' m' = false
+          · -- Caso blt₀ n' m' = false
             simp [h_blt_eval] at h_max_eq_min_hyp
             have h_preds_eq_from_sigma_inj : n' = m' :=
               h_max_eq_min_hyp
@@ -198,23 +198,23 @@ theorem min_of_min_max(n m : ℕ₀) :
                 · -- Caso: n' = m'
                   simp [min, max, h_eq_preds]
                 · -- Caso: n' ≠ m'
-                  by_cases h_blt_bool : (blt n' m')
-                  · -- Caso: blt n' m' = true
-                    have h_lt_n_prime_m_prime : Lt n' m' := by
+                  by_cases h_blt_bool : (blt₀ n' m')
+                  · -- Caso: blt₀ n' m' = true
+                    have h_lt_n_prime_m_prime : lt₀ n' m' := by
                       rw [← blt_iff_Lt]
                       exact h_blt_bool
                     have h_not_lt_m_prime_n_prime :
-                        ¬ (Lt m' n')
+                        ¬ (lt₀ m' n')
                             := by
                               apply lt_asymm
                               exact h_lt_n_prime_m_prime
                     have h_blt_m_prime_n_prime_is_false :
-                      blt m' n' = false
+                      blt₀ m' n' = false
                       := by
                          rw [← Bool.not_eq_true]
-                         --   Meta: ¬ (blt m' n' = true)
+                         --   Meta: ¬ (blt₀ m' n' = true)
                          rw [blt_iff_Lt]
-                         --   Meta: ¬ (Lt m' n')
+                         --   Meta: ¬ (lt₀ m' n')
                          exact h_not_lt_m_prime_n_prime
                     have h_m'_ne_n' : ¬m' = n' := by
                       intro h_eq
@@ -227,7 +227,7 @@ theorem min_of_min_max(n m : ℕ₀) :
                           h_blt_bool, h_blt_m_prime_n_prime_is_false,
                           h_m'_ne_n'
                     ]
-                  · -- Caso: ¬ (blt n' m')
+                  · -- Caso: ¬ (blt₀ n' m')
                     simp [
                             min,
                             max,
@@ -254,18 +254,18 @@ theorem max_of_min_max(n m : ℕ₀) :
                 · -- Caso: n' = m'
                   simp [min, max, h_eq_preds]
                 · -- Caso: n' ≠ m'
-                  by_cases h_blt_bool : (blt n' m')
-                  · -- Caso: blt n' m' = true
-                    have h_lt_n_prime_m_prime : Lt n' m' := by
+                  by_cases h_blt_bool : (blt₀ n' m')
+                  · -- Caso: blt₀ n' m' = true
+                    have h_lt_n_prime_m_prime : lt₀ n' m' := by
                       rw [← blt_iff_Lt]
                       exact h_blt_bool
                     have h_not_lt_m_prime_n_prime :
-                        ¬ (Lt m' n')
+                        ¬ (lt₀ m' n')
                             := by
                                 apply lt_asymm
                                 exact h_lt_n_prime_m_prime
                     have h_blt_m_prime_n_prime_is_false :
-                      blt m' n' = false
+                      blt₀ m' n' = false
                       := by
                          rw [← Bool.not_eq_true]
                          rw [blt_iff_Lt]
@@ -274,9 +274,9 @@ theorem max_of_min_max(n m : ℕ₀) :
                       min, max, h_eq_preds,
                       h_blt_bool
                     ]
-                  · -- Caso: ¬ (blt n' m')
+                  · -- Caso: ¬ (blt₀ n' m')
                     have h_blt_m_n_is_true :
-                      blt m' n' = true
+                      blt₀ m' n' = true
                       := by
                       rcases trichotomy n' m' with
                         h_lt_n_m | h_eq_n_m | h_lt_m_n
@@ -319,7 +319,7 @@ theorem max_is_any(n m : ℕ₀) :
                 rw [h_eq_cond]
               ·
                 rw [if_neg h_eq_cond]
-                by_cases h_blt_cond : (blt n' m')
+                by_cases h_blt_cond : (blt₀ n' m')
                 ·
                   rw [if_pos h_blt_cond]
                   right
@@ -349,7 +349,7 @@ theorem min_is_any(n m : ℕ₀) :
                 rfl
               ·
                 rw [if_neg h_eq_cond]
-                by_cases h_blt_cond : (blt n' m')
+                by_cases h_blt_cond : (blt₀ n' m')
                 ·
                   rw [if_pos h_blt_cond]
                   left
@@ -360,7 +360,7 @@ theorem min_is_any(n m : ℕ₀) :
                   rfl
 
 theorem lt_then_min (a b : ℕ₀) :
-    Lt a b → min a b = a
+    lt₀ a b → min a b = a
     := by
       intro h_lt
       cases a with
@@ -372,8 +372,8 @@ theorem lt_then_min (a b : ℕ₀) :
             exfalso;
             exact nlt_n_0 (σ a') h_lt
         | succ b' =>
-          have h_lt_a'_b' : Lt a' b' := by
-              simp [Lt] at h_lt; exact h_lt
+          have h_lt_a'_b' : lt₀ a' b' := by
+              simp [lt₀] at h_lt; exact h_lt
           have h_a'_ne_b' : a' ≠ b' :=
               ne_of_lt a' b' h_lt_a'_b'
           simp [min, if_neg h_a'_ne_b']
@@ -381,7 +381,7 @@ theorem lt_then_min (a b : ℕ₀) :
           simp
 
 theorem min_then_le (a b : ℕ₀) :
-    min a b = a → Le a b
+    min a b = a → le₀ a b
     := by
       intro h_min_eq
       cases a with
@@ -399,11 +399,11 @@ theorem min_then_le (a b : ℕ₀) :
           · -- Caso h_eq_preds : a' = b'
             simp only [min, h_eq_preds] at h_min_eq
             rw [h_eq_preds]
-            exact Or.inr rfl -- Le X X es X = X, que es rfl.
+            exact Or.inr rfl -- le₀ X X es X = X, que es rfl.
           · -- Caso ¬ h_eq_preds : a' ≠ b'
             simp only [min, if_neg h_eq_preds] at h_min_eq
-            have h_blt_a'_b' : blt a' b' = true := by
-              by_cases h_blt_eval : blt a' b'
+            have h_blt_a'_b' : blt₀ a' b' = true := by
+              by_cases h_blt_eval : blt₀ a' b'
               ·
                 exact h_blt_eval
               ·
@@ -411,12 +411,12 @@ theorem min_then_le (a b : ℕ₀) :
                 have h_b'_eq_a' : b' = a' :=
                     succ_injective b' a' h_min_eq
                 exact False.elim (h_eq_preds h_b'_eq_a'.symm)
-            have h_lt_a'_b' : Lt a' b' :=
+            have h_lt_a'_b' : lt₀ a' b' :=
                 (blt_iff_Lt a' b').mp h_blt_a'_b'
             rw [Peano.Order.succ_le_succ_iff]
             exact lt_imp_le a' b' h_lt_a'_b'
 
-theorem min_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
+theorem min_eq_of_gt {a b : ℕ₀} (h_gt : lt₀ b a) :
     min a b = b := by
       cases a with
       | zero =>
@@ -427,21 +427,21 @@ theorem min_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
         | zero =>
           simp [min]
         | succ b' =>
-          have h_lt_b'_a' : Lt b' a' := by
-              simp [Lt] at h_gt; exact h_gt
+          have h_lt_b'_a' : lt₀ b' a' := by
+              simp [lt₀] at h_gt; exact h_gt
           have h_b'_ne_a' : b' ≠ a' :=
               ne_of_lt b' a' h_lt_b'_a'
           have h_not_lt_a'_b' :
-              ¬(Lt a' b') :=
+              ¬(lt₀ a' b') :=
                   lt_asymm b' a' h_lt_b'_a'
           have h_blt_a'_b'_is_false :
-              blt a' b' = false :=
+              blt₀ a' b' = false :=
                   (nblt_iff_nLt a' b').mpr h_not_lt_a'_b'
           simp only [min, if_neg h_b'_ne_a'.symm]
           rw [h_blt_a'_b'_is_false]
           simp
 
-theorem max_eq_of_lt {a b : ℕ₀} (h_lt : Lt a b) :
+theorem max_eq_of_lt {a b : ℕ₀} (h_lt : lt₀ a b) :
     max a b = b := by
       cases a with
       | zero => -- a = 𝟘
@@ -452,18 +452,18 @@ theorem max_eq_of_lt {a b : ℕ₀} (h_lt : Lt a b) :
           exfalso
           exact nlt_n_0 (σ a') h_lt
         | succ b' => -- a = σ a', b = σ b'
-          have h_lt_preds : Lt a' b' := by
-              simp [Lt] at h_lt; exact h_lt
+          have h_lt_preds : lt₀ a' b' := by
+              simp [lt₀] at h_lt; exact h_lt
           have h_a'_ne_b' : a' ≠ b' :=
               ne_of_lt a' b' h_lt_preds
           simp [max, if_neg h_a'_ne_b']
           have h_blt_a'_b'_is_true :
-              blt a' b' = true
+              blt₀ a' b' = true
                   := (blt_iff_Lt a' b').mpr h_lt_preds
           rw [h_blt_a'_b'_is_true]
           simp
 
-theorem max_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
+theorem max_eq_of_gt {a b : ℕ₀} (h_gt : lt₀ b a) :
     max a b = a := by
       cases a with
       | zero =>
@@ -475,16 +475,16 @@ theorem max_eq_of_gt {a b : ℕ₀} (h_gt : Lt b a) :
           simp [max]
         | succ b' =>
           have h_lt_b'_a' :
-              Lt b' a'
+              lt₀ b' a'
               := (lt_iff_lt_σ_σ b' a').mp h_gt
           have h_b'_ne_a' :
               b' ≠ a'
               := ne_of_lt b' a' h_lt_b'_a'
           have h_not_lt_a'_b' :
-              ¬(Lt a' b')
+              ¬(lt₀ a' b')
               := lt_asymm b' a' h_lt_b'_a'
           have h_blt_a'_b'_is_false :
-              blt a' b' = false
+              blt₀ a' b' = false
               := (nblt_iff_nLt a' b').mpr h_not_lt_a'_b'
           simp only [max, if_neg h_b'_ne_a'.symm]
           rw [h_blt_a'_b'_is_false]
@@ -506,7 +506,7 @@ theorem max_ne_min_of_ne(n m : ℕ₀) :
         ·
           have h_lt_or_gt := neq_then_lt_or_gt n m h_eq_nm_case
           cases h_lt_or_gt with
-          | inl h_lt_nm => -- Caso: Lt n m (n < m)
+          | inl h_lt_nm => -- Caso: lt₀ n m (n < m)
             apply Or.inr
             constructor
             · -- Subobjetivo 1: ¬(max n m = n)
@@ -519,7 +519,7 @@ theorem max_ne_min_of_ne(n m : ℕ₀) :
               )
             · -- Subobjetivo 2: max n m = m
               exact max_eq_of_lt h_lt_nm
-          | inr h_lt_mn => -- Caso: Lt m n (m < n)
+          | inr h_lt_mn => -- Caso: lt₀ m n (m < n)
             apply Or.inl
             constructor
             · -- Subobjetivo 1: max n m = n
@@ -572,7 +572,7 @@ theorem if_neq_then_min_xor(n m : ℕ₀) :
         · -- Caso: n ≠ m
           have h_lt_or_gt := neq_then_lt_or_gt n m h_eq_nm_case
           cases h_lt_or_gt with
-          | inl h_lt_nm => -- Caso: Lt n m (n < m)
+          | inl h_lt_nm => -- Caso: lt₀ n m (n < m)
             apply Or.inl
             constructor
             · -- Subobjetivo 1: min n m = n
@@ -588,7 +588,7 @@ theorem if_neq_then_min_xor(n m : ℕ₀) :
                       h_min_eq_n_true
                 ).symm
               )
-          | inr h_lt_mn => -- Caso: Lt m n (m < n)
+          | inr h_lt_mn => -- Caso: lt₀ m n (m < n)
             apply Or.inr
             constructor
             · -- Subobjetivo 1: ¬(min n m = n)
@@ -626,28 +626,28 @@ theorem if_neq_then_min_xor(n m : ℕ₀) :
           exact h_not_min_eq_n h_min_n_m_eq_n_true
 
 theorem lt_max_of_ne(n m : ℕ₀) :
-    n ≠ m ↔ Lt (min n m) (max n m)
+    n ≠ m ↔ lt₀ (min n m) (max n m)
     := by
       constructor
-      · -- Dirección →: n ≠ m → Lt (min n m) (max n m)
+      · -- Dirección →: n ≠ m → lt₀ (min n m) (max n m)
         intro h_neq_nm
         have h_lt_or_gt := neq_then_lt_or_gt n m h_neq_nm
         cases h_lt_or_gt with
-        | inl h_lt_nm => -- Caso: Lt n m (n < m)
+        | inl h_lt_nm => -- Caso: lt₀ n m (n < m)
           have h_min_eq_n :
               min n m = n := lt_then_min n m h_lt_nm
           have h_max_eq_m :
               max n m = m := max_eq_of_lt h_lt_nm
           rw [h_min_eq_n, h_max_eq_m]
           exact h_lt_nm
-        | inr h_lt_mn => -- Caso: Lt m n (m < n)
+        | inr h_lt_mn => -- Caso: lt₀ m n (m < n)
           have h_min_eq_m :
               min n m = m := min_eq_of_gt h_lt_mn
           have h_max_eq_n :
               max n m = n := max_eq_of_gt h_lt_mn
           rw [h_min_eq_m, h_max_eq_n]
           exact h_lt_mn
-      · -- Dirección ←: Lt (min n m) (max n m) → n ≠ m
+      · -- Dirección ←: lt₀ (min n m) (max n m) → n ≠ m
         intro h_lt_min_max
         intro h_eq_nm
         have h_min_eq_n :
@@ -688,30 +688,30 @@ theorem max_comm(n m : ℕ₀) :
                       if_neg (Ne.symm h_eq_preds)
                     ]
                     by_cases h_blt_n_m_is_true :
-                        (blt n' m' = true)
+                        (blt₀ n' m' = true)
                     ·
                       rw [if_pos h_blt_n_m_is_true]
                       have h_lt_n_m :
-                          Lt n' m'
+                          lt₀ n' m'
                               := (blt_iff_Lt n' m').mp
                                  h_blt_n_m_is_true
                       have h_not_lt_m_n :
-                          ¬ (Lt m' n')
+                          ¬ (lt₀ m' n')
                               := lt_asymm n' m' h_lt_n_m
                       have h_blt_m_n_is_false :
-                          blt m' n' = false
+                          blt₀ m' n' = false
                               := (nblt_iff_nLt m' n').mpr
                                   h_not_lt_m_n
                       rw [h_blt_m_n_is_false]
                       simp -- Evalúa el if
                     ·
                       rw [if_neg h_blt_n_m_is_true]
-                      have h_not_lt_n_m : ¬ (Lt n' m') := by
+                      have h_not_lt_n_m : ¬ (lt₀ n' m') := by
                         intro h_lt_n_m_contra
                         apply h_blt_n_m_is_true
                         rw [blt_iff_Lt]
                         exact h_lt_n_m_contra
-                      have h_lt_m_n : Lt m' n' := by
+                      have h_lt_m_n : lt₀ m' n' := by
                         cases trichotomy n' m' with
                         | inl h_lt_n_m_contra =>
                           exact False.elim (h_not_lt_n_m h_lt_n_m_contra)
@@ -724,7 +724,7 @@ theorem max_comm(n m : ℕ₀) :
                           | inr h_lt_m_n_tri =>
                             exact h_lt_m_n_tri
                       have h_blt_m_n_is_true :
-                          blt m' n' = true
+                          blt₀ m' n' = true
                               :=
                               (
                                 blt_iff_Lt m' n'
@@ -757,26 +757,26 @@ theorem min_comm(n m : ℕ₀) :
                           if_neg (Ne.symm h_eq_preds)
                     ]
                     by_cases h_blt_n_m_is_true :
-                        (blt n' m' = true)
-                    · -- Subcase: blt n' m' = true (i.e., Lt n' m')
+                        (blt₀ n' m' = true)
+                    · -- Subcase: blt₀ n' m' = true (i.e., lt₀ n' m')
                       rw [if_pos h_blt_n_m_is_true]
-                      have h_lt_n_m : Lt n' m'
+                      have h_lt_n_m : lt₀ n' m'
                           := (blt_iff_Lt n' m').mp h_blt_n_m_is_true
-                      have h_not_lt_m_n : ¬ (Lt m' n')
+                      have h_not_lt_m_n : ¬ (lt₀ m' n')
                           := lt_asymm n' m' h_lt_n_m
-                      have h_blt_m_n_is_false : blt m' n' = false
+                      have h_blt_m_n_is_false : blt₀ m' n' = false
                           := (nblt_iff_nLt m' n').mpr h_not_lt_m_n
                       rw [h_blt_m_n_is_false]
                       simp
                     ·
                       rw [if_neg h_blt_n_m_is_true]
-                      have h_not_lt_n_m : ¬(Lt n' m')
+                      have h_not_lt_n_m : ¬(lt₀ n' m')
                         :=
                           (nblt_iff_nLt n' m').mp
                           (eq_false_of_ne_true h_blt_n_m_is_true)
-                      have h_lt_m_n : Lt m' n' := by
+                      have h_lt_m_n : lt₀ m' n' := by
                         cases trichotomy n' m' with
-                        | inl h_lt_n_m_contra => -- Lt n' m'
+                        | inl h_lt_n_m_contra => -- lt₀ n' m'
                           exact False.elim (h_not_lt_n_m h_lt_n_m_contra)
                         | inr h_eq_or_gt =>
                           cases h_eq_or_gt with
@@ -785,29 +785,29 @@ theorem min_comm(n m : ℕ₀) :
                           | inr h_gt_n_m =>
                             exact h_gt_n_m
                       have h_blt_m_n_is_true :
-                          blt m' n' = true
+                          blt₀ m' n' = true
                               := (blt_iff_Lt m' n').mpr h_lt_m_n
                       rw [h_blt_m_n_is_true]
                       simp
 
-theorem le_then_max_eq_right (n m : ℕ₀) (h_le : Le n m) :
+theorem le_then_max_eq_right (n m : ℕ₀) (h_le : le₀ n m) :
   max n m = m
   := by
-    cases h_le with  -- Le n m es (Lt n m) ∨ (n = m)
+    cases h_le with  -- le₀ n m es (lt₀ n m) ∨ (n = m)
     | inl h_lt =>
       exact max_eq_of_lt h_lt --
     | inr h_eq =>
       rw [h_eq];
       exact max_idem m
 
-theorem le_then_max_eq_left (n m : ℕ₀) (h_le : Le m n) :
+theorem le_then_max_eq_left (n m : ℕ₀) (h_le : le₀ m n) :
   max n m = n
   := by
     rw [max_comm n m] -- El objetivo es max m n = n
     exact le_then_max_eq_right m n h_le
 
-theorem lt_of_not_le {n m : ℕ₀} (h_not_le : ¬ Le n m) :
-  Lt m n
+theorem lt_of_not_le {n m : ℕ₀} (h_not_le : ¬ le₀ n m) :
+  lt₀ m n
   := by
   rcases trichotomy n m with h_lt_n_m | h_eq_n_m | h_lt_m_n
   ·
@@ -822,33 +822,33 @@ theorem lt_of_not_le {n m : ℕ₀} (h_not_le : ¬ Le n m) :
     exact h_lt_m_n
 
 theorem le_max_left (n m : ℕ₀) :
-  Le n (max n m)
+  le₀ n (max n m)
   := by
-  by_cases h_le_n_m : (Le n m)
+  by_cases h_le_n_m : (le₀ n m)
   ·
     rw [le_then_max_eq_right n m h_le_n_m]
     exact h_le_n_m
   ·
-    have h_lt_m_n : Lt m n := lt_of_not_le h_le_n_m
+    have h_lt_m_n : lt₀ m n := lt_of_not_le h_le_n_m
     rw [le_then_max_eq_left n m (Or.inl h_lt_m_n)]
     exact le_refl n
 
 theorem le_max_right (n m : ℕ₀) :
-  Le m (max n m)
+  le₀ m (max n m)
   := by
     rw [max_comm n m]
     exact le_max_left m n
 
 theorem max_le (n m k : ℕ₀)
-    (h_n_le_k : Le n k) (h_m_le_k : Le m k) :
-    Le (max n m) k
+    (h_n_le_k : le₀ n k) (h_m_le_k : le₀ m k) :
+    le₀ (max n m) k
     := by
       obtain h_max_eq_n | h_max_eq_m := max_is_any n m
       · -- Caso: max n m = n
-        rw [h_max_eq_n] -- El objetivo es Le n k
+        rw [h_max_eq_n] -- El objetivo es le₀ n k
         exact h_n_le_k
       · -- Caso: max n m = m
-        rw [h_max_eq_m] -- El objetivo es Le m k
+        rw [h_max_eq_m] -- El objetivo es le₀ m k
         exact h_m_le_k
 
 theorem max_assoc(n m k : ℕ₀) :
@@ -857,97 +857,97 @@ theorem max_assoc(n m k : ℕ₀) :
           let LHS := max (max n m) k
           let RHS := max n (max m k)
           apply le_antisymm
-          · -- Parte 1: Probar Le LHS RHS
+          · -- Parte 1: Probar le₀ LHS RHS
             apply max_le (max n m) k RHS
-            · -- Subobjetivo 1.1: Le (max n m) RHS
+            · -- Subobjetivo 1.1: le₀ (max n m) RHS
               apply max_le n m RHS
-              · -- Subobjetivo 1.1.1: Le n RHS
+              · -- Subobjetivo 1.1.1: le₀ n RHS
                 exact le_max_left n (max m k)
-              · -- Subobjetivo 1.1.2: Le m RHS
+              · -- Subobjetivo 1.1.2: le₀ m RHS
                 have h_m_le_max_mk :
-                    Le m (max m k)
+                    le₀ m (max m k)
                         := le_max_left m k
                 have h_max_mk_le_RHS :
-                    Le (max m k) RHS
+                    le₀ (max m k) RHS
                         := le_max_right n (max m k)
                 exact le_trans m (max m k) RHS
                       h_m_le_max_mk h_max_mk_le_RHS
-            · -- Subobjetivo 1.2: Le k RHS
+            · -- Subobjetivo 1.2: le₀ k RHS
               have h_k_le_max_mk :
-                  Le k (max m k)
+                  le₀ k (max m k)
                       := le_max_right m k
               have h_max_mk_le_RHS :
-                  Le (max m k) RHS
+                  le₀ (max m k) RHS
                       := le_max_right n (max m k)
               exact le_trans k (max m k) RHS
                     h_k_le_max_mk h_max_mk_le_RHS
           ·
             apply max_le n (max m k) LHS
-            · -- Subobjetivo 2.1: Le n LHS
+            · -- Subobjetivo 2.1: le₀ n LHS
               have h_n_le_max_nm :
-                  Le n (max n m) := le_max_left n m
+                  le₀ n (max n m) := le_max_left n m
               have h_max_nm_le_LHS :
-                  Le (max n m) LHS
+                  le₀ (max n m) LHS
                       := le_max_left (max n m) k
               exact le_trans n (max n m)
                     LHS h_n_le_max_nm h_max_nm_le_LHS
-            · -- Subobjetivo 2.2: Le (max m k) LHS
+            · -- Subobjetivo 2.2: le₀ (max m k) LHS
               apply max_le m k LHS
-              · -- Subobjetivo 2.2.1: Le m LHS
+              · -- Subobjetivo 2.2.1: le₀ m LHS
                 have h_m_le_max_nm :
-                    Le m (max n m)
+                    le₀ m (max n m)
                         := le_max_right n m
                 have h_max_nm_le_LHS :
-                    Le (max n m) LHS
+                    le₀ (max n m) LHS
                         := le_max_left (max n m) k
                 exact
                     le_trans m (max n m) LHS
                         h_m_le_max_nm h_max_nm_le_LHS
-              · -- Subobjetivo 2.2.2: Le k LHS
+              · -- Subobjetivo 2.2.2: le₀ k LHS
                 exact le_max_right (max n m) k
 
-theorem le_then_min_eq_left (n m : ℕ₀) (h_le : Le n m) :
+theorem le_then_min_eq_left (n m : ℕ₀) (h_le : le₀ n m) :
   min n m = n
   := by
-  cases h_le with -- Le n m es (Lt n m) ∨ (n = m)
+  cases h_le with -- le₀ n m es (lt₀ n m) ∨ (n = m)
   | inl h_lt =>
     exact lt_then_min n m h_lt --
   | inr h_eq =>
     rw [h_eq];
     exact min_idem m
 
-theorem le_then_min_eq_right (n m : ℕ₀) (h_le : Le m n) :
+theorem le_then_min_eq_right (n m : ℕ₀) (h_le : le₀ m n) :
   min n m = m
   := by
     rw [min_comm n m] -- El objetivo es min m n = m
     exact le_then_min_eq_left m n h_le -- Usamos el lemma anterior
 
 theorem min_le_left (n m : ℕ₀) :
-  Le (min n m) n
+  le₀ (min n m) n
   := by
-  by_cases h_le_n_m : (Le n m)
+  by_cases h_le_n_m : (le₀ n m)
   ·
     rw [le_then_min_eq_left n m h_le_n_m]
     exact le_refl n
-  · -- Caso: ¬ (Le n m)
-    have h_lt_m_n : Lt m n
-      := lt_of_not_le h_le_n_m -- Entonces Lt m n
+  · -- Caso: ¬ (le₀ n m)
+    have h_lt_m_n : lt₀ m n
+      := lt_of_not_le h_le_n_m -- Entonces lt₀ m n
     rw [min_eq_of_gt h_lt_m_n] -- Entonces min n m = m
     exact Or.inl h_lt_m_n
 
 theorem min_le_right (n m : ℕ₀) :
-  Le (min n m) m
+  le₀ (min n m) m
   := by
     rw [min_comm n m]
     exact min_le_left m n
 
-theorem le_min (k n m : ℕ₀) (h_k_le_n : Le k n) (h_k_le_m : Le k m) : Le k (min n m) := by
+theorem le_min (k n m : ℕ₀) (h_k_le_n : le₀ k n) (h_k_le_m : le₀ k m) : le₀ k (min n m) := by
   obtain h_min_eq_n | h_min_eq_m := min_is_any n m
   · -- Caso: min n m = n
-    rw [h_min_eq_n] -- El objetivo es Le k n
+    rw [h_min_eq_n] -- El objetivo es le₀ k n
     exact h_k_le_n
   · -- Caso: min n m = m
-    rw [h_min_eq_m] -- El objetivo es Le k m
+    rw [h_min_eq_m] -- El objetivo es le₀ k m
     exact h_k_le_m
 
 theorem min_assoc(n m k : ℕ₀) :
@@ -988,8 +988,8 @@ theorem not_exists_max:
           exists n_val
           have h_max_eq_nval : max n_val k = n_val
             := by
-              apply max_eq_of_gt -- Necesita Lt k (σ k)
-              exact lt_self_σ_self k -- Provee Lt k (σ k)
+              apply max_eq_of_gt -- Necesita lt₀ k (σ k)
+              exact lt_self_σ_self k -- Provee lt₀ k (σ k)
           have h_neq_nval_k : n_val ≠ k := by
             intro h_eq_val_k -- Asumimos σ k = k
             exact (neq_succ k) (Eq.symm h_eq_val_k)
@@ -1012,7 +1012,7 @@ theorem not_exists_max:
         cases b with
         | zero => simp [min]
         | succ b' =>
-          have h_b'_le_a' : Le b' a' := by
+          have h_b'_le_a' : le₀ b' a' := by
             exact succ_le_succ_then h
           by_cases h_eq : b' = a'
           · -- Caso b' = a'
@@ -1021,13 +1021,13 @@ theorem not_exists_max:
             simp [min]
             cases h_b'_le_a' with
             | inl h_lt =>
-              have h_blt_true : blt b' a' = true := by
+              have h_blt_true : blt₀ b' a' = true := by
                 rw [blt_iff_Lt]
                 exact h_lt
-              -- Necesitamos mostrar que blt a' b' = false
-              have h_not_lt_a'_b' : ¬(Lt a' b') := by
+              -- Necesitamos mostrar que blt₀ a' b' = false
+              have h_not_lt_a'_b' : ¬(lt₀ a' b') := by
                 exact lt_asymm b' a' h_lt
-              have h_blt_a'_b'_false : blt a' b' = false := by
+              have h_blt_a'_b'_false : blt₀ a' b' = false := by
                 rw [← Bool.not_eq_true, blt_iff_Lt]
                 exact h_not_lt_a'_b'
               -- Ahora simplificamos la expresión condicional
@@ -1056,7 +1056,7 @@ theorem not_exists_max:
           | inr h_eq =>
             exact False.elim (succ_neq_zero a' h_eq)
         | succ b' =>
-          have h_a'_le_b' : Le a' b' := by
+          have h_a'_le_b' : le₀ a' b' := by
             exact succ_le_succ_then h
           by_cases h_eq : a' = b'
           · -- Caso a' = b'
@@ -1065,7 +1065,7 @@ theorem not_exists_max:
             simp [min, if_neg h_eq]
             cases h_a'_le_b' with
             | inl h_lt =>
-              have h_blt_true : blt a' b' = true := by
+              have h_blt_true : blt₀ a' b' = true := by
                 rw [blt_iff_Lt]
                 exact h_lt
               rw [h_blt_true]
@@ -1093,7 +1093,7 @@ theorem not_exists_max:
           | inr h_eq =>
             exact False.elim (succ_neq_zero a' h_eq)
         | succ b' =>
-          have h_a'_le_b' : Le a' b' := by
+          have h_a'_le_b' : le₀ a' b' := by
             exact succ_le_succ_then h
           by_cases h_eq : a' = b'
           · -- Caso a' = b'
@@ -1102,7 +1102,7 @@ theorem not_exists_max:
             simp [max, if_neg h_eq]
             cases h_a'_le_b' with
             | inl h_lt =>
-              have h_blt_true : blt a' b' = true := by
+              have h_blt_true : blt₀ a' b' = true := by
                 rw [blt_iff_Lt]
                 exact h_lt
               rw [h_blt_true]
@@ -1130,7 +1130,7 @@ theorem max_eq_left {a b : ℕ₀} (h : b ≤ a) :
       | zero =>
         simp [max]
       | succ b' =>
-        have h_b'_le_a' : Le b' a' := by
+        have h_b'_le_a' : le₀ b' a' := by
           exact succ_le_succ_then h
         by_cases h_eq : a' = b'
         · -- Caso a' = b'
@@ -1139,10 +1139,10 @@ theorem max_eq_left {a b : ℕ₀} (h : b ≤ a) :
           simp [max, if_neg h_eq]
           cases h_b'_le_a' with
           | inl h_lt =>
-            -- h_lt : Lt b' a', necesitamos mostrar que blt a' b' = false
-            have h_not_lt_a'_b' : ¬(Lt a' b') := by
+            -- h_lt : lt₀ b' a', necesitamos mostrar que blt₀ a' b' = false
+            have h_not_lt_a'_b' : ¬(lt₀ a' b') := by
               exact lt_asymm b' a' h_lt
-            have h_blt_a'_b'_false : blt a' b' = false := by
+            have h_blt_a'_b'_false : blt₀ a' b' = false := by
               rw [← Bool.not_eq_true, blt_iff_Lt]
               exact h_not_lt_a'_b'
             rw [h_blt_a'_b'_false]
@@ -1154,28 +1154,28 @@ theorem max_distrib_min(n m k : ℕ₀) :
     max n (min m k) = min (max n m) (max n k)
     := by
   cases le_total m k with
-  | inl h_m_le_k => -- Caso 1: Le m k (m ≤ k)
+  | inl h_m_le_k => -- Caso 1: le₀ m k (m ≤ k)
     have min_mk_eq_m : min m k = m
         := le_then_min_eq_left m k h_m_le_k
     rw [min_mk_eq_m]
-    have h_le_max_nm_max_nk : Le (max n m) (max n k)
+    have h_le_max_nm_max_nk : le₀ (max n m) (max n k)
       := by
       apply max_le
-      · -- Subobjetivo 1: Le n (max n k)
+      · -- Subobjetivo 1: le₀ n (max n k)
         exact le_max_left n k
-      · -- Subobjetivo 2: Le m (max n k)
+      · -- Subobjetivo 2: le₀ m (max n k)
         exact le_trans m k (max n k) h_m_le_k (le_max_right n k)
     rw [le_then_min_eq_left (max n m) (max n k) h_le_max_nm_max_nk]
-  | inr h_k_le_m => -- Caso 2: Le k m (k ≤ m)
+  | inr h_k_le_m => -- Caso 2: le₀ k m (k ≤ m)
     have min_mk_eq_k : min m k = k
         := le_then_min_eq_right m k h_k_le_m
     rw [min_mk_eq_k] -- LHS se convierte en: max n k
-    have h_le_max_nk_max_nm : Le (max n k) (max n m)
+    have h_le_max_nk_max_nm : le₀ (max n k) (max n m)
       := by
       apply max_le
-      · -- Subobjetivo 1: Le n (max n m)
+      · -- Subobjetivo 1: le₀ n (max n m)
         exact le_max_left n m
-      · -- Subobjetivo 2: Le k (max n m)
+      · -- Subobjetivo 2: le₀ k (max n m)
         exact le_trans k m (max n m) h_k_le_m (le_max_right n m)
     rw [min_eq_right h_le_max_nk_max_nm]
 
@@ -1187,44 +1187,44 @@ theorem min_distrib_max(n m k : ℕ₀) :
     have max_mk_eq_k : max m k = k
         := le_then_max_eq_right m k h_m_le_k
     rw [max_mk_eq_k] -- LHS se convierte en min n k
-    by_cases h_n_le_m : Le n m
+    by_cases h_n_le_m : le₀ n m
     · -- Si n ≤ m
       have h_min_nm_eq_n : min n m = n
           := le_then_min_eq_left n m h_n_le_m
-      have h_n_le_k : Le n k
+      have h_n_le_k : le₀ n k
           := Order.le_trans n m k h_n_le_m h_m_le_k
       have h_min_nk_eq_n : min n k = n
           := le_then_min_eq_left n k h_n_le_k
       rw [h_min_nm_eq_n, h_min_nk_eq_n]
       rw [max_idem n]
     · -- Si ¬(n ≤ m), entonces m < n
-      have h_m_lt_n : Lt m n
+      have h_m_lt_n : lt₀ m n
           := lt_of_not_le h_n_le_m
       have h_min_nm_eq_m : min n m = m
           := min_eq_of_gt h_m_lt_n
-      by_cases h_n_le_k : Le n k
+      by_cases h_n_le_k : le₀ n k
       · -- Si n ≤ k, entonces min n k = n
         have h_min_nk_eq_n : min n k = n
             := le_then_min_eq_left n k h_n_le_k
         rw [h_min_nm_eq_m, h_min_nk_eq_n]
-        have h_m_le_n : Le m n
+        have h_m_le_n : le₀ m n
             := lt_imp_le m n h_m_lt_n
         rw [le_then_max_eq_right m n h_m_le_n]
       · -- Si ¬(n ≤ k), entonces k < n y min n k = k
-        have h_k_lt_n : Lt k n
+        have h_k_lt_n : lt₀ k n
             := lt_of_not_le h_n_le_k
         have h_min_nk_eq_k : min n k = k
             := min_eq_of_gt h_k_lt_n
         rw [h_min_nm_eq_m, h_min_nk_eq_k]
         -- Goal: k = max m k
         rw [le_then_max_eq_right m k h_m_le_k]
-  | inr h_k_le_m => -- Caso 2: Le k m (k ≤ m)
+  | inr h_k_le_m => -- Caso 2: le₀ k m (k ≤ m)
     have max_mk_eq_m : max m k = m
         := le_then_max_eq_left m k h_k_le_m
     rw [max_mk_eq_m] -- LHS se convierte en: min n m
-    by_cases h_n_le_k : Le n k
+    by_cases h_n_le_k : le₀ n k
     · -- Si n ≤ k
-      have h_n_le_m : Le n m
+      have h_n_le_m : le₀ n m
           := le_trans n k m h_n_le_k h_k_le_m
       have h_min_nm_eq_n : min n m = n
           := le_then_min_eq_left n m h_n_le_m
@@ -1233,22 +1233,22 @@ theorem min_distrib_max(n m k : ℕ₀) :
       rw [h_min_nm_eq_n, h_min_nk_eq_n]
       rw [max_idem n]
     · -- Si ¬(n ≤ k), entonces k < n
-      have h_k_lt_n : Lt k n
+      have h_k_lt_n : lt₀ k n
           := lt_of_not_le h_n_le_k
       have h_min_nk_eq_k : min n k = k
           := min_eq_of_gt h_k_lt_n
-      by_cases h_n_le_m : Le n m
+      by_cases h_n_le_m : le₀ n m
       · -- Si n ≤ m, entonces min n m = n
         have h_min_nm_eq_n : min n m = n
             := le_then_min_eq_left n m h_n_le_m
         rw [h_min_nm_eq_n, h_min_nk_eq_k]
-        have h_k_le_n : Le k n
+        have h_k_le_n : le₀ k n
             := lt_imp_le k n h_k_lt_n
         -- Goal: n = max n k
-        -- Tenemos h_k_le_n : Le k n, así que max n k = n
+        -- Tenemos h_k_le_n : le₀ k n, así que max n k = n
         rw [le_then_max_eq_left n k h_k_le_n]
       · -- Si ¬(n ≤ m), entonces m < n y min n m = m
-        have h_m_lt_n : Lt m n
+        have h_m_lt_n : lt₀ m n
             := lt_of_not_le h_n_le_m
         have h_min_nm_eq_m : min n m = m
             := min_eq_of_gt h_m_lt_n
@@ -1273,7 +1273,7 @@ theorem isomorph_Λ_max(n m : Nat) :
       rw [max_idem (Λ m)]
     · -- Subcaso 1.2: n < m
       have h_Λn_lt_Λm :
-          Lt (Λ n) (Λ m) :=
+          lt₀ (Λ n) (Λ m) :=
           (StrictOrder.isomorph_Λ_lt n m).mp h_n_lt_m
       rw [max_eq_of_lt h_Λn_lt_Λm]
   · -- Caso 2: m ≤ n (para Nat)
@@ -1287,7 +1287,7 @@ theorem isomorph_Λ_max(n m : Nat) :
       rw [max_idem (Λ n)]
     · -- Subcaso 2.2: m < n
       have h_Λm_lt_Λn :
-          Lt (Λ m) (Λ n) :=
+          lt₀ (Λ m) (Λ n) :=
               (
                   isomorph_Λ_lt m n
               ).mp h_m_lt_n
@@ -1309,7 +1309,7 @@ theorem isomorph_Λ_min(n m : Nat) :
       rw [min_idem (Λ m)]
     · -- Subcaso 1.2: n < m
       have h_Λn_lt_Λm :
-          Lt (Λ n) (Λ m) :=
+          lt₀ (Λ n) (Λ m) :=
               (
                   StrictOrder.isomorph_Λ_lt n m
               ).mp h_n_lt_m
@@ -1325,7 +1325,7 @@ theorem isomorph_Λ_min(n m : Nat) :
       rw [min_idem (Λ n)]
     · -- Subcaso 2.2: m < n
       have h_Λm_lt_Λn :
-          Lt (Λ m) (Λ n) :=
+          lt₀ (Λ m) (Λ n) :=
               (
                   StrictOrder.isomorph_Λ_lt m n
               ).mp h_m_lt_n
@@ -1334,7 +1334,7 @@ theorem isomorph_Λ_min(n m : Nat) :
 theorem isomorph_Ψ_max(n m : ℕ₀) :
     Nat.max (Ψ n) (Ψ m) = Ψ (max n m) := by
   rcases le_total n m with h_le_nm | h_le_mn
-  · -- Caso 1: Le n m (para ℕ₀)
+  · -- Caso 1: le₀ n m (para ℕ₀)
     have h_pea_max_simpl : max n m = m := by
       exact le_then_max_eq_right n m h_le_nm
     rw [h_pea_max_simpl]
@@ -1349,7 +1349,7 @@ theorem isomorph_Ψ_max(n m : ℕ₀) :
           Ψ n ≤ Ψ m :=
               Nat.le_of_lt h_psi_n_lt_psi_m
       exact Nat.max_eq_right h_le_of_lt
-  · -- Caso 2: Le m n (para ℕ₀)
+  · -- Caso 2: le₀ m n (para ℕ₀)
     have h_pea_max_simpl : max n m = n := by
       exact le_then_max_eq_left n m h_le_mn
     rw [h_pea_max_simpl]
@@ -1369,7 +1369,7 @@ theorem isomorph_Ψ_max(n m : ℕ₀) :
 theorem isomorph_Ψ_min(n m : ℕ₀) :
     Nat.min (Ψ n) (Ψ m) = Ψ (min n m) := by
   rcases le_total n m with h_le_nm | h_le_mn
-  · -- Caso 1: Le n m (para ℕ₀)
+  · -- Caso 1: le₀ n m (para ℕ₀)
     have h_pea_min_simpl : min n m = n := by
       exact le_then_min_eq_left n m h_le_nm
     rw [h_pea_min_simpl]
@@ -1385,7 +1385,7 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
           Ψ n ≤ Ψ m :=
               Nat.le_of_lt h_psi_n_lt_psi_m
       exact Nat.min_eq_left h_le_of_lt
-  · -- Caso 2: Le m n (para ℕ₀)
+  · -- Caso 2: le₀ m n (para ℕ₀)
     have h_pea_min_simpl : min n m = m := by
       exact le_then_min_eq_right n m h_le_mn
     rw [h_pea_min_simpl]
@@ -1403,93 +1403,93 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
       exact Nat.min_eq_right h_le_of_lt
 
   theorem le_a_le_b_then_le_min_a_b_left (a b c : ℕ₀):
-    Le c a → Le c b → Le c (min a b)
+    le₀ c a → le₀ c b → le₀ c (min a b)
       := by
     intro h_c_le_a h_c_le_b
-    have h_min_le_a : Le (min a b) a := min_le_left a b
-    have h_min_le_b : Le (min a b) b := min_le_right a b
-    have h_c_le_min : Le c (min a b) := by
-      by_cases h : Le a b
+    have h_min_le_a : le₀ (min a b) a := min_le_left a b
+    have h_min_le_b : le₀ (min a b) b := min_le_right a b
+    have h_c_le_min : le₀ c (min a b) := by
+      by_cases h : le₀ a b
       · -- Case: a ≤ b, so min(a,b) = a
         have h_min_eq_a : min a b = a := min_eq_left h
         rw [h_min_eq_a]
         exact h_c_le_a
       · -- Case: b < a, so min(a,b) = b
-        have h_b_lt_a : Lt b a := nle_then_gt a b h
+        have h_b_lt_a : lt₀ b a := nle_then_gt a b h
         have h_min_eq_b : min a b = b := min_eq_right (lt_imp_le b a h_b_lt_a)
         rw [h_min_eq_b]
         exact h_c_le_b
     exact h_c_le_min
 
   theorem le_min_a_b_then_le_a_le_b_left (a b c : ℕ₀):
-    Le c (min a b) → Le c a ∧ Le c b
+    le₀ c (min a b) → le₀ c a ∧ le₀ c b
       := by
     intro h_c_le_min
-    have h_min_le_a : Le (min a b) a := min_le_left a b
-    have h_min_le_b : Le (min a b) b := min_le_right a b
-    have h_c_le_a : Le c a := le_trans c (min a b) a h_c_le_min h_min_le_a
-    have h_c_le_b : Le c b := le_trans c (min a b) b h_c_le_min h_min_le_b
+    have h_min_le_a : le₀ (min a b) a := min_le_left a b
+    have h_min_le_b : le₀ (min a b) b := min_le_right a b
+    have h_c_le_a : le₀ c a := le_trans c (min a b) a h_c_le_min h_min_le_a
+    have h_c_le_b : le₀ c b := le_trans c (min a b) b h_c_le_min h_min_le_b
     exact ⟨h_c_le_a, h_c_le_b⟩
 
   theorem le_a_le_b_then_le_min_a_b_right (a b c : ℕ₀):
-    Le a c → Le b c → Le (min a b) c
+    le₀ a c → le₀ b c → le₀ (min a b) c
       := by
     intro h_a_le_c h_b_le_c
-    by_cases h : Le a b
+    by_cases h : le₀ a b
     · -- Case: a ≤ b, so min(a,b) = a
       have h_min_eq_a : min a b = a := min_eq_left h
       rw [h_min_eq_a]
       exact h_a_le_c
     · -- Case: b < a, so min(a,b) = b
-      have h_b_lt_a : Lt b a := nle_then_gt a b h
+      have h_b_lt_a : lt₀ b a := nle_then_gt a b h
       have h_min_eq_b : min a b = b := min_eq_right (lt_imp_le b a h_b_lt_a)
       rw [h_min_eq_b]
       exact h_b_le_c
 
   theorem le_a_le_b_then_le_max_a_b_right (a b c : ℕ₀):
-    Le a c → Le b c → Le (max a b) c
+    le₀ a c → le₀ b c → le₀ (max a b) c
       := by
     intro h_a_le_c h_b_le_c
-    by_cases h : Le a b
+    by_cases h : le₀ a b
     · -- Case: a ≤ b, so max(a,b) = b
       have h_max_eq_b : max a b = b := max_eq_right h
       rw [h_max_eq_b]
       exact h_b_le_c
     · -- Case: b < a, so max(a,b) = a
-      have h_b_lt_a : Lt b a := nle_then_gt a b h
+      have h_b_lt_a : lt₀ b a := nle_then_gt a b h
       have h_max_eq_a : max a b = a := max_eq_left (lt_imp_le b a h_b_lt_a)
       rw [h_max_eq_a]
       exact h_a_le_c
 
   theorem le_max_a_b_then_le_a_le_b_right (a b c : ℕ₀):
-    Le (max a b) c → Le a c ∧ Le b c
+    le₀ (max a b) c → le₀ a c ∧ le₀ b c
       := by
     intro h_max_le_c
-    by_cases h_le_a_b : Le a b
+    by_cases h_le_a_b : le₀ a b
     · -- Case: a ≤ b
       have h_max_eq_b : max a b = b := max_eq_right h_le_a_b
       rw [h_max_eq_b] at h_max_le_c
       exact ⟨le_trans a b c h_le_a_b h_max_le_c, h_max_le_c⟩
     · -- Case: b < a
-      have h_b_lt_a : Lt b a := nle_then_gt a b h_le_a_b
+      have h_b_lt_a : lt₀ b a := nle_then_gt a b h_le_a_b
       have h_max_eq_a : max a b = a := max_eq_of_gt h_b_lt_a
       rw [h_max_eq_a] at h_max_le_c
       exact ⟨h_max_le_c, le_trans b a c (lt_imp_le b a h_b_lt_a) h_max_le_c⟩
 
   theorem le_a_le_b_then_le_max_a_b_left (a b c : ℕ₀):
-    Le c a → Le c b → Le c (max a b)
+    le₀ c a → le₀ c b → le₀ c (max a b)
       := by
     intro h_c_le_a h_c_le_b
-    have h_max_le_a : Le a (max a b) := le_max_left a b
-    have h_max_le_b : Le b (max a b) := le_max_right a b
-    have h_c_le_max : Le c (max a b) := by
-      by_cases h : Le a b
+    have h_max_le_a : le₀ a (max a b) := le_max_left a b
+    have h_max_le_b : le₀ b (max a b) := le_max_right a b
+    have h_c_le_max : le₀ c (max a b) := by
+      by_cases h : le₀ a b
       · -- Case: a ≤ b, so max(a,b) = b
         have h_max_eq_b : max a b = b := max_eq_right h
         rw [h_max_eq_b]
         exact h_c_le_b
       · -- Case: b < a, so max(a,b) = a
-        have h_b_lt_a : Lt b a := nle_then_gt a b h
+        have h_b_lt_a : lt₀ b a := nle_then_gt a b h
         have h_max_eq_a : max a b = a := max_eq_of_gt h_b_lt_a
         rw [h_max_eq_a]
         exact h_c_le_a
@@ -1505,50 +1505,50 @@ theorem isomorph_Ψ_min(n m : ℕ₀) :
     min_eq_left (le_max_left a b)
 
   -- inf ≤ sup
-  theorem min_le_max (a b : ℕ₀) : Le (min a b) (max a b) :=
+  theorem min_le_max (a b : ℕ₀) : le₀ (min a b) (max a b) :=
     le_trans (min a b) a (max a b) (min_le_left a b) (le_max_left a b)
 
   -- Iff characterizations
-  theorem max_eq_left_iff {a b : ℕ₀} : max a b = a ↔ Le b a := by
+  theorem max_eq_left_iff {a b : ℕ₀} : max a b = a ↔ le₀ b a := by
     constructor
     · intro h; have := le_max_right a b; rw [h] at this; exact this
     · exact fun h => max_eq_left h
 
-  theorem max_eq_right_iff {a b : ℕ₀} : max a b = b ↔ Le a b := by
+  theorem max_eq_right_iff {a b : ℕ₀} : max a b = b ↔ le₀ a b := by
     constructor
     · intro h; have := le_max_left a b; rw [h] at this; exact this
     · exact fun h => max_eq_right h
 
-  theorem min_eq_left_iff {a b : ℕ₀} : min a b = a ↔ Le a b := by
+  theorem min_eq_left_iff {a b : ℕ₀} : min a b = a ↔ le₀ a b := by
     constructor
     · intro h; have := min_le_right a b; rw [h] at this; exact this
     · exact fun h => min_eq_left h
 
-  theorem min_eq_right_iff {a b : ℕ₀} : min a b = b ↔ Le b a := by
+  theorem min_eq_right_iff {a b : ℕ₀} : min a b = b ↔ le₀ b a := by
     constructor
     · intro h; have := min_le_left a b; rw [h] at this; exact this
     · exact fun h => min_eq_right h
 
   -- max_le / le_min as iff
-  theorem max_le_iff {a b c : ℕ₀} : Le (max a b) c ↔ Le a c ∧ Le b c := by
+  theorem max_le_iff {a b c : ℕ₀} : le₀ (max a b) c ↔ le₀ a c ∧ le₀ b c := by
     constructor
     · exact fun h => le_max_a_b_then_le_a_le_b_right a b c h
     · exact fun ⟨h1, h2⟩ => le_a_le_b_then_le_max_a_b_right a b c h1 h2
 
-  theorem le_min_iff {c a b : ℕ₀} : Le c (min a b) ↔ Le c a ∧ Le c b := by
+  theorem le_min_iff {c a b : ℕ₀} : le₀ c (min a b) ↔ le₀ c a ∧ le₀ c b := by
     constructor
     · exact fun h => le_min_a_b_then_le_a_le_b_left a b c h
     · exact fun ⟨h1, h2⟩ => le_a_le_b_then_le_min_a_b_left a b c h1 h2
 
   -- Monotonicity
-  theorem max_le_max {a a' b b' : ℕ₀} (h1 : Le a a') (h2 : Le b b') :
-      Le (max a b) (max a' b') :=
+  theorem max_le_max {a a' b b' : ℕ₀} (h1 : le₀ a a') (h2 : le₀ b b') :
+      le₀ (max a b) (max a' b') :=
     max_le a b (max a' b')
       (le_trans a a' (max a' b') h1 (le_max_left a' b'))
       (le_trans b b' (max a' b') h2 (le_max_right a' b'))
 
-  theorem min_le_min {a a' b b' : ℕ₀} (h1 : Le a a') (h2 : Le b b') :
-      Le (min a b) (min a' b') :=
+  theorem min_le_min {a a' b b' : ℕ₀} (h1 : le₀ a a') (h2 : le₀ b b') :
+      le₀ (min a b) (min a' b') :=
     le_min (min a b) a' b'
       (le_trans (min a b) a a' (min_le_left a b) h1)
       (le_trans (min a b) b b' (min_le_right a b) h2)

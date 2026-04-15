@@ -45,7 +45,7 @@ export Peano.Axioms (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- StrictOrder: Lt ↔ Nat.lt
+-- StrictOrder: lt₀ ↔ Nat.lt
 -- ─────────────────────────────────────────────────────────────────
 export Peano.StrictOrder (
   isomorph_Λ_lt
@@ -53,7 +53,7 @@ export Peano.StrictOrder (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- Order: Le ↔ Nat.le
+-- Order: le₀ ↔ Nat.le
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Order (
   isomorph_Ψ_le

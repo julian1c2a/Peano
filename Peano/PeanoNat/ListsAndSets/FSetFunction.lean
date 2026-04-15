@@ -1,4 +1,4 @@
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFSet
 
@@ -22,7 +22,7 @@ set_option autoImplicit false
 
 namespace Peano
   open Peano
-  open Peano.Lists
+  open Peano.List
   open Peano.FSet
 
   namespace FSetFunction
@@ -498,7 +498,7 @@ namespace Peano
         unfold applyElem
         -- El índice de a en A.elems es < A.card = lengthₚ A.elems = lengthₚ f.table
         have hlen : lengthₚ f.table = A.card := f.len_eq
-        have hidx_lt : Lt (List.indexOfₚ a A.elems) (lengthₚ f.table) := by
+        have hidx_lt : lt₀ (List.indexOfₚ a A.elems) (lengthₚ f.table) := by
           rw [hlen]; exact List.indexOfₚ_lt_length a A.elems ha
         have hmem_table : getDₚ dflt f.table (List.indexOfₚ a A.elems) ∈ f.table :=
           getDₚ_mem dflt f.table _ hidx_lt

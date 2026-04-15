@@ -39,8 +39,8 @@ namespace Peano
     /- `finSum f n` = Σ_{k=0}^{n} f(k).
        Computable. Terminado por recursión estructural en n. -/
     def finSum (f : ℕ₀ → ℕ₀) : ℕ₀ → ℕ₀
-      | 𝟘   => f 𝟘
-      | σ n => add (finSum f n) (f (σ n))
+      | .zero   => f 𝟘
+      | .succ n => add (finSum f n) (f (σ n))
 
     /- Notación: `∑ k ≤ n, f k` = finSum (fun k => f k) n = Σ_{k=0}^{n} f(k).
        Uso: ∑ k ≤ n', C(n', k)  en lugar de  finSum (fun k => C(n', k)) n'. -/
@@ -87,8 +87,8 @@ namespace Peano
       | succ n' ih => rw [finSum_succ, finSum_succ, add_mul, ← ih]
 
     /- Monotonía: si f ≤ g puntualmente entonces Σ f ≤ Σ g. -/
-    theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, Le (f k) (g k)) (n : ℕ₀) :
-        Le (finSum f n) (finSum g n) := by
+    theorem finSum_le_of_le (f g : ℕ₀ → ℕ₀) (h : ∀ k, le₀ (f k) (g k)) (n : ℕ₀) :
+        le₀ (finSum f n) (finSum g n) := by
       induction n with
       | zero    => exact h 𝟘
       | succ n' ih =>
@@ -96,8 +96,8 @@ namespace Peano
           exact le_add_compat_wp ih (h (σ n'))
 
     /- Positividad: si f > 0 puntualmente entonces Σ f > 0. -/
-    theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, Lt 𝟘 (f k)) (n : ℕ₀) :
-        Lt 𝟘 (finSum f n) := by
+    theorem finSum_pos (f : ℕ₀ → ℕ₀) (h : ∀ k, lt₀ 𝟘 (f k)) (n : ℕ₀) :
+        lt₀ 𝟘 (finSum f n) := by
       induction n with
       | zero    => exact h 𝟘
       | succ n' ih =>

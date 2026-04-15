@@ -9,7 +9,7 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Primes
@@ -605,9 +605,9 @@ export Peano.Div (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Lists  (PeanoNatLists.lean)
+-- namespace Peano.List  (PeanoNatList.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Lists (
+export Peano.List (
   instDecidableEqN1
   instDecidableEqN2
   instLTN1

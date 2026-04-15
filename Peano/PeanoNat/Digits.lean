@@ -23,7 +23,7 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.Log
 import Peano.PeanoNat.Combinatorics.Pow
 
@@ -40,7 +40,7 @@ namespace Peano
     open Peano.Sub
     open Peano.Mul
     open Peano.Div
-    open Peano.Lists
+    open Peano.List
     open Peano.Log
     open Peano.Pow
 
@@ -52,7 +52,7 @@ namespace Peano
     private theorem base_neq_zero (base : ℕ₂) : base.val.val ≠ 𝟘 :=
       base.val.property
 
-    private theorem base_gt_one (base : ℕ₂) : Lt 𝟙 base.val.val := by
+    private theorem base_gt_one (base : ℕ₂) : lt₀ 𝟙 base.val.val := by
       have h_neq_0 := base.val.property
       have h_neq_1 : base.val.val ≠ 𝟙 := base.property
       exact lt_of_le_of_ne 𝟙 base.val.val
@@ -144,7 +144,7 @@ namespace Peano
     -- § 4. Propiedades adicionales
     -- ══════════════════════════════════════════════════════════════════
 
-    theorem digits_singleton_of_lt (base : ℕ₂) (n : ℕ₀) (h_n : n ≠ 𝟘) (h_lt : Lt n base.val.val) :
+    theorem digits_singleton_of_lt (base : ℕ₂) (n : ℕ₀) (h_n : n ≠ 𝟘) (h_lt : lt₀ n base.val.val) :
         digits base n = [⟨n, h_lt⟩] := by
       have h_div : div n base.val.val = 𝟘 := by
         have := div_of_lt n base.val.val h_lt; simp [div_def] at this; exact this

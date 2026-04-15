@@ -36,8 +36,8 @@ namespace Peano
     /- Definición de la función de potenciación. -/
     def pow (n m : ℕ₀) : ℕ₀ :=
       match m with
-      | 𝟘 => 𝟙
-      | σ m' => mul (pow n m') n
+      | .zero => 𝟙
+      | .succ m' => mul (pow n m') n
 
     /- Notación para la potenciación. -/
     scoped infix:80 " ^ " => pow
@@ -84,13 +84,13 @@ namespace Peano
     induction m with
     | zero        => contradiction
     | succ m' ih =>
-      show Lt 𝟘 (mul (n ^ m') n)
+      show lt₀ 𝟘 (mul (n ^ m') n)
       apply mul_pos _ h_n_gt_0
       cases m' with
       | zero =>
         -- n ^ 𝟘 = 𝟙 > 𝟘
         rw [pow_zero]
-        exact lt_succ_self 𝟘          -- Lt 𝟘 (σ 𝟘) = Lt 𝟘 𝟙
+        exact lt_succ_self 𝟘          -- lt₀ 𝟘 (σ 𝟘) = lt₀ 𝟘 𝟙
       | succ m'' =>
         -- IH: σ m'' > 𝟘 → n ^ (σ m'') > 𝟘
         exact ih (pos_of_ne_zero _ (succ_neq_zero m''))
@@ -103,21 +103,21 @@ namespace Peano
     rw [pow_zero]
     exact le_refl 𝟙
   | succ m' ih =>
-    show Le 𝟙 (mul (n ^ m') n)
-    -- Le 𝟙 n  (de n > 0)
-    have h1_le_n : Le 𝟙 n := by
+    show le₀ 𝟙 (mul (n ^ m') n)
+    -- le₀ 𝟙 n  (de n > 0)
+    have h1_le_n : le₀ 𝟙 n := by
       rcases lt_0n_then_le_1n_wp h_n_gt_0 with h | h
       · exact Or.inl h
       · exact Or.inr h
-    -- Le n (n^m' · n)  (de ih : Le 𝟙 (n^m') por mul_le_mono_right)
-    have h_n_le_mul : Le n (mul (n ^ m') n) := by
-      have := mul_le_mono_right n ih    -- Le (mul 𝟙 n) (mul (n^m') n)
+    -- le₀ n (n^m' · n)  (de ih : le₀ 𝟙 (n^m') por mul_le_mono_right)
+    have h_n_le_mul : le₀ n (mul (n ^ m') n) := by
+      have := mul_le_mono_right n ih    -- le₀ (mul 𝟙 n) (mul (n^m') n)
       rwa [one_mul] at this
-    -- Transitivity: Le 𝟙 n ≤ (n^m')·n
+    -- Transitivity: le₀ 𝟙 n ≤ (n^m')·n
     exact le_trans 𝟙 n (mul (n ^ m') n) h1_le_n h_n_le_mul
 
   theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    Lt (n ^ m) ((σ n) ^ m) := by
+    lt₀ (n ^ m) ((σ n) ^ m) := by
   cases m with
   | zero    => contradiction
   | succ m' =>
@@ -129,11 +129,11 @@ namespace Peano
     | succ m'' ih =>
       simp only [pow_succ]
       have h_n_gt_0 := pos_of_ne_zero n h_n_ne_0
-      have h_pow_ge_1 : Le 𝟙 (n ^ σ m'') := pow_ge_one h_n_gt_0
+      have h_pow_ge_1 : le₀ 𝟙 (n ^ σ m'') := pow_ge_one h_n_gt_0
       -- Aplicar ih a su argumento antes de pasarlo a lt_imp_le:
       have h_m''_ne_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
-      have h_ih := ih h_m''_ne_0          -- ahora h_ih : Lt (n ^ σ m'') ((σ n) ^ σ m'')
-      have h1 : Lt (mul (n ^ σ m'') n) (mul (n ^ σ m'') (σ n)) := by
+      have h_ih := ih h_m''_ne_0          -- ahora h_ih : lt₀ (n ^ σ m'') ((σ n) ^ σ m'')
+      have h1 : lt₀ (mul (n ^ σ m'') n) (mul (n ^ σ m'') (σ n)) := by
         have := mul_lt_full_right (n ^ σ m'') n 𝟙 (le_refl 𝟙) h_pow_ge_1
         rwa [add_one] at this
       have h2 := mul_le_mono_right (σ n) (lt_imp_le_wp h_ih)
@@ -141,7 +141,7 @@ namespace Peano
 
   /- Versión fuerte: solo requiere m ≠ 0, sin condición sobre n. -/
   theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    Lt (n ^ m) ((σ n) ^ m) := by
+    lt₀ (n ^ m) ((σ n) ^ m) := by
   cases n with
   | zero =>
     -- 0^m = 0 < 1 = (σ 0)^m  (σ 0 = 𝟙 por def, pero rw no unifica sintácticamente)
@@ -152,12 +152,12 @@ namespace Peano
   | succ n' =>
     exact pow_lt_succ_base (succ_neq_zero n') h_m_ne_0
 
-  theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) :
-    Lt (n ^ m) (n ^ σ m) := by
+  theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) :
+    lt₀ (n ^ m) (n ^ σ m) := by
   rw [pow_succ]
-  -- Goal: Lt (n^m) (mul (n^m) n)
-  have h_n_gt_0 : Lt 𝟘 n := lt_trans 𝟘 𝟙 n (lt_succ_self 𝟘) h_n_gt_1
-  have h_pow_ge_1 : Le 𝟙 (n ^ m) := pow_ge_one h_n_gt_0
+  -- Goal: lt₀ (n^m) (mul (n^m) n)
+  have h_n_gt_0 : lt₀ 𝟘 n := lt_trans 𝟘 𝟙 n (lt_succ_self 𝟘) h_n_gt_1
+  have h_pow_ge_1 : le₀ 𝟙 (n ^ m) := pow_ge_one h_n_gt_0
   have h_pow_ne_0 : n ^ m ≠ 𝟘 := by
     intro h; rw [h] at h_pow_ge_1
     exact absurd h_pow_ge_1 (not_succ_le_zero 𝟘)
@@ -257,8 +257,8 @@ namespace Peano
       rw [hn]; exact zero_pow hm
 
   /- 1 < n → m ≠ 0 → 1 < n^m. -/
-  theorem one_lt_pow {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-      Lt 𝟙 (n ^ m) := by
+  theorem one_lt_pow {n : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
+      lt₀ 𝟙 (n ^ m) := by
     cases m with
     | zero    => contradiction
     | succ m' =>
@@ -290,8 +290,8 @@ namespace Peano
       · rw [h_m]; exact pow_zero n
 
   /- Monotonicidad estricta en el exponente: 1 < n → m < k → n^m < n^k. -/
-  theorem pow_lt_mono_exp {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Lt m k) :
-      Lt (n ^ m) (n ^ k) := by
+  theorem pow_lt_mono_exp {n : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) {m k : ℕ₀} (h : lt₀ m k) :
+      lt₀ (n ^ m) (n ^ k) := by
     induction k with
     | zero    => exact absurd h (lt_zero m)
     | succ k' ih =>
@@ -300,15 +300,15 @@ namespace Peano
       · subst h_eq; exact pow_lt_succ_exp h_n_gt_1
 
   /- Monotonicidad en el exponente: 1 < n → m ≤ k → n^m ≤ n^k. -/
-  theorem pow_le_pow_right {n : ℕ₀} (h_n_gt_1 : Lt 𝟙 n) {m k : ℕ₀} (h : Le m k) :
-      Le (n ^ m) (n ^ k) := by
+  theorem pow_le_pow_right {n : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) {m k : ℕ₀} (h : le₀ m k) :
+      le₀ (n ^ m) (n ^ k) := by
     rcases (le_iff_lt_or_eq m k).mp h with h_lt | h_eq
     · exact lt_imp_le_wp (pow_lt_mono_exp h_n_gt_1 h_lt)
     · subst h_eq; exact le_refl (n ^ m)
 
   /- Monotonicidad estricta en la base: m < n → k ≠ 0 → m^k < n^k. -/
-  theorem pow_lt_mono_base {m n : ℕ₀} (h : Lt m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) :
-      Lt (m ^ k) (n ^ k) := by
+  theorem pow_lt_mono_base {m n : ℕ₀} (h : lt₀ m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) :
+      lt₀ (m ^ k) (n ^ k) := by
     induction n with
     | zero    => exact absurd h (lt_zero m)
     | succ n' ih =>
@@ -317,8 +317,8 @@ namespace Peano
       · subst h_eq; exact pow_lt_succ_base_strong h_k_ne_0
 
   /- Monotonicidad en la base: m ≤ n → k ≠ 0 → m^k ≤ n^k. -/
-  theorem pow_le_pow_left {m n : ℕ₀} (h : Le m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) :
-      Le (m ^ k) (n ^ k) := by
+  theorem pow_le_pow_left {m n : ℕ₀} (h : le₀ m n) {k : ℕ₀} (h_k_ne_0 : k ≠ 𝟘) :
+      le₀ (m ^ k) (n ^ k) := by
     rcases (le_iff_lt_or_eq m n).mp h with h_lt | h_eq
     · exact lt_imp_le_wp (pow_lt_mono_base h_lt h_k_ne_0)
     · subst h_eq; exact le_refl (m ^ k)

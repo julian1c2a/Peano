@@ -24,7 +24,7 @@ License: MIT
 namespace Peano
   open Peano
 
-  namespace Lists
+  namespace List
       open Peano.Axioms
       open Peano.StrictOrder
       open Peano.Order
@@ -45,8 +45,8 @@ namespace Peano
     -- § 2. Órdenes inducidos sobre ℕ₁ y ℕ₂
     -- ══════════════════════════════════════════════════════════════════
 
-    instance instLTN1 : LT ℕ₁ := ⟨fun a b => Lt a.val b.val⟩
-    instance instLEN1 : LE ℕ₁ := ⟨fun a b => Le a.val b.val⟩
+    instance instLTN1 : LT ℕ₁ := ⟨fun a b => lt₀ a.val b.val⟩
+    instance instLEN1 : LE ℕ₁ := ⟨fun a b => le₀ a.val b.val⟩
     instance instLTN2 : LT ℕ₂ := ⟨fun a b => @LT.lt ℕ₁ instLTN1 a.val b.val⟩
     instance instLEN2 : LE ℕ₂ := ⟨fun a b => @LE.le ℕ₁ instLEN1 a.val b.val⟩
 
@@ -106,8 +106,8 @@ namespace Peano
     /-- Acceso por índice en `ℕ₀`.  Devuelve `dflt` si el índice está fuera de rango. -/
     def getDₚ {α : Type} (dflt : α) : List α → ℕ₀ → α
       | [],       _   => dflt
-      | x :: _,  𝟘   => x
-      | _ :: xs, σ i  => getDₚ dflt xs i
+      | x :: _,  .zero   => x
+      | _ :: xs, .succ i  => getDₚ dflt xs i
 
     /-- `getDₚ` en posición cero de una lista no vacía. -/
     theorem getDₚ_cons_zero {α : Type} (dflt x : α) (xs : List α) :
@@ -126,10 +126,10 @@ namespace Peano
 
     /-- Si `i < lengthₚ l`, entonces `getDₚ dflt l i ∈ l`. -/
     theorem getDₚ_mem {α : Type} (dflt : α) (l : List α) (i : ℕ₀)
-        (hi : Lt i (lengthₚ l)) : getDₚ dflt l i ∈ l := by
+        (hi : lt₀ i (lengthₚ l)) : getDₚ dflt l i ∈ l := by
       induction l generalizing i with
       | nil =>
-          -- lengthₚ [] = 𝟘, pero hi : Lt i 𝟘, contradicción
+          -- lengthₚ [] = 𝟘, pero hi : lt₀ i 𝟘, contradicción
           exact absurd hi (nlt_n_0 i)
       | cons x xs ih =>
           cases i with
@@ -138,9 +138,9 @@ namespace Peano
               exact List.mem_cons.mpr (Or.inl rfl)
           | succ i' =>
               -- getDₚ dflt (x::xs) (σ i') = getDₚ dflt xs i'
-              -- hi : Lt (σ i') (lengthₚ (x::xs)) = Lt (σ i') (σ (lengthₚ xs))
-              -- ⇒ Lt i' (lengthₚ xs)
-              have hi' : Lt i' (lengthₚ xs) := by
+              -- hi : lt₀ (σ i') (lengthₚ (x::xs)) = lt₀ (σ i') (σ (lengthₚ xs))
+              -- ⇒ lt₀ i' (lengthₚ xs)
+              have hi' : lt₀ i' (lengthₚ xs) := by
                 rw [lengthₚ_cons] at hi
                 exact (succ_lt_succ_iff i' (lengthₚ xs)).mp hi
               exact List.mem_cons.mpr (Or.inr (ih i' hi'))
@@ -176,7 +176,7 @@ namespace Peano
 
     /-- `indexOfₚ a l < lengthₚ l` cuando `a ∈ l`. -/
     theorem List.indexOfₚ_lt_length {α : Type} [DecidableEq α] (a : α) (l : List α)
-        (hmem : a ∈ l) : Lt (List.indexOfₚ a l) (lengthₚ l) := by
+        (hmem : a ∈ l) : lt₀ (List.indexOfₚ a l) (lengthₚ l) := by
       induction l with
       | nil => cases hmem
       | cons x xs ih =>
@@ -185,7 +185,7 @@ namespace Peano
             rw [List.indexOfₚ_cons_eq a x xs hxa, lengthₚ_cons]
             exact zero_lt_succ (lengthₚ xs)
           · -- indexOfₚ a (x::xs) = σ (indexOfₚ a xs)
-            -- IH: Lt (indexOfₚ a xs) (lengthₚ xs)
+            -- IH: lt₀ (indexOfₚ a xs) (lengthₚ xs)
             have hmem' : a ∈ xs := (List.mem_cons.mp hmem).resolve_left (Ne.symm hxa)
             rw [List.indexOfₚ_cons_ne a x xs hxa, lengthₚ_cons]
             exact (succ_lt_succ_iff (List.indexOfₚ a xs) (lengthₚ xs)).mpr (ih hmem')
@@ -236,7 +236,7 @@ namespace Peano
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Segmento inicial: `Fin₀ b` es el subtipo de `ℕ₀` con `x < b`. -/
-    def Fin₀ (b : ℕ₀) := {x : ℕ₀ // Lt x b}
+    def Fin₀ (b : ℕ₀) := {x : ℕ₀ // lt₀ x b}
 
     instance instDecidableEqFin0 (b : ℕ₀) : DecidableEq (Fin₀ b) := fun a c =>
       if h : a.val = c.val then isTrue (Subtype.ext h)
@@ -402,11 +402,11 @@ namespace Peano
     /-- Lista heterogénea de valores de Peano. -/
     abbrev PeanoValList := List PeanoVal
 
-  end Lists
+  end List
 
 end Peano
 
-export Peano.Lists (
+export Peano.List (
   instDecidableEqN1
   instDecidableEqN2
   instLTN1

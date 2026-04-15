@@ -30,8 +30,8 @@ namespace Peano
 
     def mul (n m : ℕ₀) : ℕ₀ :=
       match m with
-      | 𝟘 => 𝟘
-      | σ m' => add (mul n m') n
+      | .zero => 𝟘
+      | .succ m' => add (mul n m') n
 
     infix:70 "*" => mul
 
@@ -252,13 +252,13 @@ namespace Peano
         (fun h_m_zero => h_m_neq_0 h_m_zero)
 
     theorem obvio_1 (n : ℕ₀) :
-      Le n (mul n 𝟙)
+      le₀ n (mul n 𝟙)
         := by
       rw [mul_one n]
       exact le_refl n
 
     theorem le_n_mul_n_σn (n m : ℕ₀):
-      Le n (mul n (σ m))
+      le₀ n (mul n (σ m))
         := by
       induction m generalizing n with
       | zero =>
@@ -267,12 +267,12 @@ namespace Peano
         rw [zero_add n]
         exact le_refl n
       | succ m' ih =>
-        have h_le : Le n (mul n (σ m')) := ih n
+        have h_le : le₀ n (mul n (σ m')) := ih n
         rw [mul_succ n (σ m')]
         exact add_le n (mul n (σ m')) n h_le
 
     theorem mul_le_right (n m : ℕ₀) (h_neq_0 : m ≠ 𝟘) :
-      Le n (mul n m)
+      le₀ n (mul n m)
         := by
       induction m with
       | zero =>
@@ -281,15 +281,15 @@ namespace Peano
         exact le_n_mul_n_σn n m'
 
     theorem mul_le_left (n m : ℕ₀) (h_neq_0 : m ≠ 𝟘) :
-      Le n (mul m n)
+      le₀ n (mul m n)
         := by
-      have mul_le_left_reverse : Le n (mul n m)
+      have mul_le_left_reverse : le₀ n (mul n m)
         := mul_le_right n m h_neq_0
       rw [mul_comm n m] at mul_le_left_reverse
       exact mul_le_left_reverse
 
     theorem mul_le_full_right (k n m : ℕ₀):
-      Le (mul k n) (mul k (add n m))
+      le₀ (mul k n) (mul k (add n m))
         := by
       induction m with
       | zero =>
@@ -300,7 +300,7 @@ namespace Peano
         exact le_trans (mul k n) (mul k (add n m')) (mul k (add n (σ m'))) ih (add_le (mul k (add n m')) (mul k (add n m')) k (le_refl (mul k (add n m'))))
 
     theorem mul_le_full_left (k n m : ℕ₀):
-      Le (mul n k) (mul (add n m) k)
+      le₀ (mul n k) (mul (add n m) k)
         := by
       induction m with
       | zero =>
@@ -310,25 +310,25 @@ namespace Peano
         rw [add_succ, succ_mul]
         exact le_trans (mul n k) (mul (add n m') k) (add (mul (add n m') k) k) ih (add_le (mul (add n m') k) (mul (add n m') k) k (le_refl (mul (add n m') k)))
 
-    theorem mul_lt_left (n m : ℕ₀) (h_neq_0 : n ≠ 𝟘) (h_lt_1 : Lt 𝟙 m):
-      Lt n (mul n m)
+    theorem mul_lt_left (n m : ℕ₀) (h_neq_0 : n ≠ 𝟘) (h_lt_1 : lt₀ 𝟙 m):
+      lt₀ n (mul n m)
         := by
       induction m with
       | zero =>
-        have h_not_lt : ¬Lt 𝟙 𝟘 := by simp [Lt]
+        have h_not_lt : ¬lt₀ 𝟙 𝟘 := by simp [lt₀]
         exact False.elim (h_not_lt h_lt_1)
       | succ m' ih =>
         cases m' with
         | zero =>
-          -- m = σ 𝟘 = 𝟙, so h_lt_1 : Lt 𝟙 𝟙 which is false
+          -- m = σ 𝟘 = 𝟙, so h_lt_1 : lt₀ 𝟙 𝟙 which is false
           have h_sigma_zero_eq_one : σ 𝟘 = 𝟙 := by rfl
           rw [←h_sigma_zero_eq_one] at h_lt_1
-          have h_not_lt_self : ¬Lt 𝟙 𝟙 := lt_irrefl 𝟙
+          have h_not_lt_self : ¬lt₀ 𝟙 𝟙 := lt_irrefl 𝟙
           exact False.elim (h_not_lt_self h_lt_1)
         | succ m'' =>
           induction m'' with
           | zero =>
-            -- m = σ (σ 𝟘) = σ 𝟙 = 𝟚, so h_lt_1 : Lt 𝟙 𝟚 which is true
+            -- m = σ (σ 𝟘) = σ 𝟙 = 𝟚, so h_lt_1 : lt₀ 𝟙 𝟚 which is true
             induction n with
             | zero =>
               -- n = 𝟘, so mul n m = 𝟘
@@ -340,9 +340,9 @@ namespace Peano
                 rw [mul_succ]
                 rw [mul_zero]
                 rw [zero_add]
-              have h_le : Le (σ n') (mul (σ n') 𝟙) := obvio_1 (σ n')
+              have h_le : le₀ (σ n') (mul (σ n') 𝟙) := obvio_1 (σ n')
               rw [mul_one] at h_le
-              have h_lt : Lt (σ n') (add (σ n') (σ n')) := by
+              have h_lt : lt₀ (σ n') (add (σ n') (σ n')) := by
                 exact lt_add_succ (σ n') n'
               rw [←h_mul_succ] at h_lt
               exact h_lt
@@ -353,51 +353,51 @@ namespace Peano
               exact False.elim (h_neq_0 rfl)
             | succ n' ih_n => -- n is σ n', m is σ (σ (σ m'''))
                               -- h_neq_0 is (σ n') ≠ 𝟘
-                              -- h_lt_1 is Lt 𝟙 (σ (σ (σ m''')))
+                              -- h_lt_1 is lt₀ 𝟙 (σ (σ (σ m''')))
                               -- ih is the main induction hypothesis from `induction m`
-                              -- ih: (h_lt_1_arg : Lt 𝟙 (σ (σ m'''))) → Lt (σ n') (mul (σ n') (σ (σ m''')))
-              -- Goal: Lt (σ n') (mul (σ n') (σ (σ (σ m'''))))
-              rw [mul_succ] -- Goal: Lt (σ n') (add (mul (σ n') (σ (σ m'''))) (σ n'))
+                              -- ih: (h_lt_1_arg : lt₀ 𝟙 (σ (σ m'''))) → lt₀ (σ n') (mul (σ n') (σ (σ m''')))
+              -- Goal: lt₀ (σ n') (mul (σ n') (σ (σ (σ m'''))))
+              rw [mul_succ] -- Goal: lt₀ (σ n') (add (mul (σ n') (σ (σ m'''))) (σ n'))
 
-              have h_inductive_call_m_prev : Lt (σ n') (mul (σ n') (σ (σ m'''))) := by
+              have h_inductive_call_m_prev : lt₀ (σ n') (mul (σ n') (σ (σ m'''))) := by
                 apply ih -- ih is m_ih from the outer `induction m`
                          -- n argument for ih is σ n' (current n)
                          -- m_val for ih is σ (σ m''')
-                exact lt_1_succ_succ m''' -- Proves Lt 𝟙 (σ (σ m'''))
+                exact lt_1_succ_succ m''' -- Proves lt₀ 𝟙 (σ (σ m'''))
 
-              have h_lt_add_term : Lt (mul (σ n') (σ (σ m'''))) (add (mul (σ n') (σ (σ m'''))) (σ n')) := by
+              have h_lt_add_term : lt₀ (mul (σ n') (σ (σ m'''))) (add (mul (σ n') (σ (σ m'''))) (σ n')) := by
                 apply lt_add_succ -- lt_add_succ (mul (σ n') (σ (σ m'''))) n'
 
               exact StrictOrder.lt_trans (σ n') (mul (σ n') (σ (σ m'''))) (add (mul (σ n') (σ (σ m'''))) (σ n')) h_inductive_call_m_prev h_lt_add_term
 
-    theorem mul_lt_right (n m : ℕ₀) (h_neq_0 : n ≠ 𝟘) (h_lt_1 : Lt 𝟙 m):
-      Lt n (mul m n)
+    theorem mul_lt_right (n m : ℕ₀) (h_neq_0 : n ≠ 𝟘) (h_lt_1 : lt₀ 𝟙 m):
+      lt₀ n (mul m n)
         := by
-      have mul_lt_left_reverse : Lt n (mul n m)
+      have mul_lt_left_reverse : lt₀ n (mul n m)
         := mul_lt_left n m h_neq_0 h_lt_1
       rw [mul_comm n m] at mul_lt_left_reverse
       exact mul_lt_left_reverse
 
-    theorem mul_lt_full_left (k n m : ℕ₀) (h_le_1_m : Le 𝟙 m) (h_le_1_k : Le 𝟙 k):
-      Lt (mul n k) (mul (add n m) k)
+    theorem mul_lt_full_left (k n m : ℕ₀) (h_le_1_m : le₀ 𝟙 m) (h_le_1_k : le₀ 𝟙 k):
+      lt₀ (mul n k) (mul (add n m) k)
         := by
       induction m with
       | zero =>
-        rw [add_zero] -- Goal is now `Lt (mul n k) (mul n k)`
-        -- The hypothesis `h_le_1_m` becomes `Le 𝟙 𝟘` in this case.
-        -- `Le 𝟙 𝟘` (i.e. `Le (σ 𝟘) 𝟘`) is false.
-        have h_one_not_le_zero : ¬ (Le 𝟙 𝟘) := le_succ_0_then_false 𝟘
+        rw [add_zero] -- Goal is now `lt₀ (mul n k) (mul n k)`
+        -- The hypothesis `h_le_1_m` becomes `le₀ 𝟙 𝟘` in this case.
+        -- `le₀ 𝟙 𝟘` (i.e. `le₀ (σ 𝟘) 𝟘`) is false.
+        have h_one_not_le_zero : ¬ (le₀ 𝟙 𝟘) := le_succ_0_then_false 𝟘
         exact False.elim (h_one_not_le_zero h_le_1_m)
       | succ m' ih => -- m = σ m'
-        rw [add_succ, succ_mul] -- Goal: Lt (mul n k) (add (mul (add n m') k) k)
+        rw [add_succ, succ_mul] -- Goal: lt₀ (mul n k) (add (mul (add n m') k) k)
         -- Let A = mul n k
         -- Let B = mul (add n m') k
         -- Let C = add B k = add (mul (add n m') k) k
-        -- We want to prove Lt A C.
+        -- We want to prove lt₀ A C.
 
-        -- First, establish B < C: Lt (mul (add n m') k) (add (mul (add n m') k) k)
+        -- First, establish B < C: lt₀ (mul (add n m') k) (add (mul (add n m') k) k)
         -- This holds because k ≥ 1 (from h_le_1_k), so k is a successor.
-        have h_lt_b_c : Lt (mul (add n m') k) (add (mul (add n m') k) k) := by
+        have h_lt_b_c : lt₀ (mul (add n m') k) (add (mul (add n m') k) k) := by
           have h_k_ne_zero : k ≠ 𝟘 := by {
             intro h_k_eq_zero;
             rw [h_k_eq_zero] at h_le_1_k;
@@ -409,41 +409,41 @@ namespace Peano
             rw [(σ_τ_eq_id_pos_forall h_k_ne_zero).symm];
             -- RHS is now `add (mul (add n m') k) (σ (τ k))`
             -- which is definitionally `σ (add (mul (add n m') k) (τ k))`
-          apply lt_add_succ; -- Goal is `Lt X (σ (X + τ k))`, matches `lt_add_succ X (τ k)`
+          apply lt_add_succ; -- Goal is `lt₀ X (σ (X + τ k))`, matches `lt_add_succ X (τ k)`
 
         -- Next, establish A < B or A = B, by cases on m'
         cases m' with
         | zero => -- m' = 𝟘. So m = σ 𝟘 = 𝟙.
-          rw [add_zero] -- Goal becomes Lt (mul n k) (add (mul n k) k)
-          -- This is Lt A (add A k), which is h_lt_b_c with m' = 0.
-          -- h_lt_b_c is Lt (mul (add n 𝟘) k) (add (mul (add n 𝟘) k) k)
-          rw [add_zero] at h_lt_b_c -- Now h_lt_b_c is Lt (mul n k) (add (mul n k) k)
+          rw [add_zero] -- Goal becomes lt₀ (mul n k) (add (mul n k) k)
+          -- This is lt₀ A (add A k), which is h_lt_b_c with m' = 0.
+          -- h_lt_b_c is lt₀ (mul (add n 𝟘) k) (add (mul (add n 𝟘) k) k)
+          rw [add_zero] at h_lt_b_c -- Now h_lt_b_c is lt₀ (mul n k) (add (mul n k) k)
           exact h_lt_b_c
         | succ m'' => -- m' = σ m''. So m = σ (σ m'').
-          -- The induction hypothesis ih is: (h_le_1_m_prime : Le 𝟙 m') → Lt (mul n k) (mul (add n m') k)
-          -- We need a proof for `Le 𝟙 m'`, where m' = σ m''.
-          -- `Le 𝟙 (σ m'')` is equivalent to `Lt 𝟘 (σ m'')` (since 𝟙 = σ 𝟘).
-          -- `Lt 𝟘 (σ m'')` is true because σ m'' is a successor.
-          have h_le_1_m_prime_proof : Le 𝟙 (σ m'') := by
+          -- The induction hypothesis ih is: (h_le_1_m_prime : le₀ 𝟙 m') → lt₀ (mul n k) (mul (add n m') k)
+          -- We need a proof for `le₀ 𝟙 m'`, where m' = σ m''.
+          -- `le₀ 𝟙 (σ m'')` is equivalent to `lt₀ 𝟘 (σ m'')` (since 𝟙 = σ 𝟘).
+          -- `lt₀ 𝟘 (σ m'')` is true because σ m'' is a successor.
+          have h_le_1_m_prime_proof : le₀ 𝟙 (σ m'') := by
             exact le_1_succ m'' -- Use le_succ_all to show 1 ≤ σ m''
 
-          -- Use ih to get A < B: Lt (mul n k) (mul (add n m') k)
-          have h_lt_a_b_from_ih : Lt (mul n k) (mul (add n (σ m'')) k) := ih h_le_1_m_prime_proof
+          -- Use ih to get A < B: lt₀ (mul n k) (mul (add n m') k)
+          have h_lt_a_b_from_ih : lt₀ (mul n k) (mul (add n (σ m'')) k) := ih h_le_1_m_prime_proof
 
           -- Combine A < B and B < C using lt_trans
           exact lt_trans (mul n k) (mul (add n (σ m'')) k) (add (mul (add n (σ m'')) k) k) h_lt_a_b_from_ih h_lt_b_c
 
-    theorem mul_lt_full_right (k n m : ℕ₀) (h_le_1_m : Le 𝟙 m) (h_le_1_k : Le 𝟙 k):
-      Lt (mul k n) (mul k (add n m))
+    theorem mul_lt_full_right (k n m : ℕ₀) (h_le_1_m : le₀ 𝟙 m) (h_le_1_k : le₀ 𝟙 k):
+      lt₀ (mul k n) (mul k (add n m))
         := by
       induction m with
       | zero =>
-        rw [add_zero] -- Goal is now `Lt (mul k n) (mul k n)`
-        have h_one_not_le_zero : ¬ (Le 𝟙 𝟘) := le_succ_0_then_false 𝟘
+        rw [add_zero] -- Goal is now `lt₀ (mul k n) (mul k n)`
+        have h_one_not_le_zero : ¬ (le₀ 𝟙 𝟘) := le_succ_0_then_false 𝟘
         exact False.elim (h_one_not_le_zero h_le_1_m)
       | succ m' ih => -- m = σ m'
-        rw [add_succ n m', mul_succ] -- Goal: Lt (mul k n) (add (mul k (add n m')) k)
-        have h_lt_b_c : Lt (mul k (add n m')) (add (mul k (add n m')) k) := by
+        rw [add_succ n m', mul_succ] -- Goal: lt₀ (mul k n) (add (mul k (add n m')) k)
+        have h_lt_b_c : lt₀ (mul k (add n m')) (add (mul k (add n m')) k) := by
           have h_k_ne_zero : k ≠ 𝟘 := by {
             intro h_k_eq_zero;
             rw [h_k_eq_zero] at h_le_1_k;
@@ -453,36 +453,36 @@ namespace Peano
             rhs;
             arg 2; -- Focus on the second `k` in `add _ k`
             rw [(σ_τ_eq_id_pos_forall h_k_ne_zero).symm];
-          apply lt_add_succ; -- Goal is `Lt X (σ (X + τ k))`, matches `lt_add_succ X (τ k)`
+          apply lt_add_succ; -- Goal is `lt₀ X (σ (X + τ k))`, matches `lt_add_succ X (τ k)`
         cases m' with
         | zero => -- m' = 𝟘. So m = σ 𝟘 = 𝟙.
-          rw [add_zero] -- Goal becomes Lt (mul k n) (add (mul k n) k)
+          rw [add_zero] -- Goal becomes lt₀ (mul k n) (add (mul k n) k)
           exact h_lt_b_c
         | succ m'' => -- m' = σ m''. So m = σ (σ m'').
-          have h_le_1_m_prime_proof : Le 𝟙 (σ m'') := by
+          have h_le_1_m_prime_proof : le₀ 𝟙 (σ m'') := by
             exact le_1_succ m'' -- Use le_succ_all to show 1 ≤ σ m''
-          have h_lt_a_b_from_ih : Lt (mul k n) (mul k (add n (σ m''))) := ih h_le_1_m_prime_proof
+          have h_lt_a_b_from_ih : lt₀ (mul k n) (mul k (add n (σ m''))) := ih h_le_1_m_prime_proof
           exact lt_trans (mul k n) (mul k (add n (σ m''))) (add (mul k (add n (σ m''))) k) h_lt_a_b_from_ih h_lt_b_c
 
-    theorem mul_le_mono_right (k : ℕ₀) {n m : ℕ₀} (h_le : Le n m) :
-      Le (mul n k) (mul m k)
+    theorem mul_le_mono_right (k : ℕ₀) {n m : ℕ₀} (h_le : le₀ n m) :
+      le₀ (mul n k) (mul m k)
         := by
       cases (le_iff_exists_add n m).mp h_le with | intro d hd =>
       rw [hd, add_mul]
       exact add_le (mul n k) (mul n k) (mul d k) (le_refl (mul n k))
 
     theorem lt_σn_mul_σn_σσm (n m : ℕ₀):
-      Lt (σ n) (mul (σ n) (σ (σ m)))
+      lt₀ (σ n) (mul (σ n) (σ (σ m)))
         := by
       have h_neq_0 : σ n ≠ 𝟘 := succ_neq_zero n
-      have h_lt_1 : Lt 𝟙 (σ (σ m)) := lt_1_succ_succ m
+      have h_lt_1 : lt₀ 𝟙 (σ (σ m)) := lt_1_succ_succ m
       exact mul_lt_left (σ n) (σ (σ m)) h_neq_0 h_lt_1
 
     theorem τ0_eq_0 :
       τ 𝟘 = 𝟘
         := by rfl
 
-    theorem τn_eq_m {n : ℕ₀} (h_n_neq_zero : Le n 𝟘) :
+    theorem τn_eq_m {n : ℕ₀} (h_n_neq_zero : le₀ n 𝟘) :
       τ n = 𝟘
         := by
       induction n with
@@ -555,8 +555,8 @@ namespace Peano
       rw [←h_mul_n_m] at h_sub_add
       exact h_sub_add.symm
 
-    theorem lt_of_lt_of_le {a b c : ℕ₀} (h_lt_ab : Lt a b) (h_le_bc : Le b c) :
-      Lt a c
+    theorem lt_of_lt_of_le {a b c : ℕ₀} (h_lt_ab : lt₀ a b) (h_le_bc : le₀ b c) :
+      lt₀ a c
         := by
       cases h_le_bc with
       | inl h_lt_bc => exact lt_trans a b c h_lt_ab h_lt_bc
@@ -564,28 +564,28 @@ namespace Peano
         rw [←h_eq_bc]
         exact h_lt_ab
 
-    theorem archimedean_property {n : ℕ₀} (m : ℕ₀) (h_n_pos : Lt 𝟘 n) :
-      ∃ j, Lt m (mul j n)
+    theorem archimedean_property {n : ℕ₀} (m : ℕ₀) (h_n_pos : lt₀ 𝟘 n) :
+      ∃ j, lt₀ m (mul j n)
         := by
       -- Un candidato simple es j = σ m.
       exists (σ m)
       -- Queremos probar: m < (σ m) * n
-      have h_mul_ge_self : Le (σ m) (mul (σ m) n) := by
+      have h_mul_ge_self : le₀ (σ m) (mul (σ m) n) := by
         -- Esto es porque n ≥ 1 (ya que n > 0)
-        have h_n_ge_1 : Le 𝟙 n := by
+        have h_n_ge_1 : le₀ 𝟙 n := by
           exact lt_0n_then_le_1n_wp h_n_pos
         -- Si n = 1, (σ m) * 1 = σ m. Si n > 1, (σ m) * n > σ m.
-        -- Un lema general sería: Le a (mul a b) si Le 𝟙 b
+        -- Un lema general sería: le₀ a (mul a b) si le₀ 𝟙 b
         exact mul_le_right (σ m) n (le_1_m_then_m_neq_0 n h_n_ge_1)
       -- Como m < σ m y σ m ≤ (σ m) * n, por transitividad m < (σ m) * n
       exact lt_of_lt_of_le (lt_self_σ_self m) h_mul_ge_self
 
-    theorem exists_unique_mul_le_and_lt_succ_mul (n m : ℕ₀) (h_n_pos : Lt 𝟘 n) :
-      ∃¹ k : ℕ₀, Le (mul k n) m ∧ Lt m (mul (σ k) n)
+    theorem exists_unique_mul_le_and_lt_succ_mul (n m : ℕ₀) (h_n_pos : lt₀ 𝟘 n) :
+      ∃¹ k : ℕ₀, le₀ (mul k n) m ∧ lt₀ m (mul (σ k) n)
         := by
-      let P := fun (j : ℕ₀) => Lt m (mul j n)
+      let P := fun (j : ℕ₀) => lt₀ m (mul j n)
       have h_P_nonempty : ∃ j, P j := archimedean_property m h_n_pos
-      obtain ⟨j, h_j_is_P, h_j_is_minimal⟩ : ∃ j, P j ∧ ∀ i, Lt i j → ¬ P i :=
+      obtain ⟨j, h_j_is_P, h_j_is_minimal⟩ : ∃ j, P j ∧ ∀ i, lt₀ i j → ¬ P i :=
         well_ordering_principle h_P_nonempty
       have h_j_neq_zero : j ≠ 𝟘 := by
         intro h_j_zero
@@ -599,11 +599,11 @@ namespace Peano
       · -- Existence: Show (k * n ≤ m) ∧ (m < (σ k) * n)
         constructor
         · -- Show k * n ≤ m
-          have h_k_lt_j : Lt k j := by rw [h_j_eq_succ_k]; exact lt_succ_self k
+          have h_k_lt_j : lt₀ k j := by rw [h_j_eq_succ_k]; exact lt_succ_self k
           have h_not_Pk : ¬ P k := h_j_is_minimal k h_k_lt_j
-          have h_not_lt_impl_le : ¬(Lt m (mul k n)) → Le (mul k n) m := by
+          have h_not_lt_impl_le : ¬(lt₀ m (mul k n)) → le₀ (mul k n) m := by
             intro h
-            have ngt_le : ¬Lt m (mul k n) ↔ Le (mul k n) m := ngt_iff_le
+            have ngt_le : ¬lt₀ m (mul k n) ↔ le₀ (mul k n) m := ngt_iff_le
             exact ngt_le.mp h
           exact h_not_lt_impl_le h_not_Pk
         · -- Show m < (σ k) * n
@@ -611,24 +611,24 @@ namespace Peano
           exact h_j_is_P
       · -- Uniqueness: Show that if k' also works, then k' = k.
         intro k' h_k'_property
-        have h_k'_le : Le (mul k' n) m := h_k'_property.left
-        have h_m_lt : Lt m (mul (σ k') n) := h_k'_property.right
-        have h_le_k'_k : Le k' k := by
-          by_cases h : Le k' k
+        have h_k'_le : le₀ (mul k' n) m := h_k'_property.left
+        have h_m_lt : lt₀ m (mul (σ k') n) := h_k'_property.right
+        have h_le_k'_k : le₀ k' k := by
+          by_cases h : le₀ k' k
           · exact h
           · exfalso
-            have h_k_lt_k' : Lt k k' := nle_then_gt_wp h
-            have h_sk_le_k' : Le (σ k) k' := lt_then_le_succ_wp h_k_lt_k'
-            have h_mul_le : Le (mul (σ k) n) (mul k' n) := mul_le_mono_right n h_sk_le_k'
-            have h_lt_sk : Lt m (mul (σ k) n) := by rw [← h_j_eq_succ_k]; exact h_j_is_P
-            have h_m_lt_m : Lt m m := lt_of_lt_of_le h_lt_sk (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_k'_le)
+            have h_k_lt_k' : lt₀ k k' := nle_then_gt_wp h
+            have h_sk_le_k' : le₀ (σ k) k' := lt_then_le_succ_wp h_k_lt_k'
+            have h_mul_le : le₀ (mul (σ k) n) (mul k' n) := mul_le_mono_right n h_sk_le_k'
+            have h_lt_sk : lt₀ m (mul (σ k) n) := by rw [← h_j_eq_succ_k]; exact h_j_is_P
+            have h_m_lt_m : lt₀ m m := lt_of_lt_of_le h_lt_sk (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_k'_le)
             exact lt_irrefl m h_m_lt_m
-        have h_le_k_k' : Le k k' := by
-          by_cases h : Le k k'
+        have h_le_k_k' : le₀ k k' := by
+          by_cases h : le₀ k k'
           · exact h
           · exfalso
-            have h_k'_lt_k : Lt k' k := nle_then_gt_wp h
-            have h_sk'_lt_j : Lt (σ k') j := by
+            have h_k'_lt_k : lt₀ k' k := nle_then_gt_wp h
+            have h_sk'_lt_j : lt₀ (σ k') j := by
               rw [h_j_eq_succ_k]
               exact lt_then_lt_σ_σ_wp h_k'_lt_k
             have h_P_sk' : P (σ k') := h_m_lt
@@ -636,89 +636,89 @@ namespace Peano
         exact le_antisymm k' k h_le_k'_k h_le_k_k'
 
     theorem exists_factor_of_mul_le {n m : ℕ₀} (h_neq_0 : n ≠ 𝟘):
-      ∃ (k : ℕ₀), Le (mul k n) m ∧ ∀ (k' : ℕ₀), Le (mul k' n) m → Le k' k
+      ∃ (k : ℕ₀), le₀ (mul k n) m ∧ ∀ (k' : ℕ₀), le₀ (mul k' n) m → le₀ k' k
         := by
-      have h_n_pos : Lt 𝟘 n := neq_0_then_lt_0 h_neq_0
-      obtain ⟨k, hk_prop, _⟩ : ∃¹ k, Le (mul k n) m ∧ Lt m (mul (σ k) n) :=
+      have h_n_pos : lt₀ 𝟘 n := neq_0_then_lt_0 h_neq_0
+      obtain ⟨k, hk_prop, _⟩ : ∃¹ k, le₀ (mul k n) m ∧ lt₀ m (mul (σ k) n) :=
         exists_unique_mul_le_and_lt_succ_mul n m h_n_pos
       exists k
       constructor
       · exact hk_prop.left
       · intro k' h_le_k'_mul_n_m
-        -- We need to show Le k' k
+        -- We need to show le₀ k' k
         -- We'll use proof by contradiction
-        by_cases h_le : Le k' k
+        by_cases h_le : le₀ k' k
         · exact h_le
         · -- If ¬(k' ≤ k), then k < k'
-          have h_k_lt_k' : Lt k k' := nle_then_gt_wp h_le
+          have h_k_lt_k' : lt₀ k k' := nle_then_gt_wp h_le
           -- Then σ k ≤ k'
-          have h_sk_le_k' : Le (σ k) k' := lt_then_le_succ_wp h_k_lt_k'
+          have h_sk_le_k' : le₀ (σ k) k' := lt_then_le_succ_wp h_k_lt_k'
           -- So (σ k) * n ≤ k' * n
-          have h_mul_le : Le (mul (σ k) n) (mul k' n) := mul_le_mono_right n h_sk_le_k'
+          have h_mul_le : le₀ (mul (σ k) n) (mul k' n) := mul_le_mono_right n h_sk_le_k'
           -- But we have m < (σ k) * n from hk_prop.right
-          have h_lt_m_mul_sk_n : Lt m (mul (σ k) n) := hk_prop.right
+          have h_lt_m_mul_sk_n : lt₀ m (mul (σ k) n) := hk_prop.right
           -- And k' * n ≤ m from h_le_k'_mul_n_m
-          have h_le_mul_k'_m : Le (mul k' n) m := h_le_k'_mul_n_m
+          have h_le_mul_k'_m : le₀ (mul k' n) m := h_le_k'_mul_n_m
           -- This gives us m < (σ k) * n ≤ k' * n ≤ m, which is impossible
-          have h_m_lt_m : Lt m m := lt_of_lt_of_le h_lt_m_mul_sk_n (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_le_mul_k'_m)
+          have h_m_lt_m : lt₀ m m := lt_of_lt_of_le h_lt_m_mul_sk_n (le_trans (mul (σ k) n) (mul k' n) m h_mul_le h_le_mul_k'_m)
           exact False.elim (lt_irrefl m h_m_lt_m)
 
-    theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_le_k_l : Le k l):
-      Le (mul n k) (mul m l)
+    theorem le_le_mul_le_compat {n m k l: ℕ₀} (h_le_n_m : le₀ n m) (h_le_k_l : le₀ k l):
+      le₀ (mul n k) (mul m l)
         := by
-      have h_le_nk_mk : Le (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
-      have h_le_mk_ml : Le (mul m k) (mul m l) := by
+      have h_le_nk_mk : le₀ (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
+      have h_le_mk_ml : le₀ (mul m k) (mul m l) := by
         rw [mul_comm m k, mul_comm m l]
         exact mul_le_mono_right m h_le_k_l
       exact le_trans (mul n k) (mul m k) (mul m l) h_le_nk_mk h_le_mk_ml
 
-    theorem mul_pos {n m : ℕ₀} (h_n_pos : Lt 𝟘 n) (h_m_pos : Lt 𝟘 m) : Lt 𝟘 (mul n m) := by
+    theorem mul_pos {n m : ℕ₀} (h_n_pos : lt₀ 𝟘 n) (h_m_pos : lt₀ 𝟘 m) : lt₀ 𝟘 (mul n m) := by
       have h_n_neq_0 : n ≠ 𝟘 := lt_0_then_neq_0 h_n_pos
       have h_m_neq_0 : m ≠ 𝟘 := lt_0_then_neq_0 h_m_pos
       exact neq_0_then_lt_0 (eq_zero_of_mul_eq_zero h_n_neq_0 h_m_neq_0)
 
-    theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : Lt n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
-      Lt (mul n k) (mul m l)
+    theorem lt_lt_mul_lt_compat {n m k l: ℕ₀} (h_lt_n_m : lt₀ n m) (h_lt_k_l : lt₀ k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
+      lt₀ (mul n k) (mul m l)
         := by
       have h_m_neq_0 : m ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 n m (neq_0_then_lt_0 h_n_neq_0) h_lt_n_m)
       have h_l_neq_0 : l ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 k l (neq_0_then_lt_0 h_k_neq_0) h_lt_k_l)
 
-      have h_nk_lt_mk : Lt (mul n k) (mul m k) := by
+      have h_nk_lt_mk : lt₀ (mul n k) (mul m k) := by
         cases (lt_iff_exists_add_succ n m).mp h_lt_n_m with | intro d hd =>
         rw [hd, add_mul]
         apply lt_add_of_pos_right
-        have h_k_pos : Lt 𝟘 k := neq_0_then_lt_0 h_k_neq_0
-        have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+        have h_k_pos : lt₀ 𝟘 k := neq_0_then_lt_0 h_k_neq_0
+        have h_d_pos : lt₀ 𝟘 (σ d) := zero_lt_succ d
         exact mul_pos h_d_pos h_k_pos
 
-      have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
+      have h_mk_lt_ml : lt₀ (mul m k) (mul m l) := by
         cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
         rw [hd, mul_add]
         apply lt_add_of_pos_right
-        have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
-        have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+        have h_m_pos : lt₀ 𝟘 m := neq_0_then_lt_0 h_m_neq_0
+        have h_d_pos : lt₀ 𝟘 (σ d) := zero_lt_succ d
         exact mul_pos h_m_pos h_d_pos
 
       exact lt_trans (mul n k) (mul m k) (mul m l) h_nk_lt_mk h_mk_lt_ml
 
-    theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : Le n m) (h_lt_k_l : Lt k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
-      Lt (mul n k) (mul m l)
+    theorem le_lt_mul_lt_compat {n m k l: ℕ₀} (h_le_n_m : le₀ n m) (h_lt_k_l : lt₀ k l) (h_k_neq_0 : k ≠ 𝟘) (h_n_neq_0 : n ≠ 𝟘):
+      lt₀ (mul n k) (mul m l)
         := by
-      have h_le_k_l : Le k l := lt_imp_le_wp h_lt_k_l
-      have h_le_mul_compat : Le (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
+      have h_le_k_l : le₀ k l := lt_imp_le_wp h_lt_k_l
+      have h_le_mul_compat : le₀ (mul n k) (mul m l) := le_le_mul_le_compat h_le_n_m h_le_k_l
       have h_l_neq_0 : l ≠ 𝟘 := lt_0_then_neq_0 (lt_trans 𝟘 k l (neq_0_then_lt_0 h_k_neq_0) h_lt_k_l)
       have h_m_neq_0 : m ≠ 𝟘 := le_n_m_then_m_neq_0 n m h_n_neq_0 h_le_n_m
       have h_neq : mul n k ≠ mul m l := by
         intro h_eq
-        have h_mk_lt_ml : Lt (mul m k) (mul m l) := by
+        have h_mk_lt_ml : lt₀ (mul m k) (mul m l) := by
           cases (lt_iff_exists_add_succ k l).mp h_lt_k_l with | intro d hd =>
           rw [hd, mul_add]
           apply lt_add_of_pos_right
-          have h_m_pos : Lt 𝟘 m := neq_0_then_lt_0 h_m_neq_0
-          have h_d_pos : Lt 𝟘 (σ d) := zero_lt_succ d
+          have h_m_pos : lt₀ 𝟘 m := neq_0_then_lt_0 h_m_neq_0
+          have h_d_pos : lt₀ 𝟘 (σ d) := zero_lt_succ d
           exact mul_pos h_m_pos h_d_pos
-        have h_nk_le_mk : Le (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
-        have h_lt : Lt (mul n k) (mul m l) := by
+        have h_nk_le_mk : le₀ (mul n k) (mul m k) := mul_le_mono_right k h_le_n_m
+        have h_lt : lt₀ (mul n k) (mul m l) := by
           cases h_nk_le_mk with
           | inl h_lt_nk_mk => exact lt_trans (mul n k) (mul m k) (mul m l) h_lt_nk_mk h_mk_lt_ml
           | inr h_eq_nk_mk => rw [h_eq_nk_mk]; exact h_mk_lt_ml
@@ -729,9 +729,9 @@ namespace Peano
       Distributividad de la multiplicación sobre la resta truncada.
       Si `b < a`, entonces `c * (a - b) = c * a - c * b`.
     -/
-    theorem mul_sub (c a b : ℕ₀) (h_lt : Lt b a) :
+    theorem mul_sub (c a b : ℕ₀) (h_lt : lt₀ b a) :
         mul c (sub a b) = sub (mul c a) (mul c b) := by
-      have h_le : Le b a := lt_imp_le b a h_lt
+      have h_le : le₀ b a := lt_imp_le b a h_lt
       have h_add_sub : add (sub a b) b = a := sub_k_add_k a b h_le
       -- c * a = c * (sub a b + b) = c*(sub a b) + c*b
       have h_mul_expand : mul c a = add (mul c (sub a b)) (mul c b) :=

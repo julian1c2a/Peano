@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNat/Decidable.lean
 -- Módulo de reexportación: reúne todas las instancias Decidable,
--- funciones booleanas de comparación (blt, bgt, ble, bge) y sus
+-- funciones booleanas de comparación (blt₀, bgt₀, ble₀, bge₀) y sus
 -- teoremas de equivalencia iff dispersos en StrictOrder y Order.
 -- No contiene demostraciones nuevas.
 
@@ -14,11 +14,11 @@ import Peano.PeanoNat.Order
 
 
 -- ─────────────────────────────────────────────────────────────────
--- StrictOrder: blt, bgt, decidableLt, decidableGt
+-- StrictOrder: blt₀, bgt₀, decidableLt, decidableGt
 -- ─────────────────────────────────────────────────────────────────
 export Peano.StrictOrder (
-  blt
-  bgt
+  blt₀
+  bgt₀
   blt_iff_Lt
   blt_then_Lt_wp
   bgt_iff_Gt
@@ -29,11 +29,11 @@ export Peano.StrictOrder (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- Order: ble, bge, decidableLe, decidableGe
+-- Order: ble₀, bge₀, decidableLe, decidableGe
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Order (
-  ble
-  bge
+  ble₀
+  bge₀
   ble_iff_Le
   bge_iff_Ge
   decidableLe
@@ -48,8 +48,8 @@ export Peano.Order (
 open Peano.StrictOrder in
 instance : Ord ℕ₀ where
   compare a b :=
-    if Lt a b then .lt
-    else if Lt b a then .gt
+    if lt₀ a b then .lt
+    else if lt₀ b a then .gt
     else .eq
 
 -- ─────────────────────────────────────────────────────────────────

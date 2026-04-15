@@ -14,7 +14,7 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Lattice
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 
 
 namespace Peano
@@ -28,7 +28,7 @@ namespace Peano
       open Peano.Sub
       open Peano.Div
       open Peano.Lattice
-      open Peano.Lists
+      open Peano.List
 
     def Divides (a b : ℕ₀) : Prop :=
       ∃ k : ℕ₀, b = mul a k
@@ -64,8 +64,8 @@ namespace Peano
       fun d => d ∣ n
 
     def range_from_one : ℕ₀ → List ℕ₀
-      | 𝟘 => []
-      | σ n' => range_from_one n' ++ [σ n']
+      | .zero => []
+      | .succ n' => range_from_one n' ++ [σ n']
 
     def dividesb (d n : ℕ₀) : Bool :=
       decide ((n % d) = 𝟘)
@@ -236,7 +236,7 @@ namespace Peano
       simp
       exact ⟨divides_refl a, divides_zero a⟩
     · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
+      have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
       let ih_call := ih (a % b) h_mod_lt_b
       let ih_specific := ih_call b
       rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
@@ -264,7 +264,7 @@ namespace Peano
       simp
       exact ⟨divides_refl a, divides_zero a⟩
     · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
+      have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
       let ih_call := ih (a % b) h_mod_lt_b
       let ih_specific := ih_call b
       rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
@@ -288,17 +288,17 @@ namespace Peano
   /--
     Si c divide a y b, entonces c divide a - b (resta truncada), bajo la condición b < a.
   -/
-  theorem divides_sub {a b c : ℕ₀} (h_lt_a_b : Lt b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (sub a b) := by
+  theorem divides_sub {a b c : ℕ₀} (h_lt_a_b : lt₀ b a) (ha : c ∣ a) (hb : c ∣ b) : c ∣ (sub a b) := by
     rcases ha with ⟨ka, hka⟩
     rcases hb with ⟨kb, hkb⟩
     -- c * kb < c * ka (reescribiendo b < a)
-    have h_mul_lt : Lt (mul c kb) (mul c ka) := by
+    have h_mul_lt : lt₀ (mul c kb) (mul c ka) := by
       rw [← hkb, ← hka]; exact h_lt_a_b
-    -- Derivar Lt kb ka por contradicción
-    have h_lt_kb_ka : Lt kb ka := by
-      by_cases h_le : Le ka kb
+    -- Derivar lt₀ kb ka por contradicción
+    have h_lt_kb_ka : lt₀ kb ka := by
+      by_cases h_le : le₀ ka kb
       · -- Si ka ≤ kb, entonces c*ka ≤ c*kb, contradicción con c*kb < c*ka
-        have h_le_mul : Le (mul c ka) (mul c kb) := by
+        have h_le_mul : le₀ (mul c ka) (mul c kb) := by
           rw [mul_comm c ka, mul_comm c kb]
           exact mul_le_mono_right c h_le
         exact absurd (lt_of_lt_of_le h_mul_lt h_le_mul) (lt_irrefl (mul c kb))
@@ -319,8 +319,8 @@ namespace Peano
       · -- a%b ≠ 0, luego (a/b)*b < a
         have h_eq : a = add (mul (a / b) b) (a % b) := divMod_spec a b hb0
         have h1 : c ∣ mul (a / b) b := divides_mul_left hb
-        have h_lt : Lt (mul (a / b) b) a := by
-          have h_lt' : Lt (mul (a / b) b) (add (mul (a / b) b) (a % b)) :=
+        have h_lt : lt₀ (mul (a / b) b) a := by
+          have h_lt' : lt₀ (mul (a / b) b) (add (mul (a / b) b) (a % b)) :=
             lt_add_of_pos_right (neq_0_then_lt_0 hmod)
           rw [← h_eq] at h_lt'
           exact h_lt'
@@ -347,7 +347,7 @@ namespace Peano
         rw [h_b_is_zero]; simp; exact h_div_a
       · -- gcd a b = gcd b (a%b), inducción sobre (a%b) < b
         simp [if_neg h_b_is_zero]
-        have h_mod_lt_b : Lt (a % b) b := mod_lt a b h_b_is_zero
+        have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
         exact ih (a % b) h_mod_lt_b b h_div_b (divides_mod h_div_a h_div_b)
     intro ⟨h_a, h_b⟩
     exact H b a h_a h_b
@@ -427,7 +427,7 @@ namespace Peano
         have h_gcd_a0 : gcd a 𝟘 = a := by unfold gcd; rw [if_pos rfl]
         exact ⟨𝟘, 𝟙, Or.inl (by rw [h_gcd_a0, zero_mul, add_zero, one_mul, max_0_not])⟩
       · -- b ≠ 0: gcd(a,b) = gcd(b, a%b), IH sobre (a%b < b)
-        have h_mod_lt : Lt (a % b) b := mod_lt a b hb0
+        have h_mod_lt : lt₀ (a % b) b := mod_lt a b hb0
         -- IH sobre (b, a%b): gcd(b,a%b) + n'*min(b,a%b) = m'*max(b,a%b)
         -- Como a%b < b: max(b,a%b)=b, min(b,a%b)=a%b
         obtain ⟨n', m', ih_eq⟩ := ih (a % b) h_mod_lt b
@@ -455,9 +455,9 @@ namespace Peano
           · -- a = b: gcd(a,a) = a, testigos n=0 m=1
             rw [h_eq_ab]
             have h_mod_zero : (b % b) = 𝟘 := by
-              have h_bpos : Lt 𝟘 b := neq_0_then_lt_0 hb0
-              have h1 : Le (mul b 𝟙) b := by rw [mul_one]; exact le_refl b
-              have h2 : Lt b (mul b (σ 𝟙)) := by
+              have h_bpos : lt₀ 𝟘 b := neq_0_then_lt_0 hb0
+              have h1 : le₀ (mul b 𝟙) b := by rw [mul_one]; exact le_refl b
+              have h2 : lt₀ b (mul b (σ 𝟙)) := by
                 rw [mul_succ, mul_one]
                 exact lt_add_of_pos_right h_bpos
               have := mod_of_lt_nth_interval b b 𝟙 h1 h2
@@ -474,7 +474,7 @@ namespace Peano
           let q := a / b
           have h_div_eq : a = add (mul q b) (a % b) := divMod_spec a b hb0
           -- q*b ≤ a
-          have h_qb_le_a : Le (mul q b) a := by
+          have h_qb_le_a : le₀ (mul q b) a := by
             rw [h_div_eq]; exact le_self_add (mul q b) (a % b)
           by_cases hmod0 : (a % b) = 𝟘
           · -- a%b = 0: a = q*b, gcd(a,b)=b, testigos n=(q-1), m=1
@@ -487,8 +487,8 @@ namespace Peano
               rcases h_le_ba with h_lt | h_eq
               · exact absurd (h_a_eq ▸ h_lt) (nlt_n_0 b)
               · exact hb0 (h_eq.trans h_a_eq)
-            have hq_pos : Lt 𝟘 q := neq_0_then_lt_0 hqne
-            have hq_ge1 : Le 𝟙 q := lt_0n_then_le_1n_wp hq_pos
+            have hq_pos : lt₀ 𝟘 q := neq_0_then_lt_0 hqne
+            have hq_ge1 : le₀ 𝟙 q := lt_0n_then_le_1n_wp hq_pos
             -- gcd(b,0) = b
             have h_gcd_b0 : gcd b 𝟘 = b := by unfold gcd; rw [if_pos rfl]
             rw [hmod0, h_gcd_b0]
@@ -506,18 +506,18 @@ namespace Peano
             --   Or.inr: G + n'*b = m'*(a%b)  → derivar G + (n'+m'*q)*b = m'*a → Or.inl
             -- Lemas comunes a ambos casos:
             -- q*b < a
-            have h_qb_lt_a : Lt (mul q b) a := by
-              have : Lt (mul q b) (add (mul q b) (a % b)) :=
+            have h_qb_lt_a : lt₀ (mul q b) a := by
+              have : lt₀ (mul q b) (add (mul q b) (a % b)) :=
                 lt_add_of_pos_right (neq_0_then_lt_0 hmod0)
               rw [← h_div_eq] at this; exact this
-            have hle_qb : Le (mul q b) a := lt_imp_le _ _ h_qb_lt_a
+            have hle_qb : le₀ (mul q b) a := lt_imp_le _ _ h_qb_lt_a
             -- a%b = a - q*b
             have h_mod_eq : (a % b) = sub a (mul q b) := by
               have key := add_k_sub_k (a % b) (mul q b)
               rw [← h_div_eq] at key; exact key.symm
             -- Lema: para cualquier c, (c*q)*b ≤ c*a
-            -- [mul_le_mono_right : Le (n*k) (m*k), luego mul_comm]
-            have le_cq_ca : ∀ c : ℕ₀, Le (mul (mul c q) b) (mul c a) := fun c => by
+            -- [mul_le_mono_right : le₀ (n*k) (m*k), luego mul_comm]
+            have le_cq_ca : ∀ c : ℕ₀, le₀ (mul (mul c q) b) (mul c a) := fun c => by
               have h1 := mul_le_mono_right c hle_qb
               rw [mul_comm (mul q b) c, mul_comm a c] at h1
               rwa [← mul_assoc q c b] at h1
@@ -535,7 +535,7 @@ namespace Peano
             · -- Or.inl: G + (n'*a - (n'*q)*b) = m'*b
               -- Derivar: G + n'*a = (m'+n'*q)*b
               -- Prueba: G + n'*a = G + (n'*a-(n'*q)*b) + (n'*q)*b = m'*b + (n'*q)*b = (m'+n'*q)*b
-              have h_le_mul : Le (mul (mul n' q) b) (mul n' a) := le_cq_ca n'
+              have h_le_mul : le₀ (mul (mul n' q) b) (mul n' a) := le_cq_ca n'
               have h_move : add (gcd b (a % b)) (mul n' a) =
                   mul (add m' (mul n' q)) b := by
                 rw [← sub_k_add_k (mul n' a) (mul (mul n' q) b) h_le_mul,
@@ -547,7 +547,7 @@ namespace Peano
               -- ih_eq: G + n'*b = m'*a - (m'*q)*b
               -- Derivar: G + (n'+m'*q)*b = m'*a
               -- Prueba: G + (n'+m'*q)*b = (G + n'*b) + (m'*q)*b = (m'*a-(m'*q)*b) + (m'*q)*b = m'*a
-              have h_le_m : Le (mul (mul m' q) b) (mul m' a) := le_cq_ca m'
+              have h_le_m : le₀ (mul (mul m' q) b) (mul m' a) := le_cq_ca m'
               have h_move2 : add (gcd b (a % b)) (mul (add n' (mul m' q)) b) =
                   mul m' a := by
                 rw [add_mul, add_assoc, ih_eq]
@@ -590,19 +590,19 @@ namespace Peano
           rw [le_then_min_eq_right a b h_le, le_then_max_eq_left a b h_le] at h
           exact ⟨m, n, Or.inr (aux a b n m h)⟩
 
-    -- subₕₖ a b (Lt b a) = sub a b
+    -- subₕₖ a b (lt₀ b a) = sub a b
     -- Lemma 3: gcd divides the max
     theorem gcd_divides_max (a b : ℕ₀) : gcd a b ∣ max a b := by
       have h_left := gcd_divides_left a b
       have h_right := gcd_divides_right a b
-      by_cases h : Le a b
+      by_cases h : le₀ a b
       · -- If a ≤ b, then max a b = b
         have h_eq := Peano.Lattice.le_then_max_eq_right a b h
         rw [h_eq]
         exact h_right
       · -- If ¬(a ≤ b), then b < a and max a b = a
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.Lattice.lt_of_not_le h
-        have h_le : Le b a := Or.inl h_lt
+        have h_lt : Peano.StrictOrder.lt₀ b a := Peano.Lattice.lt_of_not_le h
+        have h_le : le₀ b a := Or.inl h_lt
         have h_eq := Peano.Lattice.le_then_max_eq_left a b h_le
         rw [h_eq]
         exact h_left
@@ -611,14 +611,14 @@ namespace Peano
     theorem gcd_divides_min (a b : ℕ₀) : gcd a b ∣ min a b := by
       have h_left := gcd_divides_left a b
       have h_right := gcd_divides_right a b
-      by_cases h : Le a b
+      by_cases h : le₀ a b
       · -- If a ≤ b, then min a b = a
         have h_eq := Peano.Lattice.le_then_min_eq_left a b h
         rw [h_eq]
         exact h_left
       · -- If ¬(a ≤ b), then b < a and min a b = b
-        have h_lt : Peano.StrictOrder.Lt b a := Peano.Lattice.lt_of_not_le h
-        have h_le : Le b a := Or.inl h_lt
+        have h_lt : Peano.StrictOrder.lt₀ b a := Peano.Lattice.lt_of_not_le h
+        have h_le : le₀ b a := Or.inl h_lt
         have h_eq := Peano.Lattice.le_then_min_eq_right a b h_le
         rw [h_eq]
         exact h_right
@@ -667,7 +667,7 @@ namespace Peano
         have h_div_a : b.val ∣ a.val := ⟨k, hk⟩
         have h_div_mod : b.val ∣ (a.val % b.val) :=
           divides_mod h_div_a (divides_refl b.val)
-        have h_mod_lt : Lt (a.val % b.val) b.val :=
+        have h_mod_lt : lt₀ (a.val % b.val) b.val :=
           mod_lt a.val b.val b.property
         by_cases h : (a.val % b.val) = 𝟘
         · exact h
@@ -691,7 +691,7 @@ namespace Peano
       · -- if evalua a False: gcd₁ a b = gcd₁ b ⟨a%b, hr⟩
         rw [dif_neg hr]
         -- goal: (gcd₁ b ⟨a.val % b.val, hr⟩).val = gcd a.val b.val
-        have h_r_lt_bv : Lt (a.val % b.val) bv :=
+        have h_r_lt_bv : lt₀ (a.val % b.val) bv :=
           hb ▸ mod_lt a.val b.val b.property
         rw [ih (a.val % b.val) h_r_lt_bv b ⟨a.val % b.val, hr⟩ rfl,
             ← gcd_step a.val b.val b.property]
@@ -801,7 +801,7 @@ namespace Peano
         mul (a / b) b = a := by
       have h_spec : a = add (mul (a / b) b) (a % b) := divMod_spec a b hb
       have h_div_mod : b ∣ (a % b) := divides_mod h (divides_refl b)
-      have h_mod_lt : Lt (a % b) b := mod_lt a b hb
+      have h_mod_lt : lt₀ (a % b) b := mod_lt a b hb
       have h_mod_zero : (a % b) = 𝟘 := by
         by_cases h_ne : (a % b) = 𝟘
         · exact h_ne
@@ -900,7 +900,7 @@ namespace Peano
         by_cases h_b : b = 𝟘
         · subst h_b
           simp [gcd, Ψ]
-        · -- gcd a b = gcd b (a % b),  con Lt (a % b) b
+        · -- gcd a b = gcd b (a % b),  con lt₀ (a % b) b
           have h_mod_lt := mod_lt a b h_b
           simp only [mod_def] at h_mod_lt
           rw [gcd_step a b h_b]
@@ -957,8 +957,8 @@ namespace Peano
       mod_of_lt 𝟙 𝟚 (lt_succ_self 𝟙)
 
     theorem even_or_odd (n : ℕ₀) : IsEven n ∨ IsOdd n := by
-      have h_lt : Lt (n % 𝟚) 𝟚 := mod_lt n 𝟚 (succ_neq_zero 𝟙)
-      have h_le : Le (n % 𝟚) 𝟙 := (lt_succ_iff_le (n % 𝟚) 𝟙).mp h_lt
+      have h_lt : lt₀ (n % 𝟚) 𝟚 := mod_lt n 𝟚 (succ_neq_zero 𝟙)
+      have h_le : le₀ (n % 𝟚) 𝟙 := (lt_succ_iff_le (n % 𝟚) 𝟙).mp h_lt
       rcases h_le with h_lt1 | h_eq1
       · exact Or.inl (lt_b_1_then_b_eq_0 h_lt1)
       · exact Or.inr h_eq1

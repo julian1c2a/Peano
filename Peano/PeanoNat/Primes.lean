@@ -1,5 +1,5 @@
 import Peano.PeanoNat.Arith
-import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.Combinatorics.Product
 
 /-!
@@ -34,7 +34,7 @@ namespace Peano
       open Peano.Div
       open Peano.Lattice
       open Peano.Arith
-      open Peano.Lists
+      open Peano.List
       open Peano.Product
       open Peano.FSet
 
@@ -65,19 +65,19 @@ namespace Peano
 
     theorem prime_ne_one {p : ℕ₀} (hp : Prime p) : p ≠ 𝟙 := hp.2.1
 
-    theorem one_lt_prime {p : ℕ₀} (hp : Prime p) : Lt 𝟙 p := by
+    theorem one_lt_prime {p : ℕ₀} (hp : Prime p) : lt₀ 𝟙 p := by
       rcases trichotomy 𝟙 p with h | h | h
       · exact h
       · exact absurd h.symm (prime_ne_one hp)
       · exact absurd (lt_b_1_then_b_eq_0 h) (prime_ne_zero hp)
 
-    theorem prime_ge_two {p : ℕ₀} (hp : Prime p) : Le 𝟚 p := by
+    theorem prime_ge_two {p : ℕ₀} (hp : Prime p) : le₀ 𝟚 p := by
       -- 𝟚 = σ 𝟙;  tricotomía entre σ 𝟙 y p
       rcases trichotomy (σ 𝟙) p with h_lt | h_eq | h_gt
       · exact Or.inl h_lt
       · exact Or.inr h_eq
-      · -- h_gt : Lt p (σ 𝟙);  lt_then_le_succ_wp → Le p 𝟙
-        have h_le : Le p 𝟙 := lt_then_le_succ_wp h_gt
+      · -- h_gt : lt₀ p (σ 𝟙);  lt_then_le_succ_wp → le₀ p 𝟙
+        have h_le : le₀ p 𝟙 := lt_then_le_succ_wp h_gt
         rcases h_le with h_lt1 | h_eq1
         · exact absurd (lt_b_1_then_b_eq_0 h_lt1) (prime_ne_zero hp)
         · exact absurd h_eq1 (prime_ne_one hp)
@@ -97,8 +97,8 @@ namespace Peano
         intro h0; rw [h0, zero_mul] at h; exact absurd h (Ne.symm (succ_neq_zero 𝟘))
       have hb_ne : b ≠ 𝟘 := by
         intro h0; rw [h0, mul_zero] at h; exact absurd h (Ne.symm (succ_neq_zero 𝟘))
-      have ha_le : Le a 𝟙 := divides_le ⟨b, h.symm⟩ (succ_neq_zero 𝟘)
-      have hb_le : Le b 𝟙 := divides_le ⟨a, h.symm.trans (mul_comm a b)⟩ (succ_neq_zero 𝟘)
+      have ha_le : le₀ a 𝟙 := divides_le ⟨b, h.symm⟩ (succ_neq_zero 𝟘)
+      have hb_le : le₀ b 𝟙 := divides_le ⟨a, h.symm.trans (mul_comm a b)⟩ (succ_neq_zero 𝟘)
       constructor
       · rcases ha_le with h_lt | h_eq
         · exact absurd (lt_b_1_then_b_eq_0 h_lt) ha_ne
@@ -181,7 +181,7 @@ namespace Peano
           intro ⟨k, hk⟩
           have h_spec : n = add (mul (n / p) p) (n % p) := divMod_spec n p hp0
           have h_dvd_mod : p ∣ (n % p) := divides_mod ⟨k, hk⟩ (divides_refl p)
-          have h_mod_lt : Lt (n % p) p := mod_lt n p hp0
+          have h_mod_lt : lt₀ (n % p) p := mod_lt n p hp0
           exact h (by
             by_cases h_ne : (n % p) = 𝟘
             · exact h_ne
@@ -202,7 +202,7 @@ namespace Peano
       · rw [hc_ne]; exact divides_zero a
       · rcases h_bez with h | h
         · -- Caso 1: 𝟙 = sub (mul n a) (mul m b)
-          have h_lt : Lt (mul m b) (mul n a) :=
+          have h_lt : lt₀ (mul m b) (mul n a) :=
             (sub_pos_iff_lt (mul n a) (mul m b)).mp (h ▸ Or.inr rfl)
           have h1 : a ∣ mul (mul n a) c := by
             rw [mul_assoc]; exact divides_mul_left (divides_mul_right (divides_refl a))
@@ -217,12 +217,12 @@ namespace Peano
           have h_sub_c : sub (mul (mul n a) c) (mul (mul m b) c) = c := by
             rw [h_na_c]
             exact add_k_sub_k c (mul (mul m b) c)
-          have h_lt2 : Lt (mul (mul m b) c) (mul (mul n a) c) := by
+          have h_lt2 : lt₀ (mul (mul m b) c) (mul (mul n a) c) := by
             rw [h_na_c]; exact lt_self_add_r (mul (mul m b) c) c hc_ne
           rw [← h_sub_c]
           exact divides_sub h_lt2 h1 h2
         · -- Caso 2: 𝟙 = sub (mul n b) (mul m a)  (simétrico)
-          have h_lt : Lt (mul m a) (mul n b) :=
+          have h_lt : lt₀ (mul m a) (mul n b) :=
             (sub_pos_iff_lt (mul n b) (mul m a)).mp (h ▸ Or.inr rfl)
           have h1 : a ∣ mul (mul n b) c := by
             rw [mul_assoc]; exact divides_mul_left hdvd
@@ -237,7 +237,7 @@ namespace Peano
           have h_sub_c : sub (mul (mul n b) c) (mul (mul m a) c) = c := by
             rw [h_nb_c]
             exact add_k_sub_k c (mul (mul m a) c)
-          have h_lt2 : Lt (mul (mul m a) c) (mul (mul n b) c) := by
+          have h_lt2 : lt₀ (mul (mul m a) c) (mul (mul n b) c) := by
             rw [h_nb_c]; exact lt_self_add_r (mul (mul m a) c) c hc_ne
           rw [← h_sub_c]
           exact divides_sub h_lt2 h1 h2
@@ -307,7 +307,7 @@ namespace Peano
       ∀ p, p ∈ ps → Prime p
 
     theorem product_list_pos {ps : List ℕ₀} (hps : PrimeList ps) :
-        Lt 𝟘 (product_list ps) := by
+        lt₀ 𝟘 (product_list ps) := by
       induction ps with
       | nil => exact lt_0_1
       | cons p ps ih =>
@@ -325,8 +325,8 @@ namespace Peano
       | nil =>
         simp [product_list]
         intro h
-        have h_le_p_1 : Le p 𝟙 := divides_le h (succ_neq_zero 𝟘)
-        have h_le_2_1 : Le 𝟚 𝟙 := le_trans 𝟚 p 𝟙 (prime_ge_two hp) h_le_p_1
+        have h_le_p_1 : le₀ p 𝟙 := divides_le h (succ_neq_zero 𝟘)
+        have h_le_2_1 : le₀ 𝟚 𝟙 := le_trans 𝟚 p 𝟙 (prime_ge_two hp) h_le_p_1
         rcases h_le_2_1 with h_lt | h_eq
         · exact absurd h_lt (lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙))
         · exact absurd (succ_inj_pos_wp h_eq) (succ_neq_zero 𝟘)
@@ -345,8 +345,8 @@ namespace Peano
         `fuel` controla la terminación (decrece en cada paso).
         Computable: Sí. -/
     def smallestDivisorAux (n c : ℕ₀) : ℕ₀ → ℕ₀
-      | 𝟘 => c
-      | σ f' =>
+      | .zero => c
+      | .succ f' =>
         if dividesb c n then c
         else smallestDivisorAux n (σ c) f'
 
@@ -371,7 +371,7 @@ namespace Peano
       show decide ((n % d) = 𝟘) = true
       apply decide_eq_true
       have h_div_mod : d ∣ (n % d) := divides_mod hdvd (divides_refl d)
-      have h_mod_lt : Lt (n % d) d := mod_lt n d hd
+      have h_mod_lt : lt₀ (n % d) d := mod_lt n d hd
       by_cases h_ne : (n % d) = 𝟘
       · exact h_ne
       · exact absurd h_mod_lt (le_not_lt (divides_le h_div_mod h_ne))
@@ -386,12 +386,12 @@ namespace Peano
         `d ≥ c` que divide a `n` (y `d ≤ n`),
         siempre que `c ≤ n` y `fuel` sea suficiente (`n ≤ c + fuel`).
         El cuarto componente dice que todo candidato entre `c` y `d` no divide. -/
-    private theorem smallestDivisorAux_spec (n : ℕ₀) (hn : Le 𝟚 n) :
-        ∀ (c fuel : ℕ₀), Le 𝟚 c → Le c n → Le n (add c fuel) →
+    private theorem smallestDivisorAux_spec (n : ℕ₀) (hn : le₀ 𝟚 n) :
+        ∀ (c fuel : ℕ₀), le₀ 𝟚 c → le₀ c n → le₀ n (add c fuel) →
         dividesb (smallestDivisorAux n c fuel) n = true ∧
-        Le c (smallestDivisorAux n c fuel) ∧
-        Le (smallestDivisorAux n c fuel) n ∧
-        (∀ e, Le c e → Lt e (smallestDivisorAux n c fuel) →
+        le₀ c (smallestDivisorAux n c fuel) ∧
+        le₀ (smallestDivisorAux n c fuel) n ∧
+        (∀ e, le₀ c e → lt₀ e (smallestDivisorAux n c fuel) →
           dividesb e n = false) := by
       intro c fuel hc hcn hfuel
       induction fuel generalizing c with
@@ -419,17 +419,17 @@ namespace Peano
               intro h0; rw [h0] at hn
               exact lt_zero 𝟚 (Or.resolve_right hn (succ_neq_zero 𝟙))
             exact h_div (dividesb_self hn0)
-          have hsc_le_n : Le (σ c) n :=
+          have hsc_le_n : le₀ (σ c) n :=
             lt_nm_then_le_nm_wp (lt_of_le_neq_wp hcn hc_ne_n)
-          have hsc2 : Le 𝟚 (σ c) :=
+          have hsc2 : le₀ 𝟚 (σ c) :=
             le_trans 𝟚 c (σ c) hc (Or.inl (lt_self_σ_self c))
-          have hfuel' : Le n (add (σ c) f') := by
+          have hfuel' : le₀ n (add (σ c) f') := by
             rw [succ_add]; rw [add_succ] at hfuel; exact hfuel
           obtain ⟨h1, h2, h3, h4⟩ := ih (σ c) hsc2 hsc_le_n hfuel'
           refine ⟨h1, le_trans c (σ c) _ (Or.inl (lt_self_σ_self c)) h2, h3,
                   fun e hce h_lt => ?_⟩
           -- Si e = c, sabemos dividesb c n = false.
-          -- Si Le (σ c) e, usamos h4 (IH).
+          -- Si le₀ (σ c) e, usamos h4 (IH).
           rcases hce with h_lt_ce | h_eq_ce
           · exact h4 e (lt_nm_then_le_nm_wp h_lt_ce) h_lt
           · rw [← h_eq_ce]; exact h_div_false
@@ -437,10 +437,10 @@ namespace Peano
     -- ── 8.3. Propiedades de smallestDivisor ────────────────────────
 
     /-- `smallestDivisor n` divide a `n` (para `n ≥ 2`). -/
-    theorem smallestDivisor_dvd {n : ℕ₀} (hn : Le 𝟚 n) :
+    theorem smallestDivisor_dvd {n : ℕ₀} (hn : le₀ 𝟚 n) :
         smallestDivisor n ∣ n := by
       unfold smallestDivisor
-      have hfuel : Le n (add 𝟚 n) :=
+      have hfuel : le₀ n (add 𝟚 n) :=
         le_trans n (add n 𝟚) (add 𝟚 n)
           (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
           (le_of_eq_wp (add_comm n 𝟚))
@@ -451,10 +451,10 @@ namespace Peano
       exact dividesb_true_imp_dvd h_d_ne_0 h_div
 
     /-- `smallestDivisor n ≥ 2` (para `n ≥ 2`). -/
-    theorem smallestDivisor_ge_two {n : ℕ₀} (hn : Le 𝟚 n) :
-        Le 𝟚 (smallestDivisor n) := by
+    theorem smallestDivisor_ge_two {n : ℕ₀} (hn : le₀ 𝟚 n) :
+        le₀ 𝟚 (smallestDivisor n) := by
       unfold smallestDivisor
-      have hfuel : Le n (add 𝟚 n) :=
+      have hfuel : le₀ n (add 𝟚 n) :=
         le_trans n (add n 𝟚) (add 𝟚 n)
           (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
           (le_of_eq_wp (add_comm n 𝟚))
@@ -462,10 +462,10 @@ namespace Peano
       exact h_ge
 
     /-- `smallestDivisor n ≤ n` (para `n ≥ 2`). -/
-    theorem smallestDivisor_le {n : ℕ₀} (hn : Le 𝟚 n) :
-        Le (smallestDivisor n) n := by
+    theorem smallestDivisor_le {n : ℕ₀} (hn : le₀ 𝟚 n) :
+        le₀ (smallestDivisor n) n := by
       unfold smallestDivisor
-      have hfuel : Le n (add 𝟚 n) :=
+      have hfuel : le₀ n (add 𝟚 n) :=
         le_trans n (add n 𝟚) (add 𝟚 n)
           (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
           (le_of_eq_wp (add_comm n 𝟚))
@@ -473,7 +473,7 @@ namespace Peano
       exact h_le
 
     /-- Si `smallestDivisor n = n` y `n ≥ 2`, entonces `n` es irreducible. -/
-    theorem smallestDivisor_eq_self_imp_irreducible {n : ℕ₀} (hn : Le 𝟚 n)
+    theorem smallestDivisor_eq_self_imp_irreducible {n : ℕ₀} (hn : le₀ 𝟚 n)
         (h_sd : smallestDivisor n = n) : Irreducible n := by
       have hn0 : n ≠ 𝟘 := by
         rintro rfl; exact lt_zero 𝟚 (Or.resolve_right hn (succ_neq_zero 𝟙))
@@ -483,16 +483,16 @@ namespace Peano
         · exact lt_asymm 𝟙 (σ 𝟙) (lt_succ_self 𝟙) h
         · exact absurd (succ_inj_pos_wp h) (succ_neq_zero 𝟘)
       -- Extraer la propiedad de minimalidad de smallestDivisor
-      have hfuel : Le n (add 𝟚 n) :=
+      have hfuel : le₀ n (add 𝟚 n) :=
         le_trans n (add n 𝟚) (add 𝟚 n)
           (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
           (le_of_eq_wp (add_comm n 𝟚))
       obtain ⟨_, _, _, h_min⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
-      -- h_min : ∀ e, Le 𝟚 e → Lt e (smallestDivisorAux n 𝟚 n) → dividesb e n = false
+      -- h_min : ∀ e, le₀ 𝟚 e → lt₀ e (smallestDivisorAux n 𝟚 n) → dividesb e n = false
       -- Reescribir usando h_sd:
       have h_sd_raw : smallestDivisorAux n 𝟚 n = n := h_sd
       rw [h_sd_raw] at h_min
-      -- h_min : ∀ e, Le 𝟚 e → Lt e n → dividesb e n = false
+      -- h_min : ∀ e, le₀ 𝟚 e → lt₀ e n → dividesb e n = false
       refine ⟨hn1, fun a b hab => ?_⟩
       by_cases ha1 : a = 𝟙
       · exact Or.inl ha1
@@ -503,15 +503,15 @@ namespace Peano
             intro h0; rw [h0, zero_mul] at hab; exact hn0 hab.symm
           have hb0 : b ≠ 𝟘 := by
             intro h0; rw [h0, mul_zero] at hab; exact hn0 hab.symm
-          have ha2 : Le 𝟚 a := by
+          have ha2 : le₀ 𝟚 a := by
             rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 ha0) with h | h
             · exact lt_then_le_succ_wp h
             · exact absurd h.symm ha1
-          have hb2 : Le 𝟚 b := by
+          have hb2 : le₀ 𝟚 b := by
             rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h | h
             · exact lt_then_le_succ_wp h
             · exact absurd h.symm hb1
-          have ha_lt : Lt a n := by
+          have ha_lt : lt₀ a n := by
             rw [← hab]
             exact lt_of_lt_of_le
               (by have := mul_lt_right a 𝟚 ha0 (lt_succ_self 𝟙)
@@ -529,8 +529,8 @@ namespace Peano
         `fuel` controla la terminación.
         Computable: Sí. Dependencias: `smallestDivisor`, `FactFSet.addFactor`. -/
     def factorizeAux : ℕ₀ → ℕ₀ → FactFSet → FactFSet
-      | _, 𝟘, acc => acc
-      | n, σ fuel', acc =>
+      | _, .zero, acc => acc
+      | n, .succ fuel', acc =>
         let p := smallestDivisor n
         if hp0 : p = 𝟘 then acc
         else
@@ -539,7 +539,7 @@ namespace Peano
           else
             let p₂ : ℕ₂ := ⟨p₁, hp1⟩
             let n' := n / p
-            if Le 𝟚 n' then
+            if le₀ 𝟚 n' then
               factorizeAux n' fuel' (acc.addFactor p₂)
             else
               acc.addFactor p₂
@@ -572,7 +572,7 @@ namespace Peano
         have h : ¬ p ∣ a := by
           intro ⟨k, hk⟩
           have h_dvd_mod : p ∣ (a % p) := divides_mod ⟨k, hk⟩ (divides_refl p)
-          have h_mod_lt : Lt (a % p) p := mod_lt a p hp0
+          have h_mod_lt : lt₀ (a % p) p := mod_lt a p hp0
           exact h_mod (by
             by_cases h_ne : (a % p) = 𝟘
             · exact h_ne
@@ -601,7 +601,7 @@ namespace Peano
           exact absurd (this ▸ gcd_dvd_right p a) h
 
     /-- Todo n ≥ 2 tiene un divisor primo. -/
-    theorem exists_prime_divisor (n : ℕ₀) (hn : Le 𝟚 n) :
+    theorem exists_prime_divisor (n : ℕ₀) (hn : le₀ 𝟚 n) :
         ∃ p, Prime p ∧ p ∣ n := by
       induction n using well_founded_lt.induction
       rename_i n ih
@@ -616,9 +616,9 @@ namespace Peano
           divides_refl n⟩
       · -- smallestDivisor n ≠ n → usar a := smallestDivisor n como divisor propio
         have ha_dvd : smallestDivisor n ∣ n := smallestDivisor_dvd hn
-        have ha2 : Le 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
-        have ha_le : Le (smallestDivisor n) n := smallestDivisor_le hn
-        have ha_lt_n : Lt (smallestDivisor n) n :=
+        have ha2 : le₀ 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
+        have ha_le : le₀ (smallestDivisor n) n := smallestDivisor_le hn
+        have ha_lt_n : lt₀ (smallestDivisor n) n :=
           lt_of_le_neq_wp ha_le h_eq
         rcases ih (smallestDivisor n) ha_lt_n ha2 with ⟨p, hp, h_pa⟩
         exact ⟨p, hp, divides_trans h_pa ha_dvd⟩
@@ -627,7 +627,7 @@ namespace Peano
     -- § 7. TFA — Existencia de factorización prima
     -- ══════════════════════════════════════════════════════════════════
 
-    theorem exists_prime_factorization (n : ℕ₀) (hn : Le 𝟚 n) :
+    theorem exists_prime_factorization (n : ℕ₀) (hn : le₀ 𝟚 n) :
         ∃ ps : List ℕ₀, PrimeList ps ∧ product_list ps = n := by
       induction n using well_founded_lt.induction
       rename_i n ih
@@ -649,7 +649,7 @@ namespace Peano
           · exact lt_zero 𝟚 h
           · exact absurd h (succ_neq_zero 𝟙)
         have ha_dvd : smallestDivisor n ∣ n := smallestDivisor_dvd hn
-        have ha2 : Le 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
+        have ha2 : le₀ 𝟚 (smallestDivisor n) := smallestDivisor_ge_two hn
         have ha0 : smallestDivisor n ≠ 𝟘 := by
           intro h0; rw [h0] at ha2
           exact lt_zero 𝟚 (Or.resolve_right ha2 (succ_neq_zero 𝟙))
@@ -660,13 +660,13 @@ namespace Peano
           intro h0; rw [h0, zero_mul] at h_mul; exact hn0 h_mul.symm
         have hb1 : b ≠ 𝟙 := by
           intro h1; rw [h1, one_mul] at h_mul; exact h_eq h_mul
-        have hb2 : Le 𝟚 b := by
+        have hb2 : le₀ 𝟚 b := by
           rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h_lt | h_eq'
           · exact lt_then_le_succ_wp h_lt
           · exact absurd h_eq'.symm hb1
-        have ha_lt_n : Lt (smallestDivisor n) n :=
+        have ha_lt_n : lt₀ (smallestDivisor n) n :=
           lt_of_le_neq_wp (smallestDivisor_le hn) h_eq
-        have hb_lt_n : Lt b n := by
+        have hb_lt_n : lt₀ b n := by
           rw [← h_mul, mul_comm]
           exact lt_of_lt_of_le
             (by have := mul_lt_right b 𝟚 hb0 (lt_succ_self 𝟙)
@@ -867,7 +867,7 @@ namespace Peano
     /-- Si `p` es primo, `smallestDivisor p = p`. -/
     theorem prime_imp_smallestDivisor_eq_self {p : ℕ₀} (hp : Prime p) :
         smallestDivisor p = p := by
-      have h2 : Le 𝟚 p := prime_ge_two hp
+      have h2 : le₀ 𝟚 p := prime_ge_two hp
       have h_dvd := smallestDivisor_dvd h2
       have h_ge2 := smallestDivisor_ge_two h2
       rcases prime_divisors hp h_dvd with h1 | heq
@@ -879,7 +879,7 @@ namespace Peano
 
     /-- Test booleano de primalidad: computable. -/
     def isPrimeb (n : ℕ₀) : Bool :=
-      ble 𝟚 n && decide (smallestDivisor n = n)
+      ble₀ 𝟚 n && decide (smallestDivisor n = n)
 
     /-- `isPrimeb n = true ↔ Prime n`. -/
     theorem isPrimeb_iff {n : ℕ₀} :
@@ -888,7 +888,7 @@ namespace Peano
       · intro h
         simp [isPrimeb, Bool.and_eq_true] at h
         obtain ⟨h_ble, h_sd⟩ := h
-        have h2 : Le 𝟚 n := (ble_iff_Le 𝟚 n).mp h_ble
+        have h2 : le₀ 𝟚 n := (ble_iff_Le 𝟚 n).mp h_ble
         have hirr := smallestDivisor_eq_self_imp_irreducible h2 h_sd
         have hn0 : n ≠ 𝟘 := by
           rintro rfl; exact lt_zero 𝟚 (Or.resolve_right h2 (succ_neq_zero 𝟙))

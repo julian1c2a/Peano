@@ -96,7 +96,7 @@ namespace Peano
       -- Meta: mul (mul (add C(n,k) C(n,σk)) (mul (pow a k) a)) (pow b (sub n k))
       --     = add (mul (mul (mul C(n,k) (pow a k)) (pow b (sub n k))) a)
       --           (mul (mul (mul C(n,σk) (mul (pow a k) a)) (pow b (sub n (σk)))) b)
-      by_cases h : Le (σ k) n
+      by_cases h : le₀ (σ k) n
       · -- Caso σk ≤ n: sub n k = σ(sub n (σk)), b^(n-k) = b^(n-k-1) · b
         have h_sub_eq : sub n k = σ (sub n (σ k)) :=
           (sub_succ_succ_eq n k).trans (sub_succ n (σ k) h)
@@ -110,7 +110,7 @@ namespace Peano
         · -- C2·(A·a)·(B·b) = (C2·(A·a))·B·b
           rw [← mul_assoc (pow b (sub n (σ k))) (mul C(n, σ k) (mul (pow a k) a)) b]
       · -- Caso ¬(σk ≤ n): C(n, σk) = 0, todo el segundo sumando desaparece
-        have h_lt : Lt n (σ k) := nle_then_gt_wp h
+        have h_lt : lt₀ n (σ k) := nle_then_gt_wp h
         rw [binom_eq_zero_of_gt h_lt, add_zero, zero_mul, zero_mul, zero_mul, add_zero]
         -- Meta: C(n,k)·(A·a)·B_k = (C(n,k)·A)·B_k·a
         rw [← mul_assoc (pow a k) C(n, k) a,
@@ -183,12 +183,12 @@ namespace Peano
     /- Lema clave: si X < Y entonces σX < Y + Y.
        Prueba: σX < σY ≤ Y+Y, pues Y > 0 implica σY ≤ Y+Y. -/
     private theorem lt_add_double_of_lt_of_pos {X Y : ℕ₀}
-        (h_lt : Lt X Y) (h_pos : Lt 𝟘 Y) :
-        Lt (σ X) (add Y Y) := by
-      have h_sX_lt_sY : Lt (σ X) (σ Y) := (succ_lt_succ_iff X Y).mpr h_lt
+        (h_lt : lt₀ X Y) (h_pos : lt₀ 𝟘 Y) :
+        lt₀ (σ X) (add Y Y) := by
+      have h_sX_lt_sY : lt₀ (σ X) (σ Y) := (succ_lt_succ_iff X Y).mpr h_lt
       have h_Y_ne_0 : Y ≠ 𝟘 := by
         intro h; exact absurd (h ▸ h_pos) (lt_irrefl 𝟘)
-      have h_lt_Y_addYY : Lt Y (add Y Y) := lt_self_add_r Y Y h_Y_ne_0
+      have h_lt_Y_addYY : lt₀ Y (add Y Y) := lt_self_add_r Y Y h_Y_ne_0
       exact lt_of_lt_of_le h_sX_lt_sY (lt_nm_then_le_nm_wp h_lt_Y_addYY)
 
     /- Teorema de crecimiento: ∃ n m, ∀ k ≥ 1, (n+k)^m < n^(m+k).
@@ -199,28 +199,28 @@ namespace Peano
          Paso k → k+1: 2+(k+1) = σ(2+k) < 2·2^k + 2·2^k = 2·2^(k+1)
            pues 2+k < 2·2^k (HI) y 2·2^k > 0. -/
     theorem exists_nm_growth :
-        ∃ n m : ℕ₀, ∀ k : ℕ₀, Le 𝟙 k →
-          Lt (pow (add n k) m) (pow n (add m k)) := by
+        ∃ n m : ℕ₀, ∀ k : ℕ₀, le₀ 𝟙 k →
+          lt₀ (pow (add n k) m) (pow n (add m k)) := by
       refine ⟨𝟚, 𝟙, fun k hk => ?_⟩  -- n = 2, m = 1
       rw [pow_add_split, pow_one, pow_one]
-      -- Meta: Lt (add 𝟚 k) (mul 𝟚 (pow 𝟚 k))
+      -- Meta: lt₀ (add 𝟚 k) (mul 𝟚 (pow 𝟚 k))
       induction k with
       | zero => exact absurd hk (not_succ_le_zero 𝟘)
       | succ k' ih =>
         cases k' with
         | zero =>
-          -- k = 1: Lt 3 (mul 𝟚 𝟚) = Lt 3 4
+          -- k = 1: lt₀ 3 (mul 𝟚 𝟚) = lt₀ 3 4
           rw [pow_succ, pow_zero, one_mul, mul_two]
           exact lt_succ_self (σ 𝟚)
         | succ k'' =>
-          -- k = σ(σ k''), HI: Le 𝟙 (σ k'') → Lt (add 𝟚 (σ k'')) (mul 𝟚 (pow 𝟚 (σ k'')))
-          have h_le_1_sk : Le 𝟙 (σ k'') := succ_le_succ_if_wp (zero_le k'')
+          -- k = σ(σ k''), HI: le₀ 𝟙 (σ k'') → lt₀ (add 𝟚 (σ k'')) (mul 𝟚 (pow 𝟚 (σ k'')))
+          have h_le_1_sk : le₀ 𝟙 (σ k'') := succ_le_succ_if_wp (zero_le k'')
           have ih_k := ih h_le_1_sk
           rw [add_succ, pow_succ, mul_two (pow 𝟚 (σ k'')), mul_add]
-          -- Meta: Lt (σ(add 𝟚 (σ k''))) (add (mul 𝟚 (pow 𝟚 (σ k''))) (mul 𝟚 (pow 𝟚 (σ k''))))
-          have h_pow_pos : Lt 𝟘 (pow 𝟚 (σ k'')) :=
+          -- Meta: lt₀ (σ(add 𝟚 (σ k''))) (add (mul 𝟚 (pow 𝟚 (σ k''))) (mul 𝟚 (pow 𝟚 (σ k''))))
+          have h_pow_pos : lt₀ 𝟘 (pow 𝟚 (σ k'')) :=
             pow_gt (lt_trans 𝟘 𝟙 𝟚 (lt_succ_self 𝟘) (lt_succ_self 𝟙)) (zero_lt_succ k'')
-          have h_Y_pos : Lt 𝟘 (mul 𝟚 (pow 𝟚 (σ k''))) :=
+          have h_Y_pos : lt₀ 𝟘 (mul 𝟚 (pow 𝟚 (σ k''))) :=
             mul_pos (lt_trans 𝟘 𝟙 𝟚 (lt_succ_self 𝟘) (lt_succ_self 𝟙)) h_pow_pos
           exact lt_add_double_of_lt_of_pos ih_k h_Y_pos
 

@@ -6,7 +6,7 @@ License: MIT
 
 -- Peano/PeanoNat/ListsAndSets/FSetFSet.lean
 -- Conjuntos finitos de tipos "peso 3" (listas).
--- Alias y operaciones básicas para FSet de los tipos definidos en ListLists.lean.
+-- Alias y operaciones básicas para FSet de los tipos definidos en ListList.lean.
 --
 -- § 16. FSet de listas de naturales  (Nat0ListFSet, Nat1ListFSet, Nat2ListFSet)
 -- § 17. FSet de listas de tuplas     (NatsTupleListFSet, GTupleListFSet, HTupleListFSet)
@@ -14,10 +14,10 @@ License: MIT
 --
 -- Nota: `LT (List α)` viene de la stdlib Lean 4 (`List.Lex (· < ·)`).
 --       `DecidableEq (List α)` también viene de la stdlib cuando `DecidableEq α`.
---       `LT PeanoVal` y `DecidableEq PeanoVal` vienen de ListLists.lean y Lists.lean.
+--       `LT PeanoVal` y `DecidableEq PeanoVal` vienen de ListList.lean y List.lean.
 
 import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.ListsAndSets.ListLists
+import Peano.PeanoNat.ListsAndSets.ListList
 
 namespace Peano
   open Peano
@@ -40,7 +40,7 @@ namespace Peano
     abbrev Nat2ListFSet := FSet (List ℕ₂)
 
     /-- Conjunto finito de listas de `Nats`.
-        Requiere `instLTNats` de ListLists.lean. -/
+        Requiere `instLTNats` de ListList.lean. -/
     abbrev NatsListFSet := FSet (List Nats)
 
     namespace Nat0ListFSet
@@ -133,7 +133,7 @@ namespace Peano
 
     /-- Conjunto finito de valores `PeanoVal`.
         Ordenado por `instLTPeanoVal` (codificación canónica en `List Nat`).
-        La igualdad usa `instDecidableEqPeanoVal` de Lists.lean. -/
+        La igualdad usa `instDecidableEqPeanoVal` de List.lean. -/
     abbrev PeanoValFSet := FSet PeanoVal
 
     namespace PeanoValFSet

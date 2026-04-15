@@ -41,16 +41,16 @@ namespace Peano
     -- § 1. Helpers privados
     -- ══════════════════════════════════════════════════════════════════
 
-    private theorem one_le_of_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) : Le 𝟙 n := by
+    private theorem one_le_of_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) : le₀ 𝟙 n := by
       cases n with
       | zero => exact absurd rfl h
       | succ n' =>
         cases n' with
         | zero => exact Or.inr rfl
-        | succ _ => exact Or.inl (by unfold Lt; trivial)
+        | succ _ => exact Or.inl (by unfold lt₀; trivial)
 
     private theorem succ_sub_one {n : ℕ₀} (h : n ≠ 𝟘) : σ (sub n 𝟙) = n := by
-      have h_le : Le 𝟙 n := one_le_of_ne_zero h
+      have h_le : le₀ 𝟙 n := one_le_of_ne_zero h
       have h_eq := sub_k_add_k n 𝟙 h_le
       rw [add_one] at h_eq
       exact h_eq
@@ -64,8 +64,8 @@ namespace Peano
 
     /-- Número triangular: `tri n = 0 + 1 + 2 + … + n = n(n+1)/2`. -/
     def tri : ℕ₀ → ℕ₀
-      | 𝟘 => 𝟘
-      | σ n => add (tri n) (σ n)
+      | .zero => 𝟘
+      | .succ n => add (tri n) (σ n)
 
     @[simp] theorem tri_zero : tri 𝟘 = 𝟘 := rfl
 
@@ -91,7 +91,7 @@ namespace Peano
     def pairAux (n : ℕ₀) : ℕ₀ × ℕ₀ :=
       if h_n : n = 𝟘 then (𝟘, 𝟘)
       else
-        have _h_term : Lt (sub n 𝟙) n :=
+        have _h_term : lt₀ (sub n 𝟙) n :=
           sub_lt_self n 𝟙 (one_le_of_ne_zero h_n) (succ_neq_zero 𝟘)
         let p := pairAux (sub n 𝟙)
         if p.2 = p.1 then (σ p.1, 𝟘)
@@ -137,7 +137,7 @@ namespace Peano
         else
           rw [dif_neg h_n]
           simp only
-          have h_term : Lt (sub n 𝟙) n :=
+          have h_term : lt₀ (sub n 𝟙) n :=
             sub_lt_self n 𝟙 (one_le_of_ne_zero h_n) (succ_neq_zero 𝟘)
           have h_ih := ih (sub n 𝟙) h_term
           if h_eq : (pairAux (sub n 𝟙)).2 = (pairAux (sub n 𝟙)).1 then
@@ -155,7 +155,7 @@ namespace Peano
 
     /-- Cota: la posición `r` no supera al índice diagonal `w`. -/
     theorem pairAux_bound (n : ℕ₀) :
-        Le (pairAux n).2 (pairAux n).1 := by
+        le₀ (pairAux n).2 (pairAux n).1 := by
       induction n using well_founded_lt.induction with
       | h n ih =>
         unfold pairAux
@@ -166,7 +166,7 @@ namespace Peano
         else
           rw [dif_neg h_n]
           simp only
-          have h_term : Lt (sub n 𝟙) n :=
+          have h_term : lt₀ (sub n 𝟙) n :=
             sub_lt_self n 𝟙 (one_le_of_ne_zero h_n) (succ_neq_zero 𝟘)
           have h_ih := ih (sub n 𝟙) h_term
           if h_eq : (pairAux (sub n 𝟙)).2 = (pairAux (sub n 𝟙)).1 then
@@ -176,7 +176,7 @@ namespace Peano
           else
             rw [if_neg h_eq]
             simp only []
-            have h_lt : Lt (pairAux (sub n 𝟙)).2 (pairAux (sub n 𝟙)).1 :=
+            have h_lt : lt₀ (pairAux (sub n 𝟙)).2 (pairAux (sub n 𝟙)).1 :=
               lt_of_le_of_ne _ _ h_ih h_eq
             exact (le_iff_lt_succ _ _).mpr
               ((succ_lt_succ_iff _ _).mpr h_lt)
@@ -199,7 +199,7 @@ namespace Peano
 
     /-- Lema clave: `pairAux` descompone correctamente `tri w + a` cuando `a ≤ w`. -/
     private theorem pairAux_of_tri_add (w : ℕ₀) :
-        ∀ (a : ℕ₀), Le a w → pairAux (add (tri w) a) = (w, a) := by
+        ∀ (a : ℕ₀), le₀ a w → pairAux (add (tri w) a) = (w, a) := by
       induction w with
       | zero =>
         intro a h_le
@@ -224,7 +224,7 @@ namespace Peano
           rw [pairAux.eq_def, dif_neg (succ_neq_zero _)]
           simp only []
           rw [sub_succ_one (add (tri (σ w')) a')]
-          have h_le_a' : Le a' (σ w') :=
+          have h_le_a' : le₀ a' (σ w') :=
             le_trans a' (σ a') (σ w') (le_succ_self a') h_le
           rw [ih_a h_le_a']
           simp only []
@@ -239,7 +239,7 @@ namespace Peano
         cantorUnpair (cantorPair a b) = (a, b) := by
       unfold cantorUnpair cantorPair
       simp only []
-      have h_le : Le a (add a b) := le_self_add a b
+      have h_le : le₀ a (add a b) := le_self_add a b
       rw [pairAux_of_tri_add (add a b) a h_le]
       simp only []
       congr 1

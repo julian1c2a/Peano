@@ -36,19 +36,19 @@ namespace Peano
     ## § 1. Auxiliary lemmas
     !-/
 
-    private theorem one_le_of_ne_zero' {n : ℕ₀} (h : n ≠ 𝟘) : Le 𝟙 n := by
+    private theorem one_le_of_ne_zero' {n : ℕ₀} (h : n ≠ 𝟘) : le₀ 𝟙 n := by
       cases n with
       | zero => exact absurd rfl h
       | succ n' =>
         cases n' with
         | zero => exact Or.inr rfl
-        | succ _ => exact Or.inl (by unfold Lt; trivial)
+        | succ _ => exact Or.inl (by unfold lt₀; trivial)
 
     private theorem succ_sub_one (n : ℕ₀) (h : n ≠ 𝟘) : σ (sub n 𝟙) = n := by
       cases n with
       | zero => exact absurd rfl h
       | succ n' =>
-        have h_le : Le 𝟙 (σ n') := one_le_of_ne_zero' (succ_neq_zero n')
+        have h_le : le₀ 𝟙 (σ n') := one_le_of_ne_zero' (succ_neq_zero n')
         have h_eq := sub_k_add_k (σ n') 𝟙 h_le
         rw [← add_one]
         exact h_eq
@@ -72,7 +72,7 @@ namespace Peano
     def sqrtMod (n : ℕ₀) : ℕ₀ × ℕ₀ :=
       if h_n : n = 𝟘 then (𝟘, 𝟘)
       else
-        have _h_term : Lt (sub n 𝟙) n :=
+        have _h_term : lt₀ (sub n 𝟙) n :=
           sub_lt_self n 𝟙 (one_le_of_ne_zero' h_n) (succ_neq_zero 𝟘)
         let p : ℕ₀ × ℕ₀ := sqrtMod (sub n 𝟙)
         if σ p.2 = add (add p.1 p.1) 𝟙 then
@@ -169,7 +169,7 @@ namespace Peano
       else
         rw [dif_neg h_n]
         simp only
-        have h_term : Lt (sub n 𝟙) n :=
+        have h_term : lt₀ (sub n 𝟙) n :=
           sub_lt_self n 𝟙 (one_le_of_ne_zero' h_n) (succ_neq_zero 𝟘)
         have h_ih := ih (sub n 𝟙) h_term
         if h_eq : σ (sqrtMod (sub n 𝟙)).2 = add (add (sqrtMod (sub n 𝟙)).1 (sqrtMod (sub n 𝟙)).1) 𝟙 then
@@ -193,7 +193,7 @@ namespace Peano
     -/
     theorem sqrtRem_lt
       (n : ℕ₀) :
-        Lt (sqrtMod n).2 (add (add (sqrtMod n).1 (sqrtMod n).1) 𝟙)
+        lt₀ (sqrtMod n).2 (add (add (sqrtMod n).1 (sqrtMod n).1) 𝟙)
           := by
       induction n using well_founded_lt.induction
       rename_i n ih
@@ -206,7 +206,7 @@ namespace Peano
       else
         rw [dif_neg h_n]
         simp only
-        have h_term : Lt (sub n 𝟙) n :=
+        have h_term : lt₀ (sub n 𝟙) n :=
           sub_lt_self n 𝟙 (one_le_of_ne_zero' h_n) (succ_neq_zero 𝟘)
         have h_ih_rem := ih (sub n 𝟙) h_term
         if h_eq : σ (sqrtMod (sub n 𝟙)).2 = add (add (sqrtMod (sub n 𝟙)).1 (sqrtMod (sub n 𝟙)).1) 𝟙 then
@@ -228,11 +228,11 @@ namespace Peano
     -/
     theorem sqrt_upper_bound
       (n : ℕ₀) :
-        Lt n (pow (σ (sqrtMod n).1) 𝟚)
+        lt₀ n (pow (σ (sqrtMod n).1) 𝟚)
           := by
       have h_spec := sqrtMod_spec n
       have h_rem := sqrtRem_lt n
-      have h_lt_add : Lt (add (pow (sqrtMod n).1 𝟚) (sqrtMod n).2)
+      have h_lt_add : lt₀ (add (pow (sqrtMod n).1 𝟚) (sqrtMod n).2)
                          (add (pow (sqrtMod n).1 𝟚) (add (add (sqrtMod n).1 (sqrtMod n).1) 𝟙)) :=
         (add_lt_add_left_iff _ _ _).mpr h_rem
       rw [← succ_sq] at h_lt_add
@@ -265,7 +265,7 @@ namespace Peano
       rw [sqrtRem_one, if_pos rfl, sqrt_one]
 
     /-- `n ≤ ⌈√n⌉²` — ceiling square root squares to at least `n`. -/
-    theorem le_csqrt_sq (n : ℕ₀) : Le n (pow (csqrt n) 𝟚) := by
+    theorem le_csqrt_sq (n : ℕ₀) : le₀ n (pow (csqrt n) 𝟚) := by
       by_cases h_rem : sqrtRem n = 𝟘
       · -- Perfect square: csqrt = sqrt, n = (sqrt n)²
         have h_csqrt : csqrt n = sqrt n := by unfold csqrt; rw [if_pos h_rem]
@@ -284,7 +284,7 @@ namespace Peano
 
     /-- `⌈√n⌉ ≠ 0 → (⌈√n⌉ − 1)² < n` — ceiling is tight from below. -/
     theorem csqrt_lower (n : ℕ₀) (h : csqrt n ≠ 𝟘) :
-        Lt (pow (sub (csqrt n) 𝟙) 𝟚) n := by
+        lt₀ (pow (sub (csqrt n) 𝟙) 𝟚) n := by
       by_cases h_rem : sqrtRem n = 𝟘
       · -- csqrt = sqrt n ≠ 𝟘, n = (sqrt n)²
         have h_csqrt : csqrt n = sqrt n := by unfold csqrt; rw [if_pos h_rem]
@@ -294,7 +294,7 @@ namespace Peano
         have h_spec := sqrtMod_spec n
         rw [h_rem, add_zero] at h_spec
         have h_succ_pred := succ_sub_one (sqrtMod n).1 h
-        have h_pos : Lt 𝟘 (add (add (sub (sqrtMod n).1 𝟙) (sub (sqrtMod n).1 𝟙)) 𝟙) := by
+        have h_pos : lt₀ 𝟘 (add (add (sub (sqrtMod n).1 𝟙) (sub (sqrtMod n).1 𝟙)) 𝟙) := by
           rw [add_one]; exact neq_0_then_lt_0 (succ_neq_zero _)
         have h_lt :=
           (add_lt_add_left_iff (pow (sub (sqrtMod n).1 𝟙) 𝟚) 𝟘

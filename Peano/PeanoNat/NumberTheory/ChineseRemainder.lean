@@ -46,8 +46,8 @@ namespace Peano
     ## § 1. Helper lemmas
     !-/
 
-    /-- If `c ≠ 𝟘` then `Le 𝟙 c`. -/
-    private theorem le_one_of_ne_zero {c : ℕ₀} (hc : c ≠ 𝟘) : Le 𝟙 c := by
+    /-- If `c ≠ 𝟘` then `le₀ 𝟙 c`. -/
+    private theorem le_one_of_ne_zero {c : ℕ₀} (hc : c ≠ 𝟘) : le₀ 𝟙 c := by
       cases c with
       | zero => exact absurd rfl hc
       | succ c' => exact (succ_le_succ_iff 𝟘 c').mpr (zero_le c')
@@ -55,8 +55,8 @@ namespace Peano
     /-- If `sub a b = c` and `c ≠ 𝟘`, then `a = add b c`. -/
     private theorem sub_eq_imp_add {a b c : ℕ₀}
         (h : sub a b = c) (hc : c ≠ 𝟘) : a = add b c := by
-      have h_lt : Lt b a := (sub_pos_iff_lt a b).mp (h ▸ le_one_of_ne_zero hc)
-      have h_le : Le b a := lt_imp_le_wp h_lt
+      have h_lt : lt₀ b a := (sub_pos_iff_lt a b).mp (h ▸ le_one_of_ne_zero hc)
+      have h_le : le₀ b a := lt_imp_le_wp h_lt
       have h2 := sub_k_add_k a b h_le
       rw [h] at h2
       rw [add_comm] at h2
@@ -127,7 +127,7 @@ namespace Peano
         show mod (add a (mul (mul c s) m)) n = mod b n
         rw [add_mod, mod_mul_inv h_inv]
         -- Goal: mod (add (mod a n) (mod c n)) n = mod b n
-        have h_le : Le (mod a n) (add b n) :=
+        have h_le : le₀ (mod a n) (add b n) :=
           le_trans (mod a n) n (add b n)
             (lt_imp_le_wp (mod_lt a n hn))
             (add_comm b n ▸ le_self_add n b)

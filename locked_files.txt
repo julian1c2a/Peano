@@ -18,7 +18,7 @@ Peano/PeanoNat/Div.lean
 Peano/PeanoNat/Arith.lean
 Peano/PeanoNat/Primes.lean
 Peano/PeanoNat/Decidable.lean
-Peano/PeanoNat/Lists.lean
+Peano/PeanoNat/List.lean
 Peano/PeanoNat/FSet.lean
 Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Isomorph.lean

@@ -1131,6 +1131,7 @@ unsolved goals (line 349):
 ```
 
 **Issue**: Two sub-goals incomplete:
+
 1. Show `B.elems ⊆ f.Im.elems` from equal lengths + `f.Im.elems ⊆ B.elems` (pigeonhole/list inclusion).
 2. Extract witness `a` from `b ∈ f.Im.elems`.
 

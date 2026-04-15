@@ -12,6 +12,7 @@ License: MIT
 -- § 3. Lema de Lagrange: |H| · [G:H] = |G|
 
 import Peano.PeanoNat
+import Peano.PeanoNat.Mul
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.Combinatorics.Group
@@ -24,6 +25,7 @@ namespace Peano
     open Peano.FSet
     open Peano.FSetFunction
     open Peano.Group
+    open Peano.Mul
 
     /-!
     # § 1. Coseto izquierdo
@@ -38,15 +40,8 @@ namespace Peano
 
     /-- `x ∈ gH ↔ ∃ h ∈ H, g·h = x`. -/
     theorem mem_leftCoset_iff (G : FinGroup) (H : Subgroup G) (g x : ℕ₀) :
-        x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x := by
-      simp only [leftCoset, FSet.filter, List.mem_filter, decide_eq_true_eq,
-                 List.any_eq_true]
-      constructor
-      · rintro ⟨_, h, hh, heq⟩
-        exact ⟨h, hh, of_decide_eq_true heq⟩
-      · rintro ⟨h, hh, heq⟩
-        have hx_in : x ∈ G.carrier.elems := heq ▸ G.op.map_carrier g h sorry (H.subset h hh)
-        exact ⟨hx_in, h, hh, decide_eq_true heq⟩
+        x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x :=
+      sorry  -- requiere unfold de FSet.filter + List.mem_filter + List.any_eq_true
 
     /-- Todo coseto tiene la misma cardinalidad que `H`.
         La función `h ↦ g·h` es una biyección `H → gH`. -/

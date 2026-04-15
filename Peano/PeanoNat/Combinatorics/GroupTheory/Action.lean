@@ -14,6 +14,7 @@ License: MIT
 -- § 5. Ecuación de clases
 
 import Peano.PeanoNat
+import Peano.PeanoNat.Mul
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.Combinatorics.Group
@@ -26,6 +27,7 @@ namespace Peano
     open Peano.FSet
     open Peano.FSetFunction
     open Peano.Group
+    open Peano.Mul
 
     /-!
     # § 1. GroupAction — acción (izquierda) de un FinGroup sobre un ℕ₀FSet

@@ -35,27 +35,27 @@ namespace Peano
       (n m : ℕ₀) :
         Lt n m → Lt n (σ m)
           := by
-                intro h_n_lt_m
-                induction n generalizing m with
-                | zero =>
-                  cases m with
-                  | zero =>
-                      unfold Lt at h_n_lt_m
-                      exact False.elim h_n_lt_m
-                  | succ m' =>
-                      unfold Lt
-                      trivial
-                | succ n' ih_n' =>
-                  cases m with
-                  | zero =>
-                      unfold Lt at h_n_lt_m
-                      exact False.elim h_n_lt_m
-                  | succ m' =>
-                      unfold Lt at h_n_lt_m
-                      exact ih_n' m' h_n_lt_m
+      intro h_n_lt_m
+      induction n generalizing m with
+      | ℕ₀.zero =>
+        cases m with
+        | ℕ₀.zero =>
+            unfold Lt at h_n_lt_m
+            exact False.elim h_n_lt_m
+        | σ m' =>
+            unfold Lt
+            trivial
+      | σ n' ih_n' =>
+        cases m with
+        | ℕ₀.zero =>
+            unfold Lt at h_n_lt_m
+            exact False.elim h_n_lt_m
+        | σ m' =>
+            unfold Lt at h_n_lt_m
+            exact ih_n' m' h_n_lt_m
 
     theorem lt_then_lt_succ_wp {n m : ℕ₀}
-      (h_lt : Lt n m):
+      (h_lt : Lt n m) :
         Lt n (σ m)
           := by
         exact lt_then_lt_succ n m h_lt
@@ -83,22 +83,22 @@ namespace Peano
       (n m : ℕ₀) :
         Lt n m ↔ Lt (σ n) (σ m)
           := by
-                induction n generalizing m with
-                | zero => -- n = 𝟘
-                  cases m with
-                  | zero =>
-                    simp [Lt]
-                  | succ m' =>
-                    unfold Lt
-                    simp [Lt]
-                | succ n' ih_n' => -- n = σ n'
-                  cases m with
-                  | zero =>
-                    unfold Lt
-                    simp [Lt]
-                  | succ m' =>
-                    unfold Lt
-                    simp [Lt]
+      induction n generalizing m with
+      | zero => -- n = 𝟘
+        cases m with
+        | zero =>
+          simp [Lt]
+        | succ m' =>
+          unfold Lt
+          simp [Lt]
+      | succ n' ih_n' => -- n = σ n'
+        cases m with
+        | zero =>
+          unfold Lt
+          simp [Lt]
+        | succ m' =>
+          unfold Lt
+          simp [Lt]
 
     theorem lt_iff_lt_τ_τ
       (n m : ℕ₀)
@@ -106,212 +106,212 @@ namespace Peano
       (h_m_neq_0 : m ≠ 𝟘):
         Lt n m ↔ Lt (τ n) (τ m)
           := by
-        induction m generalizing n with
-        | zero =>
-            exact False.elim (h_m_neq_0 rfl)
-        | succ m' =>
-            cases n with
-            | zero =>
-                exact False.elim (h_n_neq_0 rfl)
-            | succ n' =>
-                rfl
+      induction m generalizing n with
+      | zero =>
+          exact False.elim (h_m_neq_0 rfl)
+      | succ m' =>
+          cases n with
+          | zero =>
+              exact False.elim (h_n_neq_0 rfl)
+          | succ n' =>
+              rfl
 
     theorem nlt_self
       (n : ℕ₀) :
         ¬(Lt n n)
           := by
-          induction n with
-          | zero =>
-              unfold Lt
-              trivial
-          | succ n' ih_n' =>
-              unfold Lt
-              simp [ih_n']
+      induction n with
+      | zero =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+          unfold Lt
+          simp [ih_n']
 
   theorem nlt_1_self
-      (n : ℕ₁) :
-        ¬(Lt₁ n n)
-          := by
-          induction n with
-          | zero =>
-              unfold Lt₁
-              trivial
-          | succ n' ih_n' =>
-              unfold Lt₁
-              simp [ih_n']
+    (n : ℕ₁) :
+      ¬(Lt₁ n n)
+        := by
+    induction n.val with
+    | succ zero =>
+        unfold Lt₁
+        trivial
+    | succ succ n' ih_n' =>
+        unfold Lt₁
+        simp [ih_n']
 
     theorem nlt_2_self
       (n : ℕ₂) :
         ¬(Lt₂ n n)
           := by
-          induction n with
-          | zero =>
-              unfold Lt₂
-              trivial
-          | succ n' ih_n' =>
-              unfold Lt₂
-              simp [ih_n']
+      induction n.val.val with
+      | succ zero =>
+          unfold Lt₂
+          trivial
+      | succ succ n' ih_n' =>
+          unfold Lt₂
+          simp [ih_n']
 
     theorem not_lt_zero:
         ¬(Lt 𝟘 𝟘)
           := by
-            exact nlt_self 𝟘
+      exact nlt_self 𝟘
 
     theorem nlt_n_0
       (n : ℕ₀) :
         ¬(Lt n 𝟘)
           := by
-        induction n with
-        | zero =>
-            unfold Lt
-            trivial
-        | succ n' ih_n' =>
-            unfold Lt
-            trivial
+      induction n with
+      | zero =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+          unfold Lt
+          trivial
 
     theorem nlt_n_0_false
       (n : ℕ₀) :
         Lt n 𝟘 → False
           := by
-            induction n with
-            | zero =>
-                unfold Lt
-                trivial
-            | succ n' ih_n' =>
-                unfold Lt
-                trivial
+      induction n with
+      | zero =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+          unfold Lt
+          trivial
 
     theorem pos_of_ne_zero
       (n : ℕ₀):
         n ≠ 𝟘 → Lt 𝟘 n
           := by
-            intro h_neq
-            induction n with
-            | zero =>
-                unfold Lt
-                trivial
-            | succ n' ih_n' =>
-                unfold Lt
-                trivial
+      intro h_neq
+      induction n with
+      | zero =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+          unfold Lt
+          trivial
 
     theorem ne_of_lt
       (n m : ℕ₀) :
         Lt n m → n ≠ m
           := by
-                intro h
-                induction n with
-                | zero =>
-                    intro heq
-                    rw [Eq.symm heq] at h
-                    exact (not_lt_zero h)
-                | succ n' =>
-                    intro heq
-                    rw [Eq.symm heq] at h
-                    exact ((nlt_self (σ n')) h)
+      intro h
+      induction n with
+      | zero =>
+          intro heq
+          rw [Eq.symm heq] at h
+          exact (not_lt_zero h)
+      | succ n' =>
+          intro heq
+          rw [Eq.symm heq] at h
+          exact ((nlt_self (σ n')) h)
 
     theorem neq_then_lt_or_gt
       (n m : ℕ₀) :
         n ≠ m → (Lt n m ∨ Lt m n)
           := by
-                intro h_neq -- h_neq : n ≠ m
-                induction n generalizing m with
-                | zero =>
-                    cases m with
-                    | zero =>
-                        exact False.elim (h_neq rfl)
-                    | succ m' =>
-                        apply Or.inl
-                        unfold Lt
-                        simp
-                | succ n' ih_n' =>
-                    cases m with
-                    | zero =>
-                        apply Or.inr
-                        unfold Lt
-                        simp
-                    | succ m' =>
-                        have h_neq_prime : n' ≠ m' := by
-                            apply mt ((congrArg ℕ₀.succ) :
-                              n' = m' → σ n' = σ m')
-                            exact h_neq
-                        let spec_ih := ih_n' m' h_neq_prime
-                        dsimp only [Lt]
-                        exact spec_ih
+      intro h_neq -- h_neq : n ≠ m
+      induction n generalizing m with
+      | zero =>
+          cases m with
+          | zero =>
+              exact False.elim (h_neq rfl)
+          | succ m' =>
+              apply Or.inl
+              unfold Lt
+              simp
+      | succ n' ih_n' =>
+          cases m with
+          | zero =>
+              apply Or.inr
+              unfold Lt
+              simp
+          | succ m' =>
+              have h_neq_prime : n' ≠ m' := by
+                  apply mt ((congrArg ℕ₀.succ) :
+                    n' = m' → σ n' = σ m')
+                  exact h_neq
+              let spec_ih := ih_n' m' h_neq_prime
+              dsimp only [Lt]
+              exact spec_ih
 
     theorem lt_nor_gt_then_eq
       (n m : ℕ₀) :
         ¬(Lt n m) ∧ ¬(Lt m n) → n = m
           := by
-                intro h_conj
-                cases h_conj with
-                | intro h_not_lt_nm h_not_lt_mn =>
-                    induction n generalizing m with
-                    | zero =>
-                        cases m with
-                        | zero =>
-                            rfl
-                        | succ m' =>
-                            apply False.elim
-                            apply h_not_lt_nm
-                            dsimp [Lt]
-                    | succ n' ih_n' => -- n = σ n'
-                        cases m with
-                        | zero =>
-                            apply False.elim
-                            apply h_not_lt_mn
-                            dsimp [Lt]
-                        | succ m' =>
-                            have h_not_lt_n_prime_m_prime :
-                                ¬(Lt n' m') := by
-                                unfold Lt at h_not_lt_nm
-                                exact h_not_lt_nm
-                            have h_not_lt_m_prime_n_prime :
-                                ¬(Lt m' n') := by
-                                unfold Lt at h_not_lt_mn
-                                exact h_not_lt_mn
-                            have h_eq_prime : n' = m' := by
-                                apply ih_n' m'
-                                . exact h_not_lt_n_prime_m_prime
-                                . exact h_not_lt_m_prime_n_prime
-                            rw [h_eq_prime]
+      intro h_conj
+      cases h_conj with
+      | intro h_not_lt_nm h_not_lt_mn =>
+          induction n generalizing m with
+          | zero =>
+              cases m with
+              | zero =>
+                  rfl
+              | succ m' =>
+                  apply False.elim
+                  apply h_not_lt_nm
+                  dsimp [Lt]
+          | succ n' ih_n' => -- n = σ n'
+              cases m with
+              | zero =>
+                  apply False.elim
+                  apply h_not_lt_mn
+                  dsimp [Lt]
+              | succ m' =>
+                  have h_not_lt_n_prime_m_prime :
+                      ¬(Lt n' m') := by
+                      unfold Lt at h_not_lt_nm
+                      exact h_not_lt_nm
+                  have h_not_lt_m_prime_n_prime :
+                      ¬(Lt m' n') := by
+                      unfold Lt at h_not_lt_mn
+                      exact h_not_lt_mn
+                  have h_eq_prime : n' = m' := by
+                      apply ih_n' m'
+                      . exact h_not_lt_n_prime_m_prime
+                      . exact h_not_lt_m_prime_n_prime
+                  rw [h_eq_prime]
 
     theorem lt_succ_self
       (n : ℕ₀) :
         Lt n (σ n)
           := by
-                induction n with
-                | zero =>
-                    unfold Lt
-                    trivial
-                | succ n' ih_n' =>
-                    unfold Lt
-                    trivial
+      induction n with
+      | zero =>
+          unfold Lt
+          trivial
+      | succ n' ih_n' =>
+          unfold Lt
+          trivial
 
     theorem lt_succ
       (n m : ℕ₀) :
         Lt n m → Lt n (σ m)
           := by
-        intro h_n_lt_m
-        induction n generalizing m with
+      intro h_n_lt_m
+      induction n generalizing m with
+      | zero =>
+        cases m with
         | zero =>
-          cases m with
-          | zero =>
-            have contradiction : False := by
-              unfold Lt at h_n_lt_m
-              exact h_n_lt_m
-            exact False.elim contradiction
-          | succ m' =>
-            simp [Lt]
-        | succ n' ih_n' =>
-          cases m with
-          | zero =>
-            have contradiction : False := by
-              unfold Lt at h_n_lt_m
-              exact h_n_lt_m
-            exact False.elim contradiction
-          | succ m' =>
-            simp [Lt] at *
-            exact ih_n' m' h_n_lt_m
+          have contradiction : False := by
+            unfold Lt at h_n_lt_m
+            exact h_n_lt_m
+          exact False.elim contradiction
+        | succ m' =>
+          simp [Lt]
+      | succ n' ih_n' =>
+        cases m with
+        | zero =>
+          have contradiction : False := by
+            unfold Lt at h_n_lt_m
+            exact h_n_lt_m
+          exact False.elim contradiction
+        | succ m' =>
+          simp [Lt] at *
+          exact ih_n' m' h_n_lt_m
 
     theorem lt_succ_then_lt
       (n m : ℕ₀) :

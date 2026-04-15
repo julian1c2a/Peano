@@ -18,6 +18,7 @@ License: MIT
 
 import Peano.PeanoNat
 import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Group
 import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 import Peano.PeanoNat.Combinatorics.GroupTheory.Action
@@ -41,21 +42,21 @@ namespace Peano
 
     /-- `p^k` divide `|H|`. -/
     def pow_dvd_card (p k : ℕ₀) (H : ℕ₀FSet) : Prop :=
-      ∃ m : ℕ₀, Mul.mul (Pow.pow p k) m = H.card
+      ∃ m : ℕ₀, Mul.mul (p ^ k) m = H.card
 
     /-- Un `p`-subgrupo de `G` es un subgrupo cuyo orden es una potencia de `p`. -/
     def isPSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop :=
-      ∃ k : ℕ₀, H.carrier.card = Pow.pow p k
+      ∃ k : ℕ₀, H.carrier.card = p ^ k
 
     /-- `p^n` es la mayor potencia de `p` que divide `|G|`
         (es decir, `p^n | |G|` pero `p^(n+1) ∤ |G|`). -/
     def isSylowExponent (G : FinGroup) (p n : ℕ₀) : Prop :=
-      pow_dvd_card p n G.carrier ∧ ¬ pow_dvd_card p (Nat.succ n) G.carrier
+      pow_dvd_card p n G.carrier ∧ ¬ pow_dvd_card p (σ n) G.carrier
 
     /-- Un subgrupo de Sylow `p` de `G` es un `p`-subgrupo de orden `p^n`
         donde `p^n` es la mayor potencia de `p` que divide `|G|`. -/
     def isSylowSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop :=
-      ∃ n, isSylowExponent G p n ∧ H.carrier.card = Pow.pow p n
+      ∃ n, isSylowExponent G p n ∧ H.carrier.card = p ^ n
 
     /-!
     # § 2. Primer Teorema de Sylow (existencia)
@@ -70,7 +71,7 @@ namespace Peano
     theorem sylow_first (G : FinGroup) (p n : ℕ₀)
         (hp : sorry)   -- p es primo
         (hdvd : pow_dvd_card p n G.carrier) :
-        ∃ H : Subgroup G, H.carrier.card = Pow.pow p n :=
+        ∃ H : Subgroup G, H.carrier.card = p ^ n :=
       sorry
       -- Prueba estándar: inducción sobre |G| usando la ecuación de clases.
       -- Caso base: |G| = 1 (trivial).
@@ -115,9 +116,9 @@ namespace Peano
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
         (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
         -- n_p ≡ 1 (mod p)
-        (∃ k : ℕ₀, (sylows.length : ℕ₀) = Nat.add (Mul.mul p k) 1) ∧
+        (∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙) ∧
         -- n_p | |G|/p^n
-        (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (sylows.length : ℕ₀) k = G.carrier.card) :=
+        (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card) :=
       sorry
       -- Prueba: hacer actuar G sobre el conjunto de subgrupos de Sylow por conjugación.
       -- Hay una sola órbita (Sylow II), luego n_p | |G|/p^n.

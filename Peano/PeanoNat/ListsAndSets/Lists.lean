@@ -50,6 +50,11 @@ namespace Peano
     instance instLTN2 : LT ℕ₂ := ⟨fun a b => @LT.lt ℕ₁ instLTN1 a.val b.val⟩
     instance instLEN2 : LE ℕ₂ := ⟨fun a b => @LE.le ℕ₁ instLEN1 a.val b.val⟩
 
+    instance : StrictOrder.IrreflLT ℕ₁ :=
+      ⟨fun x h => StrictOrder.nlt_self x.val h⟩
+    instance : StrictOrder.IrreflLT ℕ₂ :=
+      ⟨fun x h => StrictOrder.nlt_self x.val.val h⟩
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 3. Decidabilidad de órdenes sobre subtipos
     -- ══════════════════════════════════════════════════════════════════
@@ -112,10 +117,33 @@ namespace Peano
     @[simp] theorem getDₚ_cons_succ {α : Type} (dflt x : α) (xs : List α) (i : ℕ₀) :
         getDₚ dflt (x :: xs) (σ i) = getDₚ dflt xs i := rfl
 
+    @[simp] theorem lengthₚ_nil {α : Type} :
+      lengthₚ ([] : List α) = 𝟘 := rfl
+
+    @[simp] theorem lengthₚ_cons {α : Type} (x : α) (xs : List α) :
+        lengthₚ (x :: xs) = σ (lengthₚ xs) := by
+      simp [lengthₚ, List.length_cons, Λ]
+
     /-- Si `i < lengthₚ l`, entonces `getDₚ dflt l i ∈ l`. -/
     theorem getDₚ_mem {α : Type} (dflt : α) (l : List α) (i : ℕ₀)
-        (hi : Lt i (lengthₚ l)) : getDₚ dflt l i ∈ l :=
-      sorry  -- por inducción: nil → absurd (nlt_n_0); cons → casos 0/succ
+        (hi : Lt i (lengthₚ l)) : getDₚ dflt l i ∈ l := by
+      induction l generalizing i with
+      | nil =>
+          -- lengthₚ [] = 𝟘, pero hi : Lt i 𝟘, contradicción
+          exact absurd hi (nlt_n_0 i)
+      | cons x xs ih =>
+          cases i with
+          | zero =>
+              -- getDₚ dflt (x::xs) 𝟘 = x ∈ x::xs
+              exact List.mem_cons.mpr (Or.inl rfl)
+          | succ i' =>
+              -- getDₚ dflt (x::xs) (σ i') = getDₚ dflt xs i'
+              -- hi : Lt (σ i') (lengthₚ (x::xs)) = Lt (σ i') (σ (lengthₚ xs))
+              -- ⇒ Lt i' (lengthₚ xs)
+              have hi' : Lt i' (lengthₚ xs) := by
+                rw [lengthₚ_cons] at hi
+                exact (succ_lt_succ_iff i' (lengthₚ xs)).mp hi
+              exact List.mem_cons.mpr (Or.inr (ih i' hi'))
 
     /-- Primera posición de `a` en `l` (en ℕ₀); devuelve `𝟘` si no está. -/
     def List.indexOfₚ {α : Type} [DecidableEq α] (a : α) : List α → ℕ₀
@@ -148,15 +176,19 @@ namespace Peano
 
     /-- `indexOfₚ a l < lengthₚ l` cuando `a ∈ l`. -/
     theorem List.indexOfₚ_lt_length {α : Type} [DecidableEq α] (a : α) (l : List α)
-        (hmem : a ∈ l) : Lt (List.indexOfₚ a l) (lengthₚ l) :=
-      sorry  -- por inducción: nil → contradicción; cons → casos x=a/x≠a
-
-    @[simp] theorem lengthₚ_nil {α : Type} :
-      lengthₚ ([] : List α) = 𝟘 := rfl
-
-    @[simp] theorem lengthₚ_cons {α : Type} (x : α) (xs : List α) :
-        lengthₚ (x :: xs) = σ (lengthₚ xs) := by
-      simp [lengthₚ, List.length_cons, Λ]
+        (hmem : a ∈ l) : Lt (List.indexOfₚ a l) (lengthₚ l) := by
+      induction l with
+      | nil => cases hmem
+      | cons x xs ih =>
+          by_cases hxa : x = a
+          · -- indexOfₚ a (x::xs) = 𝟘 < σ (lengthₚ xs) = lengthₚ (x::xs)
+            rw [List.indexOfₚ_cons_eq a x xs hxa, lengthₚ_cons]
+            exact zero_lt_succ (lengthₚ xs)
+          · -- indexOfₚ a (x::xs) = σ (indexOfₚ a xs)
+            -- IH: Lt (indexOfₚ a xs) (lengthₚ xs)
+            have hmem' : a ∈ xs := (List.mem_cons.mp hmem).resolve_left (Ne.symm hxa)
+            rw [List.indexOfₚ_cons_ne a x xs hxa, lengthₚ_cons]
+            exact (succ_lt_succ_iff (List.indexOfₚ a xs) (lengthₚ xs)).mpr (ih hmem')
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 5. Sorted (via Pairwise)

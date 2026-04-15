@@ -295,9 +295,33 @@ namespace Peano
             · exact Or.inr (ih.mpr hlt)
             · exact Or.inl rfl
 
-      /-- `Fin₀Set n` tiene exactamente `n` elementos. -/
-      theorem Fin₀Set_card (n : ℕ₀) : (Fin₀Set n).card = n :=
-        sorry  -- requiere List.length_sortedInsert_notin + inducción sobre Λ
+      /-! `Fin₀Set n` tiene exactamente `n` elementos. -/
+      open Peano.StrictOrder in
+      private theorem sortedInsert_length_of_not_mem
+        (x : ℕ₀) (l : List ℕ₀) (hnotin : x ∉ l) :
+          (sortedInsert x l).length = l.length.succ
+            := by
+        induction l with
+        | nil => simp [sortedInsert]
+        | cons y ys ih =>
+          have hnotin_ys : x ∉ ys := fun h => hnotin (List.mem_cons.mpr (Or.inr h))
+          have hxney : x ≠ y := fun heq => hnotin (heq ▸ List.mem_cons.mpr (Or.inl rfl))
+          unfold sortedInsert
+          by_cases hlt : Lt x y
+          · rw [if_pos hlt]; simp [List.length_cons]
+          · rw [if_neg hlt, if_neg hxney]
+            simp [List.length_cons, ih hnotin_ys]
+
+      open Peano.StrictOrder in
+      theorem Fin₀Set_card (n : ℕ₀) : (Fin₀Set n).card = n := by
+        induction n with
+        | zero => rfl
+        | succ n' ih =>
+          have hnotin : n' ∉ (Fin₀Set n').elems :=
+            fun hmem => nlt_self n' ((mem_Fin₀Set_iff n' n').mp hmem)
+          show Λ (sortedInsert n' (Fin₀Set n').elems).length = σ n'
+          rw [sortedInsert_length_of_not_mem n' _ hnotin]
+          exact congrArg ℕ₀.succ ih
 
     end ℕ₀FSet
 

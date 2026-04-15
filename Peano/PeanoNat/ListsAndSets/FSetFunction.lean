@@ -1,4 +1,8 @@
-/-
+import Peano.PeanoNat.ListsAndSets.Lists
+import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.ListsAndSets.FSetFSet
+
+/-!
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -13,10 +17,6 @@ License: MIT
 -- § 3. Principio del Palomar
 -- § 4. BinOpOn           — operación binaria cerrada sobre un FSet
 -- § 5. CoeFun            — coerción a funciones ordinarias
-
-import Peano.PeanoNat.ListsAndSets.Lists
-import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.ListsAndSets.FSetFSet
 
 set_option autoImplicit false
 
@@ -132,7 +132,7 @@ namespace Peano
 
     /-- Lista ordenada estrictamente → sin duplicados. -/
     private theorem sorted_nodup {α : Type} [DecidableEq α] [LT α]
-        (hirr : ∀ x : α, ¬ x < x)
+        [StrictOrder.IrreflLT α]
         {l : List α} (hs : Sorted (· < ·) l) : l.Nodup := by
       induction l with
       | nil => exact List.nodup_nil
@@ -140,7 +140,7 @@ namespace Peano
         have hpw := List.pairwise_cons.mp hs
         refine List.nodup_cons.mpr ⟨?_, ih hpw.2⟩
         intro hx
-        exact absurd (hpw.1 x hx) (hirr x)
+        exact absurd (hpw.1 x hx) (StrictOrder.IrreflLT.lt_irrefl x)
 
     /-- Imagen de lista sin duplicados por función inyectiva → sin duplicados. -/
     private theorem nodup_map_of_inj_on {α β : Type}
@@ -232,43 +232,151 @@ namespace Peano
 
     /-- Lema 1: función inyectiva → imagen tiene la misma cardinalidad que el dominio. -/
     theorem card_image_of_injective {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (f : MapOn A B) (h_inj : f.Injective) :
-        f.Im.card = A.card :=
-      sorry
+        f.Im.card = A.card := by
+      -- Im.elems y (A.elems.map f.toFun) tienen los mismos elementos y ambos son nodup
+      unfold FSet.card
+      apply congrArg Λ
+      apply nodup_length_eq_of_same_elems
+      · -- Im.elems es nodup (está ordenada)
+        exact sorted_nodup f.Im.sorted
+      · -- A.elems.map f.toFun es nodup (A.elems nodup + f inyectiva)
+        apply nodup_map_of_inj_on
+        · exact sorted_nodup A.sorted
+        · intro a b ha hb hab; exact h_inj a b ha hb hab
+      · -- Im.elems ⊆ A.elems.map f.toFun
+        intro b hb
+        rw [List.mem_map]
+        rw [(mem_Im_elems_iff f b)] at hb
+        obtain ⟨a, ha, rfl⟩ := hb
+        exact ⟨a, ha, rfl⟩
+      · -- A.elems.map f.toFun ⊆ Im.elems
+        intro b hb
+        rw [List.mem_map] at hb
+        obtain ⟨a, ha, rfl⟩ := hb
+        rw [mem_Im_elems_iff]
+        exact ⟨a, ha, rfl⟩
 
     /-- Lema 2: imagen con la misma cardinalidad que el dominio → función inyectiva. -/
     theorem injective_of_card_image {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (f : MapOn A B) (h_card : f.Im.card = A.card) :
         f.Injective
-         :=
-      sorry
+          := by
+      unfold MapOn.Injective InjectiveOn
+      intro a₁ a₂ ha₁ ha₂ heq
+      -- Supongamos a₁ ≠ a₂. En A.elems.map f.toFun aparecen f(a₁) y f(a₂)=f(a₁) dos veces.
+      -- Pero Im.elems no tiene duplicados y card Im = card A.
+      -- Esto lo formalizamos por contradicción vía nodup_map_of_inj_on:
+      -- si f no fuera inyectiva, (A.elems.map f.toFun).Nodup fallaría.
+      by_contra h_ne
+      -- Construimos un nodup_map_of_inj_on sobre A.elems\{a₂} para mostrar contradicción
+      -- Más directo: (A.elems.map f.toFun) tiene duplicados si a₁ ≠ a₂ y f a₁ = f a₂
+      have hnd_A : A.elems.Nodup := sorted_nodup A.sorted
+      have hnd_Im : f.Im.elems.Nodup := sorted_nodup f.Im.sorted
+      -- f.Im.card = A.card implica (via Λ_inj) |Im.elems| = |A.elems|
+      have h_len : f.Im.elems.length = A.elems.length := by
+        apply Λ_inj_local
+        exact h_card
+      -- Im.elems ⊆ A.elems.map f.toFun
+      have h_sub : ∀ b, b ∈ f.Im.elems → b ∈ A.elems.map f.toFun := fun b hb => by
+        rw [List.mem_map]
+        obtain ⟨a, ha, hfa⟩ := (mem_Im_elems_iff f b).mp hb
+        exact ⟨a, ha, hfa⟩
+      -- (A.elems.map f.toFun).length = A.elems.length
+      have h_map_len : (A.elems.map f.toFun).length = A.elems.length :=
+        List.length_map f.toFun
+      -- Como a₁ ≠ a₂, f a₁ = f a₂, ambos ∈ A.elems, A.elems nodup → colisión en map
+      -- Usamos que Im.elems.length = map.length y Im nodup ⊆ map → map nodup
+      -- Pero map tiene f(a₁) dos veces → contradicción
+      have hnd_map : (A.elems.map f.toFun).Nodup := by
+        apply nodup_map_of_inj_on
+        · exact hnd_A
+        · intro a b ha hb hab
+          -- Si f a = f b con a,b ∈ A.elems y h_ne dice que no siempre son iguales...
+          -- Aquí usamos que Im.elems (nodup, longitud = A.elems) ⊆ map (misma longitud)
+          -- implica map nodup. Pero es circular. Usamos nodup_length_eq_of_same_elems al revés:
+          -- si Im nodup ⊆ map y |Im| = |map|, entonces map ⊆ Im, luego map nodup.
+          -- Para un solo paso: basta que map nodup sea consecuencia de Im nodup + |Im|=|map|
+          -- + Im ⊆ map. Si map tuviera duplicado b₀, contaría ≥2 en map, pero ≤1 en Im,
+          -- contradiciendo |Im|=|map|.
+          --
+          -- Para este sorry, nótese que si el "por_contra" vale tenemos a₁≠a₂ con f a₁ = f a₂.
+          -- Necesitamos exactamente que si a₁≠a₂ ∧ a₁,a₂ ∈ A.elems ∧ f a₁=f a₂ entonces
+          -- map tiene duplicado ⇒ count (f a₁) (map f A.elems) ≥ 2 ⇒ count en Im ≤ 1 < 2
+          -- ⇒ map no puede estar contenido en Im de forma que las longitudes coincidan.
+          -- Esto es correcto matemáticamente pero requiere un lema auxiliar no disponible aún.
+          -- Lo dejamos como sorry provisional.
+          sorry
+      -- Si map es nodup y Im nodup y Im ⊆ map y |Im|=|map|, entonces Im = map (como sets)
+      -- luego map ⊆ Im. Pero mapa tiene f(a₁)=f(a₂) dos veces si a₁≠a₂ → contradicción nodup_map.
+      -- El argumento completo requiere el lema de colisión; sorry provisional.
+      exact absurd rfl h_ne
 
     /-- Lema 3: función sobreyectiva → imagen tiene la misma cardinalidad que el codominio. -/
     theorem card_image_of_surjective {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (f : MapOn A B) (h_surj : f.Surjective) :
-        f.Im.card = B.card
-         :=
-      sorry
+        f.Im.card = B.card := by
+      unfold FSet.card
+      apply congrArg Λ
+      apply nodup_length_eq_of_same_elems
+      · exact sorted_nodup f.Im.sorted
+      · exact sorted_nodup B.sorted
+      · -- Im.elems ⊆ B.elems
+        intro b hb
+        obtain ⟨a, ha, rfl⟩ := (mem_Im_elems_iff f b).mp hb
+        exact f.map_carrier a ha
+      · -- B.elems ⊆ Im.elems: sobreyectividad
+        intro b hb
+        rw [mem_Im_elems_iff]
+        obtain ⟨a, ha, hfa⟩ := h_surj b hb
+        exact ⟨a, ha, hfa⟩
 
     /-- Lema 4: imagen con la misma cardinalidad que el codominio → función sobreyectiva. -/
     theorem surjective_of_card_image {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (f : MapOn A B) (h_card : f.Im.card = B.card) :
-        f.Surjective
-         :=
-      sorry
+        f.Surjective := by
+      unfold MapOn.Surjective SurjectiveOn
+      intro b hb
+      -- Im.elems ⊆ B.elems y |Im| = |B|, ambos nodup → Im.elems = B.elems (mismos elementos)
+      have hnd_Im : f.Im.elems.Nodup := sorted_nodup f.Im.sorted
+      have hnd_B  : B.elems.Nodup    := sorted_nodup B.sorted
+      have h_len : f.Im.elems.length = B.elems.length :=
+        Λ_inj_local _ _ h_card
+      have h_Im_sub_B : ∀ x, x ∈ f.Im.elems → x ∈ B.elems := fun x hx => by
+        obtain ⟨a, ha, rfl⟩ := (mem_Im_elems_iff f x).mp hx
+        exact f.map_carrier a ha
+      -- Por nodup_length_eq_of_same_elems al revés: si Im ⊆ B, |Im|=|B|, ambos nodup → B ⊆ Im
+      have h_B_sub_Im : ∀ x, x ∈ B.elems → x ∈ f.Im.elems := by
+        intro x hx
+        by_contra hnx
+        -- Im ⊊ B estrictamente → |Im| < |B| (contamos: Im nodup ⊆ B nodup, Im ≠ B)
+        have h_lt : f.Im.elems.length < B.elems.length := by
+          apply List.Nodup.length_lt_of_sublist_of_ne_of_nodup hnd_Im hnd_B
+          · exact List.Nodup.sublist_of_subset hnd_Im h_Im_sub_B
+          · intro h_eq_list
+            exact hnx (h_eq_list ▸ hx)
+        omega
+      -- Ahora b ∈ B.elems → b ∈ Im.elems → ∃ a, ...
+      obtain ⟨a, ha, hfa⟩ := (mem_Im_elems_iff f b).mp (h_B_sub_Im b hb)
+      exact ⟨a, ha, hfa⟩
 
     /-- Principio del Palomar: para conjuntos finitos del mismo tamaño,
         inyectividad ↔ sobreyectividad. -/
     theorem MapOn.injective_iff_surjective_of_card_eq {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (h_card_eq : A.card = B.card) (f : MapOn A B) :
         f.Injective ↔ f.Surjective
@@ -287,7 +395,8 @@ namespace Peano
 
     /-- Corolario: para conjuntos del mismo tamaño, inyectividad ↔ biyectividad. -/
     theorem MapOn.injective_iff_bijective_of_card_eq {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (h_card_eq : A.card = B.card) (f : MapOn A B) :
         f.Injective ↔ f.Bijective
@@ -300,7 +409,8 @@ namespace Peano
 
     /-- Corolario: para conjuntos del mismo tamaño, sobreyectividad ↔ biyectividad. -/
     theorem MapOn.surjective_iff_bijective_of_card_eq {α β : Type}
-      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
       {A : FSet α} {B : FSet β}
       (h_card_eq : A.card = B.card) (f : MapOn A B) :
         f.Surjective ↔ f.Bijective
@@ -382,8 +492,9 @@ namespace Peano
 
       /-- `applyElem` devuelve un elemento de `A`. -/
       theorem applyElem_mem {α : Type} [DecidableEq α] [LT α] {A : FSet α}
-          (f : FunTable A) (a dflt : α) (ha : a ∈ A.elems) (hdflt : dflt ∈ A.elems) :
-          f.applyElem a dflt ∈ A.elems := by
+        (f : FunTable A) (a dflt : α) (ha : a ∈ A.elems) :
+          f.applyElem a dflt ∈ A.elems
+            := by
         unfold applyElem
         -- El índice de a en A.elems es < A.card = lengthₚ A.elems = lengthₚ f.table
         have hlen : lengthₚ f.table = A.card := f.len_eq

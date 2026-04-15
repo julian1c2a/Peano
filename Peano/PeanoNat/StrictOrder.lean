@@ -19,13 +19,17 @@ namespace Peano
       open Peano.Axioms
 
   namespace StrictOrder
-    open StrictOrder
+    open Axioms
 
     def Lt (n m : ℕ₀) : Prop :=
-        match n, m with
-        | _       , ℕ₀.zero    => False
-        | ℕ₀.zero , σ _        => True
-        | σ n'    , σ m'       => Lt n' m'
+      match n, m with
+      | _       , ℕ₀.zero    => False
+      | ℕ₀.zero , σ _        => True
+      | σ n'    , σ m'       => Lt n' m'
+
+    def Lt₁ (n m : ℕ₁) : Prop := Lt n.val m.val
+
+    def Lt₂ (n m : ℕ₂) : Prop := Lt n.val.val m.val.val
 
     theorem lt_then_lt_succ
       (n m : ℕ₀) :
@@ -122,6 +126,30 @@ namespace Peano
               trivial
           | succ n' ih_n' =>
               unfold Lt
+              simp [ih_n']
+
+  theorem nlt_1_self
+      (n : ℕ₁) :
+        ¬(Lt₁ n n)
+          := by
+          induction n with
+          | zero =>
+              unfold Lt₁
+              trivial
+          | succ n' ih_n' =>
+              unfold Lt₁
+              simp [ih_n']
+
+    theorem nlt_2_self
+      (n : ℕ₂) :
+        ¬(Lt₂ n n)
+          := by
+          induction n with
+          | zero =>
+              unfold Lt₂
+              trivial
+          | succ n' ih_n' =>
+              unfold Lt₂
               simp [ih_n']
 
     theorem not_lt_zero:
@@ -945,6 +973,16 @@ namespace Peano
             h_blt_is_true proof_blt_should_be_true)
 
     instance : LT ℕ₀ := ⟨Lt⟩
+    instance : LT ℕ₁ := ⟨Lt₁⟩
+    instance : LT ℕ₂ := ⟨Lt₂⟩
+
+    /-- Clase auxiliar: el orden `<` es irreflexivo sobre `α`.
+        Requerida por los lemas del Principio del Palomar en FSetFunction. -/
+    class IrreflLT (α : Type) [LT α] : Prop where
+      lt_irrefl : ∀ x : α, ¬ x < x
+
+    instance : IrreflLT ℕ₀ := ⟨fun n => nlt_self n⟩
+    instance : IrreflLT ℕ₁ := ⟨fun n => nlt_self n.val⟩
 
     instance decidableGt (n m : ℕ₀) :
       Decidable (Gt n m) :=
@@ -1398,4 +1436,3 @@ export Peano.StrictOrder (
     lt_succ_then_lt
     lt_succ_then_lt_wp
 )
-

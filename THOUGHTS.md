@@ -1,6 +1,6 @@
 ﻿# Thoughts — Peano
 
-**Last updated:** 2026-06-17
+**Last updated:** 2026-04-16
 **Author**: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -34,8 +34,8 @@ session-based locking.
 
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
 - [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
-- [ ] How to approach the remaining 14 sorry in group theory modules (Perm, Group, Action, Cosets, Sylow)?
-- [ ] Should FSetFunction.lean (~1500 lines, ~90 declarations) be split into smaller modules?
+- [ ] How to approach the remaining 9 sorry in group theory modules (Perm, Group, Action, Cosets, Sylow)?
+- [ ] Should FSetFunction.lean (~1550 lines, ~92 declarations) be split into smaller modules?
 
 ---
 
@@ -357,7 +357,7 @@ la API de metaprogramación (`Lean.Elab.Tactic`). Hay tres niveles:
 4. **`peano_decide`**: Táctica que, dado un goal decidable sobre `ℕ₀`, aplique
    `decide` tras instanciar las `Decidable` relevantes.
 
-### [10] Resumen de prioridades (actualizado 2026-06-17)
+### [10] Resumen de prioridades (actualizado 2026-04-16)
 
 Este punto recoge la visión global del autor sobre el orden de las expansiones:
 
@@ -368,7 +368,7 @@ Este punto recoge la visión global del autor sobre el orden de las expansiones:
 5. ~~**Representaciones**~~: ✅ `Digits`, `Log`, `Sqrt`, `Fibonacci`, `Pairing` — todos completados.
 6. ~~**Instancias algebraicas**~~: ✅ `HSub`, `HDiv`, `HMod`, `HPow`, Zero, One, OfNat, Ord, WellFoundedRelation, DecidableRel.
 7. ~~**Infraestructura de conjuntos finitos**~~: ✅ List, FSet, FSetFSet, FSetFunction (~90 decl.), MapOn, Im, Pigeonhole, Perm.
-8. **Completar sorry en teoría de grupos** (14 sorry en Perm, Group, Action, Cosets, Sylow).
+8. **Completar sorry en teoría de grupos** (9 sorry: Perm×1, Group×2, Action×2, Cosets×1, Sylow×3).
 9. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
 10. **Phase 22**: ℤ — tipo inductivo canónico, operaciones, orden, aritmética.
 11. **Phase 23**: ℚ — estructura con invariante de coprimalidad, operaciones, campo.
@@ -376,7 +376,7 @@ Este punto recoge la visión global del autor sobre el orden de las expansiones:
 
 ### [11] Reemplazar `DList` por `List` y construir infraestructura de conjuntos finitos
 
-> **Estado (2026-06-17):** ✅ Implementado. La migración DList → List se completó.
+> **Estado (2026-04-15):** ✅ Implementado. La migración DList → List se completó.
 > La jerarquía real difiere del plan original: `List` → `FSet` (tipo cociente
 > por permutación, sin invariante de orden) → `FSetFSet` → `FSetFunction` (~90 decl.).
 > Las listas ordenadas sin duplicados (§11.2) no se adoptaron; en cambio, `FSet`

@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 51 jobs · 14 sorry (en módulos de teoría de grupos avanzada) · 0 errores
+> **Build:** 51 jobs · 9 sorry (en módulos de teoría de grupos) · 0 errores
 > **Licencia:** MIT
 
 ---
@@ -54,7 +54,7 @@ Peano.lean                                        ← entrada; importa toda la l
       │  ├─ ListList.lean                         Peano.ListList     — listas de listas
       │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos ordenados
       │  ├─ FSetFSet.lean                         Peano.FSetFSet     — conjuntos de conjuntos finitos
-      │  └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, ~90 decl.
+      └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
       ├─ NumberTheory/
       │  ├─ ModEq.lean                            Peano.ModEq        — congruencia modular
       │  ├─ Totient.lean                          Peano.Totient      — función φ de Euler
@@ -72,7 +72,7 @@ Peano.lean                                        ← entrada; importa toda la l
          ├─ Perm.lean                             Peano.Perm         — permutaciones (⚠ sorry)
          ├─ Sign.lean                             Peano.Sign         — signo de permutaciones
          ├─ Orbit.lean                            Peano.Orbit        — órbitas de permutaciones
-         ├─ Group.lean                            Peano.Group        — grupo simétrico (⚠ sorry)
+         ├─ Group.lean                            Peano.Group        — FinGroup, Subgroup, gpow, subgrupos especiales (⚠ sorry)
          └─ GroupTheory/
             ├─ Action.lean                        Peano.Action       — acciones de grupo (⚠ sorry)
             └─ Sylow/

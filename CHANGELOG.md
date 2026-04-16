@@ -2,6 +2,30 @@
 
 ## [Unreleased]
 
+### Added (2026-04-16)
+
+- **FSetFunction.lean \u00a7 3b \u2014 Palomar con colisi\u00f3n expl\u00edcita**:
+  - `not_injective_of_card_lt`: contrapositivo de `card_le_of_injective` \u2014
+    si `B.card < A.card` entonces ninguna `f : A \u2192 B` puede ser inyectiva.
+  - `collision_of_card_lt`: principio del palomar con testigos expl\u00edcitos \u2014
+    `\u2203 a\u2081 a\u2082, a\u2081 \u2208 A \u2227 a\u2082 \u2208 A \u2227 a\u2081 \u2260 a\u2082 \u2227 f(a\u2081) = f(a\u2082)` cuando `B.card < A.card`.
+  - Ambos exportados en el bloque export de FSetFunction.lean.
+  - Proof: term-mode v\u00eda `Classical.byContradiction` (no existe `by_contra` en el proyecto).
+  - **Uso clave**: son la base para demostrar `orderExists` en B2.3 (orden de elemento de grupo).
+  - Build: 51 jobs, 0 errores, 9 sorry warnings.
+
+- **Group.lean \u2014 Bloques B2.2 completo + B3 (subgrupos)**:
+  - **B2.2**: `gpow_comm_single` (`gpow G g n \u00b7 g = g \u00b7 gpow G g n`),
+    `gpow_inv` (`gpow G (G.inv g) n = G.inv (gpow G g n)`). Ambos sorry-free.
+  - **B3.1**: `trivialSubgroup`, `improperSubgroup`, `Subgroup.IsTrivial`, `Subgroup.IsProper`.
+  - **B3.2**: `cyclicCarrier` (private), `cyclicCarrier_id_in`, `cyclicCarrier_mem_iff`,
+    `cyclicSubgroup` (1 sorry: cierre por op\u00b7inv\u207b\u00b9), `cyclicSubgroup'` (1 sorry: inv_closed).
+    Ambos sorry bloqueados en B2.3 `order`.
+  - **B3.3**: `Subgroup.IsNormal`, `trivialSubgroup_normal`, `improperSubgroup_normal`.
+  - **B3.6**: `Subgroup.inter`, `inter_subset_left`, `inter_subset_right`,
+    `inter_normal_of_normal`.
+  - Build: 51 jobs, 0 errores, 9 sorry warnings (7 preexistentes + 2 nuevos en cyclic).
+
 ### Added (2026-06-17)
 
 - **Phase 25 — Teoría de grupos finitos**:
@@ -10,15 +34,15 @@
   - **Combinatorics/Sign.lean**: Signo de permutaciones (paridad de transposiciones).
   - **Combinatorics/Orbit.lean**: Órbitas de elementos bajo permutaciones.
   - **Combinatorics/Group.lean**: Grupo simétrico Sym(A) (⚠ 1 sorry).
-  - **Combinatorics/GroupTheory/Action.lean**: Acciones de grupo (⚠ 4 sorry).
-  - **Combinatorics/GroupTheory/Sylow/Cosets.lean**: Coclases (⚠ 5 sorry).
+  - **Combinatorics/GroupTheory/Action.lean**: Acciones de grupo (⚠ 2 sorry).
+  - **Combinatorics/GroupTheory/Sylow/Cosets.lean**: Coclases (⚠ 1 sorry).
   - **Combinatorics/GroupTheory/Sylow/Sylow.lean**: Teoremas de Sylow (⚠ 3 sorry).
-  - Build: 51 jobs, 14 sorry warnings, 0 errors.
+  - Build inicial: 51 jobs, 14 sorry warnings, 0 errors. (Reducido a 9 sorry en sesión 2026-04-15–16.)
 
 - **Phase 24 — Conjuntos finitos y funciones**:
   - **ListsAndSets/ListList.lean**: Listas de listas.
   - **ListsAndSets/FSetFSet.lean**: Conjuntos de conjuntos finitos.
-  - **ListsAndSets/FSetFunction.lean** (~90 declaraciones exportadas):
+  - **ListsAndSets/FSetFunction.lean** (~90 declaraciones exportadas, ampliadas a ~92 en 2026-04-16):
     - `MapOn`: funciones totales entre FSet, `id`, `comp`, `comp_assoc`.
     - `Im`: imagen, cardinalidad de la imagen.
     - Inyectividad, sobreyectividad, biyectividad con iff de cardinalidad.

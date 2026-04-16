@@ -1,6 +1,6 @@
 ﻿# Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-06-17
+**Última actualización:** 2026-04-16
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -16,20 +16,20 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
 lake build      →  Build completed successfully (51 jobs)
-sorry count     →  14 (en 5 módulos de teoría de grupos avanzada)
-warnings        →  14 (solo sorry warnings)
+sorry count     →  9 (en 5 módulos de teoría de grupos)
+warnings        →  9 (solo sorry warnings)
 errors          →  0
 ```
 
 ### Desglose de sorry
 
-| Archivo | Líneas | Cantidad |
-|---|---|---|
-| `Combinatorics/Perm.lean` | 39 | 1 |
-| `Combinatorics/Group.lean` | 98 | 1 |
-| `Combinatorics/GroupTheory/Action.lean` | 62, 73, 87, 104 | 4 |
-| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 42, 48, 68, 74, 86 | 5 |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 93, 113 | 3 |
+| Archivo | Líneas | Cantidad | Bloqueado por |
+|---|---|---|---|
+| `Combinatorics/Perm.lean` | 39 | 1 | Pendiente |
+| `Combinatorics/Group.lean` | 311, 344 | 2 | B2.3 `order` (cyclicSubgroup / cyclicSubgroup') |
+| `Combinatorics/GroupTheory/Action.lean` | 116, 132 | 2 | Pendiente |
+| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 126 | 1 | Pendiente |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 88, 105 | 3 | Pendiente |
 
 ---
 
@@ -66,7 +66,7 @@ errors          →  0
 | `ListsAndSets/ListList.lean` | `Peano.ListList` | Listas de listas | ✅ |
 | `ListsAndSets/FSet.lean` | `Peano.FSet` | Conjuntos finitos con UniqueKeys + SortedByKey | ✅ |
 | `ListsAndSets/FSetFSet.lean` | `Peano.FSetFSet` | Conjuntos de conjuntos finitos | ✅ |
-| `ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | MapOn, Im, Pigeonhole, inversas, Perm, ~90 decl. | ✅ |
+| `ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | MapOn, Im, Pigeonhole, `collision_of_card_lt`, inversas, Perm, ~92 decl. | ✅ |
 | **NumberTheory/** | | | |
 | `NumberTheory/ModEq.lean` | `Peano.ModEq` | Congruencia modular, compatibilidad aritmética | ✅ |
 | `NumberTheory/Totient.lean` | `Peano.Totient` | Función de Euler φ, `totient_prime`, `totient_pos` | ✅ |
@@ -84,7 +84,7 @@ errors          →  0
 | `Combinatorics/Perm.lean` | `Peano.Perm` | Permutaciones | ⚠ sorry |
 | `Combinatorics/Sign.lean` | `Peano.Sign` | Signo de permutaciones | ✅ |
 | `Combinatorics/Orbit.lean` | `Peano.Orbit` | Órbitas | ✅ |
-| `Combinatorics/Group.lean` | `Peano.Group` | Grupo simétrico Sym(A) | ⚠ sorry |
+| `Combinatorics/Group.lean` | `Peano.Group` | FinGroup, Subgroup, gpow, trivial/improper/cyclic, IsNormal, inter | ⚠ sorry |
 | **GroupTheory/** | | | |
 | `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo | ⚠ sorry |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases | ⚠ sorry |
@@ -125,34 +125,38 @@ errors          →  0
 - **21.5**: ChineseRemainder.lean — Teorema del Resto Chino.
 - **21.6**: Fermat.lean — Pequeño Teorema de Fermat.
 
-### Phase 24: Conjuntos finitos y funciones (2026-04 — 2026-06)
+### Phase 24: Conjuntos finitos y funciones (2026-04)
 
 - **FSet.lean**: Conjuntos finitos con invariantes `UniqueKeys` + `SortedByKey`.
 - **FSetFSet.lean**: Conjuntos de conjuntos finitos.
-- **FSetFunction.lean** (~90 declaraciones):
+- **FSetFunction.lean** (~92 declaraciones):
   - § 1: `MapOn`, `comp`, `comp_assoc`, `id`
   - § 2: `Im`, `rightInverse`, `leftInverse`, `inverse`, involution
   - § 3: Pigeonhole, card inequalities/equalities, iff characterizations
+  - § 3b: **`not_injective_of_card_lt`**, **`collision_of_card_lt`** (2026-04-16) — necesarios para B2.3 `order`
   - § 3d: `PreIm`, fibras, restricción
   - § 3e: Endomorfismos (`EndoOn`)
   - § 3f: Permutaciones (`Perm` structure)
   - § 4–8: `BinOpOn`, `CoeFun`, `FunTable`, `FunPerm`, Export
 
-### Phase 25: Teoría de grupos finitos (2026-06 — en curso)
+### Phase 25: Teoría de grupos finitos (2026-04 — en curso)
 
-- **Perm.lean**: Tipo de permutaciones.
-- **Group.lean**: Grupo simétrico `Sym(A)`.
-- **Sign.lean**: Signo de permutaciones (paridad).
-- **Orbit.lean**: Órbitas de permutaciones.
-- **Counting.lean**: Conteo combinatorio.
-- **Action.lean**: Acciones de grupo (⚠ sorry pendientes).
-- **Sylow/Cosets.lean**: Coclases (⚠ sorry pendientes).
-- **Sylow/Sylow.lean**: Teoremas de Sylow (⚠ sorry pendientes).
+- **Perm.lean**: Tipo de permutaciones (⚠ 1 sorry).
+- **Group.lean**: `FinGroup`, `Subgroup`, `gpow`/lemas, subgrupos trivial/impropio/cíclico, `IsNormal`, `Subgroup.inter` (⚠ 2 sorry: cyclicSubgroup bloqueados en B2.3).
+- **Sign.lean**: Signo de permutaciones (paridad). ✅
+- **Orbit.lean**: Órbitas de permutaciones. ✅
+- **Counting.lean**: Conteo combinatorio. ✅
+- **Action.lean**: Acciones de grupo, órbita-estabilizador (⚠ 2 sorry).
+- **Sylow/Cosets.lean**: Coclases, índice, Lagrange (⚠ 1 sorry).
+- **Sylow/Sylow.lean**: Teoremas de Sylow (⚠ 3 sorry).
 
 ---
 
 ## Próximos objetivos
 
+- **B2.3 `order`**: Implementar orden de un elemento — desbloquea 2 sorry en `cyclicSubgroup`. Estrategia: `collision_of_card_lt` (ya disponible en FSetFunction) + `gpow_sub_eq_id` + `well_ordering_principle`.
+- **B3 restante**: Subgrupo.product (B3.7), Subgroup.join (B3.8, requiere generatedSubgroup).
+- **B4**: GroupHom.Im, GroupHom.ker, comp, mono↔ker trivial.
 - **Completar sorry** en Action.lean, Cosets.lean, Sylow.lean.
 - **Phase 22**: Extensión a enteros ℤ (tipo inductivo canónico).
 - **Phase 23**: Extensión a racionales ℚ (estructura con invariante de coprimalidad).

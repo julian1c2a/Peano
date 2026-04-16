@@ -1,6 +1,6 @@
 # Plan de Implementación: `Lists`, `FSet` y `FSetFunction`
 
-**Última actualización:** 2026-06-17
+**Última actualización:** 2026-04-16
 **Autor**: Julián Calderón Almendros & Gemini Code Assist
 
 > Este documento detalla el plan de refactorización y extensión para la infraestructura
@@ -29,7 +29,7 @@ ligeramente distinto al plan original. Diferencias principales:
 | `ListsAndSets/ListList.lean` | ~200 | Listas de listas: flatten, cartesianProduct, transpose |
 | `ListsAndSets/FSet.lean` | ~600 | FSet como Quotient, insert, union, inter, diff, card, filter |
 | `ListsAndSets/FSetFSet.lean` | ~300 | Conjuntos de conjuntos, powerSet, partitions |
-| `ListsAndSets/FSetFunction.lean` | ~1500 | **Mayor módulo del proyecto**: MapOn, Im, InjectiveOn, SurjectiveOn, BijectiveOn, comp, comp_assoc, Pigeonhole, cardinal arguments |
+| `ListsAndSets/FSetFunction.lean` | ~1550 | **Mayor módulo del proyecto**: MapOn, Im, InjectiveOn, SurjectiveOn, BijectiveOn, comp, comp_assoc, Pigeonhole, `not_injective_of_card_lt`, `collision_of_card_lt`, cardinal arguments, ~92 decl. exportadas |
 
 ### Fases completadas
 

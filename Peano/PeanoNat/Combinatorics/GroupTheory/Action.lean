@@ -60,9 +60,18 @@ namespace Peano
 
     /-- `y ∈ Orb(x)` si y solo si existe `g ∈ G` tal que `α(g, x) = y`. -/
     theorem mem_orb_iff {G : FinGroup} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x y : ℕ₀) :
-        y ∈ (α.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ α.act g x = y :=
-      sorry
+        (α : GroupAction G X) (x y : ℕ₀) (hx : x ∈ X.elems) :
+        y ∈ (α.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ α.act g x = y := by
+      constructor
+      · intro hy
+        have hf := List.mem_filter.mp hy
+        rw [List.any_eq_true] at hf
+        obtain ⟨_, g, hg, hd⟩ := hf
+        exact ⟨g, hg, by rwa [decide_eq_true_eq] at hd⟩
+      · rintro ⟨g, hg, heq⟩
+        exact List.mem_filter.mpr
+          ⟨heq ▸ α.act_closed g x hg hx,
+           List.any_eq_true.mpr ⟨g, hg, decide_eq_true_eq.mpr heq⟩⟩
 
     /-!
     # § 3. Estabilizador de un elemento
@@ -71,8 +80,28 @@ namespace Peano
     /-- El estabilizador de `x` en `G`:
         `Stab(x) = { g ∈ G | α(g, x) = x }`. -/
     def GroupAction.stab {G : FinGroup} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x : ℕ₀) : Subgroup G :=
-      sorry  -- TODO: { g ∈ G | α(g,x) = x }; requiere filter sobre G.carrier
+        (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) : Subgroup G where
+      carrier := ℕ₀FSet.filter (fun g => decide (α.act g x = x)) G.carrier
+      nonempty := ⟨G.id, List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (α.act_id x hx)⟩⟩
+      subset := fun a ha => (List.mem_filter.mp ha).1
+      op_closed := fun a b ha hb => by
+        have ⟨ha_mem, ha_fix⟩ := List.mem_filter.mp ha
+        have ⟨hb_mem, hb_fix⟩ := List.mem_filter.mp hb
+        rw [decide_eq_true_eq] at ha_fix hb_fix
+        exact List.mem_filter.mpr
+          ⟨op_mem G ha_mem hb_mem,
+           decide_eq_true_eq.mpr (by
+            rw [← α.act_compat a b x ha_mem hb_mem hx, hb_fix, ha_fix])⟩
+      id_in := List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (α.act_id x hx)⟩
+      inv_closed := fun a ha => by
+        have ⟨ha_mem, ha_fix⟩ := List.mem_filter.mp ha
+        rw [decide_eq_true_eq] at ha_fix
+        exact List.mem_filter.mpr
+          ⟨inv_mem G ha_mem,
+           decide_eq_true_eq.mpr (by
+            have h := α.act_compat (G.inv a) a x (inv_mem G ha_mem) ha_mem hx
+            rw [(G.op_inv a ha_mem).2, α.act_id x hx] at h
+            rw [ha_fix] at h; exact h)⟩
 
     /-!
     # § 4. Teorema Órbita–Estabilizador
@@ -83,12 +112,11 @@ namespace Peano
     La prueba completa depende de Sylow/Cosets.lean.
     -/
 
-    /-- Teorema órbita–estabilizador (enunciado). -/
+    /-- Teorema órbita–estabilizador: `|Orb(x)| · |Stab(x)| = |G|`. -/
     theorem orbit_stabilizer {G : FinGroup} {X : ℕ₀FSet}
         (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) :
-        mul (α.orb x).card G.carrier.card =
-          mul (α.stab x).carrier.card G.carrier.card :=
-      sorry  -- requiere cosets (ver GroupTheory/Sylow/Cosets.lean)
+        mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card :=
+      sorry  -- requiere Lagrange + biyección G/Stab(x) ≅ Orb(x)
 
     /-!
     # § 5. Ecuación de clases
@@ -100,7 +128,7 @@ namespace Peano
     para continuar hacia los teoremas de Sylow.
     -/
 
-    /-- Partición de X en órbitas (enunciado). -/
+    /-- Partición de X en órbitas. -/
     theorem orbits_partition {G : FinGroup} {X : ℕ₀FSet}
         (α : GroupAction G X) :
         -- Toda x ∈ X pertenece a exactamente una órbita
@@ -108,8 +136,26 @@ namespace Peano
         -- Dos órbitas son iguales o disjuntas
         (∀ x y, x ∈ X.elems → y ∈ X.elems →
           (α.orb x).elems = (α.orb y).elems ∨
-          ∀ z, z ∉ (α.orb x).elems ∨ z ∉ (α.orb y).elems) :=
-      sorry
+          ∀ z, z ∉ (α.orb x).elems ∨ z ∉ (α.orb y).elems) := by
+      constructor
+      · -- Parte 1: x ∈ orb(x) vía α(e, x) = x
+        intro x hx
+        exact ⟨x, hx, (mem_orb_iff α x x hx).mpr ⟨G.id, G.id_in, α.act_id x hx⟩⟩
+      · -- Parte 2: orb(x) = orb(y)  o  disjuntas
+        -- Si ∃ z ∈ orb(x) ∩ orb(y), entonces orb(x) = orb(y);
+        -- si no, son disjuntas.
+        intro x y hx hy
+        rcases Classical.em (∃ z, z ∈ (α.orb x).elems ∧ z ∈ (α.orb y).elems) with h | h
+        · left
+          obtain ⟨z, hzx, hzy⟩ := h
+          obtain ⟨g₁, hg₁, hg₁_eq⟩ := (mem_orb_iff α x z hx).mp hzx
+          obtain ⟨g₂, hg₂, hg₂_eq⟩ := (mem_orb_iff α y z hy).mp hzy
+          sorry  -- requiere pairwise-sorted extensionality
+        · right
+          intro z
+          rcases Classical.em (z ∈ (α.orb x).elems) with hzx | hzx
+          · exact Or.inr (fun hzy => absurd ⟨z, hzx, hzy⟩ h)
+          · exact Or.inl hzx
 
   end GroupTheory
 end Peano

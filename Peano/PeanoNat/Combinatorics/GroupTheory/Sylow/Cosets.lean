@@ -39,16 +39,39 @@ namespace Peano
         G.carrier
 
     /-- `x ∈ gH ↔ ∃ h ∈ H, g·h = x`. -/
-    theorem mem_leftCoset_iff (G : FinGroup) (H : Subgroup G) (g x : ℕ₀) :
-        x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x :=
-      sorry  -- requiere unfold de FSet.filter + List.mem_filter + List.any_eq_true
+    theorem mem_leftCoset_iff (G : FinGroup) (H : Subgroup G) (g x : ℕ₀)
+        (hg : g ∈ G.carrier.elems) :
+        x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x := by
+      -- (leftCoset G H g).elems = G.carrier.elems.filter pred, por definición
+      constructor
+      · intro hx
+        have hf := List.mem_filter.mp hx
+        rw [List.any_eq_true] at hf
+        obtain ⟨_, h, hh, hd⟩ := hf
+        exact ⟨h, hh, by rwa [decide_eq_true_eq] at hd⟩
+      · rintro ⟨h, hh, heq⟩
+        exact List.mem_filter.mpr
+          ⟨heq ▸ op_mem G hg (H.subset h hh),
+           List.any_eq_true.mpr ⟨h, hh, decide_eq_true_eq.mpr heq⟩⟩
 
     /-- Todo coseto tiene la misma cardinalidad que `H`.
         La función `h ↦ g·h` es una biyección `H → gH`. -/
     theorem coset_card_eq_subgroup_card (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
-        (leftCoset G H g).card = H.carrier.card :=
-      sorry  -- biyección h ↦ g·h entre H.carrier y leftCoset G H g
+        (leftCoset G H g).card = H.carrier.card := by
+      -- Construimos la biyección h ↦ g·h de H.carrier a gH
+      let f : MapOn H.carrier (leftCoset G H g) := {
+        toFun := fun h => G.op g h,
+        map_carrier := fun h hh =>
+          (mem_leftCoset_iff G H g (G.op g h) hg).mpr ⟨h, hh, rfl⟩
+      }
+      have h_inj : f.Injective := by
+        intro h₁ h₂ hh₁ hh₂ heq
+        exact op_cancel_left G hg (H.subset h₁ hh₁) (H.subset h₂ hh₂) heq
+      have h_surj : f.Surjective := by
+        intro y hy
+        exact (mem_leftCoset_iff G H g y hg).mp hy
+      exact (MapOn.Bijective.card_eq ⟨h_inj, h_surj⟩).symm
 
     /-!
     # § 2. Relación de equivalencia por cosetos
@@ -68,14 +91,31 @@ namespace Peano
     theorem cosetRel_symm (G : FinGroup) (H : Subgroup G) (a b : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
         (hab : cosetRel G H a b) :
-        cosetRel G H b a :=
-      sorry  -- (a⁻¹·b)⁻¹ = b⁻¹·a ∈ H porque H es cerrado bajo inversas
+        cosetRel G H b a := by
+      unfold cosetRel at hab ⊢
+      -- hab : G.op (G.inv a) b ∈ H
+      -- Goal : G.op (G.inv b) a ∈ H
+      -- Key: inv(inv(a)·b) = inv(b)·inv(inv(a)) = inv(b)·a
+      have h : G.inv (G.op (G.inv a) b) ∈ H.carrier.elems := H.inv_closed _ hab
+      rw [inv_op_eq G (inv_mem G ha) hb, inv_inv_eq G ha] at h
+      exact h
 
     theorem cosetRel_trans (G : FinGroup) (H : Subgroup G) (a b c : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems) (hc : c ∈ G.carrier.elems)
         (hab : cosetRel G H a b) (hbc : cosetRel G H b c) :
-        cosetRel G H a c :=
-      sorry  -- a⁻¹·c = (a⁻¹·b)·(b⁻¹·c) ∈ H porque H es cerrado bajo op
+        cosetRel G H a c := by
+      unfold cosetRel at hab hbc ⊢
+      -- hab : G.op (G.inv a) b ∈ H,  hbc : G.op (G.inv b) c ∈ H
+      -- Key: inv(a)·c = (inv(a)·b)·(inv(b)·c) ∈ H (por op_closed)
+      have ha' := inv_mem G ha
+      have hb' := inv_mem G hb
+      have key : G.op (G.inv a) c =
+          G.op (G.op (G.inv a) b) (G.op (G.inv b) c) := by
+        rw [G.op_assoc (G.inv a) b _ ha' hb (op_mem G hb' hc)]
+        rw [← G.op_assoc b (G.inv b) c hb hb' hc]
+        rw [(G.op_inv b hb).1, (G.op_id c hc).2]
+      rw [key]
+      exact H.op_closed _ _ hab hbc
 
     /-!
     # § 3. Lema de Lagrange
@@ -86,11 +126,10 @@ namespace Peano
     theorem lagrange (G : FinGroup) (H : Subgroup G) :
         ∃ k : ℕ₀, mul H.carrier.card k = G.carrier.card :=
       sorry
-      -- Estrategia:
-      -- 1. Los cosetos distintos son disjuntos (cosetRel es de equiv.)
-      -- 2. Cada coseto tiene cardinalidad |H| (coset_card_eq_subgroup_card)
-      -- 3. Los cosetos particionan G
-      -- 4. |G| = nº de cosetos · |H|
+      -- Ingredientes disponibles:
+      --   cosetRel es equivalencia (refl, symm, trans ya demostrados)
+      --   coset_card_eq_subgroup_card : |gH| = |H|
+      -- Falta: partición de G en cosetos + conteo por fibras
 
   end GroupTheory
 end Peano

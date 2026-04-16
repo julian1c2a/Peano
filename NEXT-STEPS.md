@@ -1152,17 +1152,406 @@ Desarrollo completo:
 25.4 Orbit.lean ✅
 25.5 Group.lean ⚠ (1 sorry)
 25.6 Action.lean ⚠ (4 sorry)
-25.7 Sylow/Cosets.lean ⚠ (5 sorry)
+25.7 Sylow/Cosets.lean ⚠ (1 sorry — lagrange)
 25.8 Sylow/Sylow.lean ⚠ (3 sorry)
 ```
 
 ---
 
+## Estado actual de sorry (actualizado 2026-04-16)
+
+Tras la sesión de limpieza de sorry de Phase 25, el proyecto pasó de **14 sorry** a **7 sorry**.
+
+| # | Archivo | Línea | Teorema | Dificultad |
+|---|---------|-------|---------|------------|
+| 1 | `Perm.lean` | 39 | `FunPerm.comp is_perm` | Media |
+| 2 | `Action.lean` | 116 | `orbit_stabilizer` | Alta |
+| 3 | `Action.lean` | 132 | `orbits_partition` (rama left) | Media |
+| 4 | `Cosets.lean` | 126 | `lagrange` | Alta |
+| 5 | `Sylow.lean` | 71 | `sylow_first` | Muy alta |
+| 6 | `Sylow.lean` | 88 | `sylow_second` | Muy alta |
+| 7 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
+
+### Sorry ya eliminados en esta sesión (7 de 14)
+
+- `Group.lean`: Sym/Perm duplicado → eliminada definición con sorry (−1)
+- `Cosets.lean`: `mem_leftCoset_iff` → demostrado con `List.mem_filter` + `List.any_eq_true` (−1)
+- `Cosets.lean`: `cosetRel_symm` → demostrado con `inv_op_eq` + `inv_inv_eq` + `H.inv_closed` (−1)
+- `Cosets.lean`: `cosetRel_trans` → demostrado con asociatividad + `H.op_closed` (−1)
+- `Cosets.lean`: `coset_card_eq_subgroup_card` → demostrado con biyección `h ↦ g·h` (MapOn.Bijective.card_eq) (−1)
+- `Action.lean`: `mem_orb_iff` → demostrado con `List.mem_filter` + `List.any_eq_true` (−1)
+- `Action.lean`: `GroupAction.stab` → construido como Subgroup vía `ℕ₀FSet.filter` (−1)
+
+---
+
+## Plan detallado de demostración de los 7 sorry restantes
+
+### Dependencias entre los sorry
+
+```
+FunPerm.comp ─────────────────────── (independiente)
+
+orbits_partition ──┐
+                   ├──► orbit_stabilizer ──► lagrange
+                   │
+                   ├──► sylow_first ──┐
+                   │                  ├──► sylow_second ──► sylow_third
+                   ├──► (center Z(G)) │
+                   └──► (Cauchy)  ────┘
+```
+
+### Orden recomendado de ejecución
+
+```
+Paso 1: FunPerm.comp (Perm.lean)          — independiente
+Paso 2: orbits_partition (Action.lean)     — necesita FSet.ext
+Paso 3: lagrange (Cosets.lean)             — necesita conteo por fibras
+Paso 4: orbit_stabilizer (Action.lean)     — necesita lagrange
+Paso 5: Infraestructura Sylow             — Z(G), normal, cocientes, Cauchy
+Paso 6: sylow_first (Sylow.lean)           — necesita toda la infraestructura
+Paso 7: sylow_second (Sylow.lean)          — necesita sylow_first + conjugación
+Paso 8: sylow_third (Sylow.lean)           — necesita sylow_second + conteo mod p
+```
+
+---
+
+### Paso 1: `FunPerm.comp is_perm` (Perm.lean:39)
+
+**Enunciado**: Si `f, g : FunPerm A`, entonces la tabla de `g ∘ f` es
+`List.Perm` de `A.elems`.
+
+**Cómo**: La tabla de `comp g f dflt` es `f.table.map (fun a => g.applyElem a dflt)`.
+
+**Estrategia en 3 sub-lemas**:
+
+1. **`applyElem_injective_on_elems`** (nuevo, en FSetFunction.lean):
+
+   ```
+   Si g : FunPerm A y a₁ a₂ ∈ A.elems, entonces
+     g.applyElem a₁ dflt = g.applyElem a₂ dflt → a₁ = a₂
+   ```
+
+   *Prueba*: `applyElem a = getDₚ dflt g.table (indexOfₚ a A.elems)`.
+   Si `g.is_perm : g.table ~ A.elems`, entonces `g.table` tiene los mismos
+   elementos que `A.elems` sin repeticiones (sorted ⟹ nodup).
+   Necesita: `getDₚ_indexOfₚ`, `indexOfₚ_injective` (de Sorted ⟹ Nodup ⟹
+   distintos índices para distintos elementos), y que `getDₚ` es inyectiva
+   sobre un rango válido en una lista sin duplicados.
+
+   *Sub-lema auxiliar*: `sorted_lt_nodup : Sorted (· < ·) l → l.Nodup`.
+   Prueba: `Pairwise (· < ·) l → Pairwise (· ≠ ·) l` por transitividad
+   de `<` e irreflexividad, luego `Nodup = Pairwise (· ≠ ·)`.
+
+2. **`applyElem_mem_of_perm`** (ya existe como `applyElem_mem`):
+   `g.applyElem a dflt ∈ A.elems` si `a ∈ A.elems`.
+
+3. **Prueba final**: `f.table.map (g.applyElem · dflt) ~ A.elems` porque:
+   - `f.is_perm : f.table ~ A.elems`
+   - `List.Perm.map (g.applyElem · dflt)` da `f.table.map (...) ~ A.elems.map (...)`
+   - `A.elems.map (g.applyElem · dflt) ~ A.elems` porque la función es
+     inyectiva sobre una lista nodup de mismo tamaño que A.elems, y cada
+     imagen está en A.elems.
+   - Usar `List.perm_iff_count` (stdlib): basta mostrar que para todo
+     `a ∈ A.elems`, `count a (A.elems.map f) = count a A.elems`, lo que
+     se sigue de inyectividad + pertenencia + nodup.
+
+**Infraestructura nueva requerida**:
+
+- `sorted_lt_nodup` (~10 líneas, en List.lean o FSet.lean)
+- `applyElem_injective_on_elems` (~15 líneas, en FSetFunction.lean)
+- `perm_map_of_injective_on_nodup` (~20 líneas, podría ir en List.lean)
+
+**Dificultad**: Media. ~50 líneas de lemas auxiliares.
+
+---
+
+### Paso 2: `orbits_partition` rama left (Action.lean:132)
+
+**Enunciado** (rama pendiente): Si `z ∈ orb(x) ∩ orb(y)`, entonces
+`orb(x).elems = orb(y).elems`.
+
+**Estado actual**: La rama `right` (disjuntas) ya está demostrada.
+Faltan ~8 líneas en la rama `left`.
+
+**Estrategia**:
+
+1. De `z ∈ orb(x)` obtenemos `g₁` con `α(g₁, x) = z`.
+   De `z ∈ orb(y)` obtenemos `g₂` con `α(g₂, y) = z`.
+
+2. **Inclusión orb(x) ⊆ orb(y)**: Si `w ∈ orb(x)`, existe `h` con
+   `α(h, x) = w`. Entonces `x = α(g₁⁻¹, z) = α(g₁⁻¹, α(g₂, y)) = α(g₁⁻¹·g₂, y)`.
+   Luego `w = α(h, x) = α(h, α(g₁⁻¹·g₂, y)) = α(h·g₁⁻¹·g₂, y) ∈ orb(y)`.
+
+3. **Inclusión orb(y) ⊆ orb(x)**: Simétrica.
+
+4. **Igualdad de listas**: Ambas listas son sublistas sorted de `X.elems`
+   (construidas por `FSet.filter`). Dos sublistas sorted con los mismos
+   elementos son iguales.
+   Usar `List.Perm.eq_of_sorted` de stdlib (renombrado a `eq_of_pairwise`):
+
+   ```
+   antireflexive_of_lt + pairwise_sorted₁ + pairwise_sorted₂ + perm → eq
+   ```
+
+   Necesita construir `List.Perm` entre `orb(x).elems` y `orb(y).elems`.
+
+**Infraestructura nueva requerida**:
+
+- `FSet.ext : s₁.elems = s₂.elems → s₁ = s₂` (~3 líneas, en FSet.lean —
+  basta `cases s₁; cases s₂; simp` o similar con proof irrelevance)
+- Aplicar `List.Perm.eq_of_pairwise` con `(· < ·)` y la antisimetría
+  `a < b → b < a → False` (ya disponible como `IrreflLT`).
+
+**Dificultad**: Media. ~30 líneas incluyendo el lema `FSet.ext`.
+
+---
+
+### Paso 3: `lagrange` (Cosets.lean:126)
+
+**Enunciado**: `∃ k, mul H.carrier.card k = G.carrier.card`.
+
+**Ingredientes ya disponibles**:
+
+- `cosetRel` es relación de equivalencia (refl, symm, trans demostrados)
+- `coset_card_eq_subgroup_card`: cada coseto tiene cardinalidad `|H|`
+- `mem_leftCoset_iff`: caracterización de pertenencia a cosetos
+
+**Estrategia de la prueba**:
+
+1. **Construir el conjunto de cosetos**: `cosets G H : List ℕ₀FSet` =
+   lista de cosetos distintos `gH` para `g ∈ G.carrier.elems`, eliminando
+   duplicados. Definir como:
+
+   ```lean
+   def cosetList (G : FinGroup) (H : Subgroup G) : List ℕ₀FSet :=
+     (G.carrier.elems.map (leftCoset G H)).dedup
+   ```
+
+2. **Los cosetos particionan G**:
+   - Todo `g ∈ G` pertenece a algún coseto (está en `gH` porque `G.id ∈ H`
+     ⟹ `g·id = g ∈ gH`).
+   - Cosetos distintos son disjuntos (de `cosetRel` equivalencia:
+     `gH ∩ g'H ≠ ∅ → gH = g'H`).
+
+3. **Conteo por fibras**: `|G| = |H| · (número de cosetos)`.
+   Necesita un lema general de conteo:
+
+   ```lean
+   theorem card_partition (G : ℕ₀FSet) (parts : List ℕ₀FSet)
+     (h_cover : ∀ x ∈ G.elems, ∃ P ∈ parts, x ∈ P.elems)
+     (h_disjoint : ∀ P Q ∈ parts, P ≠ Q → ∀ x, x ∉ P.elems ∨ x ∉ Q.elems)
+     (h_sub : ∀ P ∈ parts, ∀ x ∈ P.elems, x ∈ G.elems)
+     (h_size : ∀ P ∈ parts, P.card = k) :
+     G.card = mul k (lengthₚ parts)
+   ```
+
+**Infraestructura nueva requerida** (significativa):
+
+- `cosetList` o equivalente para enumerar cosetos
+- `card_partition`: conteo por fibras equi-cardinales (~40 líneas)
+- Lema de disjunción de cosetos vía `cosetRel` (~20 líneas)
+- Lema de cobertura: todo `g ∈ G` pertenece a `gH` (~5 líneas)
+
+**Dificultad**: Alta. ~80-100 líneas de infraestructura nueva.
+
+---
+
+### Paso 4: `orbit_stabilizer` (Action.lean:116)
+
+**Enunciado**: `mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card`
+
+**Estrategia**: Aplicar `lagrange` al subgrupo `Stab(x)`, más una biyección
+`Orb(x) ≅ G/Stab(x)`:
+
+1. Por `lagrange G (α.stab x hx)` obtenemos `k` con `|Stab(x)| · k = |G|`.
+
+2. Construir biyección `φ : G/Stab(x) → Orb(x)` definida por
+   `φ(gStab(x)) = α(g, x)`. Mostrar:
+   - Bien definida: si `g₁ ~ g₂` (mod Stab), entonces `α(g₁,x) = α(g₂,x)`.
+   - Inyectiva: si `α(g₁,x) = α(g₂,x)`, entonces `g₁⁻¹g₂ ∈ Stab(x)`.
+   - Sobreyectiva: todo `y ∈ Orb(x)` tiene preimagen por definición de órbita.
+
+3. De la biyección: `k = |Orb(x)|`, luego `|Stab(x)| · |Orb(x)| = |G|`.
+
+**Dependencias**: `lagrange` (Paso 3), biyección explícita como MapOn.
+
+**Dificultad**: Alta. ~50 líneas, pero depende de Lagrange.
+
+---
+
+### Paso 5: Infraestructura para Sylow
+
+Los tres teoremas de Sylow requieren infraestructura que **no existe aún**
+en el proyecto. Se necesita construir:
+
+#### 5a. Centro del grupo `Z(G)`
+
+```lean
+def center (G : FinGroup) : Subgroup G where
+  carrier := ℕ₀FSet.filter (fun g =>
+    G.carrier.elems.all (fun h => decide (G.op g h = G.op h g))) G.carrier
+  ...
+```
+
+Demostrar que es subgrupo (~20 líneas) y que es normal (~10 líneas).
+
+#### 5b. Subgrupo normal
+
+```lean
+def Subgroup.IsNormal (G : FinGroup) (N : Subgroup G) : Prop :=
+  ∀ g n, g ∈ G.carrier.elems → n ∈ N.carrier.elems →
+    G.op (G.op g n) (G.inv g) ∈ N.carrier.elems
+```
+
+~5 líneas para la definición, ~15 líneas para lemas básicos.
+
+#### 5c. Grupo cociente `G/N`
+
+```lean
+def quotientGroup (G : FinGroup) (N : Subgroup G)
+    (hN : N.IsNormal) : FinGroup
+```
+
+Construir el grupo cuyo carrier es el conjunto de cosetos, con la operación
+`(gN)·(hN) = (gh)N`. Requiere buena definición + verificación de bien-definido.
+~60-80 líneas.
+
+#### 5d. Teorema de Cauchy
+
+```lean
+theorem cauchy (G : FinGroup) (p : ℕ₀)
+    (hp : Prime p) (hdvd : dvd_card p G.carrier) :
+    ∃ g, g ∈ G.carrier.elems ∧ order G g = p
+```
+
+Donde `order G g` es el menor `n > 0` tal que `G.op^n g = G.id`.
+Requiere:
+
+- Definición de `order` (~15 líneas)
+- Lema: `order` divide `|G|` (~20 líneas, usa Lagrange sobre `⟨g⟩`)
+- Prueba de Cauchy por inducción sobre `|G|` (~40 líneas)
+
+#### 5e. Ecuación de clases
+
+```lean
+theorem class_equation (G : FinGroup) :
+    G.carrier.card = (center G).carrier.card +
+      sum_over_nontrivial_orbits (...)
+```
+
+Usa `orbits_partition` + conteo. ~40 líneas.
+
+**Total infraestructura Paso 5**: ~200-250 líneas de código nuevo.
+
+---
+
+### Paso 6: `sylow_first` (Sylow.lean:71)
+
+**Enunciado**: Si `p` primo y `p^n | |G|`, existe `H ≤ G` con `|H| = p^n`.
+
+**Estrategia** (prueba clásica por inducción fuerte sobre `|G|`):
+
+1. **Caso base**: `|G| = 1` ⟹ `n = 0`, `H = {e}`.
+
+2. **Paso inductivo**: Considerar la ecuación de clases:
+   `|G| = |Z(G)| + Σᵢ [G : C_G(xᵢ)]`
+
+   - **Caso A**: `p | |Z(G)|`. Entonces por Cauchy en `Z(G)` (abeliano),
+     existe `g ∈ Z(G)` de orden `p`. El subgrupo `⟨g⟩` es normal en `G`
+     (porque `g ∈ Z(G)`). Aplicar hipótesis de inducción al cociente
+     `G/⟨g⟩` de orden `|G|/p`.
+
+   - **Caso B**: `p ∤ |Z(G)|`. Entonces algún sumando `[G : C_G(xᵢ)]`
+     no es divisible por `p`, lo que implica `p^n | |C_G(xᵢ)|` con
+     `|C_G(xᵢ)| < |G|`. Aplicar hipótesis de inducción a `C_G(xᵢ)`.
+
+**Dependencias**: center, normal, quotient group, Cauchy, class equation,
+orbit_stabilizer, lagrange.
+
+**Dificultad**: Muy alta. ~80-100 líneas (asumiendo toda la infraestructura).
+
+---
+
+### Paso 7: `sylow_second` (Sylow.lean:88)
+
+**Enunciado**: Todos los p-subgrupos de Sylow son conjugados.
+
+**Estrategia**:
+
+1. Sea `H` un p-subgrupo de Sylow. Hacer actuar `H` sobre `G/K`
+   (cosetos de otro p-subgrupo de Sylow `K`) por multiplicación izquierda:
+   `h · (gK) = (hg)K`.
+
+2. `|G/K| = |G|/p^n`, y como `p^n | |H|` con `|H| = p^n`, el número de
+   órbitas cumple: `|G/K| = Σ |orb|` donde cada `|orb|` divide `|H| = p^n`,
+   así que cada `|orb|` es una potencia de `p`.
+
+3. `|G/K|` no es divisible por `p` (porque `p^n ‖ |G|`). Entonces existe
+   al menos una órbita de tamaño 1, es decir un `gK` fijo por `H`:
+   `hgK = gK` para todo `h ∈ H`.
+
+4. Esto implica `g⁻¹hg ∈ K` para todo `h ∈ H`, es decir `g⁻¹Hg ⊆ K`.
+   Como `|g⁻¹Hg| = |H| = |K|`, tenemos `g⁻¹Hg = K`.
+
+**Dependencias**: sylow_first (para la existencia), orbit_stabilizer,
+lagrange, acción sobre cosetos.
+
+**Dificultad**: Muy alta. ~60-80 líneas.
+
+---
+
+### Paso 8: `sylow_third` (Sylow.lean:105)
+
+**Enunciado**: `n_p ≡ 1 (mod p)` y `n_p | [G:H]`.
+
+**Estrategia**:
+
+1. **`n_p | [G:H]`**: Por Sylow II, G actúa transitivamente sobre los
+   p-subgrupos de Sylow por conjugación. Luego `n_p = |G|/|N_G(H)| = [G:N_G(H)]`.
+   Como `H ≤ N_G(H)` y `[G:H] = [G:N_G(H)] · [N_G(H):H]`, tenemos
+   `n_p | [G:H]`.
+
+2. **`n_p ≡ 1 (mod p)`**: Hacer actuar `H` sobre el conjunto de p-subgrupos
+   de Sylow por conjugación. Los puntos fijos son exactamente los `K` tales
+   que `hKh⁻¹ = K` para todo `h ∈ H`, es decir `K ≤ N_G(H)`.
+   Si `K` es punto fijo, entonces `HK` es subgrupo y `|HK| = |H|·|K|/|H∩K|`.
+   Como `|HK|` divide `|G|` y `|H| = |K| = p^n`, se deduce `H = K`.
+   Luego `H` es el único punto fijo. Por conteo mod p: `n_p ≡ 1 (mod p)`.
+
+**Dependencias**: sylow_second, normalizador `N_G(H)`, lagrange, ModEq.
+
+**Infraestructura adicional**:
+
+- Normalizador `N_G(H)` (~20 líneas)
+- `|HK| = |H|·|K|/|H∩K|` (~30 líneas)
+- Conteo de puntos fijos mod p (~20 líneas)
+
+**Dificultad**: Muy alta. ~70-90 líneas.
+
+---
+
+### Resumen del esfuerzo total
+
+| Paso | Sorry | Líneas estimadas | Infraestructura nueva |
+|------|-------|------------------|-----------------------|
+| 1 | `FunPerm.comp` | ~50 | sorted_lt_nodup, applyElem_injective |
+| 2 | `orbits_partition` | ~30 | FSet.ext |
+| 3 | `lagrange` | ~100 | card_partition, cosetList |
+| 4 | `orbit_stabilizer` | ~50 | biyección G/Stab ≅ Orb |
+| 5 | (infraestructura) | ~250 | Z(G), Normal, G/N, Cauchy, class eq |
+| 6 | `sylow_first` | ~100 | inducción + ecuación de clases |
+| 7 | `sylow_second` | ~80 | acción sobre cosetos |
+| 8 | `sylow_third` | ~90 | normalizador, conteo mod p |
+| **Total** | **7 sorry** | **~750 líneas** | |
+
+---
+
 ## Prioridad inmediata
 
-1. **Completar sorry en Perm.lean y Group.lean** (2 sorry, menor dificultad)
-2. **Completar sorry en Action.lean** (4 sorry, dificultad media)
-3. **Completar sorry en Sylow/Cosets.lean** (5 sorry, dificultad alta)
-4. **Completar sorry en Sylow/Sylow.lean** (3 sorry, dificultad muy alta)
-5. **Phase 22 (ℤ)**: Extensión a enteros
-6. **Phase 23 (ℚ)**: Extensión a racionales
+1. **Paso 1**: `FunPerm.comp` (Perm.lean) — independiente, dificultad media
+2. **Paso 2**: `orbits_partition` (Action.lean) — casi terminado, falta FSet.ext
+3. **Paso 3**: `lagrange` (Cosets.lean) — abre la puerta a Pasos 4-8
+4. **Paso 4**: `orbit_stabilizer` (Action.lean) — usa lagrange
+5. **Pasos 5-8**: Sylow completo — requiere toda la cadena
+6. **Phase 22 (ℤ)**: Extensión a enteros
+7. **Phase 23 (ℚ)**: Extensión a racionales

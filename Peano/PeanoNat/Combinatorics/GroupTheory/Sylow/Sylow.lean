@@ -17,6 +17,7 @@ License: MIT
 --   * Action.lean (Teorema Órbita–Estabilizador, Ecuación de Clases)
 
 import Peano.PeanoNat
+import Peano.PeanoNat.Arith
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Group
@@ -31,6 +32,7 @@ namespace Peano
     open Peano.FSet
     open Peano.FSetFunction
     open Peano.Group
+    open Peano.Arith
 
     /-!
     # § 1. p-subgrupos
@@ -65,21 +67,16 @@ namespace Peano
     En particular, `G` tiene un subgrupo de Sylow para cada primo `p | |G|`.
     -/
 
-    /-- **Primer Teorema de Sylow** (enunciado).
-        Para cada primo `p` y cada `n` tal que `p^n | |G|`,
-        existe un subgrupo `H ≤ G` con `|H| = p^n`. -/
+    /-- **Primer Teorema de Sylow**: existencia de p-subgrupos. -/
     theorem sylow_first (G : FinGroup) (p n : ℕ₀)
-        (hp : sorry)   -- p es primo
+        (hp : Prime p)
         (hdvd : pow_dvd_card p n G.carrier) :
         ∃ H : Subgroup G, H.carrier.card = p ^ n :=
       sorry
       -- Prueba estándar: inducción sobre |G| usando la ecuación de clases.
-      -- Caso base: |G| = 1 (trivial).
-      -- Paso inductivo:
-      --   si p | |Z(G)|: usar que Z(G) es abeliano y encontrar H ≤ Z(G) de orden p,
-      --     luego inducción en G/H.
-      --   si p ∤ |Z(G)|: la ecuación de clases da un centralizador C_G(x) con [G:C_G(x)] no div. p,
-      --     luego inducción en C_G(x).
+      -- Caso base: |G| = 1.
+      -- Paso inductivo: si p | |Z(G)| → Cauchy en Z(G) → inducción en G/H;
+      --                 si p ∤ |Z(G)| → ecuación de clases → inducción en C_G(x).
 
     /-!
     # § 3. Segundo Teorema de Sylow (conjugación)
@@ -87,18 +84,14 @@ namespace Peano
     Todos los subgrupos de Sylow `p` de `G` son conjugados entre sí.
     -/
 
-    /-- **Segundo Teorema de Sylow** (enunciado).
-        Si `H` y `K` son subgrupos de Sylow `p` de `G`, entonces
-        existe `g ∈ G` tal que `K = g H g⁻¹`. -/
+    /-- **Segundo Teorema de Sylow**: conjugación de p-subgrupos. -/
     theorem sylow_second (G : FinGroup) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p) (hK : isSylowSubgroup G K p) :
         ∃ g, g ∈ G.carrier.elems ∧
           ∀ x, x ∈ K.carrier.elems ↔
             ∃ h, h ∈ H.carrier.elems ∧ G.op (G.op g h) (G.inv g) = x :=
-      sorry
-      -- Prueba: hacer actuar H sobre G/K por multiplicación izquierda,
-      -- contar órbitas módulo p; hay exactamente una órbita fija.
+      sorry  -- acción de H sobre G/K por multiplicación izquierda, conteo mod p
 
     /-!
     # § 4. Tercer Teorema de Sylow (número de subgrupos de Sylow)
@@ -108,10 +101,9 @@ namespace Peano
     - `n_p | [G : H]` donde `H` es cualquier subgrupo de Sylow `p`.
     -/
 
-    /-- **Tercer Teorema de Sylow** (enunciado).
-        El número de subgrupos de Sylow `p` es ≡ 1 mod p y divide a `[G:H]`. -/
+    /-- **Tercer Teorema de Sylow**: n_p ≡ 1 mod p y n_p | [G:H]. -/
     theorem sylow_third (G : FinGroup) (p : ℕ₀)
-        (hp : sorry) -- p primo
+        (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
         (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
@@ -119,11 +111,7 @@ namespace Peano
         (∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙) ∧
         -- n_p | |G|/p^n
         (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card) :=
-      sorry
-      -- Prueba: hacer actuar G sobre el conjunto de subgrupos de Sylow por conjugación.
-      -- Hay una sola órbita (Sylow II), luego n_p | |G|/p^n.
-      -- Para n_p ≡ 1 mod p: hacer actuar H sobre el conjunto de subgrupos de Sylow;
-      -- H es el único punto fijo.
+      sorry  -- acción por conjugación + Sylow II + conteo mod p
 
   end GroupTheory
 end Peano

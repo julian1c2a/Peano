@@ -835,27 +835,29 @@ namespace Peano
     /-- Si `A.card = B.card` y `f` inyectiva, la `leftInverse` coincide
         punto a punto con la `inverse` de la biyección inducida. -/
     theorem MapOn.leftInverse_eq_inverse_of_card_eq {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (h_card_eq : A.card = B.card) (f : MapOn A B)
-        (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (b : β) :
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (h_card_eq : A.card = B.card) (f : MapOn A B)
+      (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (b : β) :
         (f.leftInverse h_inj dflt h_dflt).toFun b =
         (f.inverse ((MapOn.injective_iff_bijective_of_card_eq h_card_eq f).mp h_inj)
-                   dflt h_dflt).toFun b :=
+                   dflt h_dflt).toFun b
+          :=
       rfl
 
     /-- Si `A.card = B.card` y `f` inyectiva, la `leftInverse` también es
         inversa por la derecha: `f(g(b)) = b` para todo `b ∈ B`. -/
     theorem MapOn.leftInverse_right_prop_of_card_eq {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (h_card_eq : A.card = B.card) (f : MapOn A B)
-        (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (b : β) (hb : b ∈ B.elems) :
-        f.toFun ((f.leftInverse h_inj dflt h_dflt).toFun b) = b := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (h_card_eq : A.card = B.card) (f : MapOn A B)
+      (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (b : β) (hb : b ∈ B.elems) :
+        f.toFun ((f.leftInverse h_inj dflt h_dflt).toFun b) = b
+          := by
       have h_bij := (MapOn.injective_iff_bijective_of_card_eq h_card_eq f).mp h_inj
       rw [f.leftInverse_eq_inverse_of_card_eq h_card_eq h_inj dflt h_dflt b]
       exact f.inverse_right_prop h_bij dflt h_dflt b hb
@@ -863,27 +865,29 @@ namespace Peano
     /-- Si `A.card = B.card` y `f` sobreyectiva, la `rightInverse` coincide
         punto a punto con la `inverse` de la biyección inducida. -/
     theorem MapOn.rightInverse_eq_inverse_of_card_eq {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (h_card_eq : A.card = B.card) (f : MapOn A B)
-        (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (b : β) :
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (h_card_eq : A.card = B.card) (f : MapOn A B)
+      (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (b : β) :
         (f.rightInverse h_surj dflt).toFun b =
         (f.inverse ((MapOn.surjective_iff_bijective_of_card_eq h_card_eq f).mp h_surj)
-                   dflt h_dflt).toFun b := by
+                   dflt h_dflt).toFun b
+          := by
       dsimp [rightInverse, inverse]
 
     /-- Si `A.card = B.card` y `f` sobreyectiva, la `rightInverse` también es
         inversa por la izquierda: `g(f(a)) = a` para todo `a ∈ A`. -/
     theorem MapOn.rightInverse_left_prop_of_card_eq {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (h_card_eq : A.card = B.card) (f : MapOn A B)
-        (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (a : α) (ha : a ∈ A.elems) :
-        (f.rightInverse h_surj dflt).toFun (f.toFun a) = a := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (h_card_eq : A.card = B.card) (f : MapOn A B)
+      (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (a : α) (ha : a ∈ A.elems) :
+        (f.rightInverse h_surj dflt).toFun (f.toFun a) = a
+          := by
       have h_bij := (MapOn.surjective_iff_bijective_of_card_eq h_card_eq f).mp h_surj
       rw [f.rightInverse_eq_inverse_of_card_eq h_card_eq h_surj dflt h_dflt (f.toFun a)]
       exact f.inverse_left_prop h_bij dflt h_dflt a ha
@@ -893,25 +897,29 @@ namespace Peano
     -/
 
     private theorem card_filter_le {α : Type} [DecidableEq α] [LT α]
-        (A : FSet α) (P : α → Bool) : (A.filter P).card ≤ A.card := by
+      (A : FSet α) (P : α → Bool) :
+        (A.filter P).card ≤ A.card
+          := by
       unfold FSet.card FSet.filter lengthₚ
       exact (isomorph_Λ_le _ _).mp (List.length_filter_le P A.elems)
 
     theorem card_le_of_injective {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (f : MapOn A B) (h_inj : f.Injective) :
-        A.card ≤ B.card := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (h_inj : f.Injective) :
+        A.card ≤ B.card
+          := by
       rw [← card_image_of_injective f h_inj]
       exact card_filter_le B _
 
     theorem card_le_of_surjective {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (f : MapOn A B) (h_surj : f.Surjective) :
-        B.card ≤ A.card := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (h_surj : f.Surjective) :
+        B.card ≤ A.card
+          := by
       rw [← card_image_of_surjective f h_surj]
       -- Goal: f.Im.card ≤ A.card
       -- Im.elems is nodup and ⊆ A.elems.map f.toFun, |map| = |A|
@@ -933,47 +941,51 @@ namespace Peano
     /-- Teorema de Schroeder-Bernstein (versión finita):
         Si hay inyecciones en ambos sentidos, entonces card A = card B. -/
     theorem card_eq_of_injections {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (f : MapOn A B) (hf : f.Injective)
-        (g : MapOn B A) (hg : g.Injective) :
-        A.card = B.card :=
-      le_antisymm A.card B.card
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (hf : f.Injective)
+      (g : MapOn B A) (hg : g.Injective) :
+        A.card = B.card
+        := by
+      exact le_antisymm A.card B.card
         (card_le_of_injective f hf) (card_le_of_injective g hg)
 
     /-- Dual para sobreyecciones:
         Si hay sobreyecciones en ambos sentidos, entonces card A = card B. -/
     theorem card_eq_of_surjections {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        (f : MapOn A B) (hf : f.Surjective)
-        (g : MapOn B A) (hg : g.Surjective) :
-        A.card = B.card :=
-      le_antisymm A.card B.card
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (hf : f.Surjective)
+      (g : MapOn B A) (hg : g.Surjective) :
+        A.card = B.card
+        := by
+      exact le_antisymm A.card B.card
         (card_le_of_surjective g hg) (card_le_of_surjective f hf)
 
     /-- Si existe una biyección entre A y B, entonces card A = card B. -/
     theorem MapOn.Bijective.card_eq {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β}
-        {f : MapOn A B} (h : f.Bijective) :
-        A.card = B.card :=
-      le_antisymm A.card B.card
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      {f : MapOn A B} (h : f.Bijective) :
+        A.card = B.card
+        := by
+      exact le_antisymm A.card B.card
         (card_le_of_injective f h.inj) (card_le_of_surjective f h.surj)
 
     /-- Si `f` es inyectiva y su inversa izquierda es inyectiva, entonces `f` es biyectiva.
         Argumento: `g` inyectiva ⟹ `|B| ≤ |A|`; `f` inyectiva ⟹ `|A| ≤ |B|`; igualdad
         de cardinalidad + inyectividad ⟹ biyectividad. -/
     theorem MapOn.bijective_of_injective_leftInverse_injective {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (h_li_inj : (f.leftInverse h_inj dflt h_dflt).Injective) :
-        f.Bijective := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β} (f : MapOn A B)
+      (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (h_li_inj : (f.leftInverse h_inj dflt h_dflt).Injective) :
+        f.Bijective
+          := by
       have h_card : A.card = B.card :=
         card_eq_of_injections f h_inj (f.leftInverse h_inj dflt h_dflt) h_li_inj
       exact (MapOn.injective_iff_bijective_of_card_eq h_card f).mp h_inj
@@ -982,12 +994,13 @@ namespace Peano
         Argumento: `g` sobreyectiva ⟹ `|A| ≤ |B|`; `f` sobreyectiva ⟹ `|B| ≤ |A|`; igualdad
         de cardinalidad + sobreyectividad ⟹ biyectividad. -/
     theorem MapOn.bijective_of_surjective_rightInverse_surjective {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (h_surj : f.Surjective) (dflt : α)
-        (h_ri_surj : (f.rightInverse h_surj dflt).Surjective) :
-        f.Bijective := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β} (f : MapOn A B)
+      (h_surj : f.Surjective) (dflt : α)
+      (h_ri_surj : (f.rightInverse h_surj dflt).Surjective) :
+        f.Bijective
+          := by
       have h_card : A.card = B.card :=
         card_eq_of_surjections f h_surj (f.rightInverse h_surj dflt) h_ri_surj
       exact (MapOn.surjective_iff_bijective_of_card_eq h_card f).mp h_surj
@@ -1001,75 +1014,85 @@ namespace Peano
 
     /-- Endomorfismo inyectivo ↔ sobreyectivo (principio del Palomar). -/
     theorem MapOn.endo_injective_iff_surjective {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A) :
-        f.Injective ↔ f.Surjective :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      {A : FSet α}
+      (f : MapOn A A) :
+        f.Injective ↔ f.Surjective
+          :=
       MapOn.injective_iff_surjective_of_card_eq rfl f
 
     /-- Endomorfismo inyectivo ↔ biyectivo. -/
     theorem MapOn.endo_injective_iff_bijective {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A) :
-        f.Injective ↔ f.Bijective :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      {A : FSet α}
+      (f : MapOn A A) :
+        f.Injective ↔ f.Bijective
+          :=
       MapOn.injective_iff_bijective_of_card_eq rfl f
 
     /-- Endomorfismo sobreyectivo ↔ biyectivo. -/
     theorem MapOn.endo_surjective_iff_bijective {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A) :
-        f.Surjective ↔ f.Bijective :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      {A : FSet α}
+      (f : MapOn A A) :
+        f.Surjective ↔ f.Bijective
+          :=
       MapOn.surjective_iff_bijective_of_card_eq rfl f
 
     /-- Endomorfismo inyectivo → biyectivo (dirección útil). -/
     theorem MapOn.endo_bijective_of_injective {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A) (h : f.Injective) :
-        f.Bijective :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      {A : FSet α}
+      (f : MapOn A A) (h : f.Injective) :
+        f.Bijective
+          :=
       f.endo_injective_iff_bijective.mp h
 
     /-- Endomorfismo sobreyectivo → biyectivo (dirección útil). -/
     theorem MapOn.endo_bijective_of_surjective {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A) (h : f.Surjective) :
-        f.Bijective :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      {A : FSet α}
+      (f : MapOn A A) (h : f.Surjective) :
+        f.Bijective
+          :=
       f.endo_surjective_iff_bijective.mp h
 
     /-- Para endomorfismos inyectivos, `leftInverse` coincide con `inverse`. -/
     theorem MapOn.endo_leftInverse_eq_inverse {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A)
-        (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) :
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α] {A : FSet α}
+      (f : MapOn A A) (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) :
         (f.leftInverse h_inj dflt h_dflt).toFun a =
-        (f.inverse (f.endo_bijective_of_injective h_inj) dflt h_dflt).toFun a :=
+        (f.inverse (f.endo_bijective_of_injective h_inj) dflt h_dflt).toFun a
+          :=
       rfl
 
     /-- Para endomorfismos inyectivos, `leftInverse` es también inversa derecha:
         `f(g(a)) = a` para todo `a ∈ A`. -/
     theorem MapOn.endo_leftInverse_right_prop {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A)
-        (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (a : α) (ha : a ∈ A.elems) :
-        f.toFun ((f.leftInverse h_inj dflt h_dflt).toFun a) = a :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α] {A : FSet α}
+      (f : MapOn A A) (h_inj : f.Injective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (a : α) (ha : a ∈ A.elems) :
+        f.toFun ((f.leftInverse h_inj dflt h_dflt).toFun a) = a
+          :=
       f.leftInverse_right_prop_of_card_eq rfl h_inj dflt h_dflt a ha
 
     /-- Para endomorfismos sobreyectivos, `rightInverse` coincide con `inverse`. -/
     theorem MapOn.endo_rightInverse_eq_inverse {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A)
-        (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) :
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α] {A : FSet α}
+      (f : MapOn A A) (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) :
         (f.rightInverse h_surj dflt).toFun a =
-        (f.inverse (f.endo_bijective_of_surjective h_surj) dflt h_dflt).toFun a := by
+        (f.inverse (f.endo_bijective_of_surjective h_surj) dflt h_dflt).toFun a
+          := by
       dsimp [rightInverse, inverse]
 
     /-- Para endomorfismos sobreyectivos, `rightInverse` es también inversa izquierda:
         `g(f(a)) = a` para todo `a ∈ A`. -/
     theorem MapOn.endo_rightInverse_left_prop {α : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        {A : FSet α} (f : MapOn A A)
-        (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
-        (a : α) (ha : a ∈ A.elems) :
-        (f.rightInverse h_surj dflt).toFun (f.toFun a) = a :=
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α] {A : FSet α}
+      (f : MapOn A A) (h_surj : f.Surjective) (dflt : α) (h_dflt : dflt ∈ A.elems)
+      (a : α) (ha : a ∈ A.elems) :
+        (f.rightInverse h_surj dflt).toFun (f.toFun a) = a
+          :=
       f.rightInverse_left_prop_of_card_eq rfl h_surj dflt h_dflt a ha
 
     /-!
@@ -1112,11 +1135,13 @@ namespace Peano
 
       /-- Composición con la identidad por la derecha (punto a punto). -/
       theorem comp_id_fn (p : Perm A) (a : α) :
-          (p.comp (Perm.id A)).fn.toFun a = p.fn.toFun a := rfl
+        (p.comp (Perm.id A)).fn.toFun a = p.fn.toFun a
+          := rfl
 
       /-- Composición con la identidad por la izquierda (punto a punto). -/
       theorem id_comp_fn (p : Perm A) (a : α) :
-          ((Perm.id A).comp p).fn.toFun a = p.fn.toFun a := rfl
+        ((Perm.id A).comp p).fn.toFun a = p.fn.toFun a
+          := rfl
 
       /-- Inversa de una permutación (requiere un valor por defecto). -/
       def inv (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) : Perm A where
@@ -1124,38 +1149,45 @@ namespace Peano
         bij := p.fn.inverse_bijective p.bij dflt h_dflt
 
       /-- Propiedad de inversa izquierda: `p⁻¹(p(a)) = a`. -/
-      theorem inv_left (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems)
-          (a : α) (ha : a ∈ A.elems) :
-          (p.inv dflt h_dflt).fn.toFun (p.fn.toFun a) = a :=
+      theorem inv_left
+        (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) (ha : a ∈ A.elems) :
+          (p.inv dflt h_dflt).fn.toFun (p.fn.toFun a) = a
+            :=
         p.fn.inverse_left_prop p.bij dflt h_dflt a ha
 
       /-- Propiedad de inversa derecha: `p(p⁻¹(a)) = a`. -/
-      theorem inv_right (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems)
-          (a : α) (ha : a ∈ A.elems) :
-          p.fn.toFun ((p.inv dflt h_dflt).fn.toFun a) = a :=
+      theorem inv_right
+        (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) (ha : a ∈ A.elems) :
+          p.fn.toFun ((p.inv dflt h_dflt).fn.toFun a) = a
+            :=
         p.fn.inverse_right_prop p.bij dflt h_dflt a ha
 
       /-- La inversa de la inversa recupera la permutación original. -/
-      theorem inv_inv (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems)
-          (a : α) (ha : a ∈ A.elems) :
-          ((p.inv dflt h_dflt).inv dflt h_dflt).fn.toFun a = p.fn.toFun a :=
+      theorem inv_inv
+        (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) (ha : a ∈ A.elems) :
+          ((p.inv dflt h_dflt).inv dflt h_dflt).fn.toFun a = p.fn.toFun a
+            :=
         p.fn.inverse_inverse p.bij dflt h_dflt dflt h_dflt a ha
 
       /-- `p⁻¹ ∘ p` actúa como la identidad (punto a punto). -/
-      theorem comp_inv_left (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems)
-          (a : α) (ha : a ∈ A.elems) :
-          ((p.inv dflt h_dflt).comp p).fn.toFun a = a :=
+      theorem comp_inv_left
+        (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) (ha : a ∈ A.elems) :
+          ((p.inv dflt h_dflt).comp p).fn.toFun a = a
+            :=
         p.fn.comp_inverse_left p.bij dflt h_dflt a ha
 
       /-- `p ∘ p⁻¹` actúa como la identidad (punto a punto). -/
-      theorem comp_inv_right (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems)
-          (a : α) (ha : a ∈ A.elems) :
-          (p.comp (p.inv dflt h_dflt)).fn.toFun a = a :=
+      theorem comp_inv_right
+        (p : Perm A) (dflt : α) (h_dflt : dflt ∈ A.elems) (a : α) (ha : a ∈ A.elems) :
+          (p.comp (p.inv dflt h_dflt)).fn.toFun a = a
+            :=
         p.fn.comp_inverse_right p.bij dflt h_dflt a ha
 
       /-- Composición asociativa (punto a punto, corolario de `MapOn.comp_assoc`). -/
-      theorem comp_assoc (f g h : Perm A) (a : α) :
-          (f.comp (g.comp h)).fn.toFun a = ((f.comp g).comp h).fn.toFun a :=
+      theorem comp_assoc
+        (f g h : Perm A) (a : α) :
+          (f.comp (g.comp h)).fn.toFun a = ((f.comp g).comp h).fn.toFun a
+            :=
         MapOn.comp_assoc h.fn g.fn f.fn a
 
     end Perm
@@ -1167,13 +1199,18 @@ namespace Peano
     /-- Preimagen: dado `f : MapOn A B` y `S : FSet β` con `S ⊆ B`,
         `f.PreIm S` es el subconjunto de `A` formado por los `a` con `f(a) ∈ S`. -/
     def MapOn.PreIm {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (S : FSet β) : FSet α :=
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (S : FSet β) :
+        FSet α
+          :=
       A.filter (fun a => S.elems.any (fun b => decide (f.toFun a = b)))
 
     /-- `a ∈ f.PreIm S ↔ a ∈ A ∧ f(a) ∈ S`. -/
     theorem MapOn.mem_PreIm_iff {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (S : FSet β) (a : α) :
-        a ∈ (f.PreIm S).elems ↔ a ∈ A.elems ∧ f.toFun a ∈ S.elems := by
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (S : FSet β) (a : α) :
+        a ∈ (f.PreIm S).elems ↔ a ∈ A.elems ∧ f.toFun a ∈ S.elems
+          := by
       simp only [PreIm, FSet.filter]
       rw [List.mem_filter, List.any_eq_true]
       constructor
@@ -1185,25 +1222,34 @@ namespace Peano
 
     /-- La preimagen de todo `B` es todo `A`. -/
     theorem MapOn.PreIm_full {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (a : α) (ha : a ∈ A.elems) :
-        a ∈ (f.PreIm B).elems :=
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (a : α) (ha : a ∈ A.elems) :
+        a ∈ (f.PreIm B).elems
+          :=
       (f.mem_PreIm_iff B a).mpr ⟨ha, f.map_carrier a ha⟩
 
     /-- `|PreIm S| ≤ |A|` (la preimagen es un subconjunto del dominio). -/
     theorem MapOn.card_PreIm_le {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (S : FSet β) :
-        (f.PreIm S).card ≤ A.card :=
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (S : FSet β) :
+        (f.PreIm S).card ≤ A.card
+          :=
       card_filter_le A _
 
     /-- Fibra de un elemento `b`: preimagen del singleton `{b}`. -/
     def MapOn.fiber {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (b : β) : FSet α :=
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (b : β) :
+        FSet α
+          :=
       A.filter (fun a => decide (f.toFun a = b))
 
     /-- `a ∈ f.fiber b ↔ a ∈ A ∧ f(a) = b`. -/
     theorem MapOn.mem_fiber_iff {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B) (b : β) (a : α) :
-        a ∈ (f.fiber b).elems ↔ a ∈ A.elems ∧ f.toFun a = b := by
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (b : β) (a : α) :
+        a ∈ (f.fiber b).elems ↔ a ∈ A.elems ∧ f.toFun a = b
+          := by
       simp only [fiber, FSet.filter]
       rw [List.mem_filter]
       simp [decide_eq_true_eq]
@@ -1211,11 +1257,12 @@ namespace Peano
     /-- Para `f` inyectiva, cada fibra tiene a lo sumo un elemento:
         `|f.fiber b| ≤ 1`. -/
     theorem MapOn.card_fiber_le_one_of_injective {α β : Type}
-        [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
-        [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (h_inj : f.Injective) (b : β) :
-        le₀ (f.fiber b).card (σ 𝟘) := by
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (h_inj : f.Injective) (b : β) :
+        le₀ (f.fiber b).card (σ 𝟘)
+          := by
       -- La fibra es un subconjunto de la imagen de la inyección restringida al singleton
       -- Basta ver que la fibra es nodup y todos sus elementos tienen la misma imagen,
       -- así que por inyectividad tiene ≤ 1 elemento.
@@ -1247,28 +1294,31 @@ namespace Peano
 
     /-- Restricción de `f : MapOn A B` a un subconjunto `A'` de `A`. -/
     def MapOn.restrict {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems) : MapOn A' B where
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems) :
+        MapOn A' B where
       toFun       := f.toFun
       map_carrier := fun a ha => f.map_carrier a (h_sub a ha)
 
     /-- La restricción de una inyección es inyectiva. -/
     theorem MapOn.restrict_injective {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems)
-        (h_inj : f.Injective) :
-        (f.restrict A' h_sub).Injective := by
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems)
+      (h_inj : f.Injective) :
+        (f.restrict A' h_sub).Injective
+          := by
       intro a₁ a₂ ha₁ ha₂ hf_eq
       exact h_inj a₁ a₂ (h_sub a₁ ha₁) (h_sub a₂ ha₂) hf_eq
 
     /-- `Im (restrict f A') ⊆ Im f`: la imagen de la restricción está
         contenida en la imagen de la función original. -/
     theorem MapOn.mem_Im_restrict {α β : Type}
-        [DecidableEq α] [LT α] [DecidableEq β] [LT β]
-        {A : FSet α} {B : FSet β} (f : MapOn A B)
-        (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems)
-        (b : β) (hb : b ∈ (f.restrict A' h_sub).Im.elems) :
-        b ∈ f.Im.elems := by
+      [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (A' : FSet α) (h_sub : ∀ a, a ∈ A'.elems → a ∈ A.elems)
+      (b : β) (hb : b ∈ (f.restrict A' h_sub).Im.elems) :
+        b ∈ f.Im.elems
+          := by
       rw [mem_Im_elems_iff] at hb ⊢
       obtain ⟨a, ha, rfl⟩ := hb
       exact ⟨a, h_sub a ha, rfl⟩
@@ -1312,7 +1362,9 @@ namespace Peano
 
     /-- Tabla de imágenes de una función `A → A`.
         `table` es la lista `[f(A.elems[0]), f(A.elems[1]), …]`. -/
-    structure FunTable {α : Type} [DecidableEq α] [LT α] (A : FSet α) where
+    structure FunTable {α : Type} [DecidableEq α] [LT α]
+      (A : FSet α)
+        where
       /-- Lista de imágenes, en el mismo orden que `A.elems`. -/
       table    : List α
       /-- Misma longitud que el dominio. -/
@@ -1364,8 +1416,9 @@ namespace Peano
 
       /-- `FunTable` de composición: `(g.comp f).table[i] = g(f.table[i])`. -/
       def comp {α : Type} [DecidableEq α] [LT α] {A : FSet α}
-          (g f : FunTable A) (dflt : α) :
-          FunTable A where
+        (g f : FunTable A) (dflt : α) :
+          FunTable A
+            where
         table   := f.table.map (fun a => g.applyElem a dflt)
         len_eq  := by
           have h : lengthₚ (f.table.map (fun a => g.applyElem a dflt)) = lengthₚ f.table :=
@@ -1384,14 +1437,19 @@ namespace Peano
 
     /-- Una permutación de `A` es una `FunTable` cuya tabla es una permutación
         (en el sentido de `List.Perm`) de `A.elems`. -/
-    structure FunPerm {α : Type} [DecidableEq α] [LT α] (A : FSet α)
-        extends FunTable A where
+    structure FunPerm {α : Type} [DecidableEq α] [LT α]
+      (A : FSet α)
+        extends FunTable A
+          where
       is_perm : List.Perm table A.elems
 
     namespace FunPerm
 
       /-- La permutación identidad. -/
-      def id {α : Type} [DecidableEq α] [LT α] (A : FSet α) : FunPerm A where
+      def id {α : Type} [DecidableEq α] [LT α]
+        (A : FSet α) :
+          FunPerm A
+            where
         table   := A.elems
         len_eq  := rfl
         mem_all := fun _ ha => ha

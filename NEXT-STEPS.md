@@ -1184,374 +1184,782 @@ Tras la sesión de limpieza de sorry de Phase 25, el proyecto pasó de **14 sorr
 
 ---
 
-## Plan detallado de demostración de los 7 sorry restantes
+## Plan completo de teoría de grupos finitos
 
-### Dependencias entre los sorry
-
-```
-FunPerm.comp ─────────────────────── (independiente)
-
-orbits_partition ──┐
-                   ├──► orbit_stabilizer ──► lagrange
-                   │
-                   ├──► sylow_first ──┐
-                   │                  ├──► sylow_second ──► sylow_third
-                   ├──► (center Z(G)) │
-                   └──► (Cauchy)  ────┘
-```
-
-### Orden recomendado de ejecución
+### A. Dependencias globales
 
 ```
-Paso 1: FunPerm.comp (Perm.lean)          — independiente
-Paso 2: orbits_partition (Action.lean)     — necesita FSet.ext
-Paso 3: lagrange (Cosets.lean)             — necesita conteo por fibras
-Paso 4: orbit_stabilizer (Action.lean)     — necesita lagrange
-Paso 5: Infraestructura Sylow             — Z(G), normal, cocientes, Cauchy
-Paso 6: sylow_first (Sylow.lean)           — necesita toda la infraestructura
-Paso 7: sylow_second (Sylow.lean)          — necesita sylow_first + conjugación
-Paso 8: sylow_third (Sylow.lean)           — necesita sylow_second + conteo mod p
+                  ┌─── FunPerm.comp (Perm.lean) ──── independiente
+                  │
+                  │    FSet.ext (FSet.lean) ──── infraestructura base
+                  │         │
+ § 4b lemas  ────┤    orbits_partition (Action.lean)
+ § 4c order  ────┤         │
+ § 5  subgr  ────┤    ┌────┴──────────────┐
+ § 5b tipos  ────┤    │                   │
+                  │    lagrange            │
+                  │    (Cosets.lean)       │
+ § 6  hom    ────┤         │              │
+ § 6b Im/ker ────┤    orbit_stabilizer    │
+                  │    (Action.lean)       │
+ § 5c normal ────┤         │              │
+ § 5d gen⟨S⟩ ────┤    ┌────┴───────┐      │
+                  │    │            │      │
+ § 7  Sym(n) ────┤    center Z(G)  │      │
+                  │    │            │      │
+                  │    Cauchy       class_equation
+                  │    │                   │
+                  │    quotientGroup        │
+                  │         │              │
+                  │    sylow_first ────────┘
+                  │         │
+                  │    sylow_second
+                  │         │
+                  └──── sylow_third
 ```
 
----
+### B. Orden de ejecución por bloques
 
-### Paso 1: `FunPerm.comp is_perm` (Perm.lean:39)
-
-**Enunciado**: Si `f, g : FunPerm A`, entonces la tabla de `g ∘ f` es
-`List.Perm` de `A.elems`.
-
-**Cómo**: La tabla de `comp g f dflt` es `f.table.map (fun a => g.applyElem a dflt)`.
-
-**Estrategia en 3 sub-lemas**:
-
-1. **`applyElem_injective_on_elems`** (nuevo, en FSetFunction.lean):
-
-   ```
-   Si g : FunPerm A y a₁ a₂ ∈ A.elems, entonces
-     g.applyElem a₁ dflt = g.applyElem a₂ dflt → a₁ = a₂
-   ```
-
-   *Prueba*: `applyElem a = getDₚ dflt g.table (indexOfₚ a A.elems)`.
-   Si `g.is_perm : g.table ~ A.elems`, entonces `g.table` tiene los mismos
-   elementos que `A.elems` sin repeticiones (sorted ⟹ nodup).
-   Necesita: `getDₚ_indexOfₚ`, `indexOfₚ_injective` (de Sorted ⟹ Nodup ⟹
-   distintos índices para distintos elementos), y que `getDₚ` es inyectiva
-   sobre un rango válido en una lista sin duplicados.
-
-   *Sub-lema auxiliar*: `sorted_lt_nodup : Sorted (· < ·) l → l.Nodup`.
-   Prueba: `Pairwise (· < ·) l → Pairwise (· ≠ ·) l` por transitividad
-   de `<` e irreflexividad, luego `Nodup = Pairwise (· ≠ ·)`.
-
-2. **`applyElem_mem_of_perm`** (ya existe como `applyElem_mem`):
-   `g.applyElem a dflt ∈ A.elems` si `a ∈ A.elems`.
-
-3. **Prueba final**: `f.table.map (g.applyElem · dflt) ~ A.elems` porque:
-   - `f.is_perm : f.table ~ A.elems`
-   - `List.Perm.map (g.applyElem · dflt)` da `f.table.map (...) ~ A.elems.map (...)`
-   - `A.elems.map (g.applyElem · dflt) ~ A.elems` porque la función es
-     inyectiva sobre una lista nodup de mismo tamaño que A.elems, y cada
-     imagen está en A.elems.
-   - Usar `List.perm_iff_count` (stdlib): basta mostrar que para todo
-     `a ∈ A.elems`, `count a (A.elems.map f) = count a A.elems`, lo que
-     se sigue de inyectividad + pertenencia + nodup.
-
-**Infraestructura nueva requerida**:
-
-- `sorted_lt_nodup` (~10 líneas, en List.lean o FSet.lean)
-- `applyElem_injective_on_elems` (~15 líneas, en FSetFunction.lean)
-- `perm_map_of_injective_on_nodup` (~20 líneas, podría ir en List.lean)
-
-**Dificultad**: Media. ~50 líneas de lemas auxiliares.
+| Bloque | Contenido | Dependencias |
+|--------|-----------|-------------|
+| B1 | Infraestructura de listas/conjuntos | Ninguna |
+| B2 | Orden de elemento, potencia iterada | § 4b |
+| B3 | Tipos de subgrupos (incl. cíclico, normal) | § 5 + B2 |
+| B4 | Homomorfismos (Im, ker, comp, mono⟺ker) | § 6 + B3 |
+| B5 | Subgrupo generado ⟨S⟩, grupos simples | B3 |
+| B6 | Sorry 1-2: FunPerm.comp, orbits_partition | B1 |
+| B7 | Sorry 3-4: lagrange, orbit_stabilizer | B6 + B4 |
+| B8 | Grupo simétrico Sym(Fin₀Set n) | B6 |
+| B9 | Infraestructura Sylow (center, Cauchy, class eq, cocientes) | B2-B7 |
+| B10 | Sorry 5-7: sylow_first/second/third | B9 |
 
 ---
 
-### Paso 2: `orbits_partition` rama left (Action.lean:132)
+### B1. Infraestructura de listas y conjuntos
 
-**Enunciado** (rama pendiente): Si `z ∈ orb(x) ∩ orb(y)`, entonces
-`orb(x).elems = orb(y).elems`.
+**Archivo**: `List.lean`, `FSet.lean`, `FSetFunction.lean`
 
-**Estado actual**: La rama `right` (disjuntas) ya está demostrada.
-Faltan ~8 líneas en la rama `left`.
+#### B1.1 `sorted_lt_nodup` (List.lean, ~10 lín.)
 
-**Estrategia**:
+```
+theorem sorted_lt_nodup {l : List ℕ₀} (h : Sorted (· < ·) l) : l.Nodup
+```
 
-1. De `z ∈ orb(x)` obtenemos `g₁` con `α(g₁, x) = z`.
-   De `z ∈ orb(y)` obtenemos `g₂` con `α(g₂, y) = z`.
+*Sub-lemas*:
 
-2. **Inclusión orb(x) ⊆ orb(y)**: Si `w ∈ orb(x)`, existe `h` con
-   `α(h, x) = w`. Entonces `x = α(g₁⁻¹, z) = α(g₁⁻¹, α(g₂, y)) = α(g₁⁻¹·g₂, y)`.
-   Luego `w = α(h, x) = α(h, α(g₁⁻¹·g₂, y)) = α(h·g₁⁻¹·g₂, y) ∈ orb(y)`.
+- `pairwise_lt_imp_pairwise_ne`: `Pairwise (· < ·) l → Pairwise (· ≠ ·) l`
+  (de irreflexividad de `<`)
+- `nodup_of_pairwise_ne`: `Pairwise (· ≠ ·) l → l.Nodup`
+  (equivalencia standard, puede estar en stdlib)
 
-3. **Inclusión orb(y) ⊆ orb(x)**: Simétrica.
+#### B1.2 `FSet.ext` (FSet.lean, ~5 lín.)
 
-4. **Igualdad de listas**: Ambas listas son sublistas sorted de `X.elems`
-   (construidas por `FSet.filter`). Dos sublistas sorted con los mismos
-   elementos son iguales.
-   Usar `List.Perm.eq_of_sorted` de stdlib (renombrado a `eq_of_pairwise`):
+```
+theorem FSet.ext {s₁ s₂ : FSet α} (h : s₁.elems = s₂.elems) : s₁ = s₂
+```
 
-   ```
-   antireflexive_of_lt + pairwise_sorted₁ + pairwise_sorted₂ + perm → eq
-   ```
+*Prueba*: `cases s₁; cases s₂; subst h; congr` (proof irrelevance en `sorted`).
 
-   Necesita construir `List.Perm` entre `orb(x).elems` y `orb(y).elems`.
+#### B1.3 `applyElem_injective_on_elems` (FSetFunction.lean, ~20 lín.)
 
-**Infraestructura nueva requerida**:
+```
+theorem FunPerm.applyElem_injective {A : ℕ₀FSet} (g : FunPerm A)
+    (dflt : ℕ₀) {a₁ a₂ : ℕ₀}
+    (h₁ : a₁ ∈ A.elems) (h₂ : a₂ ∈ A.elems)
+    (heq : g.applyElem a₁ dflt = g.applyElem a₂ dflt) : a₁ = a₂
+```
 
-- `FSet.ext : s₁.elems = s₂.elems → s₁ = s₂` (~3 líneas, en FSet.lean —
-  basta `cases s₁; cases s₂; simp` o similar con proof irrelevance)
-- Aplicar `List.Perm.eq_of_pairwise` con `(· < ·)` y la antisimetría
-  `a < b → b < a → False` (ya disponible como `IrreflLT`).
+*Sub-lemas*:
 
-**Dificultad**: Media. ~30 líneas incluyendo el lema `FSet.ext`.
+- `indexOfₚ_injective`: `a ∈ l → b ∈ l → l.Nodup → indexOfₚ a l = indexOfₚ b l → a = b`
+  (~8 lín., usa `getDₚ_indexOfₚ`)
+- `getDₚ_injective_of_nodup`: `l.Nodup → i < len → j < len → getDₚ d l i = getDₚ d l j → i = j`
+  (~10 lín., inducción sobre `l`)
 
----
+#### B1.4 `perm_map_of_injective_on_nodup` (List.lean, ~15 lín.)
 
-### Paso 3: `lagrange` (Cosets.lean:126)
+```
+theorem perm_map_of_injective_on_nodup {f : α → α} {l : List α}
+    (h_nodup : l.Nodup)
+    (h_mem : ∀ a ∈ l, f a ∈ l)
+    (h_inj : ∀ a b, a ∈ l → b ∈ l → f a = f b → a = b) :
+    List.Perm (l.map f) l
+```
 
-**Enunciado**: `∃ k, mul H.carrier.card k = G.carrier.card`.
+*Sub-lemas*:
 
-**Ingredientes ya disponibles**:
-
-- `cosetRel` es relación de equivalencia (refl, symm, trans demostrados)
-- `coset_card_eq_subgroup_card`: cada coseto tiene cardinalidad `|H|`
-- `mem_leftCoset_iff`: caracterización de pertenencia a cosetos
-
-**Estrategia de la prueba**:
-
-1. **Construir el conjunto de cosetos**: `cosets G H : List ℕ₀FSet` =
-   lista de cosetos distintos `gH` para `g ∈ G.carrier.elems`, eliminando
-   duplicados. Definir como:
-
-   ```lean
-   def cosetList (G : FinGroup) (H : Subgroup G) : List ℕ₀FSet :=
-     (G.carrier.elems.map (leftCoset G H)).dedup
-   ```
-
-2. **Los cosetos particionan G**:
-   - Todo `g ∈ G` pertenece a algún coseto (está en `gH` porque `G.id ∈ H`
-     ⟹ `g·id = g ∈ gH`).
-   - Cosetos distintos son disjuntos (de `cosetRel` equivalencia:
-     `gH ∩ g'H ≠ ∅ → gH = g'H`).
-
-3. **Conteo por fibras**: `|G| = |H| · (número de cosetos)`.
-   Necesita un lema general de conteo:
-
-   ```lean
-   theorem card_partition (G : ℕ₀FSet) (parts : List ℕ₀FSet)
-     (h_cover : ∀ x ∈ G.elems, ∃ P ∈ parts, x ∈ P.elems)
-     (h_disjoint : ∀ P Q ∈ parts, P ≠ Q → ∀ x, x ∉ P.elems ∨ x ∉ Q.elems)
-     (h_sub : ∀ P ∈ parts, ∀ x ∈ P.elems, x ∈ G.elems)
-     (h_size : ∀ P ∈ parts, P.card = k) :
-     G.card = mul k (lengthₚ parts)
-   ```
-
-**Infraestructura nueva requerida** (significativa):
-
-- `cosetList` o equivalente para enumerar cosetos
-- `card_partition`: conteo por fibras equi-cardinales (~40 líneas)
-- Lema de disjunción de cosetos vía `cosetRel` (~20 líneas)
-- Lema de cobertura: todo `g ∈ G` pertenece a `gH` (~5 líneas)
-
-**Dificultad**: Alta. ~80-100 líneas de infraestructura nueva.
+- `map_nodup_of_injective`: `l.Nodup → injective_on f l → (l.map f).Nodup` (~8 lín.)
+- `perm_of_nodup_nodup_same_length_subset`: dos listas nodup de igual longitud
+  donde una es sublista de la otra son permutación (~10 lín., vía
+  `List.perm_iff_count` o `List.Nodup.perm_of_subset`)
 
 ---
 
-### Paso 4: `orbit_stabilizer` (Action.lean:116)
+### B2. Orden de un elemento y potencia iterada
 
-**Enunciado**: `mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card`
+**Archivo**: `Group.lean` § 4c (nuevo)
 
-**Estrategia**: Aplicar `lagrange` al subgrupo `Stab(x)`, más una biyección
-`Orb(x) ≅ G/Stab(x)`:
+#### B2.1 `gpow` — potencia iterada (Group.lean, ~8 lín.)
 
-1. Por `lagrange G (α.stab x hx)` obtenemos `k` con `|Stab(x)| · k = |G|`.
+```
+def gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀
+  | .zero   => G.id
+  | .succ n => G.op (gpow G g n) g
+```
 
-2. Construir biyección `φ : G/Stab(x) → Orb(x)` definida por
-   `φ(gStab(x)) = α(g, x)`. Mostrar:
-   - Bien definida: si `g₁ ~ g₂` (mod Stab), entonces `α(g₁,x) = α(g₂,x)`.
-   - Inyectiva: si `α(g₁,x) = α(g₂,x)`, entonces `g₁⁻¹g₂ ∈ Stab(x)`.
-   - Sobreyectiva: todo `y ∈ Orb(x)` tiene preimagen por definición de órbita.
+#### B2.2 Lemas de `gpow` (~25 lín.)
 
-3. De la biyección: `k = |Orb(x)|`, luego `|Stab(x)| · |Orb(x)| = |G|`.
+- `gpow_zero`: `gpow G g 𝟘 = G.id`
+- `gpow_one`: `gpow G g 𝟙 = g`
+- `gpow_succ`: `gpow G g (σ n) = G.op (gpow G g n) g`
+- `gpow_mem`: `g ∈ G.carrier.elems → gpow G g n ∈ G.carrier.elems`
+  (inducción: base `id_in`, paso `op_mem`)
+- `gpow_add`: `gpow G g (add m n) = G.op (gpow G g m) (gpow G g n)`
+  (inducción sobre `n`, usa `op_assoc`)
+- `gpow_inv`: `gpow G (G.inv g) n = G.inv (gpow G g n)`
+  (inducción sobre `n`, usa `inv_op_eq`)
 
-**Dependencias**: `lagrange` (Paso 3), biyección explícita como MapOn.
+#### B2.3 `order` — orden del elemento (Group.lean, ~15 lín.)
 
-**Dificultad**: Alta. ~50 líneas, pero depende de Lagrange.
+```
+noncomputable def order (G : FinGroup) (g : ℕ₀)
+    (hg : g ∈ G.carrier.elems) : ℕ₀ :=
+  -- el menor n > 0 tal que gpow G g n = G.id
+  -- existe porque G es finito (Pigeonhole: gpow 0, ..., gpow |G|
+  -- tiene |G|+1 valores en un carrier de |G| elementos)
+```
+
+#### B2.4 Lemas de `order` (~40 lín.)
+
+- `order_pos`: `lt₀ 𝟘 (order G g hg)`
+- `gpow_order_eq_id`: `gpow G g (order G g hg) = G.id`
+- `gpow_eq_id_iff_order_dvd`: `gpow G g n = G.id ↔ Divides (order G g hg) n`
+  *Sub-lema*: `gpow_mod`: `gpow G g n = gpow G g (mod n (order G g hg))`
+  (~10 lín., usa `gpow_add` + `gpow_order_eq_id`)
+- `order_dvd_card`: `Divides (order G g hg) G.carrier.card`
+  (usa Lagrange sobre el subgrupo cíclico `⟨g⟩`, ver B3.2)
+- `order_id_eq_one`: `order G G.id G.id_in = 𝟙`
+- `order_inv`: `order G (G.inv g) (inv_mem G hg) = order G g hg`
 
 ---
 
-### Paso 5: Infraestructura para Sylow
+### B3. Tipos de subgrupos
 
-Los tres teoremas de Sylow requieren infraestructura que **no existe aún**
-en el proyecto. Se necesita construir:
+**Archivo**: `Group.lean` § 5b (nuevo)
 
-#### 5a. Centro del grupo `Z(G)`
+#### B3.1 Subgrupo trivial y subgrupo impropio (~10 lín.)
 
-```lean
-def center (G : FinGroup) : Subgroup G where
-  carrier := ℕ₀FSet.filter (fun g =>
-    G.carrier.elems.all (fun h => decide (G.op g h = G.op h g))) G.carrier
+```
+def trivialSubgroup (G : FinGroup) : Subgroup G where
+  carrier := ℕ₀FSet.singleton G.id
+  ...
+
+def improperSubgroup (G : FinGroup) : Subgroup G where
+  carrier := G.carrier
+  ...
+
+def Subgroup.IsTrivial (H : Subgroup G) : Prop := H.carrier.card = 𝟙
+def Subgroup.IsProper (H : Subgroup G) : Prop := H.carrier.card ≠ G.carrier.card
+```
+
+#### B3.2 Subgrupo cíclico generado por un elemento (~20 lín.)
+
+```
+def cyclicSubgroup (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+    Subgroup G where
+  carrier := ℕ₀FSet.filter (fun x =>
+    G.carrier.elems.any (fun n => decide (gpow G g n = x))) G.carrier
   ...
 ```
 
-Demostrar que es subgrupo (~20 líneas) y que es normal (~10 líneas).
+*Sub-lemas*:
 
-#### 5b. Subgrupo normal
+- `cyclicSubgroup_id_in`: `G.id ∈ (cyclicSubgroup G g hg).carrier.elems`
+  (testigo: `gpow G g 𝟘 = G.id`)
+- `cyclicSubgroup_op_closed`: cierre bajo `op`
+  (si `x = gⁿ` y `y = gᵐ`, entonces `x·y = gⁿ⁺ᵐ`, usar `gpow_add`)
+- `cyclicSubgroup_inv_closed`: cierre bajo `inv`
+  (si `x = gⁿ`, entonces `x⁻¹ = g⁻ⁿ = (g⁻¹)ⁿ`, usar `gpow_inv`)
+- `cyclicSubgroup_card_eq_order`: `(cyclicSubgroup G g hg).carrier.card = order G g hg`
 
-```lean
+#### B3.3 Subgrupo normal (definición directa, no por cosetos) (~15 lín.)
+
+```
 def Subgroup.IsNormal (G : FinGroup) (N : Subgroup G) : Prop :=
   ∀ g n, g ∈ G.carrier.elems → n ∈ N.carrier.elems →
     G.op (G.op g n) (G.inv g) ∈ N.carrier.elems
 ```
 
-~5 líneas para la definición, ~15 líneas para lemas básicos.
+*Lemas*:
 
-#### 5c. Grupo cociente `G/N`
+- `trivialSubgroup_normal`: el subgrupo trivial es normal
+- `improperSubgroup_normal`: `G` como subgrupo de sí mismo es normal
+- `normal_iff_cosets_eq`: `N.IsNormal ↔ ∀ g, leftCoset G N g = rightCoset G N g`
+  (equivalencia clásica, ~15 lín.)
+- `normal_of_index_two`: `[G:N] = 𝟚 → N.IsNormal`
+  (~10 lín., hay exactamente dos cosetos)
 
-```lean
+#### B3.4 Subgrupo transitivamente normal (~5 lín.)
+
+```
+def Subgroup.IsSubnormal (G : FinGroup) (H : Subgroup G) : Prop :=
+  ∃ chain : List (Subgroup G),
+    chain.head? = some H ∧ chain.getLast? = some (improperSubgroup G) ∧
+    ∀ i, i + 1 < chain.length →
+      (chain.get ⟨i, _⟩).IsNormal -- como subgrupo de chain.get ⟨i+1, _⟩
+```
+
+(Cadena subnormal finita de `H` a `G`.)
+
+#### B3.5 Subgrupo característico (~5 lín.)
+
+```
+def Subgroup.IsCharacteristic (G : FinGroup) (H : Subgroup G) : Prop :=
+  ∀ φ : GroupHom G G, ∀ h, h ∈ H.carrier.elems →
+    φ.map h ∈ H.carrier.elems
+```
+
+*Lema*:
+
+- `characteristic_is_normal`: `H.IsCharacteristic → H.IsNormal`
+  (~10 lín., la conjugación `x ↦ gxg⁻¹` es un automorfismo)
+
+---
+
+### B4. Homomorfismos: Im, ker, composición, mono⟺ker
+
+**Archivo**: `Group.lean` § 6b (nuevo)
+
+#### B4.1 Imagen de un homomorfismo (~20 lín.)
+
+```
+def GroupHom.Im (f : GroupHom G H) : Subgroup H where
+  carrier := H.carrier.filter (fun y =>
+    G.carrier.elems.any (fun x => decide (f.map x = y)))
+  ...
+```
+
+*Sub-lemas* (cada uno ~3-5 lín.):
+
+- `Im.id_in`: `H.id ∈ Im.carrier.elems` (testigo: `f.map G.id = H.id`)
+- `Im.op_closed`: si `y₁ = f(x₁)` y `y₂ = f(x₂)`, entonces
+  `H.op y₁ y₂ = f(G.op x₁ x₂)` por `map_op`
+- `Im.inv_closed`: si `y = f(x)`, entonces `H.inv y = f(G.inv x)` por `map_inv`
+
+#### B4.2 Núcleo de un homomorfismo (~20 lín.)
+
+```
+def GroupHom.ker (f : GroupHom G H) : Subgroup G where
+  carrier := G.carrier.filter (fun x => decide (f.map x = H.id))
+  ...
+```
+
+*Sub-lemas* (cada uno ~3-5 lín.):
+
+- `ker.id_in`: `G.id ∈ ker.carrier.elems` (de `f.map_id`)
+- `ker.op_closed`: si `f(a) = H.id` y `f(b) = H.id`, entonces
+  `f(G.op a b) = H.op (f a) (f b) = H.op H.id H.id = H.id`
+- `ker.inv_closed`: si `f(a) = H.id`, entonces
+  `f(G.inv a) = H.inv (f a) = H.inv H.id = H.id` (usa `inv_id_eq`)
+
+#### B4.3 Composición de homomorfismos (~10 lín.)
+
+```
+def GroupHom.comp (g : GroupHom H K) (f : GroupHom G H) : GroupHom G K where
+  map := MapOn.comp g.map f.map
+  map_op := ...   -- reescrito via f.map_op + g.map_op
+  map_id := ...   -- f.map_id ▸ g.map_id
+  map_inv := ...  -- f.map_inv ▸ g.map_inv
+```
+
+*Sub-lemas*:
+
+- `comp_map_op`: `(g.comp f).map (G.op a b) = K.op ((g.comp f).map a) ((g.comp f).map b)`
+  (directo de `f.map_op` + `g.map_op`)
+- `comp_map_id`: `(g.comp f).map G.id = K.id`
+  (directo de `f.map_id` + `g.map_id`)
+
+#### B4.4 Ker es normal (~15 lín.)
+
+```
+theorem ker_isNormal (f : GroupHom G H) : f.ker.IsNormal G
+```
+
+*Prueba*: Sea `g ∈ G`, `n ∈ ker f`. Entonces `f(n) = H.id`.
+`f(g·n·g⁻¹) = f(g)·f(n)·f(g⁻¹) = f(g)·H.id·H.inv(f(g)) = H.id`.
+Luego `g·n·g⁻¹ ∈ ker f`.
+
+*Sub-lemas*:
+
+- `map_conjugate`: `f.map (G.op (G.op g n) (G.inv g)) = H.op (H.op (f.map g) (f.map n)) (H.inv (f.map g))`
+  (~5 lín., dos aplicaciones de `map_op` + `map_inv`)
+
+#### B4.5 Mono ⟺ ker trivial (~20 lín.)
+
+```
+theorem mono_iff_ker_trivial (f : GroupHom G H) :
+    f.map.Injective ↔ f.ker.IsTrivial
+```
+
+*Sub-lemas*:
+
+- `injective_imp_ker_trivial` (→): Si `f` inyectiva y `x ∈ ker`, entonces
+  `f(x) = H.id = f(G.id)`, luego `x = G.id`. Así `ker = {G.id}`.
+  (~8 lín.)
+- `ker_trivial_imp_injective` (←): Si `ker = {G.id}` y `f(a) = f(b)`,
+  entonces `f(a·b⁻¹) = f(a)·f(b)⁻¹ = H.id`, luego `a·b⁻¹ ∈ ker`,
+  luego `a·b⁻¹ = G.id`, luego `a = b`.
+  (~10 lín., usa `op_cancel_right`)
+
+---
+
+### B5. Subgrupo generado y grupos simples
+
+**Archivo**: `Group.lean` § 5d-5e (nuevo)
+
+#### B5.1 Subgrupo generado por un subconjunto (~25 lín.)
+
+```
+def generatedSubgroup (G : FinGroup) (S : ℕ₀FSet)
+    (h_sub : ∀ a, a ∈ S.elems → a ∈ G.carrier.elems) : Subgroup G
+```
+
+*Definición*: la intersección de todos los subgrupos de `G` que contienen `S`.
+En el caso finito, equivalente a: cerrar `S` bajo `op` e `inv` iteradamente.
+
+*Estrategia constructiva* (mejor para finito):
+
+```
+def closure_step (G : FinGroup) (T : ℕ₀FSet) : ℕ₀FSet :=
+  G.carrier.filter (fun x =>
+    T.elems.any (fun a => decide (x = a)) ||     -- T ⊆ resultado
+    T.elems.any (fun a => decide (x = G.inv a)) || -- inv
+    T.elems.any (fun a =>
+      T.elems.any (fun b => decide (x = G.op a b)))) -- op
+
+def closure_iterate (G : FinGroup) (S : ℕ₀FSet) : ℕ₀ → ℕ₀FSet
+  | .zero   => S ∪ {G.id}   -- asegurar id
+  | .succ n => closure_step G (closure_iterate G S n)
+
+def generatedSubgroup (G : FinGroup) (S : ℕ₀FSet) ... : Subgroup G :=
+  -- closure_iterate converge en ≤ |G| pasos (monotone + bounded)
+  subgroup_of_op_inv_closed G (closure_iterate G S G.carrier.card) ...
+```
+
+*Sub-lemas*:
+
+- `S_subset_generated`: `∀ a ∈ S.elems, a ∈ (generatedSubgroup G S h_sub).carrier.elems`
+- `generated_minimal`: si `H : Subgroup G` y `S ⊆ H.carrier`, entonces
+  `generatedSubgroup G S ⊆ H` (intersección es mínima)
+- `generated_of_singleton`: `generatedSubgroup G {g} = cyclicSubgroup G g hg`
+  (cuando `S` es un solo elemento)
+
+#### B5.2 Grupo simple (~5 lín.)
+
+```
+def FinGroup.IsSimple (G : FinGroup) : Prop :=
+  G.carrier.card ≠ 𝟙 ∧
+  ∀ N : Subgroup G, N.IsNormal G → N.IsTrivial ∨ ¬N.IsProper
+```
+
+*Lemas*:
+
+- `prime_order_simple`: `Prime G.carrier.card → G.IsSimple`
+  (~15 lín., por Lagrange: subgrupo propio tiene orden que divide `|G|`,
+  pero `|G|` primo ⟹ solo 1 y `|G|`, luego subgrupo es trivial o impropio)
+
+---
+
+### B6. Sorry 1–2: FunPerm.comp y orbits_partition
+
+#### B6.1 `FunPerm.comp is_perm` (Perm.lean:39)
+
+**Enunciado**: `(FunTable.comp g f dflt).table ~ A.elems`
+
+**Cadena de lemas** (ver B1.1–B1.4):
+
+```
+sorted_lt_nodup ──► applyElem_injective ──► perm_map_of_injective_on_nodup
+         │                    │                          │
+         └─── B1.1            └─── B1.3                  └─── B1.4
+                                                            │
+                                               FunPerm.comp is_perm
+```
+
+*Prueba final* (~5 lín.): aplicar `List.Perm.trans`:
+
+1. `comp_table = f.table.map (g.applyElem · dflt)`
+2. `f.table.map ... ~ A.elems.map ...` (de `f.is_perm` + `List.Perm.map`)
+3. `A.elems.map (g.applyElem · dflt) ~ A.elems` (de B1.4 con
+   h_nodup = `sorted_lt_nodup A.sorted`, h_inj = `applyElem_injective`,
+   h_mem = `applyElem_mem`)
+
+#### B6.2 `orbits_partition` rama left (Action.lean:132)
+
+**Cadena de lemas**:
+
+```
+FSet.ext ────────────────────────────────── B1.2
+    │
+orb_subset (nuevo, ~15 lín.)
+    │    Si z ∈ orb(x) ∩ orb(y), entonces orb(x) ⊆ orb(y)
+    │    Sub-lemas:
+    │    - orb_subset_aux: α(g₁,x)=z ∧ α(g₂,y)=z → x = α(g₁⁻¹·g₂, y)
+    │      (usa act_compat + act_id + op_inv)
+    │    - orb_mem_trans: w ∈ orb(x) ∧ x ∈ orb(y) → w ∈ orb(y)
+    │      (w=α(h,x), x=α(k,y) ⟹ w=α(G.op h k, y))
+    │
+sorted_perm_eq (nuevo, ~8 lín.)
+    │    Sorted (· < ·) l₁ → Sorted (· < ·) l₂ →
+    │    (∀ x, x ∈ l₁ ↔ x ∈ l₂) → l₁ = l₂
+    │    Sub-lemas:
+    │    - mutual_subset_perm: inclusión mutua de sorted listas → Perm
+    │    - List.Perm.eq_of_pairwise (stdlib): perm + anti-simétrica → eq
+    │
+orbits_partition (rama left)
+```
+
+---
+
+### B7. Sorry 3–4: lagrange y orbit_stabilizer
+
+#### B7.1 `lagrange` (Cosets.lean:126)
+
+**Cadena de lemas**:
+
+```
+coset_disjoint_or_eq (nuevo, ~20 lín.)
+    │    leftCoset G H g₁ = leftCoset G H g₂ ∨ disjoint
+    │    Sub-lemas:
+    │    - cosetRel_iff_coset_eq: cosetRel a b ↔ leftCoset a = leftCoset b
+    │      (~10 lín., extensionalidad de filtros sorted)
+    │    - coset_nonempty_inter_eq: si x ∈ gH ∩ g'H entonces gH = g'H
+    │      (~8 lín., de cosetRel_trans + cosetRel_symm)
+    │
+coset_cover (nuevo, ~5 lín.)
+    │    ∀ g ∈ G, g ∈ leftCoset G H g
+    │    (testigo: G.id ∈ H, G.op g G.id = g)
+    │
+cosetList (nuevo, ~10 lín.)
+    │    def cosetList G H : List ℕ₀FSet :=
+    │      G.carrier.elems.foldl (deduplicated coset accumulation)
+    │
+card_of_uniform_partition (nuevo, ~30 lín.)
+    │    Partición de S en partes de tamaño k ⟹ |S| = k · (nº partes)
+    │    Sub-lemas:
+    │    - card_disjoint_union: |A ∪ B| = |A| + |B| si disjuntos (~8 lín.)
+    │    - card_partition_ind: inducción sobre nº de partes (~15 lín.)
+    │
+lagrange
+```
+
+#### B7.2 `orbit_stabilizer` (Action.lean:116)
+
+**Cadena de lemas**:
+
+```
+coset_to_orbit_map (nuevo, ~15 lín.)
+    │    Construir MapOn (cosetFSet G (stab x)) (orb x)
+    │    definido por: representante g del coseto ↦ α(g, x)
+    │    Sub-lemas:
+    │    - coset_to_orbit_welldefined: g₁ ~ g₂ mod Stab → α(g₁,x) = α(g₂,x)
+    │      (~5 lín., g₁⁻¹g₂ ∈ Stab ⟹ α(g₁⁻¹g₂, x) = x ⟹ α(g₂,x) = α(g₁,x))
+    │    - coset_to_orbit_injective: α(g₁,x) = α(g₂,x) → g₁ ~ g₂ mod Stab
+    │      (~5 lín., α(g₁⁻¹g₂, x) = x ⟹ g₁⁻¹g₂ ∈ Stab)
+    │    - coset_to_orbit_surjective: ∀ y ∈ orb(x), ∃ g tal que α(g,x) = y
+    │      (directa de la definición de órbita)
+    │
+orbit_stabilizer
+    │    |orb(x)| = nº cosetos de Stab(x) = |G|/|Stab(x)|
+    │    Luego |orb(x)| · |Stab(x)| = |G| (de lagrange + biyección)
+```
+
+---
+
+### B8. Grupo simétrico Sym(Fin₀Set n)
+
+**Archivos**: `Perm.lean` § 2, `Group.lean` § 7
+
+#### B8.1 Lehmer code — codificación (Perm.lean, ~20 lín.)
+
+```
+def lehmerCode (n : ℕ₀) (σ : FunPerm (Fin₀Set n)) : List ℕ₀
+-- lehmerCode[i] = #{j > i | σ(j) < σ(i)}
+```
+
+*Sub-lemas*:
+
+- `lehmerCode_length`: `lengthₚ (lehmerCode n σ) = n`
+- `lehmerCode_bound`: `∀ i < n, getDₚ 𝟘 (lehmerCode n σ) i < sub n i`
+
+#### B8.2 Lehmer encode/decode (Perm.lean, ~25 lín.)
+
+```
+def lehmerEncode (n : ℕ₀) (σ : FunPerm (Fin₀Set n)) : ℕ₀
+-- Σᵢ lehmerCode[i] · (n-1-i)!
+
+def lehmerDecode (n : ℕ₀) (k : ℕ₀) : FunPerm (Fin₀Set n)
+-- inversa: extraer dígitos factoráicos, reconstruir permutación
+```
+
+*Sub-lemas*:
+
+- `lehmerEncode_lt`: `lehmerEncode n σ < factorial n`
+- `lehmerDecode_encode`: `lehmerDecode n (lehmerEncode n σ) = σ`
+- `lehmerEncode_decode`: `k < factorial n → lehmerEncode n (lehmerDecode n k) = k`
+
+#### B8.3 `SymGroup n : FinGroup` (Group.lean § 7, ~30 lín.)
+
+```
+def SymGroup (n : ℕ₀) : FinGroup where
+  carrier := Fin₀Set (factorial n)
+  op a b  := lehmerEncode n
+               (FunPerm.comp (lehmerDecode n a) (lehmerDecode n b) 𝟘)
+  id      := lehmerEncode n (FunPerm.id (Fin₀Set n))
+  inv a   := lehmerEncode n (... inversa de lehmerDecode n a ...)
+```
+
+*Axiomas*: se transfieren de `Perm.comp_assoc`, `Perm.comp_id_fn`,
+`Perm.comp_inv_left`, etc., vía round-trip `encode ∘ decode = id`.
+
+*Sub-lemas*:
+
+- `SymGroup_carrier_card`: `(SymGroup n).carrier.card = factorial n`
+  (directo de `Fin₀Set_card`)
+- `SymGroup_op_assoc`: transferencia de `Perm.comp_assoc`
+- `SymGroup_op_id`: transferencia de `Perm.comp_id_fn`
+- `SymGroup_op_inv`: transferencia de `Perm.inv_left`/`inv_right`
+
+---
+
+### B9. Infraestructura Sylow
+
+#### B9.1 Centro `Z(G)` (Group.lean § 5f, ~25 lín.)
+
+```
+def center (G : FinGroup) : Subgroup G where
+  carrier := G.carrier.filter (fun g =>
+    G.carrier.elems.all (fun h => decide (G.op g h = G.op h g)))
+  ...
+```
+
+*Sub-lemas*:
+
+- `center_id_in`: `G.id ∈ (center G).carrier.elems`
+- `center_op_closed`: `a, b ∈ Z(G) → G.op a b ∈ Z(G)`
+  (si `ag = ga` y `bg = gb` para todo `g`, entonces `(ab)g = a(bg) = a(gb) = (ag)b = (ga)b = g(ab)`)
+- `center_inv_closed`: `a ∈ Z(G) → G.inv a ∈ Z(G)`
+  (si `ag = ga`, invertir ambos lados: `g⁻¹a⁻¹ = a⁻¹g⁻¹`, equivalente a `a⁻¹g = ga⁻¹`)
+- `center_normal`: `(center G).IsNormal G`
+  (`g·z·g⁻¹ = g·g⁻¹·z = z ∈ Z(G)` por definición de centro)
+- `center_is_characteristic`: `(center G).IsCharacteristic G`
+
+#### B9.2 Conjugación y normalizador (Group.lean § 5g, ~25 lín.)
+
+```
+def conjugate (G : FinGroup) (g x : ℕ₀) : ℕ₀ :=
+  G.op (G.op g x) (G.inv g)
+
+def normalizer (G : FinGroup) (H : Subgroup G) : Subgroup G where
+  carrier := G.carrier.filter (fun g =>
+    H.carrier.elems.all (fun h => decide (conjugate G g h ∈ H.carrier.elems)))
+  ...
+```
+
+*Sub-lemas*:
+
+- `conjugate_mem`: `g ∈ G → x ∈ G → conjugate G g x ∈ G`
+- `H_le_normalizer`: `∀ h ∈ H, h ∈ (normalizer G H).carrier.elems`
+- `normalizer_op_closed`, `normalizer_inv_closed`
+- `normal_iff_normalizer_eq_G`: `H.IsNormal ↔ (normalizer G H).carrier = G.carrier`
+
+#### B9.3 Grupo cociente `G/N` (Cosets.lean ampliado, ~60 lín.)
+
+```
 def quotientGroup (G : FinGroup) (N : Subgroup G)
-    (hN : N.IsNormal) : FinGroup
+    (hN : N.IsNormal G) : FinGroup where
+  carrier := cosetFSet G N  -- FSet de cosetos como ℕ₀FSet
+  op := cosetOp G N hN      -- (gN)·(hN) = (gh)N
+  id := leftCoset G N G.id  -- eN = N
+  inv := cosetInv G N hN    -- (gN)⁻¹ = g⁻¹N
 ```
 
-Construir el grupo cuyo carrier es el conjunto de cosetos, con la operación
-`(gN)·(hN) = (gh)N`. Requiere buena definición + verificación de bien-definido.
-~60-80 líneas.
+*Sub-lemas para buena-definición*:
 
-#### 5d. Teorema de Cauchy
+- `cosetOp_welldefined`: si `g₁N = g₂N` y `h₁N = h₂N`, entonces `(g₁h₁)N = (g₂h₂)N`
+  (~15 lín., usa normalidad: `g₂⁻¹g₁ ∈ N` y `h₂⁻¹h₁ ∈ N` ⟹
+  `(g₂h₂)⁻¹(g₁h₁) = h₂⁻¹(g₂⁻¹g₁)h₁ = h₂⁻¹·n·h₁`; por normalidad
+  `h₂⁻¹·n = n'·h₂⁻¹`, luego `n'·h₂⁻¹·h₁ = n'·m ∈ N`)
+- `cosetOp_assoc`: `((aN)·(bN))·(cN) = (aN)·((bN)·(cN))`
+  (directo de `G.op_assoc`)
+- `cosetOp_id`: `(eN)·(gN) = gN` y `(gN)·(eN) = gN`
+- `cosetOp_inv`: `(gN)·(g⁻¹N) = eN`
 
-```lean
+#### B9.4 Teorema de Cauchy (~50 lín.)
+
+```
 theorem cauchy (G : FinGroup) (p : ℕ₀)
-    (hp : Prime p) (hdvd : dvd_card p G.carrier) :
-    ∃ g, g ∈ G.carrier.elems ∧ order G g = p
+    (hp : Prime p) (hdvd : Divides p G.carrier.card) :
+    ∃ g, g ∈ G.carrier.elems ∧ order G g (G.subset_mem g) = p
 ```
 
-Donde `order G g` es el menor `n > 0` tal que `G.op^n g = G.id`.
-Requiere:
+**Cadena de sub-lemas**:
 
-- Definición de `order` (~15 líneas)
-- Lema: `order` divide `|G|` (~20 líneas, usa Lagrange sobre `⟨g⟩`)
-- Prueba de Cauchy por inducción sobre `|G|` (~40 líneas)
+```
+order_dvd_card ────────────────── (de B2.4, usa lagrange sobre ⟨g⟩)
+    │
+cauchy_abelian (caso abeliano, ~20 lín.)
+    │    Si G es abeliano y p | |G|, existe g de orden p.
+    │    Inducción sobre |G|: tomar g ≠ e, si p | ord(g) done;
+    │    si no, G/⟨g⟩ tiene |G|/ord(g) divisible por p,
+    │    por HI existe elemento de orden p en cociente, levantar.
+    │
+cauchy_general (caso general, ~25 lín.)
+    │    Ecuación de clases: |G| = |Z(G)| + Σ [G:C_G(xᵢ)]
+    │    Si p | |Z(G)| → cauchy_abelian en Z(G) (Z(G) es abeliano)
+    │    Si p ∤ |Z(G)| → existe C_G(xᵢ) con p ∤ [G:C_G(xᵢ)],
+    │       luego p | |C_G(xᵢ)| (pues p | |G| = [G:C_G(xᵢ)]·|C_G(xᵢ)|)
+    │       Inducción: |C_G(xᵢ)| < |G|
+```
 
-#### 5e. Ecuación de clases
+#### B9.5 Ecuación de clases (~35 lín.)
 
-```lean
+```
 theorem class_equation (G : FinGroup) :
-    G.carrier.card = (center G).carrier.card +
-      sum_over_nontrivial_orbits (...)
+    G.carrier.card = add (center G).carrier.card
+      (finSum (fun i => index G (centralizer G (rep i))) ...)
 ```
 
-Usa `orbits_partition` + conteo. ~40 líneas.
+**Sub-lemas**:
 
-**Total infraestructura Paso 5**: ~200-250 líneas de código nuevo.
-
----
-
-### Paso 6: `sylow_first` (Sylow.lean:71)
-
-**Enunciado**: Si `p` primo y `p^n | |G|`, existe `H ≤ G` con `|H| = p^n`.
-
-**Estrategia** (prueba clásica por inducción fuerte sobre `|G|`):
-
-1. **Caso base**: `|G| = 1` ⟹ `n = 0`, `H = {e}`.
-
-2. **Paso inductivo**: Considerar la ecuación de clases:
-   `|G| = |Z(G)| + Σᵢ [G : C_G(xᵢ)]`
-
-   - **Caso A**: `p | |Z(G)|`. Entonces por Cauchy en `Z(G)` (abeliano),
-     existe `g ∈ Z(G)` de orden `p`. El subgrupo `⟨g⟩` es normal en `G`
-     (porque `g ∈ Z(G)`). Aplicar hipótesis de inducción al cociente
-     `G/⟨g⟩` de orden `|G|/p`.
-
-   - **Caso B**: `p ∤ |Z(G)|`. Entonces algún sumando `[G : C_G(xᵢ)]`
-     no es divisible por `p`, lo que implica `p^n | |C_G(xᵢ)|` con
-     `|C_G(xᵢ)| < |G|`. Aplicar hipótesis de inducción a `C_G(xᵢ)`.
-
-**Dependencias**: center, normal, quotient group, Cauchy, class equation,
-orbit_stabilizer, lagrange.
-
-**Dificultad**: Muy alta. ~80-100 líneas (asumiendo toda la infraestructura).
+- `conjugation_action`: la conjugación define una `GroupAction G G.carrier`
+  (~10 lín.)
+- `orb_conjugation_singleton_iff_center`: `|orb_conj(g)| = 1 ↔ g ∈ Z(G)`
+  (~8 lín.)
+- `class_eq_center_plus_nontrivial`: partición en órbitas triviales (= centro)
+  y no triviales (usa `orbits_partition`)
 
 ---
 
-### Paso 7: `sylow_second` (Sylow.lean:88)
+### B10. Sorry 5–7: Tres teoremas de Sylow
 
-**Enunciado**: Todos los p-subgrupos de Sylow son conjugados.
+#### B10.1 `sylow_first` (Sylow.lean:71)
 
-**Estrategia**:
+**Cadena de sub-lemas**:
 
-1. Sea `H` un p-subgrupo de Sylow. Hacer actuar `H` sobre `G/K`
-   (cosetos de otro p-subgrupo de Sylow `K`) por multiplicación izquierda:
-   `h · (gK) = (hg)K`.
+```
+trivial_subgroup_of_card_one (nuevo, ~5 lín.)
+    │    |G| = 𝟙 → G tiene un solo subgrupo: {e}
+    │
+sylow_first_base (nuevo, ~5 lín.)
+    │    p^0 | |G| → ∃ H, |H| = 𝟙 (= p^0), testigo: trivialSubgroup
+    │
+sylow_first_center_case (nuevo, ~20 lín.)
+    │    p | |Z(G)| → por cauchy en Z(G) existe ⟨g⟩ normal de orden p
+    │    → G/⟨g⟩ tiene |G|/p, aplicar HI para p^(n-1) en G/⟨g⟩
+    │    → levantar subgrupo del cociente al grupo original
+    │    Sub-lema: lift_subgroup_from_quotient (~15 lín.)
+    │
+sylow_first_noncenter_case (nuevo, ~20 lín.)
+    │    p ∤ |Z(G)| → class equation ⟹ ∃ C_G(x) con |C_G(x)| < |G|
+    │    y p^n | |C_G(x)| → aplicar HI
+    │    Sub-lema: centralizer_card_lt (~8 lín.)
+    │    Sub-lema: p_dvd_centralizer (~8 lín.)
+    │
+sylow_first := strongInductionOn |G|
+    │    (sylow_first_base, sylow_first_center_case, sylow_first_noncenter_case)
+```
 
-2. `|G/K| = |G|/p^n`, y como `p^n | |H|` con `|H| = p^n`, el número de
-   órbitas cumple: `|G/K| = Σ |orb|` donde cada `|orb|` divide `|H| = p^n`,
-   así que cada `|orb|` es una potencia de `p`.
+#### B10.2 `sylow_second` (Sylow.lean:88)
 
-3. `|G/K|` no es divisible por `p` (porque `p^n ‖ |G|`). Entonces existe
-   al menos una órbita de tamaño 1, es decir un `gK` fijo por `H`:
-   `hgK = gK` para todo `h ∈ H`.
+**Cadena de sub-lemas**:
 
-4. Esto implica `g⁻¹hg ∈ K` para todo `h ∈ H`, es decir `g⁻¹Hg ⊆ K`.
-   Como `|g⁻¹Hg| = |H| = |K|`, tenemos `g⁻¹Hg = K`.
+```
+coset_action (nuevo, ~15 lín.)
+    │    Definir GroupAction H (cosetFSet G K) por h · (gK) = (hg)K
+    │    Sub-lema: coset_action_closed (~5 lín.)
+    │    Sub-lema: coset_action_id (~3 lín.)
+    │    Sub-lema: coset_action_compat (~5 lín.)
+    │
+fixed_coset_imp_conjugate (nuevo, ~15 lín.)
+    │    Si gK es fijo bajo toda la acción de H, entonces g⁻¹Hg ⊆ K
+    │    Sub-lema: fixed_means_in_K: h·(gK) = gK → g⁻¹hg ∈ K (~8 lín.)
+    │    Sub-lema: conjugate_subgroup_card: |g⁻¹Hg| = |H| (~5 lín.)
+    │
+orbit_size_divides_p_power (nuevo, ~10 lín.)
+    │    |H| = p^n ⟹ cada |orb| divide p^n (orbit_stabilizer + lagrange)
+    │
+exists_fixed_point (nuevo, ~15 lín.)
+    │    |G/K| = |G|/p^n no divisible por p
+    │    Σ |orb| = |G/K| ≡ |fixed_points| (mod p)
+    │    Luego |fixed_points| ≢ 0 (mod p), existe al menos un fixed_point
+    │
+sylow_second := exists_fixed_point + fixed_coset_imp_conjugate
+    │    + conjugate_subgroup_card → g⁻¹Hg = K
+```
 
-**Dependencias**: sylow_first (para la existencia), orbit_stabilizer,
-lagrange, acción sobre cosetos.
+#### B10.3 `sylow_third` (Sylow.lean:105)
 
-**Dificultad**: Muy alta. ~60-80 líneas.
+**Cadena de sub-lemas**:
+
+```
+sylow_conjugation_action (nuevo, ~15 lín.)
+    │    G actúa sobre {Sylow p-subgrupos} por conjugación
+    │    (sylow_second ⟹ acción transitiva)
+    │
+np_eq_index_normalizer (nuevo, ~10 lín.)
+    │    n_p = [G : N_G(H)] (por orbit_stabilizer sobre la acción de conjugación)
+    │
+np_divides_index (nuevo, ~5 lín.)
+    │    n_p = [G:N_G(H)] y H ≤ N_G(H) ⟹ n_p | [G:H]
+    │    (pues [G:H] = [G:N_G(H)]·[N_G(H):H])
+    │
+unique_fixed_point (nuevo, ~20 lín.)
+    │    H actúa sobre Sylow p-subgrupos por conjugación
+    │    Mostrar: K es punto fijo ⟹ K = H
+    │    Sub-lema: fixed_K_imp_HK_subgroup: K fijo → H·K subgrupo (~8 lín.)
+    │    Sub-lema: HK_card_formula: |HK| = |H|·|K|/|H∩K| (~10 lín.)
+    │    Sub-lema: p_subgroups_equal: |H| = |K| = p^n y |HK| | |G| ⟹ H = K
+    │
+np_cong_one_mod_p (nuevo, ~10 lín.)
+    │    #fixed_points = 1 (unique_fixed_point)
+    │    n_p = 1 + (non-fixed orbits), cada non-fixed orbit has size divisible by p
+    │    Luego n_p ≡ 1 (mod p)
+    │
+sylow_third := ⟨np_cong_one_mod_p, np_divides_index⟩
+```
 
 ---
 
-### Paso 8: `sylow_third` (Sylow.lean:105)
+### Resumen del esfuerzo total (revisado)
 
-**Enunciado**: `n_p ≡ 1 (mod p)` y `n_p | [G:H]`.
-
-**Estrategia**:
-
-1. **`n_p | [G:H]`**: Por Sylow II, G actúa transitivamente sobre los
-   p-subgrupos de Sylow por conjugación. Luego `n_p = |G|/|N_G(H)| = [G:N_G(H)]`.
-   Como `H ≤ N_G(H)` y `[G:H] = [G:N_G(H)] · [N_G(H):H]`, tenemos
-   `n_p | [G:H]`.
-
-2. **`n_p ≡ 1 (mod p)`**: Hacer actuar `H` sobre el conjunto de p-subgrupos
-   de Sylow por conjugación. Los puntos fijos son exactamente los `K` tales
-   que `hKh⁻¹ = K` para todo `h ∈ H`, es decir `K ≤ N_G(H)`.
-   Si `K` es punto fijo, entonces `HK` es subgrupo y `|HK| = |H|·|K|/|H∩K|`.
-   Como `|HK|` divide `|G|` y `|H| = |K| = p^n`, se deduce `H = K`.
-   Luego `H` es el único punto fijo. Por conteo mod p: `n_p ≡ 1 (mod p)`.
-
-**Dependencias**: sylow_second, normalizador `N_G(H)`, lagrange, ModEq.
-
-**Infraestructura adicional**:
-
-- Normalizador `N_G(H)` (~20 líneas)
-- `|HK| = |H|·|K|/|H∩K|` (~30 líneas)
-- Conteo de puntos fijos mod p (~20 líneas)
-
-**Dificultad**: Muy alta. ~70-90 líneas.
-
----
-
-### Resumen del esfuerzo total
-
-| Paso | Sorry | Líneas estimadas | Infraestructura nueva |
-|------|-------|------------------|-----------------------|
-| 1 | `FunPerm.comp` | ~50 | sorted_lt_nodup, applyElem_injective |
-| 2 | `orbits_partition` | ~30 | FSet.ext |
-| 3 | `lagrange` | ~100 | card_partition, cosetList |
-| 4 | `orbit_stabilizer` | ~50 | biyección G/Stab ≅ Orb |
-| 5 | (infraestructura) | ~250 | Z(G), Normal, G/N, Cauchy, class eq |
-| 6 | `sylow_first` | ~100 | inducción + ecuación de clases |
-| 7 | `sylow_second` | ~80 | acción sobre cosetos |
-| 8 | `sylow_third` | ~90 | normalizador, conteo mod p |
-| **Total** | **7 sorry** | **~750 líneas** | |
+| Bloque | Contenido | Lemas | Líneas est. |
+|--------|-----------|-------|-------------|
+| B1 | Infraestructura listas/conjuntos | 6 | ~60 |
+| B2 | Potencia iterada + orden de elemento | 10 | ~90 |
+| B3 | Tipos de subgrupos | 12+ | ~80 |
+| B4 | Homomorfismos (Im, ker, comp, mono⟺ker) | 12 | ~85 |
+| B5 | Subgrupo generado + grupo simple | 5 | ~50 |
+| B6 | Sorry 1-2 (FunPerm.comp, orbits_partition) | 8 | ~60 |
+| B7 | Sorry 3-4 (lagrange, orbit_stabilizer) | 10 | ~130 |
+| B8 | Grupo simétrico Sym(Fin₀Set n) | 9 | ~100 |
+| B9 | Infraestructura Sylow | 20+ | ~200 |
+| B10 | Sorry 5-7 (tres Sylow) | 15+ | ~150 |
+| **Total** | | **~107 lemas** | **~1005 líneas** |
 
 ---
 
 ## Prioridad inmediata
 
-1. **Paso 1**: `FunPerm.comp` (Perm.lean) — independiente, dificultad media
-2. **Paso 2**: `orbits_partition` (Action.lean) — casi terminado, falta FSet.ext
-3. **Paso 3**: `lagrange` (Cosets.lean) — abre la puerta a Pasos 4-8
-4. **Paso 4**: `orbit_stabilizer` (Action.lean) — usa lagrange
-5. **Pasos 5-8**: Sylow completo — requiere toda la cadena
-6. **Phase 22 (ℤ)**: Extensión a enteros
-7. **Phase 23 (ℚ)**: Extensión a racionales
+1. **B1**: Infraestructura de listas — desbloquea B6
+2. **B2**: Orden de elemento — desbloquea B3, B9
+3. **B3**: Tipos de subgrupos (normal, cíclico, etc.) — desbloquea B4, B5, B9
+4. **B4**: Homomorfismos (Im, ker, comp, mono⟺ker) — desbloquea B9
+5. **B5**: Subgrupo generado + grupo simple — independiente tras B3
+6. **B6**: Sorry 1-2 (FunPerm.comp, orbits_partition) — desbloquea B7
+7. **B7**: Sorry 3-4 (lagrange, orbit_stabilizer) — desbloquea B9
+8. **B8**: Grupo simétrico Sym(Fin₀Set n) — independiente tras B6
+9. **B9**: Infraestructura Sylow (center, Cauchy, class eq, cocientes)
+10. **B10**: Sorry 5-7 — requiere todo lo anterior
+11. **Phase 22 (ℤ)**: Extensión a enteros
+12. **Phase 23 (ℚ)**: Extensión a racionales

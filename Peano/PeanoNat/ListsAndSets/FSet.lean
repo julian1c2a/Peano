@@ -44,6 +44,12 @@ namespace Peano
       elems  : List α
       sorted : Sorted (· < ·) elems
 
+    /-- Extensionalidad de `FSet`: dos conjuntos con la misma lista de elementos
+        son iguales (la prueba de `sorted` es irrelevante por proof irrelevance). -/
+    theorem FSet.ext {α : Type} [DecidableEq α] [LT α]
+        {s₁ s₂ : FSet α} (h : s₁.elems = s₂.elems) : s₁ = s₂ := by
+      cases s₁; cases s₂; cases h; rfl
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 1. Aliases de tipos concretos
     -- ══════════════════════════════════════════════════════════════════
@@ -570,6 +576,7 @@ end Peano
 
 export Peano.FSet (
   FSet
+  FSet.ext
   ℕ₀FSet
   ℕ₁FSet
   ℕ₂FSet

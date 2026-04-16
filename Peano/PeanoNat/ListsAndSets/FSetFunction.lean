@@ -460,7 +460,7 @@ namespace Peano
     -- ── Lemas auxiliares de lista ─────────────────────────────────────
 
     /-- Lista ordenada estrictamente → sin duplicados. -/
-    private theorem sorted_nodup {α : Type} [DecidableEq α] [LT α]
+    theorem sorted_nodup {α : Type} [DecidableEq α] [LT α]
         [StrictOrder.IrreflLT α]
         {l : List α} (hs : Sorted (· < ·) l) : l.Nodup := by
       induction l with
@@ -472,7 +472,7 @@ namespace Peano
         exact absurd (hpw.1 x hx) (StrictOrder.IrreflLT.lt_irrefl x)
 
     /-- Imagen de lista sin duplicados por función inyectiva → sin duplicados. -/
-    private theorem nodup_map_of_inj_on {α β : Type}
+    theorem nodup_map_of_inj_on {α β : Type}
         (f : α → β) (l : List α)
         (hnd : l.Nodup)
         (hinj : ∀ a b, a ∈ l → b ∈ l → f a = f b → a = b) :
@@ -653,6 +653,42 @@ namespace Peano
         -- l₂ = Perm(a :: l₂.erase a), and a :: l₂.erase a is nodup
         exact (List.perm_cons_erase ha2).nodup_iff.mpr
           (List.nodup_cons.mpr ⟨ha_not_erase, hnd_erase⟩)
+
+    /-- Dos listas sin duplicados de la misma longitud donde una
+        está contenida en la otra son permutaciones. -/
+    theorem perm_of_nodup_subset_same_length {α : Type} [DecidableEq α]
+        {l₁ l₂ : List α}
+        (hnd₁ : l₁.Nodup) (hnd₂ : l₂.Nodup)
+        (hsub : ∀ x, x ∈ l₁ → x ∈ l₂)
+        (hlen : l₁.length = l₂.length) :
+        List.Perm l₁ l₂ := by
+      rw [List.perm_iff_count]
+      intro a
+      by_cases ha₁ : a ∈ l₁
+      · have ha₂ : a ∈ l₂ := hsub a ha₁
+        have hc₁ := nodup_count_le_one a l₁ hnd₁
+        have hc₁_pos := List.count_pos_iff.mpr ha₁
+        have hc₂ := nodup_count_le_one a l₂ hnd₂
+        have hc₂_pos := List.count_pos_iff.mpr ha₂
+        omega
+      · by_cases ha₂ : a ∈ l₂
+        · exfalso
+          have hsub_erase : ∀ x, x ∈ l₁ → x ∈ l₂.erase a := by
+            intro x hx
+            have hx_ne : x ≠ a := fun h => ha₁ (h ▸ hx)
+            exact (List.mem_erase_of_ne hx_ne).mpr (hsub x hx)
+          have h_le := nodup_subset_length_le hnd₁ hsub_erase
+          have h_erase := List.length_erase_of_mem ha₂
+          -- (l₂.erase a).length = l₂.length - 1 < l₂.length = l₁.length
+          -- pero l₁.length ≤ (l₂.erase a).length — contradicción
+          have h_lt : (l₂.erase a).length < l₂.length := by
+            have : 0 < l₂.length := by
+              cases l₂ with | nil => exact absurd ha₂ List.not_mem_nil
+                            | cons _ _ => exact Nat.zero_lt_succ _
+            omega
+          omega
+        · rw [List.count_eq_zero_of_not_mem ha₁,
+               List.count_eq_zero_of_not_mem ha₂]
 
     -- ── Los cuatro lemas del Palomar ──────────────────────────────────
 
@@ -1455,6 +1491,68 @@ namespace Peano
         mem_all := fun _ ha => ha
         is_perm := List.Perm.refl _
 
+      /-- Si `l` no tiene duplicados e `i, j < lengthₚ l` con la misma
+          imagen bajo `getDₚ`, entonces `i = j`. -/
+      private theorem getDₚ_injective_of_nodup {α : Type} [DecidableEq α]
+          (dflt : α) {l : List α} (hnd : l.Nodup)
+          {i j : ℕ₀} (hi : lt₀ i (lengthₚ l)) (hj : lt₀ j (lengthₚ l))
+          (heq : getDₚ dflt l i = getDₚ dflt l j) : i = j := by
+        induction l generalizing i j with
+        | nil => exact absurd hi (nlt_n_0 i)
+        | cons x xs ih =>
+          rw [List.nodup_cons] at hnd
+          obtain ⟨hx_nin, hnd_xs⟩ := hnd
+          cases i with
+          | zero =>
+            cases j with
+            | zero => rfl
+            | succ j' =>
+              simp [getDₚ_cons_zero, getDₚ_cons_succ] at heq
+              rw [lengthₚ_cons] at hj
+              have hj' := (succ_lt_succ_iff j' (lengthₚ xs)).mp hj
+              exact absurd (heq ▸ getDₚ_mem dflt xs j' hj') hx_nin
+          | succ i' =>
+            cases j with
+            | zero =>
+              simp [getDₚ_cons_zero, getDₚ_cons_succ] at heq
+              rw [lengthₚ_cons] at hi
+              have hi' := (succ_lt_succ_iff i' (lengthₚ xs)).mp hi
+              exact absurd (heq.symm ▸ getDₚ_mem dflt xs i' hi') hx_nin
+            | succ j' =>
+              simp [getDₚ_cons_succ] at heq
+              rw [lengthₚ_cons] at hi hj
+              have hi' := (succ_lt_succ_iff i' (lengthₚ xs)).mp hi
+              have hj' := (succ_lt_succ_iff j' (lengthₚ xs)).mp hj
+              exact congrArg ℕ₀.succ (ih hnd_xs hi' hj' heq)
+
+      /-- `applyElem` de una `FunPerm` es inyectiva sobre los elementos de `A`:
+          si `a₁, a₂ ∈ A.elems` y `g.applyElem a₁ dflt = g.applyElem a₂ dflt`,
+          entonces `a₁ = a₂`. -/
+      theorem applyElem_injective {α : Type} [DecidableEq α] [LT α]
+          [StrictOrder.IrreflLT α]
+          {A : FSet α} (g : FunPerm A) (dflt : α)
+          {a₁ a₂ : α} (ha₁ : a₁ ∈ A.elems) (ha₂ : a₂ ∈ A.elems)
+          (heq : g.applyElem a₁ dflt = g.applyElem a₂ dflt) : a₁ = a₂ := by
+        unfold FunTable.applyElem at heq
+        -- g.table es permutación de A.elems, luego nodup
+        have hnd_table : g.table.Nodup :=
+          g.is_perm.nodup_iff.mpr (sorted_nodup A.sorted)
+        -- Índices válidos
+        have hi₁ : lt₀ (List.indexOfₚ a₁ A.elems) (lengthₚ g.table) := by
+          rw [g.len_eq]; exact List.indexOfₚ_lt_length a₁ A.elems ha₁
+        have hi₂ : lt₀ (List.indexOfₚ a₂ A.elems) (lengthₚ g.table) := by
+          rw [g.len_eq]; exact List.indexOfₚ_lt_length a₂ A.elems ha₂
+        -- Mismos índices en la tabla nodup
+        have hidx := getDₚ_injective_of_nodup dflt hnd_table hi₁ hi₂ heq
+        -- indexOfₚ iguales + getDₚ_indexOfₚ → a₁ = a₂
+        have := getDₚ_indexOfₚ dflt a₁ A.elems ha₁
+        have := getDₚ_indexOfₚ dflt a₂ A.elems ha₂
+        -- getDₚ dflt A.elems (indexOfₚ a₁ A.elems) = a₁
+        -- getDₚ dflt A.elems (indexOfₚ a₂ A.elems) = a₂
+        -- indexOfₚ a₁ = indexOfₚ a₂
+        rw [← getDₚ_indexOfₚ dflt a₁ A.elems ha₁,
+            ← getDₚ_indexOfₚ dflt a₂ A.elems ha₂, hidx]
+
     end FunPerm
 
   end FSetFunction
@@ -1578,4 +1676,9 @@ export Peano.FSetFunction (
   -- § 7. FunPerm
   FunPerm
   FunPerm.id
+  FunPerm.applyElem_injective
+  -- Lemas auxiliares (ex-privados)
+  sorted_nodup
+  nodup_map_of_inj_on
+  perm_of_nodup_subset_same_length
 )

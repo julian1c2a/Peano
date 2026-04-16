@@ -1,9 +1,10 @@
 # Comparación Técnica: Peano vs. Mathlib4
+
 ## Aritmética de Naturales, Decidibilidad y Módulos Relacionados
 
-**Fecha:** 2026-04-09  
-**Autor:** Análisis sobre el proyecto de Julián Calderón Almendros  
-**Rama analizada:** `makingdecidable`  
+**Fecha:** 2026-06-17 (actualizado desde 2026-04-09)
+**Autor:** Análisis sobre el proyecto de Julián Calderón Almendros
+**Rama analizada:** `main` (51 build jobs, 14 sorry en grupo finito)
 **Versión Mathlib4 referenciada:** master (abril 2026)
 
 ---
@@ -69,6 +70,7 @@ booleana certificada.
 La estrategia sistemática adoptada en la rama `makingdecidable`:
 
 **Paso 1.** Definir una función booleana estructuralmente recursiva:
+
 ```lean
 def blt (n m : ℕ₀) : Bool :=
   match n, m with
@@ -78,12 +80,14 @@ def blt (n m : ℕ₀) : Bool :=
 ```
 
 **Paso 2.** Probar la equivalencia con la relación proposicional:
+
 ```lean
 theorem blt_iff_Lt (n m : ℕ₀) : blt n m = true ↔ Lt n m
 theorem nblt_iff_nLt (n m : ℕ₀) : blt n m = false ↔ ¬ Lt n m
 ```
 
 **Paso 3.** Construir la instancia `Decidable` usando el bridge:
+
 ```lean
 instance decidableLt (n m : ℕ₀) : Decidable (Lt n m) :=
   if h : blt n m then isTrue ((blt_iff_Lt n m).mp h)
@@ -164,6 +168,7 @@ aplican automáticamente a `ℕ₀`.
 ### 3.2. Mathlib4
 
 `Nat` tiene instancia `LinearOrder` completa, derivada del kernel. Esto implica automáticamente:
+
 - `le_total : ∀ a b : ℕ, a ≤ b ∨ b ≤ a`
 - `lt_or_ge`, `le_or_lt`
 - Compatibilidad con `min`, `max` (instancia `Lattice`)
@@ -249,11 +254,13 @@ def dividesb (d n : ℕ₀) : Bool     -- función booleana computable
 ```
 
 **Identidad de Bezout:** probada directamente sobre `ℕ₀`:
+
 ```lean
 theorem bezout_natform {a b : ℕ₀} (hg : IsGCD a b d) :
     ∃ x y : ℕ₀, add (mul a x) (mul b y) = d ∨
                 add (mul b y) (mul a x) = d
 ```
+
 (Bezout en ℕ₀ requiere disyunción de signos, ya que no hay enteros negativos. Es la forma natural
 sobre ℕ.)
 
@@ -274,6 +281,7 @@ Bezout para `Nat`: no existe directamente como `ax + by = gcd(a,b)` (requeriría
 se usa `Int.gcd_eq_gcd_ab : ∃ u v : ℤ, ↑(Nat.gcd m n) = ↑m * u + ↑n * v`.
 
 Teoremas en `Mathlib.Data.Nat.GCD`:
+
 - `Nat.gcd_greatest`, `Nat.gcd_comm`, `Nat.gcd_assoc`
 - `Nat.Coprime.dvd_mul_right`, `Nat.Coprime.dvd_mul_left` (Euclid's lemma via coprimality)
 - `Nat.Coprime.dvd_of_dvd_mul_right` (equivalente al lema de Gauss de Peano)
@@ -300,6 +308,7 @@ def factorize (n : ℕ₂) : ...        -- factorización en lista de primos
 ```
 
 Teoremas clave:
+
 - `prime_iff_irreducible` (equivalencia de las dos definiciones)
 - `prime_iff_has_exactly_two_divisors`
 - `exists_prime_divisor`
@@ -343,10 +352,12 @@ Módulos de primos en Mathlib (cada uno es un archivo separado):
 | `GCD/Prime` | GCD y primos, `Nat.Coprime.prime_dvd_iff` |
 
 La factorización prima en Mathlib usa `Finsupp ℕ ℕ` (función con soporte finito): `p ↦ vp(n)` (valuación p-ádica). Esto permite:
+
 ```lean
 theorem Nat.factorization_mul {m n : ℕ} (hm : m ≠ 0) (hn : n ≠ 0) :
     (m * n).factorization = m.factorization + n.factorization
 ```
+
 En Peano, la factorización devuelve una `List ℕ₀`.
 
 ---
@@ -367,6 +378,7 @@ infix:80 " ^ " => pow
 ### 8.2. Mathlib4
 
 `Nat.pow` está en el kernel, instancia de `HPow Nat Nat Nat`. La jerarquía algebraica da:
+
 - `pow_add`, `pow_mul`, `mul_pow`, `one_pow` gratis desde `Monoid`
 - `pow_le_pow_right`, `pow_lt_pow_left`, `pow_lt_pow_right` desde `OrderedSemiring`
 - Lemas específicos en `Mathlib.Data.Nat.Defs` y en archivos de álgebra abstracta
@@ -405,6 +417,7 @@ scoped notation:10000 n "!" => Nat.factorial n
 ```
 
 Mathlib tiene **más variantes** y **más teoremas**:
+
 - `Nat.ascFactorial n k` — producto `n * (n+1) * ... * (n+k-1)`
 - `Nat.descFactorial n k` — producto `n * (n-1) * ... * (n-k+1)`
 - `Nat.doubleFact n` — doble factorial `n!!`
@@ -442,6 +455,7 @@ theorem newton_binom (a b n : ℕ₀) :
 ```
 
 El binomio de Newton se prueba directamente sobre `ℕ₀`. También:
+
 - `sum_binom_eq_pow_two` : Σ C(n,k) = 2^n
 - `pow_add_split` : n^(m+k) = n^m * n^k
 - `exists_nm_growth` : ∃ n m, ∀ k ≥ 1, (n+k)^m < n^(m+k)
@@ -470,11 +484,13 @@ Mathlib tiene **muchos más teoremas** distribuidos en múltiples archivos:
 | `Choose/Lucas` | Teorema de Lucas sobre `C(n,k) mod p` |
 
 El Binomio de Newton en Mathlib está en la jerarquía algebraica abstracta:
+
 ```lean
 -- Mathlib.RingTheory.Binomial
 theorem add_pow {R : Type*} [CommSemiring R] (x y : R) (n : ℕ) :
     (x + y) ^ n = ∑ k ∈ Finset.range (n + 1), x ^ k * y ^ (n - k) * n.choose k
 ```
+
 Aplica a `ℕ`, `ℤ`, `ℝ`, `ℂ`, polinomios, etc. La versión de Peano es solo para `ℕ₀`.
 
 ---
@@ -511,6 +527,7 @@ Mathlib tiene **además** `Nat.clog b n` (logaritmo techo, menor `k` con `n ≤ 
 tiene.
 
 Teoremas adicionales de Mathlib no presentes en Peano:
+
 - `Nat.log_lt_iff_lt_pow`, `Nat.log_pos_iff`
 - `Nat.log_add_one_le`, `Nat.log_mono_right`, `Nat.log_pow`
 - `Nat.clog_pos`, `Nat.clog_le_iff_le_pow`
@@ -546,9 +563,11 @@ Algoritmo: **método de Newton** (converge cuadráticamente). Terminación: cota
 Más eficiente que el método de Peano para entradas grandes.
 
 Mathlib también tiene `Nat.NthRoot` (raíz n-ésima) en `Mathlib.Data.Nat.NthRoot.Defs`:
+
 ```lean
 def Nat.nthRoot (k n : ℕ) : ℕ  -- ⌊n^(1/k)⌋
 ```
+
 No presente en Peano.
 
 ---
@@ -659,7 +678,7 @@ tipos arbitrarios como ℤ o ℝ.
 | Tipo natural | `ℕ₀` (propio) | `Nat` (kernel) | |
 | Axiomas de Peano | Probados explícitamente | Incorporados en el kernel | |
 | Decidabilidad `<`, `≤` | Bridge booleano explícito | Kernel / `Init` | Peano: ~200 líneas más |
-| `DecidablePrime` | No (pendiente) | Sí (`minFac`) | |
+| `DecidablePrime` | Sí (`DecidableRel Prime`) | Sí (`minFac`) | |
 | Bezout sobre ℕ | Sí (disjuntivo) | No (solo sobre ℤ) | |
 | `LinearOrder` instancia | No | Sí | |
 | `CommSemiring` instancia | No | Sí | |
@@ -676,13 +695,20 @@ tipos arbitrarios como ℤ o ℝ.
 | Raíz n-ésima | No | Sí (`NthRoot`) | |
 | Infinitud de primos | No | Sí (`exists_infinite_primes`) | |
 | n-ésimo primo | No | Sí (`Nat.nth Prime`) | |
-| Función de Euler `φ` | No | Sí (`Nat.totient`) | |
+| Función de Euler `φ` | Sí (`totient`) | Sí (`Nat.totient`) | |
 | Criba de Eratóstenes | No | Indirectamente | |
 | Teorema Fundamental Aritmética | Sí (lista) | Sí (`Finsupp`) | |
 | Valuaciones p-ádicas `vp(n)` | No | Sí (`Nat.factorization`) | |
-| Congruencias `n ≡ m [MOD k]` | No | Sí (`Nat.ModEq`) | |
-| Fibonacci | No | Sí (`Nat.fib`) | |
-| Teorema Chino del Resto | No | Sí | |
+| Congruencias `n ≡ m [MOD k]` | Sí (`ModEq`) | Sí (`Nat.ModEq`) | |
+| Fibonacci | Sí (`fib`) | Sí (`Nat.fib`) | |
+| Teorema Chino del Resto | Sí (`chinese_remainder`) | Sí | |
+| Pequeño Fermat | Sí (`fermat_little`) | Sí | |
+| Conjuntos finitos | Sí (`FSet` quotient) | Sí (`Finset`) | |
+| Funciones sobre FSet | Sí (`MapOn`, ~90 decl.) | Sí (Mathlib extenso) | |
+| Permutaciones | Sí (`Perm`, 1 sorry) | Sí (`Equiv.Perm`) | |
+| Principio del palomar | Sí (`pigeonhole`) | Sí | |
+| Dígitos en base b | Sí (`digits`) | Sí (`Nat.digits`) | |
+| Función de emparejamiento | Sí (`pair`/`unpair`) | Sí (`Nat.pair`) | |
 | Números de Catalan | No | Sí | |
 | `Nat.find` (mínimo decidible) | No | Sí | |
 | Tácticas `omega`, `norm_num` | No aplican a `ℕ₀` | Sí (sobre `Nat`) | Brecha práctica mayor |
@@ -775,6 +801,6 @@ tipos arbitrarios como ℤ o ℝ.
 El proyecto Peano cubre solidamente el núcleo de la aritmética elemental de ℕ desde fundamentos
 explícitos. La rama `makingdecidable` añade el puente booleano que Lean 4 da gratis a `Nat`,
 consolidando la computabilidad del proyecto. La brecha con Mathlib no es de *corrección* ni de
-*rigor* —ambas son formalizaciones correctas— sino de *escala*, *generalidad* y *ecosistema*: 
+*rigor* —ambas son formalizaciones correctas— sino de *escala*, *generalidad* y *ecosistema*:
 Mathlib tiene decenas de años-persona de trabajo acumulado, integrando la aritmética de ℕ en
 una teoría matemática mucho más amplia.

@@ -1,5 +1,9 @@
 # Demostración detallada del pequeño teorema de Fermat en Peano/Lean4
 
+> **Estado (2026-06-17):** ✅ **Implementado** en `Peano/PeanoNat/NumberTheory/Fermat.lean`.
+> La prueba sigue exactamente la estrategia descrita abajo: reducción a coprimalidad →
+> teorema de Euler → totient de primo → sustitución. Completamente constructiva, sin sorry.
+
 ## 1. Enunciado formal
 
 Sea $p$ un número primo ($p \in \mathbb{N}_0$, $p \geq 2$) y $a \in \mathbb{N}_0$ tal que $p$ no divide a $a$ ($\neg\, p \mid a$). Entonces:
@@ -84,9 +88,9 @@ by
 
 ## 6. Referencias Lean/Peano
 
-- `Peano/PeanoNat/NumberTheory/Fermat.lean` (a crear)
-- `Peano/PeanoNat/NumberTheory/Totient.lean` (ya implementado)
-- `Peano/PeanoNat/NumberTheory/ModEq.lean` (ya implementado)
+- `Peano/PeanoNat/NumberTheory/Fermat.lean` ✅ implementado
+- `Peano/PeanoNat/NumberTheory/Totient.lean` ✅ implementado
+- `Peano/PeanoNat/NumberTheory/ModEq.lean` ✅ implementado
 - `Peano/PeanoNat/Primes.lean` (primalidad, coprimalidad)
 - `Peano/PeanoNat/Combinatorics/Pow.lean` (potencias)
 

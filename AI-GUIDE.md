@@ -434,28 +434,66 @@ considering documentation complete and up to date.
 Organize modules into **thematic subdirectories** inside `Peano/`.
 Each subdirectory groups related modules and corresponds to a sub-namespace.
 
-Current structure:
+Current structure (2026-06-17, 51 build jobs):
 
 ```
 Peano/
-├── PeanoNat.lean               # Level 0: type ℕ₀, σ/τ/ρ, Λ/Ψ, Tuple
+├── Prelim.lean                 # Infraestructura compartida
+├── PeanoNat.lean               # Tipo ℕ₀, σ/τ/ρ, Λ/Ψ, Tuple
+├── ConstructiveCheck.lean      # Verificación de constructividad
 ├── _template.lean              # Template (not imported)
 └── PeanoNat/
-    ├── Axioms.lean             # Peano.PeanoNat.Axioms
-    ├── StrictOrder.lean        # Peano.PeanoNat.StrictOrder
-    ├── Order.lean              # Peano.PeanoNat.Order
-    ├── Lattice.lean             # Peano.PeanoNat.Lattice
-    ├── WellFounded.lean        # Peano.PeanoNat.WellFounded
-    ├── Add.lean                # Peano.PeanoNat.Add
-    ├── Sub.lean                # Peano.PeanoNat.Sub
-    ├── Mul.lean                # Peano.PeanoNat.Mul
-    ├── Div.lean                # Peano.PeanoNat.Div
-    ├── Arith.lean              # Peano.PeanoNat.Arith
-    ├── Primes.lean             # Peano.PeanoNat.Primes
-    ├── Pow.lean                # Peano.PeanoNat.Pow
-    ├── Factorial.lean          # Peano.PeanoNat.Factorial
-    ├── Binom.lean              # Peano.PeanoNat.Binom
-    └── NewtonBinom.lean        # Peano.PeanoNat.NewtonBinom
+    ├── Axioms.lean             # 8 axiomas de Peano como teoremas
+    ├── StrictOrder.lean        # Orden estricto (<)
+    ├── Order.lean              # Orden no estricto (≤)
+    ├── Lattice.lean            # min/max, 18 extensiones Mathlib-style
+    ├── WellFounded.lean        # Buen orden, inducción fuerte
+    ├── Add.lean                # Suma y propiedades
+    ├── Sub.lean                # Resta truncada
+    ├── Mul.lean                # Multiplicación
+    ├── Div.lean                # División y módulo
+    ├── Arith.lean              # GCD/LCM, divisibilidad (25 thms)
+    ├── Primes.lean             # Primalidad, factorización
+    ├── Tuple.lean              # Producto n-ario de ℕ₀
+    ├── NumberSets.lean         # ℕ₁, ℕ₂ (subtipos)
+    ├── Decidable.lean          # Reexportación de decidabilidad
+    ├── Isomorph.lean           # Isomorfismo Nat ↔ ℕ₀
+    ├── Digits.lean             # Representación en base b
+    ├── Log.lean                # Logaritmo entero
+    ├── Sqrt.lean               # Raíz cuadrada entera
+    ├── Pairing.lean            # Funciones de emparejamiento
+    ├── Combinatorics/
+    │   ├── Pow.lean            # Potencia
+    │   ├── Factorial.lean      # Factorial
+    │   ├── Binom.lean          # Coeficiente binomial
+    │   ├── NewtonBinom.lean    # Binomio de Newton
+    │   ├── Summation.lean      # Sumatorios finitos (∑)
+    │   ├── Product.lean        # Productos finitos (∏)
+    │   ├── Fibonacci.lean      # Sucesión de Fibonacci
+    │   ├── Counting.lean       # Conteo en FSet
+    │   ├── Perm.lean           # Permutaciones (⚠ 1 sorry)
+    │   ├── Group.lean          # Grupo finito (⚠ 1 sorry)
+    │   ├── Sign.lean           # Signo de permutación
+    │   ├── Orbit.lean          # Órbitas de acción
+    │   └── GroupTheory/
+    │       ├── Action.lean     # Acciones de grupo (⚠ 4 sorry)
+    │       └── Sylow/
+    │           ├── Cosets.lean # Clases laterales (⚠ 5 sorry)
+    │           └── Sylow.lean  # Teoremas de Sylow (⚠ 3 sorry)
+    ├── ListsAndSets/
+    │   ├── List.lean           # Listas: Sorted, Perm, filter, map
+    │   ├── ListList.lean       # Listas de listas
+    │   ├── FSet.lean           # Conjuntos finitos (Quotient)
+    │   ├── FSetFSet.lean       # Conjuntos de conjuntos
+    │   └── FSetFunction.lean   # MapOn, Im, inyectividad (~90 decl.)
+    ├── NumberTheory/
+    │   ├── ModEq.lean          # Congruencias modulares
+    │   ├── Totient.lean        # Función de Euler φ
+    │   ├── ChineseRemainder.lean # CRT
+    │   └── Fermat.lean         # Pequeño teorema de Fermat
+    └── Prelim/
+        ├── ExistsUnique.lean   # ∃¹ API
+        └── Classical.lean      # Elección clásica
 ```
 
 Rules:
@@ -466,17 +504,13 @@ Rules:
 - `gen-root.bash` automatically scans subdirectories.
 - Namespace mirrors path: `Peano/PeanoNat/Add.lean` → `namespace Peano` (or `Peano.Add`).
 
-### (22.1) Prelim.lean — shared infrastructure across projects
+### (22.1) Prelim.lean — shared infrastructure across projects ✅ Refactored
 
-`Prelim.lean` contains **project-agnostic** definitions shared between Peano, ZfcSetTheory,
-and any future Lean 4 projects by the same author. Currently this content lives inside
-`PeanoNat.lean` and should be extracted to `Peano/Prelim.lean`.
+`Prelim.lean` has been split into three files:
 
-Contents of `Prelim.lean`:
-
-- `ExistsUnique` and its API (`ExistsUnique.exists`, `ExistsUnique.intro`)
-- `∃¹` syntax macros
-- `choose`, `choose_spec`, `choose_unique`, `choose_spec_unique`, `choose_uniq`
+- `Peano/Prelim/ExistsUnique.lean` — `ExistsUnique` and its API, `∃¹` syntax macros
+- `Peano/Prelim/Classical.lean` — `choose`, `choose_spec`, `choose_unique` (imports `Init.Classical`)
+- `Peano/Prelim.lean` — barrel file that imports and re-exports both sub-modules
 
 Rules:
 

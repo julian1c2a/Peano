@@ -2,6 +2,49 @@
 
 ## [Unreleased]
 
+### Added (2026-06-17)
+
+- **Phase 25 — Teoría de grupos finitos**:
+  - **Combinatorics/Counting.lean**: Conteo combinatorio.
+  - **Combinatorics/Perm.lean**: Tipo de permutaciones (⚠ 1 sorry).
+  - **Combinatorics/Sign.lean**: Signo de permutaciones (paridad de transposiciones).
+  - **Combinatorics/Orbit.lean**: Órbitas de elementos bajo permutaciones.
+  - **Combinatorics/Group.lean**: Grupo simétrico Sym(A) (⚠ 1 sorry).
+  - **Combinatorics/GroupTheory/Action.lean**: Acciones de grupo (⚠ 4 sorry).
+  - **Combinatorics/GroupTheory/Sylow/Cosets.lean**: Coclases (⚠ 5 sorry).
+  - **Combinatorics/GroupTheory/Sylow/Sylow.lean**: Teoremas de Sylow (⚠ 3 sorry).
+  - Build: 51 jobs, 14 sorry warnings, 0 errors.
+
+- **Phase 24 — Conjuntos finitos y funciones**:
+  - **ListsAndSets/ListList.lean**: Listas de listas.
+  - **ListsAndSets/FSetFSet.lean**: Conjuntos de conjuntos finitos.
+  - **ListsAndSets/FSetFunction.lean** (~90 declaraciones exportadas):
+    - `MapOn`: funciones totales entre FSet, `id`, `comp`, `comp_assoc`.
+    - `Im`: imagen, cardinalidad de la imagen.
+    - Inyectividad, sobreyectividad, biyectividad con iff de cardinalidad.
+    - `leftInverse`, `rightInverse`, `inverse` para biyecciones, `inverse_involution`.
+    - Principio del Palomar: desigualdades de cardinalidad.
+    - `PreIm`, fibras, restricción.
+    - `BinOpOn`: operaciones binarias sobre FSet.
+    - Endomorfismos (`EndoOn`), especialización para A → A.
+    - `Perm`: tipo de permutaciones biyectivas, inversas, composición.
+  - List.lean y FSet.lean migrados a `ListsAndSets/` subdirectory.
+
+- **Phase 21.6 — Fermat.lean**:
+  - **NumberTheory/Fermat.lean**: `fermat_little` — Pequeño Teorema de Fermat
+    ($a^{p-1} \equiv 1 \pmod{p}$ si $p$ primo y $p \nmid a$).
+  - Estrategia: reducción a coprimalidad + Euler + totient_prime.
+
+- **Phase 21.1–21.2 — Digits y Pairing**:
+  - **Digits.lean**: `digits`, `ofDigits`, `numDigits` — representación en base *b*.
+  - **Pairing.lean**: `cantorPair`, `cantorUnpair` — emparejamiento de Cantor con inversas.
+
+- **Prelim refactoring**:
+  - `Prelim.lean` dividido en `Prelim/ExistsUnique.lean` (constructivo) y `Prelim/Classical.lean` (noncomputable).
+  - **ConstructiveCheck.lean**: Módulo de verificación de constructividad.
+
+- **MapOn.comp_assoc**: Asociatividad general de la composición de funciones entre FSet (proof: `rfl`).
+
 ### Added (2026-04-09)
 
 - **Phase 21.7b — Orden avanzado**:

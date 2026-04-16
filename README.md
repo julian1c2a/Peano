@@ -6,14 +6,14 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 33 jobs · 0 sorry · 0 warnings
+> **Build:** 51 jobs · 14 sorry (en módulos de teoría de grupos avanzada) · 0 errores
 > **Licencia:** MIT
 
 ---
 
 ## Descripción
 
-Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética: orden estricto y no estricto, estructura de retícula, bien-fundación e inducción fuerte, suma, resta truncada, multiplicación, división entera con módulo, logaritmo y raíz cuadrada enteros, divisibilidad (MCD, MCM, Bézout), números primos con factorización única (TFA), potenciación, factorial, coeficientes binomiales, **Binomio de Newton**, sumatorias, productorias, sucesión de Fibonacci, conjuntos finitos, paridad y decidabilidad completa.
+Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética: orden estricto y no estricto, estructura de retícula, bien-fundación e inducción fuerte, suma, resta truncada, multiplicación, división entera con módulo, logaritmo y raíz cuadrada enteros, divisibilidad (MCD, MCM, Bézout), números primos con factorización única (TFA), potenciación, factorial, coeficientes binomiales, **Binomio de Newton**, sumatorias, productorias, sucesión de Fibonacci, conjuntos finitos, funciones entre conjuntos finitos (inyectividad, sobreyectividad, biyectividad, **principio del palomar**), paridad, decidabilidad completa, congruencia modular, función φ de Euler, **Teorema Chino del Resto**, **Pequeño Teorema de Fermat**, permutaciones, grupos finitos, signo de permutaciones, órbitas y acciones de grupo, y coclases con primeros pasos hacia los **teoremas de Sylow**.
 
 Toda la biblioteca está **computacionalmente realizada**: las operaciones producen términos de `ℕ₀` evaluables por el kernel de Lean. El proyecto registra todas las instancias estándar de Init (`Zero`, `One`, `OfNat`, `Add`, `Mul`, `Sub`, `Div`, `Mod`, `Pow`, `LT`, `LE`, `Ord`, `BEq`, `DecidableEq`, `SizeOf`, `Repr`, `WellFoundedRelation`, `DecidableRel`) para `ℕ₀`, haciendo que las operaciones trabajen con la notación natural de Lean 4.
 
@@ -22,39 +22,62 @@ Toda la biblioteca está **computacionalmente realizada**: las operaciones produ
 ## Estructura de módulos
 
 ```
-Peano.lean                                  ← entrada; importa toda la librería
+Peano.lean                                        ← entrada; importa toda la librería
 └─ Peano/
-   ├─ PeanoNat.lean                         Peano           — ℕ₀, ℕ₁, ℕ₂, constantes, isomorfismos
-   ├─ Prelim.lean                           Peano.Prelim    — infraestructura compartida (DList→List)
+   ├─ PeanoNat.lean                               Peano           — ℕ₀, ℕ₁, ℕ₂, constantes, isomorfismos
+   ├─ ConstructiveCheck.lean                      Peano           — verificación de constructividad
+   ├─ Prelim.lean                                 Peano           — reexporta ExistsUnique + Classical
+   │  ├─ Prelim/ExistsUnique.lean                 Peano           — ∃¹, ExistsUnique (constructivo)
+   │  └─ Prelim/Classical.lean                    Peano           — choose, choose_unique (noncomputable)
    └─ PeanoNat/
-      ├─ Axioms.lean                        Peano.Axioms       — axiomas de Peano, inducción
-      ├─ StrictOrder.lean                   Peano.StrictOrder   — orden estricto <, tricotomía
-      ├─ Order.lean                         Peano.Order        — orden ≤, totalidad, lt_or_ge
-      ├─ Tuple.lean                         Peano              — tuplas de longitud n, orden lexicográfico
-      ├─ Lattice.lean                       Peano.Lattice      — max, min, retícula distributiva
-      ├─ MaxMin.lean                        Peano.MaxMin       — (legacy, migrado a Lattice)
-      ├─ WellFounded.lean                   Peano.WellFounded  — bien-fundación, inducción fuerte
-      ├─ Add.lean                           Peano.Add          — suma, neutro, conmutatividad
-      ├─ Sub.lean                           Peano.Sub          — resta truncada
-      ├─ Mul.lean                           Peano.Mul          — multiplicación, distributividad
-      ├─ Div.lean                           Peano.Div          — división entera, módulo
-      ├─ Arith.lean                         Peano.Arith        — divisibilidad, MCD/MCM, Bézout, paridad
-      ├─ Primes.lean                        Peano.Primes       — primos, TFA, decidabilidad de Prime
-      ├─ Decidable.lean                     Peano.Decidable    — instancias Ord, DecidableRel
-      ├─ List.lean                         Peano.List        — listas de ℕ₀
-      ├─ FSet.lean                          Peano.FSet         — conjuntos finitos ordenados
-      ├─ NumberSets.lean                    Peano.NumberSets   — divisores, coprimos, primos ≤ n
-      ├─ Isomorph.lean                      Peano.Isomorph     — isomorfismo Nat↔ℕ₀ completo
-      ├─ Log.lean                           Peano.Log          — logaritmo entero con resto
-      ├─ Sqrt.lean                          Peano.Sqrt         — raíz cuadrada entera con resto
+      ├─ Axioms.lean                              Peano.Axioms       — axiomas de Peano, inducción
+      ├─ StrictOrder.lean                         Peano.StrictOrder   — orden estricto <, tricotomía
+      ├─ Order.lean                               Peano.Order        — orden ≤, totalidad, lt_or_ge
+      ├─ Tuple.lean                               Peano              — tuplas de longitud n, orden lexicográfico
+      ├─ Lattice.lean                             Peano.Lattice      — max, min, retícula distributiva
+      ├─ WellFounded.lean                         Peano.WellFounded  — bien-fundación, inducción fuerte
+      ├─ Add.lean                                 Peano.Add          — suma, neutro, conmutatividad
+      ├─ Sub.lean                                 Peano.Sub          — resta truncada
+      ├─ Mul.lean                                 Peano.Mul          — multiplicación, distributividad
+      ├─ Div.lean                                 Peano.Div          — división entera, módulo
+      ├─ Arith.lean                               Peano.Arith        — divisibilidad, MCD/MCM, Bézout, paridad
+      ├─ Primes.lean                              Peano.Primes       — primos, TFA, decidabilidad de Prime
+      ├─ Decidable.lean                           Peano.Decidable    — instancias Ord, DecidableRel
+      ├─ NumberSets.lean                          Peano.NumberSets   — divisores, coprimos, primos ≤ n
+      ├─ Isomorph.lean                            Peano.Isomorph     — isomorfismo Nat↔ℕ₀ completo
+      ├─ Log.lean                                 Peano.Log          — logaritmo entero con resto
+      ├─ Sqrt.lean                                Peano.Sqrt         — raíz cuadrada entera con resto
+      ├─ Digits.lean                              Peano.Digits       — dígitos en base arbitraria
+      ├─ Pairing.lean                             Peano.Pairing      — emparejamiento de Cantor
+      ├─ ListsAndSets/
+      │  ├─ List.lean                             Peano.List         — listas de ℕ₀, operaciones
+      │  ├─ ListList.lean                         Peano.ListList     — listas de listas
+      │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos ordenados
+      │  ├─ FSetFSet.lean                         Peano.FSetFSet     — conjuntos de conjuntos finitos
+      │  └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, ~90 decl.
+      ├─ NumberTheory/
+      │  ├─ ModEq.lean                            Peano.ModEq        — congruencia modular
+      │  ├─ Totient.lean                          Peano.Totient      — función φ de Euler
+      │  ├─ ChineseRemainder.lean                 Peano.CRT          — Teorema Chino del Resto
+      │  └─ Fermat.lean                           Peano.Fermat       — Pequeño Teorema de Fermat
       └─ Combinatorics/
-         ├─ Pow.lean                        Peano.Pow          — potenciación
-         ├─ Factorial.lean                  Peano.Factorial    — factorial
-         ├─ Binom.lean                      Peano.Binom        — coeficientes binomiales, Pascal
-         ├─ NewtonBinom.lean                Peano.NewtonBinom  — binomio de Newton
-         ├─ Summation.lean                  Peano.Summation    — sumatorias ∑
-         ├─ Product.lean                    Peano.Product      — productorias ∏
-         └─ Fibonacci.lean                  Peano.Fibonacci    — sucesión de Fibonacci
+         ├─ Pow.lean                              Peano.Pow          — potenciación
+         ├─ Factorial.lean                        Peano.Factorial    — factorial
+         ├─ Binom.lean                            Peano.Binom        — coeficientes binomiales, Pascal
+         ├─ NewtonBinom.lean                      Peano.NewtonBinom  — binomio de Newton
+         ├─ Summation.lean                        Peano.Summation    — sumatorias ∑
+         ├─ Product.lean                          Peano.Product      — productorias ∏
+         ├─ Fibonacci.lean                        Peano.Fibonacci    — sucesión de Fibonacci
+         ├─ Counting.lean                         Peano.Counting     — conteo combinatorio
+         ├─ Perm.lean                             Peano.Perm         — permutaciones (⚠ sorry)
+         ├─ Sign.lean                             Peano.Sign         — signo de permutaciones
+         ├─ Orbit.lean                            Peano.Orbit        — órbitas de permutaciones
+         ├─ Group.lean                            Peano.Group        — grupo simétrico (⚠ sorry)
+         └─ GroupTheory/
+            ├─ Action.lean                        Peano.Action       — acciones de grupo (⚠ sorry)
+            └─ Sylow/
+               ├─ Cosets.lean                     Peano.Cosets       — coclases (⚠ sorry)
+               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (⚠ sorry)
 ```
 
 ---
@@ -110,6 +133,10 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - **Teorema Fundamental de la Aritmética**: existencia y unicidad de la factorización prima
 - **Decidabilidad de Prime**: `isPrimeb`, `isPrimeb_iff`, instancia `Decidable (Prime n)`
 - **Paridad**: `IsEven`/`IsOdd` con instancias `Decidable`, 6 teoremas
+- **Congruencia modular**: `ModEq`, reflexividad, simetría, transitividad, compatibilidad aritmética
+- **Función de Euler**: `totient`, `totient_prime`, `totient_pos`
+- **Teorema Chino del Resto**: `chinese_remainder` (existencia)
+- **Pequeño Teorema de Fermat**: `fermat_little` — $a^{p-1} \equiv 1 \pmod{p}$
 
 ### Combinatoria
 
@@ -119,6 +146,32 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - **Binomio de Newton**: $(a+b)^n = \sum_{k=0}^{n} C(n,k) \cdot a^k \cdot b^{n-k}$ (demostrado)
 - **Sumatorias/Productorias**: linealidad, monotonía, desplazamiento, inversión
 - **Fibonacci**: identidad de Cassini, `fib_add`, propiedades
+- **Conteo**: principios de conteo combinatorio
+
+### Conjuntos finitos y funciones
+
+- **FSet**: conjuntos finitos ordenados con invariantes `UniqueKeys` + `SortedByKey`
+- **FSetFSet**: conjuntos de conjuntos finitos
+- **FSetFunction** (~90 declaraciones):
+  - `MapOn`: funciones totales entre FSet, composición (`comp`), asociatividad (`comp_assoc`)
+  - `Im`: imagen, cardinalidad de la imagen
+  - Inyectividad, sobreyectividad, biyectividad con iff de cardinalidad
+  - `leftInverse`, `rightInverse`, `inverse` para biyecciones
+  - **Principio del Palomar**: inyectiva ⇒ card(dom) ≤ card(cod), sobreyectiva ⇒ card(cod) ≤ card(dom)
+  - Preimagen (`PreIm`), fibras, restricción
+  - `BinOpOn`: operaciones binarias sobre FSet
+  - Endomorfismos: `EndoOn`, especialización para funciones A → A
+  - **Perm**: tipo de permutaciones `A → A` biyectivas, inversas, composición
+
+### Teoría de grupos finitos (⚠ en desarrollo)
+
+- **Group.lean**: grupo simétrico `Sym(A)`, operación de grupo
+- **Sign.lean**: signo de permutaciones (paridad de transposiciones)
+- **Orbit.lean**: órbitas de elementos bajo permutaciones
+- **Action.lean**: acciones de grupo sobre conjuntos finitos
+- **Sylow**: coclases (`Cosets.lean`), primeros pasos hacia teoremas de Sylow (`Sylow.lean`)
+
+> *Los módulos de teoría de grupos contienen `sorry` pendientes; son work-in-progress.*
 
 ### Decidabilidad completa
 
@@ -157,32 +210,53 @@ require peanolib from git
 Luego importa lo que necesites:
 
 ```lean
-import Peano                  -- librería completa
-import Peano.PeanoNat.Arith   -- hasta divisibilidad, MCD/MCM, paridad
-import Peano.PeanoNat.Primes  -- incluye primos y TFA
+import Peano                              -- librería completa
+import Peano.PeanoNat.Arith               -- hasta divisibilidad, MCD/MCM, paridad
+import Peano.PeanoNat.Primes              -- incluye primos y TFA
+import Peano.PeanoNat.ListsAndSets.FSetFunction  -- funciones entre conjuntos finitos
+import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 ```
 
 ---
 
 ## Hoja de ruta
 
-### En curso (Phase 21 — Completación de ℕ₀)
+### Completado (Phase 21 — Completación de ℕ₀) ✅
 
 - [x] Instancias Init completas (Zero, One, OfNat, Add, Mul, Sub, Div, Mod, Pow, Ord, WellFoundedRelation, DecidableRel)
 - [x] Inducción fuerte (`strongRecOn`, `strongInductionOn`)
 - [x] `IsEven`/`IsOdd` decidibles
 - [x] `Decidable (Prime n)`
-- [ ] **Digits.lean** — representación en base *b*
-- [ ] **Pairing.lean** — función de emparejamiento de Cantor
-- [ ] **ModEq.lean** — congruencia modular
-- [ ] **Totient.lean** — función φ de Euler
-- [ ] **ChineseRemainder.lean** — Teorema del Resto Chino
-- [ ] **Fermat.lean** — Pequeño Teorema de Fermat
+- [x] **Digits.lean** — representación en base *b*
+- [x] **Pairing.lean** — función de emparejamiento de Cantor
+- [x] **ModEq.lean** — congruencia modular
+- [x] **Totient.lean** — función φ de Euler
+- [x] **ChineseRemainder.lean** — Teorema del Resto Chino
+- [x] **Fermat.lean** — Pequeño Teorema de Fermat
+
+### Completado (Phase 24 — Conjuntos finitos y funciones) ✅
+
+- [x] **List.lean** → `ListsAndSets/List.lean` — listas y operaciones
+- [x] **FSet.lean** → `ListsAndSets/FSet.lean` — conjuntos finitos ordenados
+- [x] **FSetFSet.lean** — conjuntos de conjuntos finitos
+- [x] **FSetFunction.lean** — MapOn, Im, inyectividad/sobreyectividad/biyectividad, Pigeonhole, inversas, Perm, ~90 declaraciones
+
+### En curso (Phase 25 — Teoría de grupos finitos) 🔶
+
+- [x] **Perm.lean** — tipo de permutaciones
+- [x] **Group.lean** — grupo simétrico Sym(A)
+- [x] **Sign.lean** — signo de permutaciones
+- [x] **Orbit.lean** — órbitas
+- [x] **Counting.lean** — conteo combinatorio
+- [ ] **Action.lean** — acciones de grupo (⚠ sorry pendientes)
+- [ ] **Sylow/Cosets.lean** — coclases (⚠ sorry pendientes)
+- [ ] **Sylow/Sylow.lean** — teoremas de Sylow (⚠ sorry pendientes)
 
 ### Futuro
 
-- **Phase 22**: Extensión a enteros `ℤ` (pares de equivalencia sobre `ℕ₀ × ℕ₀`)
-- **Phase 23**: Extensión a racionales `ℚ`
+- **Phase 22**: Extensión a enteros `ℤ` (tipo inductivo canónico)
+- **Phase 23**: Extensión a racionales `ℚ` (estructura con invariante de coprimalidad)
+- **Completar sorry** en módulos de teoría de grupos avanzada
 
 ---
 

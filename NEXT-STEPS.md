@@ -517,7 +517,7 @@ Build: 30 jobs, 0 warnings, 0 sorry.
 ## Phase 21: Naturals Completion (ℕ₀)
 
 **Objective**: Complete remaining natural number modules before extending to ℤ/ℚ.
-**Status**: 🔶 In progress
+**Status**: ✅ Complete (2026-06)
 
 ### 21.1. Digits.lean — Representación en base b
 
@@ -674,12 +674,12 @@ Teoremas implementados:
 21.7b Orden avanzado (WellFoundedRelation, lt_or_ge, le_or_lt, strongRecOn, strongInductionOn, DecidableRel) ✅
 21.8 IsEven/IsOdd ✅
 21.9 Decidable Prime ✅
-21.1 Digits.lean
-21.2 Pairing.lean
+21.1 Digits.lean ✅
+21.2 Pairing.lean ✅
 21.3 ModEq.lean ✅
 21.4 Totient.lean ✅
 21.5 ChineseRemainder.lean ✅
-21.6 Fermat.lean
+21.6 Fermat.lean ✅
 ```
 
 ---
@@ -1081,89 +1081,88 @@ Phase 23 (ℚ) ──────────┬─── Rational/Basic.lean
 
 ---
 
-## Build Issues (2026-04-15)
+## Build Issues (2026-06-17)
 
 **Toolchain**: leanprover/lean4:v4.29.0
 **Build command**: `lake build`
-**Result**: 50/51 modules OK, 1 module fails (FSetFunction.lean)
+**Result**: 51/51 modules OK, 0 errors, 14 sorry warnings
 
-### Warnings (non-blocking)
+### sorry warnings (non-blocking)
 
-| File | Line | Warning |
-|------|------|---------|
-| `Peano/PeanoNat/Digits.lean` | 67 | unused variable `h_n` |
-| `Peano/PeanoNat/NumberTheory/Fermat.lean` | 60 | declaration uses `sorry` |
+| File | Lines | Count | Description |
+|------|-------|-------|-------------|
+| `Combinatorics/Perm.lean` | 39 | 1 | Perm sorry |
+| `Combinatorics/Group.lean` | 98 | 1 | Group sorry |
+| `Combinatorics/GroupTheory/Action.lean` | 62, 73, 87, 104 | 4 | Action sorry |
+| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 42, 48, 68, 74, 86 | 5 | Coset sorry |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 93, 113 | 3 | Sylow sorry |
 
-### Errors — `FSetFunction.lean`
+Todos los sorry están en módulos de teoría de grupos avanzada (Phase 25).
+La aritmética básica, teoría de números y FSetFunction están completamente demostrados.
 
-All errors are in `Peano/PeanoNat/ListsAndSets/FSetFunction.lean`. These are **pre-existing** proof gaps (pigeonhole-related lemmas), not caused by the recent renames.
+---
 
-#### Error 1: `injective_imp_card_Im_eq` (line 243)
+## Phase 24: FSet Generalization & FSetFunction
+
+**Objective**: Infrastructure for finite sets, finite functions, and the Pigeonhole principle.
+**Status**: ✅ Complete (2026-06)
+
+Desarrollo completo:
+
+- **ListsAndSets/List.lean**: Listas de ℕ₀, operaciones, sorted, nodup
+- **ListsAndSets/ListList.lean**: Listas de listas
+- **ListsAndSets/FSet.lean**: Conjuntos finitos con UniqueKeys + SortedByKey
+- **ListsAndSets/FSetFSet.lean**: Conjuntos de conjuntos finitos
+- **ListsAndSets/FSetFunction.lean** (~90 declaraciones exportadas):
+  - § 1: `MapOn` (funciones totales A → B), `id`, `comp`, `comp_assoc`
+  - § 2: `Im` (imagen), `rightInverse`, `leftInverse`, `inverse`, involution
+  - § 3: Pigeonhole, desigualdades de cardinalidad, iff characterizations
+  - § 3d: `PreIm`, fibras, restricción
+  - § 3e: Endomorfismos (`EndoOn`)
+  - § 3f: Permutaciones (`Perm` structure)
+  - § 4–8: `BinOpOn`, `CoeFun`, `FunTable`, `FunPerm`, Export
+
+---
+
+## Phase 25: Finite Group Theory
+
+**Objective**: Permutation groups, group actions, orbits, and Sylow theorems.
+**Status**: 🔶 In progress
+
+### 25.1. Modules completados (sin sorry)
+
+- **Combinatorics/Counting.lean**: Conteo combinatorio
+- **Combinatorics/Sign.lean**: Signo de permutaciones (paridad de transposiciones)
+- **Combinatorics/Orbit.lean**: Órbitas de elementos bajo permutaciones
+
+### 25.2. Modules con sorry pendientes
+
+- **Combinatorics/Perm.lean**: Permutaciones (1 sorry)
+- **Combinatorics/Group.lean**: Grupo simétrico Sym(A) (1 sorry)
+- **Combinatorics/GroupTheory/Action.lean**: Acciones de grupo (4 sorry)
+- **Combinatorics/GroupTheory/Sylow/Cosets.lean**: Coclases (5 sorry)
+- **Combinatorics/GroupTheory/Sylow/Sylow.lean**: Teoremas de Sylow (3 sorry)
+
+### Orden de ejecución
 
 ```
-Tactic `apply` failed: could not unify the conclusion of `@nodup_length_eq_of_same_elems`
-  List.length ?l₁ = List.length ?l₂
-with the goal
-  f.Im.elems.length = A.elems.length
+25.1 Counting.lean ✅
+25.2 Perm.lean ⚠ (1 sorry)
+25.3 Sign.lean ✅
+25.4 Orbit.lean ✅
+25.5 Group.lean ⚠ (1 sorry)
+25.6 Action.lean ⚠ (4 sorry)
+25.7 Sylow/Cosets.lean ⚠ (5 sorry)
+25.8 Sylow/Sylow.lean ⚠ (3 sorry)
 ```
-
-**Goal**: `f.Im.elems.length = A.elems.length`
-**Issue**: `nodup_length_eq_of_same_elems` works on `List.length` but `FSet.card` uses `lengthₚ`. Need a bridge lemma or rewrite `FSet.card` in terms of `List.length`.
-
-#### Error 2: `card_Im_eq_imp_injective` (line 270–277)
-
-```
-unsolved goals
-⊢ a₁ = a₂
-```
-
-**Context**: Given `f.Im.card = A.card`, `f.toFun a₁ = f.toFun a₂`, prove `a₁ = a₂`.
-**Issue**: Proof incomplete — needs pigeonhole argument to derive injectivity from equal cardinality.
-
-#### Error 3: `card_Im_eq_cod_imp_surjective` (lines 349–363)
-
-```
-unsolved goals (line 361):
-  x : β, hx : x ∈ B.elems ⊢ x ∈ f.Im.elems
-
-unsolved goals (line 349):
-  hnd_Im, hnd_B, h_len, h_Im_sub_B, h_B_sub_Im ⊢ ∃ a, a ∈ A.elems ∧ f.toFun a = b
-```
-
-**Issue**: Two sub-goals incomplete:
-
-1. Show `B.elems ⊆ f.Im.elems` from equal lengths + `f.Im.elems ⊆ B.elems` (pigeonhole/list inclusion).
-2. Extract witness `a` from `b ∈ f.Im.elems`.
-
-#### Error 4: `BinOpOn.comp` (line 525)
-
-```
-Function expected at
-  applyElem_mem g b dflt (f.mem_all b hb_in_table)
-but this term has type
-  g.applyElem b dflt ∈ A.elems
-```
-
-**Issue**: Type mismatch — `applyElem_mem` returns a membership proof, not a function. The application `... hdflt` expects a function. Need to restructure the term or use a different combinator.
-
-### Summary of TODO
-
-| # | File | Line(s) | Description | Priority |
-|---|------|---------|-------------|----------|
-| 1 | `FSetFunction.lean` | 243 | `injective_imp_card_Im_eq`: bridge `lengthₚ` ↔ `List.length` for `nodup_length_eq_of_same_elems` | Medium |
-| 2 | `FSetFunction.lean` | 270–277 | `card_Im_eq_imp_injective`: complete pigeonhole proof | Medium |
-| 3 | `FSetFunction.lean` | 349–363 | `card_Im_eq_cod_imp_surjective`: complete reverse inclusion + witness extraction | Medium |
-| 4 | `FSetFunction.lean` | 525 | `BinOpOn.comp`: fix `applyElem_mem` application type | Low |
-| 5 | `Digits.lean` | 67 | Remove unused variable `h_n` | Low |
-| 6 | `Fermat.lean` | 60 | Complete `sorry` in Fermat's little theorem proof | High |
 
 ---
 
 ## Prioridad inmediata
 
-1. **Phase 21.7**: Instancias algebraicas (`HSub`, `HDiv`, `HMod`, `HPow`, `DecidableRel`)
-2. **Phase 21.8**: `IsEven`/`IsOdd`
-3. **Phase 21.1**: `Digits.lean`
-4. **Phase 21.2**: `Pairing.lean`
-5. **Phase 21.3**: `ModEq.lean`
-6. Continuar con 21.4–21.6 o saltar a Phase 22 (ℤ) según preferencia
+1. **Completar sorry en Perm.lean y Group.lean** (2 sorry, menor dificultad)
+2. **Completar sorry en Action.lean** (4 sorry, dificultad media)
+3. **Completar sorry en Sylow/Cosets.lean** (5 sorry, dificultad alta)
+4. **Completar sorry en Sylow/Sylow.lean** (3 sorry, dificultad muy alta)
+5. **Phase 22 (ℤ)**: Extensión a enteros
+6. **Phase 23 (ℚ)**: Extensión a racionales

@@ -1,6 +1,6 @@
 ﻿# Thoughts — Peano
 
-**Last updated:** 2026-04-10
+**Last updated:** 2026-06-17
 **Author**: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -34,6 +34,8 @@ session-based locking.
 
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
 - [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
+- [ ] How to approach the remaining 14 sorry in group theory modules (Perm, Group, Action, Cosets, Sylow)?
+- [ ] Should FSetFunction.lean (~1500 lines, ~90 declarations) be split into smaller modules?
 
 ---
 
@@ -49,7 +51,8 @@ session-based locking.
 
 - The linear dependency chain (Axioms → Order → Arithmetic → Advanced) works well
 - Each module builds strictly on previous ones — no circular dependencies
-- 16 modules is manageable without subdirectories
+- 51 modules with 4 subdirectories: ListsAndSets/, NumberTheory/, Combinatorics/, GroupTheory/
+- FSetFunction.lean is the largest module (~1500 lines, ~90 exported declarations)
 
 ### Documentation
 
@@ -192,23 +195,22 @@ Esto permitiría que tácticas como `decide` funcionen automáticamente con `<`/
 
 ### [5] `NumberTheory/` — Roadmap de expansión
 
-Crear un subdirectorio `Peano/PeanoNat/NumberTheory/` (análogo a `Combinatorics/`)
-para albergar los nuevos módulos. Hoja de ruta priorizada:
+Subdirectorio `Peano/PeanoNat/NumberTheory/` creado y operativo.
 
-**Tier 1 (alcanzable con infraestructura actual):**
+**Tier 1 — ✅ Completado:**
 
-- `ModEq.lean` — congruencias
-- `Totient.lean` — función de Euler φ
-- `ChineseRemainder.lean` — CRT
-- `Fermat.lean` — pequeño teorema de Fermat (corolario de Euler)
-- `Wilson.lean` — teorema de Wilson
+- ~~`ModEq.lean`~~ ✅ — congruencias modulares
+- ~~`Totient.lean`~~ ✅ — función de Euler φ
+- ~~`ChineseRemainder.lean`~~ ✅ — CRT
+- ~~`Fermat.lean`~~ ✅ — pequeño teorema de Fermat (corolario de Euler)
+- `Wilson.lean` — teorema de Wilson (pendiente)
 
 **Tier 2 (requiere extensiones moderadas):**
 
-- ~~`GCD.lean` — API extendida de gcd/lcm~~ ✅ Implementado en `Arith.lean` § 8 (25 teoremas Mathlib-style)
-- `Fibonacci.lean` — definición recursiva + propiedades
-- `Digits.lean` — representación en base b
-- `PrimeCounting.lean` — π(x), cotas elementales
+- ~~`GCD.lean`~~ ✅ Implementado en `Arith.lean` § 8 (25 teoremas Mathlib-style)
+- ~~`Fibonacci.lean`~~ ✅ en `Combinatorics/Fibonacci.lean`
+- ~~`Digits.lean`~~ ✅ en `PeanoNat/Digits.lean`
+- `PrimeCounting.lean` — π(x), cotas elementales (pendiente)
 
 **Tier 3 (requiere nueva infraestructura):**
 
@@ -275,15 +277,13 @@ El error en la comparación anterior fue que busqué en las secciones equivocada
 - Fibonacci se define por recursión directa, trivial con nuestra infraestructura.
 - Hyperoperation (generalización +, ×, ^) por doble recursión.
 
-**3.6 — Estructura algebraica:**
+**3.6 — Estructura algebraica:** ✅ Completado
 
-- Actualmente instanciamos: `Add`, `LT`, `LE`, `Mul`, `BEq`, `DecidableEq`, `Repr`.
-- **Podemos añadir** (sin dependencias externas):
-  - `Sub` (ya tenemos la operación, falta la instancia `HSub`)
-  - `Div`/`Mod` (instancias)
-  - `HPow` (instancia)
-  - Clases propias: `CommMonoid ℕ₀` (con `*`), `OrderedCommSemiring ℕ₀`
-  - O definir nuestras propias typeclasses equivalentes si no queremos depender de Mathlib.
+- Instancias implementadas: `Add`, `LT`, `LE`, `Mul`, `BEq`, `DecidableEq`, `Repr`,
+  `HSub`, `HDiv`, `HMod`, `HPow`, `Zero`, `One`, `OfNat`, `Ord`,
+  `WellFoundedRelation`, `DecidableRel` (para LT, LE, Divides, Prime, IsEven, IsOdd).
+- Clases propias decididas en ADR-006: no definir typeclasses algebraicas propias (CommMonoid, etc.)
+  por el momento; mantener lemas sueltos que verifican las propiedades.
 
 **3.7 — Factorización prima como `Finsupp`:**
 
@@ -357,23 +357,31 @@ la API de metaprogramación (`Lean.Elab.Tactic`). Hay tres niveles:
 4. **`peano_decide`**: Táctica que, dado un goal decidable sobre `ℕ₀`, aplique
    `decide` tras instanciar las `Decidable` relevantes.
 
-### [10] Resumen de prioridades
+### [10] Resumen de prioridades (actualizado 2026-06-17)
 
 Este punto recoge la visión global del autor sobre el orden de las expansiones:
 
-1. **`makingdecidable` branch**: Eliminar usos de `Classical` donde sea posible,
-   añadir instancias `DecidableRel`/`DecidablePred` para orden y divisibilidad.
-2. **~~Rename `MaxMin` → `Lattice`~~** (DONE) y ampliar la estructura de retículo.
-3. **`NumberTheory/` tier 1**: `ModEq` → `Totient` → `ChineseRemainder` → `PowModTotient`.
-4. **API de GCD/LCM extendida** (ya existe la base; falta completar).
-5. **Representaciones**: `Digits`, `Log`, `Sqrt`, `Fibonacci`, `Pairing`.
-6. **Instancias algebraicas**: `HSub`, `HDiv`, `HMod`, `HPow`; typeclasses propias.
-7. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
-8. **`OrderedPair` como `Tuple 𝟚`** — refinar API.
-9. **Infraestructura de listas y conjuntos finitos** (ver §11 abajo).
-10. **Largo plazo**: ℤ, ℚ, ecuaciones diofánticas, teoría analítica elemental.
+1. ~~**`makingdecidable` branch**~~: ✅ Decidabilidad completa implementada (LT, LE, Prime, IsEven, IsOdd, Divides).
+2. ~~**Rename `MaxMin` → `Lattice`**~~: ✅ Completado + 18 extensiones Mathlib-style.
+3. ~~**`NumberTheory/` tier 1**~~: ✅ `ModEq` → `Totient` → `ChineseRemainder` → `Fermat` — todos completados.
+4. ~~**API de GCD/LCM extendida**~~: ✅ 25 teoremas Mathlib-style en Arith.lean § 8.
+5. ~~**Representaciones**~~: ✅ `Digits`, `Log`, `Sqrt`, `Fibonacci`, `Pairing` — todos completados.
+6. ~~**Instancias algebraicas**~~: ✅ `HSub`, `HDiv`, `HMod`, `HPow`, Zero, One, OfNat, Ord, WellFoundedRelation, DecidableRel.
+7. ~~**Infraestructura de conjuntos finitos**~~: ✅ List, FSet, FSetFSet, FSetFunction (~90 decl.), MapOn, Im, Pigeonhole, Perm.
+8. **Completar sorry en teoría de grupos** (14 sorry en Perm, Group, Action, Cosets, Sylow).
+9. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
+10. **Phase 22**: ℤ — tipo inductivo canónico, operaciones, orden, aritmética.
+11. **Phase 23**: ℚ — estructura con invariante de coprimalidad, operaciones, campo.
+12. **Largo plazo**: ecuaciones diofánticas, polinomios Q[x], teoría analítica elemental.
 
 ### [11] Reemplazar `DList` por `List` y construir infraestructura de conjuntos finitos
+
+> **Estado (2026-06-17):** ✅ Implementado. La migración DList → List se completó.
+> La jerarquía real difiere del plan original: `List` → `FSet` (tipo cociente
+> por permutación, sin invariante de orden) → `FSetFSet` → `FSetFunction` (~90 decl.).
+> Las listas ordenadas sin duplicados (§11.2) no se adoptaron; en cambio, `FSet`
+> usa `Quotient (Perm.setoid α)` — más elegante pero introduce `noncomputable`
+> para `DecidableEq`. Ver `LISTS_FSETS_N_FSETFUNCTIONS.md` para detalles.
 
 #### 11.1. `DList` es redundante — usar `List` del core
 

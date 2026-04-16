@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-09 23:30
+**Última actualización:** 2026-06-17
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,55 +13,112 @@
 
 ### 0.1. Módulos `.lean`
 
+> 51 build jobs · 14 sorry (grupo finito) · 0 errores · Lean 4 v4.29.0
+
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
 | `Peano.lean` | — | todos los módulos de `Peano/` | — |
-| `Peano/Prelim.lean` | `Peano` | `Init.Classical` | `PeanoNat` y todos los siguientes |
+| **Prelim** | | | |
+| `Peano/Prelim.lean` | `Peano` | `Prelim/ExistsUnique`, `Prelim/Classical` | `PeanoNat` y todos los siguientes |
+| `Peano/Prelim/ExistsUnique.lean` | `Peano` | — | `Prelim`, `Classical` |
+| `Peano/Prelim/Classical.lean` | `Peano` | `ExistsUnique`, `Init.Classical` | `Prelim` |
+| **Core aritmético** | | | |
 | `Peano/PeanoNat.lean` | `Peano` | `Prelim` | todos los de `PeanoNat/` |
-| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder`, `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order`, `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Order.lean` | `Peano.Order` | `PeanoNat`, `Axioms`, `StrictOrder` | `Lattice`, `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Tuple.lean` | `Peano` | `PeanoNat`, `StrictOrder` | |
-| `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order` | `WellFounded`, `Add`, `Sub`, `Mul`, `Div`, `Arith` |
-| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `Init.Classical` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Primes` |
-| `Peano/PeanoNat/Add.lean` | `Peano.Add` | `PeanoNat`, `Axioms`, `StrictOrder`, `Order`, `Lattice`, `WellFounded` | `Sub`, `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | `…Add` y anteriores | `Mul`, `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | `…Sub` y anteriores | `Div`, `Arith`, `Primes`, `Combinatorics/*` |
-| `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` y anteriores | `Arith`, `Primes`, `Combinatorics/Pow` |
-| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | todos los anteriores, `Init.Classical` | `Primes` |
-| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | `Arith` y todos los anteriores | — |
-| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `…Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt` |
-| `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `…Add`, `Mul` | `Binom`, `NewtonBinom` |
-| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `…Mul`, `Sub`, `Factorial` | `NewtonBinom` |
-| `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | `…Pow`, `Factorial`, `Binom` | — |
-| `Peano/PeanoNat/Log.lean` | `Peano.Log` | `…Div`, `Pow` y anteriores | — |
-| `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | `…Mul`, `Sub`, `Pow` y anteriores | — |
-| `Peano/PeanoNat/Isomorph.lean` | — (reexport) | `Arith` y todos los anteriores | — |
-| `Peano/PeanoNat/Decidable.lean` | — (reexport) | `Order` y anteriores | — |
+| `Peano/PeanoNat/Axioms.lean` | `Peano.Axioms` | `PeanoNat` | `StrictOrder` y descendientes |
+| `Peano/PeanoNat/StrictOrder.lean` | `Peano.StrictOrder` | `PeanoNat`, `Axioms` | `Order` y descendientes |
+| `Peano/PeanoNat/Order.lean` | `Peano.Order` | `…StrictOrder` | `Lattice` y descendientes |
+| `Peano/PeanoNat/Tuple.lean` | `Peano` | `PeanoNat`, `StrictOrder` | — |
+| `Peano/PeanoNat/Lattice.lean` | `Peano.Lattice` | `…Order` | `WellFounded` y descendientes |
+| `Peano/PeanoNat/WellFounded.lean` | `Peano.WellFounded` | `…Lattice` | `Add` y descendientes |
+| `Peano/PeanoNat/Add.lean` | `Peano.Add` | `…WellFounded` | `Sub` y descendientes |
+| `Peano/PeanoNat/Sub.lean` | `Peano.Sub` | `…Add` | `Mul` y descendientes |
+| `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | `…Sub` | `Div` y descendientes |
+| `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` | `Arith`, `Pow` y descendientes |
+| `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | todos los anteriores | `Primes`, `NumberTheory/*` |
+| `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | `Arith` | `NumberTheory/*` |
+| `Peano/PeanoNat/NumberSets.lean` | `Peano` | `PeanoNat` | — |
+| `Peano/PeanoNat/Decidable.lean` | — (reexport) | `Order` | — |
+| `Peano/PeanoNat/Isomorph.lean` | — (reexport) | `Arith` | — |
+| **Representaciones** | | | |
+| `Peano/PeanoNat/Digits.lean` | `Peano.Digits` | `Div`, `Pow`, `Log` | — |
+| `Peano/PeanoNat/Log.lean` | `Peano.Log` | `Div`, `Pow` | `Digits` |
+| `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | `Mul`, `Sub`, `Pow` | — |
+| `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | `Div`, `Sqrt` | — |
+| **Combinatoria** | | | |
+| `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt`, `Digits` |
+| `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `Add`, `Mul` | `Binom`, `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `Mul`, `Sub`, `Factorial` | `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | `Pow`, `Factorial`, `Binom`, `Summation` | — |
+| `Peano/PeanoNat/Combinatorics/Summation.lean` | `Peano.Summation` | `Add`, `Mul` | `NewtonBinom`, `Product` |
+| `Peano/PeanoNat/Combinatorics/Product.lean` | `Peano.Product` | `Mul`, `Summation` | `Totient` |
+| `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | `Add` | — |
+| `Peano/PeanoNat/Combinatorics/Counting.lean` | `Peano.Counting` | `FSet`, `Primes` | — |
+| **Listas y conjuntos finitos** | | | |
+| `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `ListList`, `FSet` |
+| `Peano/PeanoNat/ListsAndSets/ListList.lean` | `Peano.ListList` | `List` | — |
+| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List` | `FSetFSet`, `FSetFunction`, `Counting` |
+| `Peano/PeanoNat/ListsAndSets/FSetFSet.lean` | `Peano.FSetFSet` | `FSet` | — |
+| `Peano/PeanoNat/ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | `FSet`, `List` | `Perm` |
+| **Teoría de números** | | | |
+| `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | `Arith`, `Primes` | `Totient`, `CRT`, `Fermat` |
+| `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
+| `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
+| `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
+| **Teoría de grupos finitos** *(14 sorry)* | | | |
+| `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
+| `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
+| `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
+| `Peano/PeanoNat/Combinatorics/Orbit.lean` | `Peano.Orbit` | `Group`, `FSet` | `Action` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean` | `Peano.Action` | `Group`, `Orbit` | `Cosets`, `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `Action` | — |
+| **Verificación** | | | |
+| `Peano/ConstructiveCheck.lean` | — | `Prelim` | — |
 
 ### 0.2. Espacios de nombres y relaciones (requisito 3)
 
 | Namespace | Módulo | Sub-namespace de |
 |---|---|---|
-| `Peano` | `Prelim.lean`, `PeanoNat.lean` | — (raíz del proyecto) |
-| `Peano.Axioms` | `PeanoNat/Axioms.lean` | `Peano` |
-| `Peano.StrictOrder` | `PeanoNat/StrictOrder.lean` | `Peano` |
-| `Peano.Order` | `PeanoNat/Order.lean` | `Peano` |
-| `Peano.Tuple` | `PeanoNat/Tuple.lean` | `Peano` |
-| `Peano.Lattice` | `PeanoNat/Lattice.lean` | `Peano` |
-| `Peano.WellFounded` | `PeanoNat/WellFounded.lean` | `Peano` |
-| `Peano.Add` | `PeanoNat/Add.lean` | `Peano` |
-| `Peano.Sub` | `PeanoNat/Sub.lean` | `Peano` |
-| `Peano.Mul` | `PeanoNat/Mul.lean` | `Peano` |
-| `Peano.Div` | `PeanoNat/Div.lean` | `Peano` |
-| `Peano.Arith` | `PeanoNat/Arith.lean` | `Peano` |
-| `Peano.Primes` | `PeanoNat/Primes.lean` | `Peano` |
+| `Peano` | `Prelim.lean`, `PeanoNat.lean`, `Tuple`, `NumberSets` | — (raíz) |
+| `Peano.Axioms` | `Axioms.lean` | `Peano` |
+| `Peano.StrictOrder` | `StrictOrder.lean` | `Peano` |
+| `Peano.Order` | `Order.lean` | `Peano` |
+| `Peano.Lattice` | `Lattice.lean` | `Peano` |
+| `Peano.WellFounded` | `WellFounded.lean` | `Peano` |
+| `Peano.Add` | `Add.lean` | `Peano` |
+| `Peano.Sub` | `Sub.lean` | `Peano` |
+| `Peano.Mul` | `Mul.lean` | `Peano` |
+| `Peano.Div` | `Div.lean` | `Peano` |
+| `Peano.Arith` | `Arith.lean` | `Peano` |
+| `Peano.Primes` | `Primes.lean` | `Peano` |
+| `Peano.Digits` | `Digits.lean` | `Peano` |
+| `Peano.Log` | `Log.lean` | `Peano` |
+| `Peano.Sqrt` | `Sqrt.lean` | `Peano` |
+| `Peano.Pairing` | `Pairing.lean` | `Peano` |
 | `Peano.Pow` | `Combinatorics/Pow.lean` | `Peano` |
 | `Peano.Factorial` | `Combinatorics/Factorial.lean` | `Peano` |
 | `Peano.Binom` | `Combinatorics/Binom.lean` | `Peano` |
 | `Peano.NewtonBinom` | `Combinatorics/NewtonBinom.lean` | `Peano` |
-| `Peano.Log` | `PeanoNat/Log.lean` | `Peano` |
-| `Peano.Sqrt` | `PeanoNat/Sqrt.lean` | `Peano` |
+| `Peano.Summation` | `Combinatorics/Summation.lean` | `Peano` |
+| `Peano.Product` | `Combinatorics/Product.lean` | `Peano` |
+| `Peano.Fibonacci` | `Combinatorics/Fibonacci.lean` | `Peano` |
+| `Peano.Counting` | `Combinatorics/Counting.lean` | `Peano` |
+| `Peano.List` | `ListsAndSets/List.lean` | `Peano` |
+| `Peano.ListList` | `ListsAndSets/ListList.lean` | `Peano` |
+| `Peano.FSet` | `ListsAndSets/FSet.lean` | `Peano` |
+| `Peano.FSetFSet` | `ListsAndSets/FSetFSet.lean` | `Peano` |
+| `Peano.FSetFunction` | `ListsAndSets/FSetFunction.lean` | `Peano` |
+| `Peano.ModEq` | `NumberTheory/ModEq.lean` | `Peano` |
+| `Peano.Totient` | `NumberTheory/Totient.lean` | `Peano` |
+| `Peano.CRT` | `NumberTheory/ChineseRemainder.lean` | `Peano` |
+| `Peano.Fermat` | `NumberTheory/Fermat.lean` | `Peano` |
+| `Peano.Perm` | `Combinatorics/Perm.lean` | `Peano` |
+| `Peano.Group` | `Combinatorics/Group.lean` | `Peano` |
+| `Peano.Sign` | `Combinatorics/Sign.lean` | `Peano` |
+| `Peano.Orbit` | `Combinatorics/Orbit.lean` | `Peano` |
+| `Peano.Action` | `GroupTheory/Action.lean` | `Peano` |
+| `Peano.Cosets` | `GroupTheory/Sylow/Cosets.lean` | `Peano` |
+| `Peano.Sylow` | `GroupTheory/Sylow/Sylow.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -89,7 +146,10 @@
 | `a ∣₁ b` | infijo | 50 | `Peano.Arith` | `Arith.lean` |
 | `n ^ m` | infijo | 80 | `Peano.Pow` | `Combinatorics/Pow.lean` |
 | `C(n, k)` | notación combinatoria | — | `Peano.Binom` | `Combinatorics/Binom.lean` |
-| `∑ k ≤ n, f` | macro sumatorio | — | `Peano.NewtonBinom` | `Combinatorics/NewtonBinom.lean` |
+| `∑ k ≤ n, f` | macro sumatorio | — | `Peano.Summation` | `Combinatorics/Summation.lean` |
+| `a ≡ b [MOD n]` | notación congruencia | 50 | `Peano.ModEq` | `NumberTheory/ModEq.lean` |
+| `{[a, b, c]}` | macro FSet literal | — | `Peano.FSet` | `ListsAndSets/FSet.lean` |
+| `{[x \| p]}` | macro FSet comprensión | — | `Peano.FSet` | `ListsAndSets/FSet.lean` |
 
 ---
 
@@ -271,17 +331,20 @@ Tuplas de naturales de Peano de longitud finita.
 **[D2b.1]** `Tuple` (tuplas de dimensión finita)
 
 - **Lean4:**
+
   ```
   def Tuple : ℕ₀ → Type
     | 𝟘 => Unit
     | σ n => ℕ₀ × Tuple n
   ```
+
 - **Matemática:** Tuple(0) = Unit; Tuple(σ n) = ℕ₀ × Tuple(n)
 - **Computable:** Sí
 
 **[D2b.2]** Operaciones sobre tuplas
 
 - **Lean4:**
+
   ```
   def emptyTuple : Tuple 𝟘 := ()
   def consTuple {n : ℕ₀} (x : ℕ₀) (xs : Tuple n) : Tuple (σ n) := (x, xs)
@@ -289,16 +352,19 @@ Tuplas de naturales de Peano de longitud finita.
   def tailTuple {n : ℕ₀} (t : Tuple (σ n)) : Tuple n := t.2
   def mkTuple : (n : ℕ₀) → (f : ℕ₀ → ℕ₀) → Tuple n
   ```
+
 - **Matemática:** Constructor vacío, cons, proyecciones cabeza/cola, construcción desde función
 - **Computable:** Sí
 
 **[D2b.3]** Orden lexicográfico
 
 - **Lean4:**
+
   ```
   def lexLt {n : ℕ₀} : Tuple n → Tuple n → Prop
   def lexLe {n : ℕ₀} : Tuple n → Tuple n → Prop
   ```
+
 - **Matemática:** Orden lexicográfico estricto y no estricto.
 - **Computable:** No (Prop).
 

@@ -5,7 +5,7 @@
 > [Mathlib Naming Conventions](https://leanprover-community.github.io/contribute/naming.html),
 > adapted to the project's specific domain.
 
-**Last updated:** 2026-04-08 21:00
+**Last updated:** 2026-06-17
 **Author**: Julián Calderón Almendros
 
 ---

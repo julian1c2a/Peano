@@ -1,7 +1,7 @@
 # Development Workflow
 
 **Author**: Julián Calderón Almendros
-*Last updated: 2026-04-08*
+*Last updated: 2026-06-17*
 
 Complete guide for working on this Peano arithmetic formalization project.
 

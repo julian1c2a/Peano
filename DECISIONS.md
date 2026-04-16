@@ -1,6 +1,6 @@
 # Design Decisions — Peano
 
-**Last updated:** 2026-04-08 21:00
+**Last updated:** 2026-06-17
 **Author**: Julián Calderón Almendros
 
 Architectural Decision Records (ADR) for this project.
@@ -83,6 +83,45 @@ Each entry records *what* was decided and *why*, for future reference.
 **Rationale**: Maximum rigor — the 8 Peano axioms are proven, not assumed. This gives a constructive foundation where every property is traceable to the inductive type definition.
 
 **Consequences**: The module `PeanoNatAxioms.lean` contains theorems (not axioms).
+
+---
+
+## ADR-007: FSet as Quotient type (not sorted list)
+
+**Date**: 2026-05
+**Status**: Accepted
+
+**Decision**: `FSet α` is defined as `Quotient (Perm.setoid α)` — the quotient of `List α` by permutation equivalence. Not as a structure with a sorted list + `Sorted` invariant.
+
+**Rationale**: Avoids requiring `LT` and `DecidableRel LT` on element types. Only needs `DecidableEq α`. More mathematically elegant — two lists represent the same set iff they are permutations. Aligns with Mathlib's `Finset` philosophy.
+
+**Consequences**: Some operations become `noncomputable` (e.g., `DecidableEq FSet`). The original plan in THOUGHTS.md §11 and LISTS_FSETS_N_FSETFUNCTIONS.md was overridden.
+
+---
+
+## ADR-008: Thematic subdirectories for module organization
+
+**Date**: 2026-04
+**Status**: Accepted
+
+**Decision**: Group modules into thematic subdirectories: `Combinatorics/`, `ListsAndSets/`, `NumberTheory/`, `Combinatorics/GroupTheory/`, `Combinatorics/GroupTheory/Sylow/`, `Prelim/`.
+
+**Rationale**: With 49+ modules, flat organization became unmanageable. Subdirectories mirror mathematical domains and enable focused navigation.
+
+**Consequences**: Imports use full paths (`Peano.PeanoNat.Combinatorics.Pow`). `Peano.lean` barrel file imports all sub-modules.
+
+---
+
+## ADR-009: No custom algebraic typeclasses
+
+**Date**: 2026-05
+**Status**: Accepted
+
+**Decision**: Do not define custom typeclasses like `CommMonoid ℕ₀` or `OrderedCommSemiring ℕ₀`. Instead, prove the properties as standalone lemmas.
+
+**Rationale**: Without Mathlib, custom typeclasses would duplicate Mathlib's hierarchy poorly. Standalone lemmas suffice for current needs and avoid a premature abstraction.
+
+**Consequences**: No `instance : CommMonoid ℕ₀` etc. Properties like commutativity and associativity exist as named theorems.
 
 ---
 

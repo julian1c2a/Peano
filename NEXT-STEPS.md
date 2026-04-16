@@ -1081,23 +1081,23 @@ Phase 23 (ℚ) ──────────┬─── Rational/Basic.lean
 
 ---
 
-## Build Issues (2026-06-17)
+## Build Issues (2026-04-16)
 
 **Toolchain**: leanprover/lean4:v4.29.0
 **Build command**: `lake build`
-**Result**: 51/51 modules OK, 0 errors, 7 sorry warnings
+**Result**: 51/51 modules OK, 0 errors, 9 sorry warnings
 
 ### sorry warnings (non-blocking)
 
 | File | Lines | Count | Description |
 |------|-------|-------|-------------|
-| `Combinatorics/Perm.lean` | 39 | 1 | Perm sorry |
-| `Combinatorics/Group.lean` | 98 | 1 | Group sorry |
-| `Combinatorics/GroupTheory/Action.lean` | 62, 73, 87, 104 | 4 | Action sorry |
-| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 42, 48, 68, 74, 86 | 5 | Coset sorry |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 93, 113 | 3 | Sylow sorry |
+| `Combinatorics/Perm.lean` | 39 | 1 | `FunPerm.comp is_perm` |
+| `Combinatorics/Group.lean` | 311, 344 | 2 | `cyclicSubgroup` op·inv⁻¹, `cyclicSubgroup'` inv_closed (bloqueados en B2.3 `order`) |
+| `Combinatorics/GroupTheory/Action.lean` | 116, 132 | 2 | `orbit_stabilizer`, `orbits_partition` (rama left) |
+| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 126 | 1 | `lagrange` |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 88, 105 | 3 | `sylow_first`, `sylow_second`, `sylow_third` |
 
-Todos los sorry están en módulos de teoría de grupos avanzada (Phase 25).
+Todos los sorry están en módulos de teoría de grupos (Phase 25 + B3 cíclico).
 La aritmética básica, teoría de números y FSetFunction están completamente demostrados.
 
 ---
@@ -1163,16 +1163,21 @@ Desarrollo completo:
 
 ## Estado actual de sorry (actualizado 2026-04-16)
 
-Tras la sesión de limpieza de sorry de Phase 25, el proyecto pasó de **14 sorry** a **7 sorry**.
+Tras la sesi\u00f3n de limpieza de sorry de Phase 25 + a\u00f1adido B3 cíclico, el proyecto tiene **9 sorry** (7 Phase-25 preexistentes − 5 resueltos + 2 nuevos B3.2 + 2 nuevos orphan → neto 9).
 
-| # | Archivo | Línea | Teorema | Dificultad |
+Desglose actual:
+
+| # | Archivo | L\u00ednea | Teorema | Dificultad |
 |---|---------|-------|---------|------------|
 | 1 | `Perm.lean` | 39 | `FunPerm.comp is_perm` | Media |
-| 2 | `Action.lean` | 116 | `orbit_stabilizer` | Alta |
-| 3 | `Action.lean` | 132 | `orbits_partition` (rama left) | Media |
-| 4 | `Cosets.lean` | 126 | `lagrange` | Alta |
-| 5 | `Sylow.lean` | 71 | `sylow_first` | Muy alta |
-| 6 | `Sylow.lean` | 88 | `sylow_second` | Muy alta |
+| 2 | `Group.lean` | 311 | `cyclicSubgroup` op·inv⁻¹ closed | Media (bloqueado en B2.3) |
+| 3 | `Group.lean` | 344 | `cyclicSubgroup'` inv_closed | Media (bloqueado en B2.3) |
+| 4 | `Action.lean` | 116 | `orbit_stabilizer` | Alta |
+| 5 | `Action.lean` | 132 | `orbits_partition` (rama left) | Media |
+| 6 | `Cosets.lean` | 126 | `lagrange` | Alta |
+| 7 | `Sylow.lean` | 71 | `sylow_first` | Muy alta |
+| 8 | `Sylow.lean` | 88 | `sylow_second` | Muy alta |
+| 9 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
 | 7 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
 
 ### Sorry ya eliminados en esta sesión (7 de 14)

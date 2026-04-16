@@ -8,7 +8,7 @@
 
 ---
 
-## Estado de implementación (2026-06-17)
+## Estado de implementación (2026-04-16)
 
 La implementación se completó en las Fases 21 y 24, pero siguiendo un diseño
 ligeramente distinto al plan original. Diferencias principales:

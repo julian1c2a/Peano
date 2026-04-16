@@ -26,7 +26,7 @@
     `inter_normal_of_normal`.
   - Build: 51 jobs, 0 errores, 9 sorry warnings (7 preexistentes + 2 nuevos en cyclic).
 
-### Added (2026-06-17)
+### Added (2026-04-15)
 
 - **Phase 25 — Teoría de grupos finitos**:
   - **Combinatorics/Counting.lean**: Conteo combinatorio.

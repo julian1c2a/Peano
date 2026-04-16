@@ -1,6 +1,6 @@
 # Demostración detallada del pequeño teorema de Fermat en Peano/Lean4
 
-> **Estado (2026-06-17):** ✅ **Implementado** en `Peano/PeanoNat/NumberTheory/Fermat.lean`.
+> **Estado (2026-04-15):** ✅ **Implementado** en `Peano/PeanoNat/NumberTheory/Fermat.lean`.
 > La prueba sigue exactamente la estrategia descrita abajo: reducción a coprimalidad →
 > teorema de Euler → totient de primo → sustitución. Completamente constructiva, sin sorry.
 

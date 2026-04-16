@@ -434,7 +434,7 @@ considering documentation complete and up to date.
 Organize modules into **thematic subdirectories** inside `Peano/`.
 Each subdirectory groups related modules and corresponds to a sub-namespace.
 
-Current structure (2026-06-17, 51 build jobs):
+Current structure (2026-04-16, 51 build jobs):
 
 ```
 Peano/

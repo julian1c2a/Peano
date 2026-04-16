@@ -1,6 +1,6 @@
 # Design Decisions — Peano
 
-**Last updated:** 2026-06-17
+**Last updated:** 2026-04-16
 **Author**: Julián Calderón Almendros
 
 Architectural Decision Records (ADR) for this project.

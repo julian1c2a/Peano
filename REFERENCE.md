@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-06-17
+**Última actualización:** 2026-04-16
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 51 build jobs · 14 sorry (grupo finito) · 0 errores · Lean 4 v4.29.0
+> 51 build jobs · 9 sorry (grupo finito) · 0 errores · Lean 4 v4.29.0
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -64,7 +64,7 @@
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
-| **Teoría de grupos finitos** *(14 sorry)* | | | |
+| **Teoría de grupos finitos** *(9 sorry)* | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
@@ -2625,3 +2625,290 @@ $\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, ..., p-1\}$ son copri
 - **Tipo**: `Coprime m n → ∀ (a b : ℕ₀), ∃ x, ModEq m x a ∧ ModEq n x b`
 - **Descripción**: Teorema chino del resto (existencia). Si `m` y `n` son coprimos, para cualesquiera `a` y `b` existe `x` con `x ≡ a [MOD m]` y `x ≡ b [MOD n]`.
 - **Estrategia**: Usa la identidad de Bézout (`bezout_natform`) para construir un inverso modular, luego construye explícitamente el testigo `x = add a (mul (mul c s) m)` donde `c = sub (add b n) (mod a n)`.
+
+---
+
+## 24. ListsAndSets/FSetFunction.lean — `namespace Peano.FSetFunction`
+
+**Archivo**: `Peano/PeanoNat/ListsAndSets/FSetFunction.lean`
+**Dependencias**: `FSet`, `List`
+**Dependido por**: `Perm`
+**Tamaño**: ~1550 líneas, ~92 declaraciones exportadas
+
+El módulo más grande del proyecto. Define la noción de función total entre conjuntos finitos (`MapOn`), sus propiedades (inyectividad, sobreyectividad, biyectividad), inversa, el principio del palomar, y los tipos de permutación finite (`FunPerm`) y operación binaria (`BinOpOn`).
+
+### 24.1. § 1 — `MapOn`: función entre FSet [D]
+
+**[D24.1]** `MapOn A B`
+
+- **Lean4:** `structure MapOn (A : FSet α) (B : FSet β) where toFun : ℕ₀ → ℕ₀; map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems`
+- **Matemática:** Función total f: A → B, donde A, B son conjuntos finitos (`FSet`).
+
+**[D24.2]** `MapOn.id`, `MapOn.comp`, `MapOn.comp_assoc`
+
+- Identidad `id_on A : MapOn A A`; composición `comp g f : MapOn A C`; asociatividad de composición.
+
+### 24.2. § 2 — `Im`: imagen [D/T]
+
+**[D24.3]** `MapOn.Im (f : MapOn A B) : FSet ℕ₀`
+
+- Imagen `{f(a) | a ∈ A}` como `FSet`.
+
+**[T24.1]** `card_im_le_card_dom (f : MapOn A B) : f.Im.card ≤ A.card`
+
+**[T24.2]** `card_im_eq_card_iff_injective (f : MapOn A B) : f.Im.card = A.card ↔ f.Injective`
+
+### 24.3. § 2b–2e — Inversas [D/T]
+
+**[D24.4]** `MapOn.Injective`, `MapOn.Surjective`, `MapOn.Bijective`
+
+- Props proposicionales estándar sobre `MapOn`.
+
+**[D24.5]** `MapOn.rightInverse`, `MapOn.leftInverse`, `MapOn.inverse`
+
+- `rightInverse (f : MapOn A B) (hf : Surjective f) : MapOn B A`; análogamente `leftInverse` para inyecciones; `inverse` para biyecciones.
+
+**[T24.3]** `inverse_involution (f : MapOn A A) (hf : Bijective f) : f.inverse.inverse = f`
+
+### 24.4. § 3 — Principio del Palomar [T]
+
+**[T24.4]** `card_le_of_injective (f : MapOn A B) (hf : f.Injective) : A.card ≤ B.card`
+
+- Si existe inyección A → B, entonces |A| ≤ |B|.
+
+**[T24.5]** `card_le_of_surjective (f : MapOn A B) (hf : f.Surjective) : B.card ≤ A.card`
+
+- Si existe sobreyección A → B, entonces |B| ≤ |A|.
+
+**[T24.6]** `not_injective_of_card_lt (f : MapOn A B) (h_lt : lt₀ B.card A.card) : ¬ f.Injective` *(añadido 2026-04-16)*
+
+- Contrapositivo de `card_le_of_injective`: si |B| < |A|, ninguna f: A → B puede ser inyectiva.
+- **Proof**: `absurd h_lt (nlt_of_le (card_le_of_injective f h_inj))` — término directo.
+
+**[T24.7]** `collision_of_card_lt (f : MapOn A B) (h_lt : lt₀ B.card A.card) : ∃ a₁ a₂ : α, a₁ ∈ A.elems ∧ a₂ ∈ A.elems ∧ a₁ ≠ a₂ ∧ f.toFun a₁ = f.toFun a₂` *(añadido 2026-04-16)*
+
+- Principio del palomar con testigos explícitos: si |B| < |A| entonces comparten imagen.
+- **Proof**: `Classical.byContradiction fun h_no_collision => not_injective_of_card_lt ...`
+- **Uso clave**: base para `orderExists` en B2.3 — la función `i ↦ gpow G g i` sobre `Fin₀Set(σ|G|) → G.carrier` produce colisión, dando `∃ n > 0, gpow G g n = G.id`.
+
+### 24.5. § 3c — Igualdad de cardinalidad [T]
+
+**[T24.8]** `card_eq_of_injections (f : MapOn A B) (hf : f.Injective) (g : MapOn B A) (hg : g.Injective) : A.card = B.card`
+
+- Schroeder-Bernstein finito.
+
+**[T24.9]** `card_eq_of_bijection (f : MapOn A B) (hf : f.Bijective) : A.card = B.card`
+
+### 24.6. § 3d–3f — Preimagen, Endomorfismos, Permutaciones [D]
+
+**[D24.6]** `MapOn.preIm (f : MapOn A B) (b : ℕ₀) : FSet ℕ₀` — Preimagen de un punto.
+
+**[D24.7]** `EndoOn A` — Tipo alias para `MapOn A A` (endomorfismos).
+
+**[D24.8]** `MapOn.Perm A` — Subtype de `MapOn A A` que es biyectiva (permutación).
+
+### 24.7. § 4 — `BinOpOn` [D]
+
+**[D24.9]** `BinOpOn (A : FSet ℕ₀)` — Operación binaria cerrada: función `ℕ₀ → ℕ₀ → ℕ₀` tal que `∀ a b ∈ A, op a b ∈ A`.
+
+### 24.8. § 7 — `FunPerm` [D]
+
+**[D24.10]** `FunPerm (A : FSet ℕ₀)` — Permutación representada como tabla funcional biyectiva sobre `A`.
+
+- Composición: `FunPerm.comp`, con `comp_assoc`.
+- Inversa: `FunPerm.inv`.
+- ⚠ 1 sorry: `FunPerm.comp is_perm` (cierre de la composición; ver `Perm.lean`).
+
+---
+
+## 25. Combinatorics/Group.lean — `namespace Peano.Group`
+
+**Archivo**: `Peano/PeanoNat/Combinatorics/Group.lean`
+**Dependencias**: `FSet`, `FSetFunction`
+**Dependido por**: `Orbit`, `Action`
+**Tamaño**: ~480 líneas
+**Sorry activos**: 2 (en `cyclicSubgroup` y `cyclicSubgroup'`, bloqueados en B2.3 `order`)
+
+### 25.1. § 4 — `FinGroup`: estructura de grupo finito [D]
+
+**[D25.1]** `FinGroup` (estructura)
+
+```lean
+structure FinGroup where
+  carrier : ℕ₀FSet
+  op      : BinOpOn carrier
+  id      : ℕ₀
+  inv     : MapOn carrier carrier
+  id_in   : id ∈ carrier.elems
+  op_assoc : ∀ a b c, a ∈ carrier → b ∈ carrier → c ∈ carrier → op (op a b) c = op a (op b c)
+  op_id    : ∀ a, a ∈ carrier → op a id = a ∧ op id a = a
+  op_inv   : ∀ a, a ∈ carrier → op a (inv a) = id ∧ op (inv a) a = id
+```
+
+- **Matemática:** Grupo finito con soporte `ℕ₀FSet`, operación `op`, neutro `id`, inversa `inv`.
+- **Computable:** Sí (todos los campos son funciones computables o `ℕ₀FSet`).
+
+### 25.2. § 4b — Lemas auxiliares [T]
+
+**[T25.1]** `id_unique (G : FinGroup) (e' : ℕ₀) (h_e'_in) (h_is_id) : e' = G.id`
+
+- El neutro es único.
+
+**[T25.2]** `inv_mem (G : FinGroup) {a : ℕ₀} (ha) : G.inv a ∈ G.carrier.elems`
+
+**[T25.3]** `op_mem (G : FinGroup) {a b : ℕ₀} (ha) (hb) : G.op a b ∈ G.carrier.elems`
+
+**[T25.4]** `op_cancel_left (G : FinGroup) {a x y : ℕ₀} (ha) (hx) (hy) (h : G.op a x = G.op a y) : x = y`
+
+**[T25.5]** `op_cancel_right (G : FinGroup) {a x y : ℕ₀} (ha) (hx) (hy) (h : G.op x a = G.op y a) : x = y`
+
+**[T25.6]** `inv_inv_eq (G : FinGroup) {a : ℕ₀} (ha) : G.inv (G.inv a) = a`
+
+**[T25.7]** `inv_id_eq (G : FinGroup) : G.inv G.id = G.id`
+
+**[T25.8]** `inv_op_eq (G : FinGroup) {a b : ℕ₀} (ha) (hb) : G.inv (G.op a b) = G.op (G.inv b) (G.inv a)`
+
+- Anti-homomorfismo del inverso.
+
+**[T25.9]** `inv_unique (G : FinGroup) {a b : ℕ₀} (ha) (hb) (h : G.op a b = G.id ∧ G.op b a = G.id) : b = G.inv a`
+
+### 25.3. § 4c — `gpow`: potencia iterada [D/T]
+
+**[D25.2]** `gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀`
+
+```lean
+def gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀
+  | .zero   => G.id
+  | .succ n => G.op (gpow G g n) g
+```
+
+- **Matemática:** g^n = id si n=0; g^(n+1) = g^n · g
+- **Computable:** Sí
+
+**[T25.10]** `@[simp] gpow_zero (G : FinGroup) (g : ℕ₀) : gpow G g 𝟘 = G.id`
+
+**[T25.11]** `@[simp] gpow_succ (G : FinGroup) (g : ℕ₀) (n : ℕ₀) : gpow G g (σ n) = G.op (gpow G g n) g`
+
+**[T25.12]** `gpow_one (G : FinGroup) (g : ℕ₀) (hg) : gpow G g 𝟙 = g`
+
+**[T25.13]** `gpow_mem (G : FinGroup) {g : ℕ₀} (hg) : ∀ n : ℕ₀, gpow G g n ∈ G.carrier.elems`
+
+- Por inducción: g^0 = id ∈ G; g^(n+1) = g^n · g ∈ G.
+
+**[T25.14]** `gpow_add (G : FinGroup) {g : ℕ₀} (hg) (m n : ℕ₀) : gpow G g (add m n) = G.op (gpow G g m) (gpow G g n)`
+
+- g^(m+n) = g^m · g^n.
+
+**[T25.15]** `gpow_comm_single (G : FinGroup) {g : ℕ₀} (hg) (n : ℕ₀) : G.op g (gpow G g n) = G.op (gpow G g n) g`
+
+- g · g^n = g^n · g (la potencia conmuta con la base). Demostrado via `gpow_add` + `add_comm`.
+
+**[T25.16]** `gpow_inv (G : FinGroup) {g : ℕ₀} (hg) : ∀ n : ℕ₀, gpow G (G.inv g) n = G.inv (gpow G g n)`
+
+- (g⁻¹)^n = (g^n)⁻¹. Demostrado por inducción usando `gpow_comm_single` + `inv_op_eq`.
+
+### 25.4. § 5 — `Subgroup`: subgrupo [D/T]
+
+**[D25.3]** `Subgroup (G : FinGroup)` (estructura)
+
+```lean
+structure Subgroup (G : FinGroup) where
+  carrier    : ℕ₀FSet
+  nonempty   : ∃ a, a ∈ carrier.elems
+  subset     : ∀ a, a ∈ carrier.elems → a ∈ G.carrier.elems
+  op_closed  : ∀ a b, a ∈ carrier.elems → b ∈ carrier.elems → G.op a b ∈ carrier.elems
+  id_in      : G.id ∈ carrier.elems
+  inv_closed : ∀ a, a ∈ carrier.elems → G.inv a ∈ carrier.elems
+```
+
+**[T25.17]** `Subgroup.op_inv_closed (G : FinGroup) (H : Subgroup G) (a b : ℕ₀) (ha) (hb) : G.op a (G.inv b) ∈ H.carrier.elems`
+
+- Criterio de un paso (consecuencia directa de las clausuras).
+
+**[D25.4]** `subgroup_of_op_inv_closed (G : FinGroup) (S : ℕ₀FSet) (h_sub) (h_ne) (h_cl) : Subgroup G`
+
+- Recíproco: si S ⊆ G, S ≠ ∅, y a·b⁻¹ ∈ S para todo a,b ∈ S, entonces S es subgrupo.
+
+### 25.5. § 5b — Subgrupos especiales [D]
+
+**[D25.5]** `trivialSubgroup (G : FinGroup) : Subgroup G`
+
+- El subgrupo `{G.id}`. Carrier = `ℕ₀FSet.singleton G.id`.
+
+**[D25.6]** `improperSubgroup (G : FinGroup) : Subgroup G`
+
+- El subgrupo `G`. Carrier = `G.carrier`.
+
+**[D25.7]** `Subgroup.IsTrivial {G : FinGroup} (H : Subgroup G) : Prop := H.carrier.card = 𝟙`
+
+**[D25.8]** `Subgroup.IsProper {G : FinGroup} (H : Subgroup G) : Prop := H.carrier.card ≠ G.carrier.card`
+
+### 25.6. § 5c — Subgrupo cíclico [D] ⚠ 2 sorry
+
+**[D25.9]** `cyclicSubgroup (G : FinGroup) (g : ℕ₀) (hg) : Subgroup G` ⚠ sorry
+
+- Vía `subgroup_of_op_inv_closed` con `cyclicCarrier G g`.
+- Sorry en el cierre a·b⁻¹: necesita `gpow_mod_order` (B2.3 pendiente).
+
+**[D25.10]** `cyclicSubgroup' (G : FinGroup) (g : ℕ₀) (hg) : Subgroup G` ⚠ sorry
+
+- Construcción directa (Subgroup con todos los campos).
+- `op_closed`: sorry en índice `add m n` fuera del rango (necesita `order G g`).
+- `inv_closed`: sorry en reducción de `gpow G (G.inv g) n` a `gpow G g k` (necesita `order G g`).
+- **Dependencia**: ambos sorry se resolverán cuando esté `order G g hg` (B2.3).
+
+**Nota de implementación (subgrupo cíclico)**: `cyclicCarrier G g` está definido como
+`ℕ₀FSet.filter (fun x => Fin₀Set(σ|G|).elems.any (fun i => decide (gpow G g i = x))) G.carrier`.
+Esto es correcto pero el testigo de índice `add m n` puede exceder `σ|G|`. La solución
+es usar `mod (add m n) (order G g hg)` como testigo una vez que `order` esté disponible.
+
+### 25.7. § 5d — Normalidad [D/T]
+
+**[D25.11]** `Subgroup.IsNormal {G : FinGroup} (N : Subgroup G) : Prop`
+
+- `∀ g n, g ∈ G.carrier → n ∈ N.carrier → G.op (G.op g n) (G.inv g) ∈ N.carrier`
+
+**[T25.18]** `trivialSubgroup_normal (G : FinGroup) : (trivialSubgroup G).IsNormal`
+
+**[T25.19]** `improperSubgroup_normal (G : FinGroup) : (improperSubgroup G).IsNormal`
+
+### 25.8. § 5e — Intersección de subgrupos [D/T]
+
+**[D25.12]** `Subgroup.inter {G : FinGroup} (H₁ H₂ : Subgroup G) : Subgroup G`
+
+- Carrier = `ℕ₀FSet.filter (fun x => decide (x ∈ H₁.carrier) && decide (x ∈ H₂.carrier)) G.carrier`
+- Todos los campos demostrados sin sorry. Patrón: `rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]`.
+
+**[T25.20]** `Subgroup.inter_subset_left {G : FinGroup} (H₁ H₂ : Subgroup G) {a : ℕ₀} (ha) : a ∈ H₁.carrier.elems`
+
+**[T25.21]** `Subgroup.inter_subset_right {G : FinGroup} (H₁ H₂ : Subgroup G) {a : ℕ₀} (ha) : a ∈ H₂.carrier.elems`
+
+**[T25.22]** `Subgroup.inter_normal_of_normal {G : FinGroup} {H₁ H₂ : Subgroup G} (hn₁ : H₁.IsNormal) (hn₂ : H₂.IsNormal) : (H₁.inter H₂).IsNormal`
+
+### 25.9. § 6 — `GroupHom`: homomorfismo [D]
+
+**[D25.13]** `GroupHom (G H : FinGroup)` (estructura)
+
+```lean
+structure GroupHom (G H : FinGroup) where
+  map     : MapOn G.carrier H.carrier
+  map_op  : ∀ a b, a ∈ G.carrier → b ∈ G.carrier → map (G.op a b) = H.op (map a) (map b)
+  map_id  : map G.id = H.id
+  map_inv : ∀ a, a ∈ G.carrier → map (G.inv a) = H.inv (map a)
+```
+
+- **Matemática:** Homomorfismo de grupos finitos que preserva op, id, inv.
+- **Computable:** Sí.
+- **Estado:** Estructura definida. Im, ker, comp y resultados de teoría de homomorfismos son trabajo futuro (B4).
+
+---
+
+> **Secciones pendientes** (módulos sin sección en este documento):
+> §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
+> §30 `NumberSets.lean`, §31 `ModEq.lean`, §32 `NumberTheory/Fermat.lean`,
+> §33 `Combinatorics/Summation.lean`, §34 `Combinatorics/Product.lean`,
+> §35 `Combinatorics/Fibonacci.lean`, §36 `Combinatorics/Counting.lean`,
+> §37 `Digits.lean`, §38 `Pairing.lean`,
+> §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
+> §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
+> §43 `GroupTheory/Sylow/Cosets.lean`, §44 `GroupTheory/Sylow/Sylow.lean`.

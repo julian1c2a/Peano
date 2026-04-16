@@ -1085,7 +1085,7 @@ Phase 23 (ℚ) ──────────┬─── Rational/Basic.lean
 
 **Toolchain**: leanprover/lean4:v4.29.0
 **Build command**: `lake build`
-**Result**: 51/51 modules OK, 0 errors, 14 sorry warnings
+**Result**: 51/51 modules OK, 0 errors, 7 sorry warnings
 
 ### sorry warnings (non-blocking)
 
@@ -1224,9 +1224,9 @@ Tras la sesión de limpieza de sorry de Phase 25, el proyecto pasó de **14 sorr
 |--------|-----------|-------------|
 | B1 | Infraestructura de listas/conjuntos | Ninguna |
 | B2 | Orden de elemento, potencia iterada | § 4b |
-| B3 | Tipos de subgrupos (incl. cíclico, normal) | § 5 + B2 |
+| B3 | Tipos de subgrupos (cíclico, normal, inter, producto, join) | § 5 + B2 |
 | B4 | Homomorfismos (Im, ker, comp, mono⟺ker) | § 6 + B3 |
-| B5 | Subgrupo generado ⟨S⟩, grupos simples | B3 |
+| B5 | Subgrupo generado ⟨S⟩, grupos simples | B3 (B3.8 join requiere B5.1) |
 | B6 | Sorry 1-2: FunPerm.comp, orbits_partition | B1 |
 | B7 | Sorry 3-4: lagrange, orbit_stabilizer | B6 + B4 |
 | B8 | Grupo simétrico Sym(Fin₀Set n) | B6 |
@@ -1423,6 +1423,77 @@ def Subgroup.IsCharacteristic (G : FinGroup) (H : Subgroup G) : Prop :=
 
 - `characteristic_is_normal`: `H.IsCharacteristic → H.IsNormal`
   (~10 lín., la conjugación `x ↦ gxg⁻¹` es un automorfismo)
+
+---
+
+#### B3.6 Intersección de subgrupos (~15 lín.)
+
+```
+def Subgroup.inter (G : FinGroup) (H₁ H₂ : Subgroup G) : Subgroup G where
+  carrier := G.carrier.filter (fun x =>
+    decide (x ∈ H₁.carrier.elems) && decide (x ∈ H₂.carrier.elems))
+  ...
+```
+
+*Lemas*:
+
+- `inter_id_in`: `G.id ∈ (Subgroup.inter G H₁ H₂).carrier.elems`
+  (de `H₁.id_in` y `H₂.id_in`)
+- `inter_op_closed`: si `a, b ∈ H₁ ∩ H₂`, entonces `a·b ∈ H₁ ∩ H₂`
+  (de `H₁.op_closed` y `H₂.op_closed`)
+- `inter_inv_closed`: si `a ∈ H₁ ∩ H₂`, entonces `a⁻¹ ∈ H₁ ∩ H₂`
+  (de `H₁.inv_closed` y `H₂.inv_closed`)
+- `inter_subset_left`: `Subgroup.inter G H₁ H₂ ⊆ H₁`
+- `inter_subset_right`: `Subgroup.inter G H₁ H₂ ⊆ H₂`
+- `inter_normal_of_normal`: si `N₁.IsNormal` y `N₂.IsNormal`, entonces
+  `(Subgroup.inter G N₁ N₂).IsNormal`
+
+#### B3.7 Producto de subgrupos H·K (~20 lín.)
+
+```
+def Subgroup.product (G : FinGroup) (H K : Subgroup G) : ℕ₀FSet :=
+  G.carrier.filter (fun x =>
+    H.carrier.elems.any (fun h =>
+      K.carrier.elems.any (fun k => decide (G.op h k = x))))
+```
+
+*Nota*: `H·K` no es subgrupo en general; lo es sii `H·K = K·H`.
+
+*Lemas*:
+
+- `product_subset`: `∀ x ∈ (Subgroup.product G H K).elems, x ∈ G.carrier.elems`
+- `product_mem`: `h ∈ H → k ∈ K → G.op h k ∈ Subgroup.product G H K`
+- `product_comm_iff_subgroup`:
+  `Subgroup.product G H K = Subgroup.product G K H ↔
+    ∃ S : Subgroup G, S.carrier = Subgroup.product G H K`
+  (~30 lín., dirección → usa que `HK = KH` implica `(HK)⁻¹ = K⁻¹H⁻¹ = KH = HK`)
+- `product_of_normal_left`: si `N.IsNormal`, entonces
+  `Subgroup.product G N K` es subgrupo de `G`
+  (~15 lín., `N·K = K·N` cuando `N` es normal)
+- `product_card`: `|H·K| · |H ∩ K| = |H| · |K|`
+  (fórmula de Poincaré, requiere B3.6 intersección)
+
+#### B3.8 Suma (join) de subgrupos: ⟨H₁ ∪ H₂⟩ (~10 lín.)
+
+```
+def Subgroup.join (G : FinGroup) (H₁ H₂ : Subgroup G) : Subgroup G :=
+  generatedSubgroup G (H₁.carrier.union H₂.carrier)
+    (fun a ha => ... H₁.subset ∨ H₂.subset ...)
+```
+
+*Nota*: `H₁ + H₂ := ⟨H₁ ∪ H₂⟩` es el menor subgrupo que contiene a ambos.
+
+*Lemas*:
+
+- `join_contains_left`: `∀ a ∈ H₁.carrier.elems, a ∈ (Subgroup.join G H₁ H₂).carrier.elems`
+- `join_contains_right`: `∀ a ∈ H₂.carrier.elems, a ∈ (Subgroup.join G H₁ H₂).carrier.elems`
+- `join_minimal`: si `S : Subgroup G` con `H₁ ⊆ S` y `H₂ ⊆ S`, entonces
+  `Subgroup.join G H₁ H₂ ⊆ S`
+- `join_eq_product_of_normal`: si `N.IsNormal`, entonces
+  `Subgroup.join G N H = Subgroup.product G N H`
+  (~15 lín., `N·H` ya es subgrupo y contiene a ambos)
+- `join_comm`: `Subgroup.join G H₁ H₂ = Subgroup.join G H₂ H₁`
+  (de la conmutatividad de la unión)
 
 ---
 

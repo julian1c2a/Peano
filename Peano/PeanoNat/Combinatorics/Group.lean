@@ -126,6 +126,68 @@ namespace Peano
       rw [h.1, (G.op_inv a ha).1]
 
     /-!
+    # § 4c. Potencia iterada y orden de un elemento
+    -/
+
+    /-- Potencia iterada: `gpow G g n = g^n` (por la derecha).
+        `gpow G g 0 = id`, `gpow G g (n+1) = (gpow G g n) · g`. -/
+    def gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀
+      | .zero   => G.id
+      | .succ n => G.op (gpow G g n) g
+
+    @[simp] theorem gpow_zero (G : FinGroup) (g : ℕ₀) :
+        gpow G g 𝟘 = G.id := rfl
+
+    @[simp] theorem gpow_succ (G : FinGroup) (g : ℕ₀) (n : ℕ₀) :
+        gpow G g (σ n) = G.op (gpow G g n) g := rfl
+
+    theorem gpow_one (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        gpow G g 𝟙 = g :=
+      (G.op_id g hg).2
+
+    /-- `g^n ∈ G` para todo `n`. -/
+    theorem gpow_mem (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems) :
+        ∀ n : ℕ₀, gpow G g n ∈ G.carrier.elems
+      | .zero   => G.id_in
+      | .succ n => op_mem G (gpow_mem G hg n) hg
+
+    /-- `g^(m+n) = g^m · g^n`. -/
+    theorem gpow_add (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        (m n : ℕ₀) :
+        gpow G g (add m n) = G.op (gpow G g m) (gpow G g n) := by
+      induction n with
+      | zero =>
+        simp [add_zero, gpow_zero, (G.op_id (gpow G g m) (gpow_mem G hg m)).1]
+      | succ n ih =>
+        rw [add_succ, gpow_succ, ih, gpow_succ,
+            G.op_assoc (gpow G g m) (gpow G g n) g
+              (gpow_mem G hg m) (gpow_mem G hg n) hg]
+
+    /-- `g · g^n = g^n · g` (la potencia conmuta con la base). -/
+    theorem gpow_comm_single (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        (n : ℕ₀) : G.op g (gpow G g n) = G.op (gpow G g n) g := by
+      calc G.op g (gpow G g n)
+          = G.op (gpow G g 𝟙) (gpow G g n) := by rw [gpow_one G g hg]
+        _ = gpow G g (add 𝟙 n)              := by rw [← gpow_add G hg 𝟙 n]
+        _ = gpow G g (σ n)                   := by congr 1; exact add_comm 𝟙 n
+        _ = G.op (gpow G g n) g              := gpow_succ G g n
+
+    /-- `(g⁻¹)^n = (g^n)⁻¹`. -/
+    theorem gpow_inv (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        : ∀ n : ℕ₀, gpow G (G.inv g) n = G.inv (gpow G g n)
+      | .zero => by rw [gpow_zero, gpow_zero, inv_id_eq]
+      | .succ n => by
+        have ih := gpow_inv G hg n
+        have hgn := gpow_mem G hg n
+        have hig := inv_mem G hg
+        calc gpow G (G.inv g) (σ n)
+            = G.op (gpow G (G.inv g) n) (G.inv g)  := gpow_succ G (G.inv g) n
+          _ = G.op (G.inv g) (gpow G (G.inv g) n)  := (gpow_comm_single G hig n).symm
+          _ = G.op (G.inv g) (G.inv (gpow G g n))  := by rw [ih]
+          _ = G.inv (G.op (gpow G g n) g)           := (inv_op_eq G hgn hg).symm
+          _ = G.inv (gpow G g (σ n))                 := by rw [← gpow_succ]
+
+    /-!
     # § 5. Subgrupos
     !-/
 
@@ -183,6 +245,217 @@ namespace Peano
           rw [inv_inv_eq G (h_sub b hb)]
         rw [key]
         exact h_cl a (G.inv b) ha hb'
+
+    /-!
+    # § 5b. Tipos especiales de subgrupos
+    !-/
+
+    /-- El subgrupo trivial `{e}`. -/
+    def trivialSubgroup (G : FinGroup) : Subgroup G where
+      carrier  := ℕ₀FSet.singleton G.id
+      nonempty := ⟨G.id, List.mem_cons.mpr (Or.inl rfl)⟩
+      subset   := fun a ha => by
+        simp only [ℕ₀FSet.singleton, FSet.singleton, List.mem_singleton] at ha
+        exact ha ▸ G.id_in
+      op_closed := fun a b ha hb => by
+        simp only [ℕ₀FSet.singleton, FSet.singleton, List.mem_singleton] at ha hb ⊢
+        rw [ha, hb, (G.op_id G.id G.id_in).1]
+      id_in    := List.mem_cons.mpr (Or.inl rfl)
+      inv_closed := fun a ha => by
+        simp only [ℕ₀FSet.singleton, FSet.singleton, List.mem_singleton] at ha ⊢
+        rw [ha, inv_id_eq]
+
+    /-- El subgrupo impropio `G` como subgrupo de sí mismo. -/
+    def improperSubgroup (G : FinGroup) : Subgroup G where
+      carrier    := G.carrier
+      nonempty   := ⟨G.id, G.id_in⟩
+      subset     := fun _ ha => ha
+      op_closed  := fun a b ha hb => op_mem G ha hb
+      id_in      := G.id_in
+      inv_closed := fun a ha => inv_mem G ha
+
+    /-- Un subgrupo es trivial si tiene exactamente un elemento. -/
+    def Subgroup.IsTrivial {G : FinGroup} (H : Subgroup G) : Prop :=
+      H.carrier.card = 𝟙
+
+    /-- Un subgrupo es propio si no es el grupo entero. -/
+    def Subgroup.IsProper {G : FinGroup} (H : Subgroup G) : Prop :=
+      H.carrier.card ≠ G.carrier.card
+
+    /-!
+    # § 5c. Subgrupo cíclico
+    !-/
+
+    private def cyclicCarrier (G : FinGroup) (g : ℕ₀) : ℕ₀FSet :=
+      ℕ₀FSet.filter
+        (fun x => (ℕ₀FSet.Fin₀Set (σ G.carrier.card)).elems.any
+                    (fun i => decide (gpow G g i = x)))
+        G.carrier
+
+    private theorem cyclicCarrier_id_in (G : FinGroup) (g : ℕ₀) :
+        G.id ∈ (cyclicCarrier G g).elems :=
+      List.mem_filter.mpr ⟨G.id_in,
+        List.any_eq_true.mpr ⟨𝟘,
+          (ℕ₀FSet.mem_Fin₀Set_iff (σ G.carrier.card) 𝟘).mpr
+            (by unfold Peano.StrictOrder.lt₀; trivial),
+          decide_eq_true_eq.mpr (gpow_zero G g)⟩⟩
+
+    private theorem cyclicCarrier_mem_iff (G : FinGroup) (g x : ℕ₀) :
+        x ∈ (cyclicCarrier G g).elems ↔
+          x ∈ G.carrier.elems ∧
+          ∃ i ∈ (ℕ₀FSet.Fin₀Set (σ G.carrier.card)).elems, gpow G g i = x := by
+      simp only [cyclicCarrier, ℕ₀FSet.filter, FSet.filter, List.mem_filter,
+                 List.any_eq_true, decide_eq_true_eq]
+
+    /-- El subgrupo cíclico generado por `g`, definido mediante el criterio de un paso. -/
+    def cyclicSubgroup (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        Subgroup G :=
+      subgroup_of_op_inv_closed G
+        (cyclicCarrier G g)
+        (fun a ha => (List.mem_filter.mp ha).1)
+        ⟨G.id, cyclicCarrier_id_in G g⟩
+        (fun a b ha hb => by
+          -- Obtener testigos de potencias
+          obtain ⟨ha_G, m, _hm_idx, hm⟩ := (cyclicCarrier_mem_iff G g a).mp ha
+          obtain ⟨_,   n, _hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g b).mp hb
+          -- a · inv(b) = g^m · (g^n)⁻¹ = g^m · (g⁻¹)^n ... no, usamos a·b⁻¹ directamente
+          -- a · inv(b) = g^m · (g^n)⁻¹
+          -- Por gpow_inv: (g^n)⁻¹ = (g⁻¹)^n, y después gpow de inv(g)...
+          -- Más sencillo: demostrar que a·b⁻¹ ∈ cyclicCarrier via testigo add m n
+          -- porque a·b⁻¹ = g^m · (g^n)⁻¹ = g^m · g^(-n)
+          -- Pero no tenemos gpow negativo. Sin embargo, a·b⁻¹ = op a (inv b)
+          -- = op (gpow g m) (inv (gpow g n))
+          -- = op (gpow g m) (gpow (inv g) n)
+          -- = gpow g m · (inv g)^n
+          -- Esto no es directamente gpow g k para algún k entero...
+          -- ALTERNATIVA: mostrar cierre directo construyendo el subgrupo de otra forma.
+          -- El criterio op_inv_closed necesita a·b⁻¹ ∈ S.
+          -- Tenemos: a·b⁻¹ ∈ G (trivial), y necesitamos el testigo de índice.
+          -- Si m ≥ n: a·b⁻¹ = g^m · g^{-n} = g^{m-n} ... si tuviéramos sub-potencia
+          -- Si m < n: a·b⁻¹ = g^{m + (ord - n)} ... requiere orden de g
+          -- CONCLUSIÓN: cyclicSubgroup requiere B2.3 (orden del elemento) para probar
+          -- cierre por la relación a·b⁻¹. Por ahora, lo construimos directamente
+          -- como subgrupo via los tres axiomas (op_closed, inv_closed, id_in)
+          -- en lugar de via subgroup_of_op_inv_closed.
+          -- Esto requiere cambiar la definición a continuación.
+          sorry)
+
+    /-- El subgrupo cíclico generado por `g` (construcción directa). -/
+    def cyclicSubgroup' (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        Subgroup G where
+      carrier    := cyclicCarrier G g
+      nonempty   := ⟨G.id, cyclicCarrier_id_in G g⟩
+      subset     := fun a ha => (List.mem_filter.mp ha).1
+      id_in      := cyclicCarrier_id_in G g
+      op_closed  := fun a b ha hb => by
+        obtain ⟨ha_G, m, hm_idx, hm⟩ := (cyclicCarrier_mem_iff G g a).mp ha
+        obtain ⟨hb_G, n, hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g b).mp hb
+        rw [cyclicCarrier_mem_iff]
+        refine ⟨op_mem G ha_G hb_G, add m n, ?_, ?_⟩
+        · -- add m n ∈ Fin₀Set(σ card)? No necesariamente...
+          -- Necesitamos que el índice add m n esté en el conjunto de índices.
+          -- Esto falla si add m n ≥ σ card. Usamos periodicidad implícita aquí.
+          -- Como G es finito, por Pigeonhole, gpow G g (add m n) = gpow G g k
+          -- para algún k < σ card. Pero demostrar eso requiere B2.3 (orden).
+          sorry
+        · rw [gpow_add G hg, hm, hn]
+      inv_closed := fun a ha => by
+        obtain ⟨ha_G, n, hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g a).mp ha
+        rw [cyclicCarrier_mem_iff]
+        -- G.inv a = G.inv (gpow G g n) por hn
+        -- = gpow G (G.inv g) n por gpow_inv
+        -- Pero gpow G (G.inv g) n es una potencia de G.inv g, no de g.
+        -- Sin orden de g, no podemos reducir (G.inv g)^n a g^k.
+        -- Se deja como sorry hasta B2.3.
+        exact ⟨inv_mem G ha_G, n, hn_idx, by sorry⟩
+
+    /-!
+    # § 5d. Normalidad
+    !-/
+
+    /-- Un subgrupo `N` de `G` es normal si es cerrado bajo conjugación:
+        `∀ g ∈ G, ∀ n ∈ N, g·n·g⁻¹ ∈ N`. -/
+    def Subgroup.IsNormal {G : FinGroup} (N : Subgroup G) : Prop :=
+      ∀ g n, g ∈ G.carrier.elems → n ∈ N.carrier.elems →
+        G.op (G.op g n) (G.inv g) ∈ N.carrier.elems
+
+    /-- El subgrupo trivial es normal. -/
+    theorem trivialSubgroup_normal (G : FinGroup) :
+        (trivialSubgroup G).IsNormal := by
+      intro g n hg hn
+      simp only [trivialSubgroup, ℕ₀FSet.singleton, FSet.singleton,
+                 List.mem_singleton] at hn ⊢
+      rw [hn, (G.op_id g hg).1, (G.op_inv g hg).1]
+
+    /-- El subgrupo impropio es normal. -/
+    theorem improperSubgroup_normal (G : FinGroup) :
+        (improperSubgroup G).IsNormal := by
+      intro g n hg hn
+      exact op_mem G (op_mem G hg hn) (inv_mem G hg)
+
+    /-!
+    # § 5e. Intersección de subgrupos
+    !-/
+
+    /-- Intersección de dos subgrupos. -/
+    def Subgroup.inter {G : FinGroup} (H₁ H₂ : Subgroup G) : Subgroup G where
+      carrier  :=
+        ℕ₀FSet.filter
+          (fun x => decide (x ∈ H₁.carrier) && decide (x ∈ H₂.carrier))
+          G.carrier
+      nonempty := ⟨G.id, List.mem_filter.mpr
+        ⟨G.id_in, by
+          rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+          exact ⟨H₁.id_in, H₂.id_in⟩⟩⟩
+      subset   := fun a ha => (List.mem_filter.mp ha).1
+      id_in    := List.mem_filter.mpr
+        ⟨G.id_in, by
+          rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+          exact ⟨H₁.id_in, H₂.id_in⟩⟩
+      op_closed := fun a b ha hb => by
+        obtain ⟨ha_G, ha_and⟩ := List.mem_filter.mp ha
+        obtain ⟨hb_G, hb_and⟩ := List.mem_filter.mp hb
+        rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ha_and hb_and
+        exact List.mem_filter.mpr
+          ⟨op_mem G ha_G hb_G, by
+            rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+            exact ⟨H₁.op_closed a b ha_and.1 hb_and.1,
+                   H₂.op_closed a b ha_and.2 hb_and.2⟩⟩
+      inv_closed := fun a ha => by
+        obtain ⟨ha_G, ha_and⟩ := List.mem_filter.mp ha
+        rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq] at ha_and
+        exact List.mem_filter.mpr
+          ⟨inv_mem G ha_G, by
+            rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+            exact ⟨H₁.inv_closed a ha_and.1, H₂.inv_closed a ha_and.2⟩⟩
+
+    /-- La intersección está contenida en ambos subgrupos. -/
+    theorem Subgroup.inter_subset_left {G : FinGroup} (H₁ H₂ : Subgroup G)
+        {a : ℕ₀} (ha : a ∈ (H₁.inter H₂).carrier.elems) :
+        a ∈ H₁.carrier.elems := by
+      obtain ⟨_, ha_and⟩ := List.mem_filter.mp ha
+      simp only [Bool.and_eq_true, decide_eq_true_eq] at ha_and
+      exact ha_and.1
+
+    theorem Subgroup.inter_subset_right {G : FinGroup} (H₁ H₂ : Subgroup G)
+        {a : ℕ₀} (ha : a ∈ (H₁.inter H₂).carrier.elems) :
+        a ∈ H₂.carrier.elems := by
+      obtain ⟨_, ha_and⟩ := List.mem_filter.mp ha
+      simp only [Bool.and_eq_true, decide_eq_true_eq] at ha_and
+      exact ha_and.2
+
+    /-- La intersección de dos subgrupos normales es normal. -/
+    theorem Subgroup.inter_normal_of_normal {G : FinGroup} {H₁ H₂ : Subgroup G}
+        (hn₁ : H₁.IsNormal) (hn₂ : H₂.IsNormal) :
+        (H₁.inter H₂).IsNormal := by
+      intro g n hg hn
+      have h₁ := hn₁ g n hg (inter_subset_left H₁ H₂ hn)
+      have h₂ := hn₂ g n hg (inter_subset_right H₁ H₂ hn)
+      have h_G := op_mem G (op_mem G hg ((H₁.inter H₂).subset n hn)) (inv_mem G hg)
+      exact List.mem_filter.mpr
+        ⟨h_G, by
+          rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]
+          exact ⟨h₁, h₂⟩⟩
 
     /-!
     # § 6. Homomorfismos

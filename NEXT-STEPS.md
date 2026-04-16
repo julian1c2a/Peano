@@ -1950,6 +1950,76 @@ def quotientGroup (G : FinGroup) (N : Subgroup G)
 - `cosetOp_id`: `(eN)·(gN) = gN` y `(gN)·(eN) = gN`
 - `cosetOp_inv`: `(gN)·(g⁻¹N) = eN`
 
+---
+
+#### B9.3b Tres teoremas de isomorfismo (~115 lín.)
+
+**Dependencias**: `GroupHom` (B4), `quotientGroup` (B9.3), `Subgroup.inter` (B3.6), `Subgroup.product` (B3.7)
+
+##### Definición previa: isomorfismo de grupos (~15 lín.)
+
+```lean
+structure GroupIso (G H : FinGroup) extends GroupHom G H where
+  map_bijective : map.Bijective
+```
+
+*Lemas auxiliares*:
+
+- `groupIso_symm`: si `φ : GroupIso G H`, entonces `∃ ψ : GroupIso H G, ...`
+  (inyectividad + sobreyectividad dan la inversa)
+- `groupIso_trans`: composición de isomorfismos es isomorfismo
+
+##### Primer teorema — G/ker(φ) ≅ Im(φ) (~30 lín.)
+
+**Enunciado**: si `φ : GroupHom G H`, entonces `GroupIso (quotientGroup G φ.ker (ker_isNormal φ)) φ.Im`
+
+*Sub-lemas*:
+
+- `first_iso_welldefined`: `g₁N = g₂N → φ.map g₁ = φ.map g₂`
+  (g₂⁻¹·g₁ ∈ ker ⟹ φ(g₂⁻¹g₁) = H.id ⟹ φ(g₁) = φ(g₂))
+- `first_iso_map_op`: `φ̄((g₁N)·(g₂N)) = H.op (φ̄(g₁N)) (φ̄(g₂N))`
+  (de `φ.map_op`)
+- `first_iso_injective`: ker(φ̄) = {eN}, usa `mono_iff_ker_trivial`
+- `first_iso_surjective`: Im(φ̄) = φ.Im (por definición)
+- `first_isomorphism`: `GroupIso (quotientGroup G φ.ker ...) φ.Im`
+
+##### Segundo teorema — H/(H∩N) ≅ HN/N (~40 lín.)
+
+**Hipótesis**: `N : Subgroup G` con `N.IsNormal G`, `H : Subgroup G`
+
+*Sub-lemas previos*:
+
+- `N_normal_in_HN`: `N.IsNormal (productSubgroup G H N)`
+  (N ◁ G implica N ◁ HN, por restricción)
+- `H_inter_N_normal_in_H`: `(Subgroup.inter G H N).IsNormal H`
+  (H∩N ◁ H cuando N ◁ G)
+
+*Construcción del homomorfismo φ: H → HN/N por h ↦ hN*:
+
+- `second_iso_map_op`: `φ(G.op h₁ h₂) = cosetOp (φ h₁) (φ h₂)`
+- `second_iso_ker_eq_inter`: `φ.ker.carrier = (Subgroup.inter G H N).carrier`
+  (φ(h) = N ↔ h ∈ N ↔ h ∈ H∩N)
+- `second_iso_surjective`: Im(φ) = HN/N
+  (todo coseto hnN tiene representante en H: hn·N ∋ hn, h ↦ hn·N)
+- `second_isomorphism`: `GroupIso (quotientGroup H (Subgroup.inter G H N) ...) (quotientGroup (HNSubgroup) N ...)`
+
+##### Tercer teorema — (G/N)/(K/N) ≅ G/K (~30 lín.)
+
+**Hipótesis**: `N K : Subgroup G`, `N.IsNormal G`, `K.IsNormal G`, `N.carrier ⊆ K.carrier`
+
+*Sub-lemas previos*:
+
+- `quotient_subgroup_of_nested`: K/N es subgrupo normal de G/N
+  (`N ≤ K` hace que la proyección `gN ↦ gK` sea bien-definida)
+- `third_iso_welldefined`: `gN = g'N → gK = g'K`
+  (g'⁻¹g ∈ N ⊆ K)
+- `third_iso_map_op`: `π((g₁N)·(g₂N)) = cosetOp_K (π(g₁N)) (π(g₂N))`
+- `third_iso_ker_eq_quotient`: ker(π) = {gN | g ∈ K} = K/N
+- `third_iso_surjective`: Im(π) = G/K
+- `third_isomorphism`: `GroupIso (quotientGroup (G/N) (K/N) ...) (quotientGroup G K ...)`
+
+---
+
 #### B9.4 Teorema de Cauchy (~50 lín.)
 
 ```
@@ -2099,8 +2169,9 @@ sylow_third := ⟨np_cong_one_mod_p, np_divides_index⟩
 | B7 | Sorry 3-4 (lagrange, orbit_stabilizer) | 10 | ~130 |
 | B8 | Grupo simétrico Sym(Fin₀Set n) | 9 | ~100 |
 | B9 | Infraestructura Sylow | 20+ | ~200 |
+| B9.3b | Tres teoremas de isomorfismo | 15 | ~115 |
 | B10 | Sorry 5-7 (tres Sylow) | 15+ | ~150 |
-| **Total** | | **~107 lemas** | **~1005 líneas** |
+| **Total** | | **~122 lemas** | **~1120 líneas** |
 
 ---
 
@@ -2119,6 +2190,7 @@ sylow_third := ⟨np_cong_one_mod_p, np_divides_index⟩
    - **B9.2 `normalizer N_G(H)`** — normalizador de un subgrupo ❌ Pendiente
    - **B9.2b `centralizer C_G(x)`** — centralizador de un elemento ❌ Pendiente
    - B9.3 Grupo cociente `G/N`
+   - **B9.3b Tres teoremas de isomorfismo** ❌ Pendiente
    - B9.4 Cauchy
    - B9.5 Ecuación de clases
 10. **B10**: Sorry 5-7 — requiere todo lo anterior

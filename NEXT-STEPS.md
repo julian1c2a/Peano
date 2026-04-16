@@ -1892,6 +1892,42 @@ def normalizer (G : FinGroup) (H : Subgroup G) : Subgroup G where
 - `normalizer_op_closed`, `normalizer_inv_closed`
 - `normal_iff_normalizer_eq_G`: `H.IsNormal ↔ (normalizer G H).carrier = G.carrier`
 
+#### B9.2b Centralizador de un elemento (Group.lean § 5g, ~20 lín.)
+
+```
+def centralizer (G : FinGroup) (x : ℕ₀) : Subgroup G where
+  carrier := G.carrier.filter (fun g =>
+    decide (G.op g x = G.op x g))
+  ...
+```
+
+*Sub-lemas*:
+
+- `centralizer_id_in`: `G.id ∈ (centralizer G x).carrier.elems`
+  (de `G.op G.id x = x = G.op x G.id`)
+- `centralizer_op_closed`: `a, b ∈ C_G(x) → G.op a b ∈ C_G(x)`
+  (si `ax = xa` y `bx = xb`, entonces `(ab)x = a(bx) = a(xb) = (ax)b = (xa)b = x(ab)`)
+- `centralizer_inv_closed`: `a ∈ C_G(x) → G.inv a ∈ C_G(x)`
+  (si `ax = xa`, invertir: `x⁻¹a⁻¹ = a⁻¹x⁻¹`, equivale a `a⁻¹x = xa⁻¹`)
+- `center_eq_inter_centralizers`:
+  `(center G).carrier = ⋂_{x ∈ G} (centralizer G x).carrier`
+  (caracterización: `g ∈ Z(G) ↔ g ∈ C_G(x)` para todo `x`)
+- `centralizer_normal_contains_center`:
+  `(center G).carrier ⊆ (centralizer G x).carrier`
+  (el centro está contenido en todo centralizador)
+- `H_le_centralizer_of_abelian`:
+  `(∀ a b ∈ H, G.op a b = G.op b a) → ∀ x ∈ H, H.carrier ⊆ (centralizer G x).carrier`
+
+*Relación normalizer–centralizer*:
+
+- `centralizer_le_normalizer`:
+  `(centralizer G x).carrier ⊆ (normalizer G (cyclicSubgroup G x hx)).carrier`
+  (si `g` conmuta con `x`, entonces `g` normaliza `⟨x⟩`)
+
+**Complejidad**: Media (similar al centro, pero parametrizado en `x`)
+
+---
+
 #### B9.3 Grupo cociente `G/N` (Cosets.lean ampliado, ~60 lín.)
 
 ```
@@ -2078,7 +2114,13 @@ sylow_third := ⟨np_cong_one_mod_p, np_divides_index⟩
 6. **B6**: Sorry 1-2 (FunPerm.comp, orbits_partition) — desbloquea B7
 7. **B7**: Sorry 3-4 (lagrange, orbit_stabilizer) — desbloquea B9
 8. **B8**: Grupo simétrico Sym(Fin₀Set n) — independiente tras B6
-9. **B9**: Infraestructura Sylow (center, Cauchy, class eq, cocientes)
+9. **B9**: Infraestructura Sylow — en orden:
+   - B9.1 `center Z(G)`
+   - **B9.2 `normalizer N_G(H)`** — normalizador de un subgrupo ❌ Pendiente
+   - **B9.2b `centralizer C_G(x)`** — centralizador de un elemento ❌ Pendiente
+   - B9.3 Grupo cociente `G/N`
+   - B9.4 Cauchy
+   - B9.5 Ecuación de clases
 10. **B10**: Sorry 5-7 — requiere todo lo anterior
 11. **Phase 22 (ℤ)**: Extensión a enteros
 12. **Phase 23 (ℚ)**: Extensión a racionales

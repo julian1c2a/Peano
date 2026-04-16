@@ -1113,10 +1113,13 @@ Desarrollo completo:
 - **ListsAndSets/ListList.lean**: Listas de listas
 - **ListsAndSets/FSet.lean**: Conjuntos finitos con UniqueKeys + SortedByKey
 - **ListsAndSets/FSetFSet.lean**: Conjuntos de conjuntos finitos
-- **ListsAndSets/FSetFunction.lean** (~90 declaraciones exportadas):
+- **ListsAndSets/FSetFunction.lean** (~92 declaraciones exportadas):
   - § 1: `MapOn` (funciones totales A → B), `id`, `comp`, `comp_assoc`
   - § 2: `Im` (imagen), `rightInverse`, `leftInverse`, `inverse`, involution
   - § 3: Pigeonhole, desigualdades de cardinalidad, iff characterizations
+  - § 3b: `card_le_of_injective`, `card_le_of_surjective`,
+    **`not_injective_of_card_lt`** ✅ (2026-04-16),
+    **`collision_of_card_lt`** ✅ (2026-04-16) — clave para B2.3 `order`
   - § 3d: `PreIm`, fibras, restricción
   - § 3e: Endomorfismos (`EndoOn`)
   - § 3f: Permutaciones (`Perm` structure)
@@ -1319,23 +1322,50 @@ def gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀
 - `gpow_inv`: `gpow G (G.inv g) n = G.inv (gpow G g n)`
   (inducción sobre `n`, usa `inv_op_eq`)
 
-#### B2.3 `order` — orden del elemento (Group.lean, ~15 lín.)
+#### B2.3 `order` — orden del elemento (Group.lean, ~30 lín.)
+
+**Dependencia resuelta**: `collision_of_card_lt` ya está en `FSetFunction.lean` (§ 3b, ✅).
+
+**Estrategia para `orderExists`** (existencia del orden):
+
+1. Definir `f := MapOn (Fin₀Set (σ |G|)) G.carrier` con `f.toFun i := gpow G g i`.
+   El dominio tiene cardinal `σ |G| = |G| + 1`, el codominio tiene cardinal `|G|`.
+2. Aplicar `collision_of_card_lt f (lt_self_σ_self G.carrier.card)`:
+   obtiene `∃ i j, i ∈ Fin₀Set(σ|G|) ∧ j ∈ Fin₀Set(σ|G|) ∧ i ≠ j ∧ gpow G g i = gpow G g j`.
+3. WLOG `i > j` (usando `trichotomy`): entonces `gpow G g (sub i j) = G.id`
+   con `sub i j > 0` (pues `i ≠ j` y `i > j`).
+   *Sub-lema*: `gpow_sub_eq_id` (~8 lín.): si `gpow G g i = gpow G g j` e `i > j`,
+   entonces `gpow G g (sub i j) = G.id`.
+   Proof: `G.id = op (gpow G g i) (gpow G g i)⁻¹ = op (gpow G g j) (gpow G g (sub i j)) · (gpow G g j)⁻¹ = gpow G g (sub i j)` por cancelación.
+
+4. `orderExists` : `∃ n, lt₀ 𝟘 n ∧ gpow G g n = G.id`.
+
+**Definición formal** (~10 lín.):
 
 ```
 noncomputable def order (G : FinGroup) (g : ℕ₀)
     (hg : g ∈ G.carrier.elems) : ℕ₀ :=
-  -- el menor n > 0 tal que gpow G g n = G.id
-  -- existe porque G es finito (Pigeonhole: gpow 0, ..., gpow |G|
-  -- tiene |G|+1 valores en un carrier de |G| elementos)
+  -- el menor n > 0 tal que gpow G g n = G.id,
+  -- cuya existencia la da collision_of_card_lt via gpow_sub_eq_id
+  Peano.choose (well_ordering_principle
+    (fun n => lt₀ 𝟘 n ∧ gpow G g n = G.id) orderExists)
+  |>.val
 ```
+
+(En la práctica: usar `well_ordering_principle` de `WellFounded.lean` sobre el predicado
+`P n := lt₀ 𝟘 n ∧ gpow G g n = G.id`; la existencia es `orderExists`.)
 
 #### B2.4 Lemas de `order` (~40 lín.)
 
 - `order_pos`: `lt₀ 𝟘 (order G g hg)`
 - `gpow_order_eq_id`: `gpow G g (order G g hg) = G.id`
+- `gpow_sub_eq_id` *(sub-lema auxiliar, ~8 lín.)*:
+  `gpow G g i = gpow G g j → lt₀ j i → gpow G g (sub i j) = G.id`
+  (cancelación: `g^i = g^j → g^(i-j) = id`)
+- `gpow_mod_order` *(~10 lín.)*: `gpow G g n = gpow G g (mod n (order G g hg))`
+  (inducción: si `n ≥ order`, reducir a `n - order` usando `gpow_order_eq_id`)
 - `gpow_eq_id_iff_order_dvd`: `gpow G g n = G.id ↔ Divides (order G g hg) n`
-  *Sub-lema*: `gpow_mod`: `gpow G g n = gpow G g (mod n (order G g hg))`
-  (~10 lín., usa `gpow_add` + `gpow_order_eq_id`)
+  (usa `gpow_mod_order`)
 - `order_dvd_card`: `Divides (order G g hg) G.carrier.card`
   (usa Lagrange sobre el subgrupo cíclico `⟨g⟩`, ver B3.2)
 - `order_id_eq_one`: `order G G.id G.id_in = 𝟙`
@@ -1364,23 +1394,36 @@ def Subgroup.IsProper (H : Subgroup G) : Prop := H.carrier.card ≠ G.carrier.ca
 
 #### B3.2 Subgrupo cíclico generado por un elemento (~20 lín.)
 
+**Estado actual**: implementado en Group.lean con **2 sorry** (líneas 311 y 344).
+**Ambos sorry se desbloquean cuando B2.3 (`order`) esté disponible.**
+
 ```
-def cyclicSubgroup (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+def cyclicSubgroup' (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
     Subgroup G where
-  carrier := ℕ₀FSet.filter (fun x =>
-    G.carrier.elems.any (fun n => decide (gpow G g n = x))) G.carrier
+  carrier := cyclicCarrier G g   -- { gpow G g i | i < σ|G| }
   ...
 ```
 
-*Sub-lemas*:
+*Sub-lemas bloqueados por B2.3*:
 
-- `cyclicSubgroup_id_in`: `G.id ∈ (cyclicSubgroup G g hg).carrier.elems`
+- **Sorry 1** — `op_closed` en `cyclicSubgroup`: el testigo `add m n` puede superar
+  `σ |G|`. Solución: reducir `mod (add m n) (order G g hg)` como testigo, usando
+  `gpow_mod_order` (que requiere `order`).
+  
+- **Sorry 2** — `inv_closed` en `cyclicSubgroup'`: `G.inv (gpow G g n) = gpow G (G.inv g) n`
+  pero `(G.inv g)^n` no está en `cyclicCarrier` (que solo tiene potencias de `g`).
+  Solución: con `order`, `G.inv (gpow G g n) = gpow G g (sub (order G g hg) n)`,
+  que sí es un elemento de `cyclicCarrier`.
+
+*Sub-lemas adicionales en B3.2 (post B2.3)*:
+
+- `cyclicSubgroup_id_in`: `G.id ∈ (cyclicSubgroup' G g hg).carrier.elems`
   (testigo: `gpow G g 𝟘 = G.id`)
-- `cyclicSubgroup_op_closed`: cierre bajo `op`
-  (si `x = gⁿ` y `y = gᵐ`, entonces `x·y = gⁿ⁺ᵐ`, usar `gpow_add`)
-- `cyclicSubgroup_inv_closed`: cierre bajo `inv`
-  (si `x = gⁿ`, entonces `x⁻¹ = g⁻ⁿ = (g⁻¹)ⁿ`, usar `gpow_inv`)
-- `cyclicSubgroup_card_eq_order`: `(cyclicSubgroup G g hg).carrier.card = order G g hg`
+- `cyclicSubgroup_op_closed`: si `x = g^m` y `y = g^n`, entonces `x·y = g^(m+n mod ord)`
+  (usa `gpow_add` + `gpow_mod_order`)
+- `cyclicSubgroup_inv_closed`: si `x = g^n`, entonces `x⁻¹ = g^(ord - n)`
+  (usa `order` + `gpow_order_eq_id`)
+- `cyclicSubgroup_card_eq_order`: `(cyclicSubgroup' G g hg).carrier.card = order G g hg`
 
 #### B3.3 Subgrupo normal (definición directa, no por cosetos) (~15 lín.)
 

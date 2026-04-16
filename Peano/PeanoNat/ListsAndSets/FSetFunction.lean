@@ -970,6 +970,37 @@ namespace Peano
             ≤ (A.elems.map f.toFun).length := nodup_subset_length_le h_nodup_Im h_sub
           _ = A.elems.length := List.length_map _
 
+    /-- Versión contrapositiva del Palomar: si `B.card < A.card`, entonces
+        ninguna función de `A` en `B` puede ser inyectiva.
+        (Contrapositivo inmediato de `card_le_of_injective`.) -/
+    theorem not_injective_of_card_lt {α β : Type}
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (h_lt : lt₀ B.card A.card) :
+        ¬ f.Injective := fun h_inj =>
+      absurd h_lt (nlt_of_le (card_le_of_injective f h_inj))
+
+    /-- Principio del Palomar (colisión explícita):
+        si hay más elementos en `A` que en `B`, toda función `f : A → B`
+        tiene dos elementos distintos con la misma imagen.
+
+        Aplicación directa en teoría de grupos: la función
+        `i ↦ gpow G g i` sobre `Fin₀Set(σ|G|)` → `G.carrier`
+        tiene más dominio que codominio, luego colisiona, lo que
+        da la existencia del orden de `g`. -/
+    theorem collision_of_card_lt {α β : Type}
+      [DecidableEq α] [LT α] [StrictOrder.IrreflLT α]
+      [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+      {A : FSet α} {B : FSet β}
+      (f : MapOn A B) (h_lt : lt₀ B.card A.card) :
+        ∃ a₁ a₂ : α, a₁ ∈ A.elems ∧ a₂ ∈ A.elems ∧ a₁ ≠ a₂ ∧
+          f.toFun a₁ = f.toFun a₂ :=
+      Classical.byContradiction fun h_no_collision =>
+        not_injective_of_card_lt f h_lt (fun a₁ a₂ ha₁ ha₂ heq =>
+          Classical.byContradiction fun h_ne =>
+            h_no_collision ⟨a₁, a₂, ha₁, ha₂, h_ne, heq⟩)
+
     /-!
     # § 3c. Teoremas de Igualdad de Cardinalidad
     -/
@@ -1622,6 +1653,8 @@ export Peano.FSetFunction (
   -- § 3b. Desigualdades de cardinalidad
   card_le_of_injective
   card_le_of_surjective
+  not_injective_of_card_lt
+  collision_of_card_lt
   -- § 3c. Igualdad de cardinalidad
   card_eq_of_injections
   card_eq_of_surjections

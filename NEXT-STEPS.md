@@ -1081,23 +1081,27 @@ Phase 23 (ℚ) ──────────┬─── Rational/Basic.lean
 
 ---
 
-## Build Issues (2026-04-16)
+## Build Issues (2026-04-17)
 
 **Toolchain**: leanprover/lean4:v4.29.0
 **Build command**: `lake build`
-**Result**: 51/51 modules OK, 0 errors, 9 sorry warnings
+**Result**: 51/51 modules OK, 0 errors, 8 sorry warnings
 
 ### sorry warnings (non-blocking)
 
 | File | Lines | Count | Description |
 |------|-------|-------|-------------|
-| `Combinatorics/Perm.lean` | 39 | 1 | `FunPerm.comp is_perm` |
 | `Combinatorics/Group.lean` | 311, 344 | 2 | `cyclicSubgroup` op·inv⁻¹, `cyclicSubgroup'` inv_closed (bloqueados en B2.3 `order`) |
 | `Combinatorics/GroupTheory/Action.lean` | 116, 132 | 2 | `orbit_stabilizer`, `orbits_partition` (rama left) |
 | `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 126 | 1 | `lagrange` |
 | `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 88, 105 | 3 | `sylow_first`, `sylow_second`, `sylow_third` |
 
-Todos los sorry están en módulos de teoría de grupos (Phase 25 + B3 cíclico).
+### Sorry eliminados en sesión 2026-04-17
+
+- `Perm.lean:39` `FunPerm.comp is_perm` ✅ — probado vía `perm_map_of_injective_on_nodup`
+  (nuevo lema añadido a `FSetFunction.lean` tras `perm_of_nodup_subset_same_length`)
+
+Todos los sorry restantes están en módulos de teoría de grupos (Phase 25 + B3 cíclico).
 La aritmética básica, teoría de números y FSetFunction están completamente demostrados.
 
 ---

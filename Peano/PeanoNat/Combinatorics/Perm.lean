@@ -43,11 +43,17 @@ namespace Peano
       len_eq  := (FunTable.comp g.toFunTable f.toFunTable dflt).len_eq
       mem_all := (FunTable.comp g.toFunTable f.toFunTable dflt).mem_all
       is_perm := by
-        -- table = f.table.map (g.applyElem · dflt)
-        -- f.is_perm : f.table ~ A.elems
-        -- g.is_perm : g.table ~ A.elems
-        -- f.table.map (g.applyElem · dflt) ~ A.elems cuando g es biyectiva
-        sorry  -- requiere que g.applyElem sea biyectiva sobre A
+        -- table = f.table.map (fun a => g.applyElem a dflt)
+        show List.Perm (f.table.map (fun a => g.applyElem a dflt)) A.elems
+        have hA_nodup : A.elems.Nodup := sorted_nodup A.sorted
+        have h_mem : ∀ a, a ∈ A.elems → g.applyElem a dflt ∈ A.elems :=
+          fun a ha => FunTable.applyElem_mem g.toFunTable a dflt ha
+        have h_inj : ∀ a b, a ∈ A.elems → b ∈ A.elems →
+            g.applyElem a dflt = g.applyElem b dflt → a = b :=
+          fun a b ha hb heq => FunPerm.applyElem_injective g dflt ha hb heq
+        exact (f.is_perm.map (fun a => g.applyElem a dflt)).trans
+          (perm_map_of_injective_on_nodup
+            (fun a => g.applyElem a dflt) A.elems hA_nodup h_mem h_inj)
 
     /-!
     # § 2. Grupo simétrico  Sym A

@@ -690,6 +690,20 @@ namespace Peano
         · rw [List.count_eq_zero_of_not_mem ha₁,
                List.count_eq_zero_of_not_mem ha₂]
 
+    /-- Si `f` mapea `l` a sí misma y es inyectiva en `l`,
+        entonces `l.map f` es una permutación de `l`. -/
+    theorem perm_map_of_injective_on_nodup {α : Type} [DecidableEq α]
+        (f : α → α) (l : List α)
+        (h_nodup : l.Nodup)
+        (h_mem   : ∀ a, a ∈ l → f a ∈ l)
+        (h_inj   : ∀ a b, a ∈ l → b ∈ l → f a = f b → a = b) :
+        List.Perm (l.map f) l :=
+      perm_of_nodup_subset_same_length
+        (nodup_map_of_inj_on f l h_nodup h_inj)
+        h_nodup
+        (fun x hx => by rw [List.mem_map] at hx; obtain ⟨a, ha, rfl⟩ := hx; exact h_mem a ha)
+        (List.length_map f)
+
     -- ── Los cuatro lemas del Palomar ──────────────────────────────────
 
     /-- Lema 1: función inyectiva → imagen tiene la misma cardinalidad que el dominio. -/
@@ -1714,4 +1728,5 @@ export Peano.FSetFunction (
   sorted_nodup
   nodup_map_of_inj_on
   perm_of_nodup_subset_same_length
+  perm_map_of_injective_on_nodup
 )

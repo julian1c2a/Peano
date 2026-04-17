@@ -1,4 +1,8 @@
+import Peano.Prelim
 import Peano.PeanoNat
+import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Div
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 
@@ -16,6 +20,7 @@ namespace Peano
   namespace Group
     open Peano.FSet
     open Peano.FSetFunction
+    open Peano.Sub
 
     /-!
     # § 4. Estructura de Grupo Finito
@@ -188,6 +193,106 @@ namespace Peano
           _ = G.inv (gpow G g (σ n))                 := by rw [← gpow_succ]
 
     /-!
+    # § 4d. Orden de un elemento (B2.3)
+    !-/
+
+    /-- Si `g^i = g^j` y `j < i`, entonces `g^(i-j) = id`. -/
+    private theorem gpow_sub_eq_id (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        {i j : ℕ₀} (h_lt : lt₀ j i) (h_eq : gpow G g i = gpow G g j) :
+        gpow G g (sub i j) = G.id := by
+      have h_le : le₀ j i := lt_imp_le j i h_lt
+      have h_add : add (sub i j) j = i := sub_k_add_k i j h_le
+      apply op_cancel_right G (gpow_mem G hg j) (gpow_mem G hg (sub i j)) G.id_in
+      rw [← gpow_add G hg, h_add, h_eq, (G.op_id (gpow G g j) (gpow_mem G hg j)).2]
+
+    /-- Existencia del orden: ∃ n > 0, `g^n = id` y `n ≤ |G|`. -/
+    private theorem orderExists (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems) :
+        ∃ n : ℕ₀, lt₀ 𝟘 n ∧ gpow G g n = G.id ∧ le₀ n G.carrier.card := by
+      let A := ℕ₀FSet.Fin₀Set (σ G.carrier.card)
+      let f : MapOn A G.carrier :=
+        { toFun := fun i => gpow G g i
+          map_carrier := fun i _ => gpow_mem G hg i }
+      have hcard_lt : lt₀ G.carrier.card A.card := by
+        simp only [A, ℕ₀FSet.Fin₀Set_card]
+        exact lt_succ_self G.carrier.card
+      obtain ⟨i₁, i₂, hi₁, hi₂, h_ne, h_eq⟩ := collision_of_card_lt f hcard_lt
+      simp only [f] at h_eq
+      have hi₁_le : le₀ i₁ G.carrier.card :=
+        (lt_succ_iff_le i₁ G.carrier.card).mp
+          ((ℕ₀FSet.mem_Fin₀Set_iff (σ G.carrier.card) i₁).mp hi₁)
+      have hi₂_le : le₀ i₂ G.carrier.card :=
+        (lt_succ_iff_le i₂ G.carrier.card).mp
+          ((ℕ₀FSet.mem_Fin₀Set_iff (σ G.carrier.card) i₂).mp hi₂)
+      rcases lt_or_ge i₁ i₂ with h₁₂ | h₂₁
+      · exact ⟨sub i₂ i₁, sub_pos_of_lt h₁₂,
+               gpow_sub_eq_id G hg h₁₂ h_eq.symm,
+               le_trans _ i₂ _ (sub_le_self i₂ i₁) hi₂_le⟩
+      · rcases h₂₁ with h_lt | rfl
+        · exact ⟨sub i₁ i₂, sub_pos_of_lt h_lt,
+                 gpow_sub_eq_id G hg h_lt h_eq,
+                 le_trans _ i₁ _ (sub_le_self i₁ i₂) hi₁_le⟩
+        · exact absurd rfl h_ne
+
+    /-- Especificación del orden (via WOP). -/
+    private noncomputable def order_wop (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        ExistsUnique (fun n : ℕ₀ =>
+          (lt₀ 𝟘 n ∧ gpow G g n = G.id) ∧
+          ∀ m : ℕ₀, (lt₀ 𝟘 m ∧ gpow G g m = G.id) → le₀ n m) :=
+      well_ordering_principle (fun n => lt₀ 𝟘 n ∧ gpow G g n = G.id)
+        (let ⟨n, hn1, hn2, _⟩ := orderExists G hg; ⟨n, hn1, hn2⟩)
+
+    /-- El orden de `g` en `G`: el mínimo `n > 0` tal que `g^n = id`. -/
+    noncomputable def order (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) : ℕ₀ :=
+      choose_unique (order_wop G g hg)
+
+    private theorem order_spec (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        (lt₀ 𝟘 (order G g hg) ∧ gpow G g (order G g hg) = G.id) ∧
+        ∀ m : ℕ₀, (lt₀ 𝟘 m ∧ gpow G g m = G.id) → le₀ (order G g hg) m :=
+      choose_spec_unique (order_wop G g hg)
+
+    theorem order_pos (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        lt₀ 𝟘 (order G g hg) := (order_spec G g hg).1.1
+
+    theorem gpow_order_eq_id (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        gpow G g (order G g hg) = G.id := (order_spec G g hg).1.2
+
+    private theorem order_ne_zero (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        order G g hg ≠ 𝟘 := (ne_of_lt 𝟘 _ (order_pos G g hg)).symm
+
+    theorem order_minimal (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        {m : ℕ₀} (hm_pos : lt₀ 𝟘 m) (hm_eq : gpow G g m = G.id) :
+        le₀ (order G g hg) m := (order_spec G g hg).2 m ⟨hm_pos, hm_eq⟩
+
+    theorem order_le_card (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        le₀ (order G g hg) G.carrier.card := by
+      obtain ⟨n, hn_pos, hn_eq, hn_le⟩ := orderExists G hg
+      exact le_trans _ n _ (order_minimal G g hg hn_pos hn_eq) hn_le
+
+    /-- `g^(k · ord) = id` para todo `k`. -/
+    theorem gpow_mul_order_eq_id (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        (k : ℕ₀) : gpow G g (mul k (order G g hg)) = G.id := by
+      induction k with
+      | zero => rw [zero_mul, gpow_zero]
+      | succ k ih =>
+          rw [succ_mul, gpow_add G hg, ih,
+              (G.op_id _ (gpow_mem G hg (order G g hg))).2,
+              gpow_order_eq_id G g hg]
+
+    /-- `g^n = g^(n mod ord)`: periodicidad del orden. -/
+    theorem gpow_mod_order (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems) (n : ℕ₀) :
+        gpow G g n = gpow G g (mod n (order G g hg)) := by
+      have hord_ne : order G g hg ≠ 𝟘 := order_ne_zero G g hg
+      -- Declarar h_dec con los términos `div`/`mod` explícitos; funciona por igualdad def.
+      have h_dec : n = add (mul (div n (order G g hg)) (order G g hg)) (mod n (order G g hg)) :=
+        divMod_spec n (order G g hg) hord_ne
+      have h_key : gpow G g (add (mul (div n (order G g hg)) (order G g hg))
+                                  (mod n (order G g hg))) =
+                   gpow G g (mod n (order G g hg)) := by
+        rw [gpow_add G hg, gpow_mul_order_eq_id G hg]
+        exact (G.op_id _ (gpow_mem G hg _)).2
+      rw [← h_key, ← h_dec]
+
+    /-!
     # § 5. Subgrupos
     !-/
 
@@ -315,30 +420,33 @@ namespace Peano
         (fun a ha => (List.mem_filter.mp ha).1)
         ⟨G.id, cyclicCarrier_id_in G g⟩
         (fun a b ha hb => by
-          -- Obtener testigos de potencias
           obtain ⟨ha_G, m, _hm_idx, hm⟩ := (cyclicCarrier_mem_iff G g a).mp ha
-          obtain ⟨_,   n, _hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g b).mp hb
-          -- a · inv(b) = g^m · (g^n)⁻¹ = g^m · (g⁻¹)^n ... no, usamos a·b⁻¹ directamente
-          -- a · inv(b) = g^m · (g^n)⁻¹
-          -- Por gpow_inv: (g^n)⁻¹ = (g⁻¹)^n, y después gpow de inv(g)...
-          -- Más sencillo: demostrar que a·b⁻¹ ∈ cyclicCarrier via testigo add m n
-          -- porque a·b⁻¹ = g^m · (g^n)⁻¹ = g^m · g^(-n)
-          -- Pero no tenemos gpow negativo. Sin embargo, a·b⁻¹ = op a (inv b)
-          -- = op (gpow g m) (inv (gpow g n))
-          -- = op (gpow g m) (gpow (inv g) n)
-          -- = gpow g m · (inv g)^n
-          -- Esto no es directamente gpow g k para algún k entero...
-          -- ALTERNATIVA: mostrar cierre directo construyendo el subgrupo de otra forma.
-          -- El criterio op_inv_closed necesita a·b⁻¹ ∈ S.
-          -- Tenemos: a·b⁻¹ ∈ G (trivial), y necesitamos el testigo de índice.
-          -- Si m ≥ n: a·b⁻¹ = g^m · g^{-n} = g^{m-n} ... si tuviéramos sub-potencia
-          -- Si m < n: a·b⁻¹ = g^{m + (ord - n)} ... requiere orden de g
-          -- CONCLUSIÓN: cyclicSubgroup requiere B2.3 (orden del elemento) para probar
-          -- cierre por la relación a·b⁻¹. Por ahora, lo construimos directamente
-          -- como subgrupo via los tres axiomas (op_closed, inv_closed, id_in)
-          -- en lugar de via subgroup_of_op_inv_closed.
-          -- Esto requiere cambiar la definición a continuación.
-          sorry)
+          obtain ⟨hb_G, n, _hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g b).mp hb
+          have hord_ne : order G g hg ≠ 𝟘 := order_ne_zero G g hg
+          have h_n_le : le₀ n (mul (σ n) (order G g hg)) :=
+            succ_mul n (order G g hg) ▸
+              le_trans n (mul n (order G g hg)) (add (mul n (order G g hg)) (order G g hg))
+                (mul_le_right n (order G g hg) hord_ne)
+                (le_self_add (mul n (order G g hg)) (order G g hg))
+          have h_inv_b : G.inv b = gpow G g (sub (mul (σ n) (order G g hg)) n) := by
+            rw [← hn]
+            apply (inv_unique G (gpow_mem G hg n)
+                    (gpow_mem G hg (sub (mul (σ n) (order G g hg)) n)) _).symm
+            exact ⟨by rw [← gpow_add G hg, add_comm n _,
+                           sub_k_add_k (mul (σ n) (order G g hg)) n h_n_le,
+                           gpow_mul_order_eq_id G hg (σ n)],
+                   by rw [← gpow_add G hg,
+                           sub_k_add_k (mul (σ n) (order G g hg)) n h_n_le,
+                           gpow_mul_order_eq_id G hg (σ n)]⟩
+          rw [cyclicCarrier_mem_iff]
+          refine ⟨op_mem G ha_G (by rw [← hn]; exact inv_mem G (gpow_mem G hg n)),
+                  mod (add m (sub (mul (σ n) (order G g hg)) n)) (order G g hg), ?_, ?_⟩
+          · rw [ℕ₀FSet.mem_Fin₀Set_iff, lt_succ_iff_le]
+            exact le_trans _ (order G g hg) _
+              (lt_imp_le _ _ (mod_lt _ (order G g hg) hord_ne))
+              (order_le_card G g hg)
+          · rw [h_inv_b, ← hm, ← gpow_add G hg,
+                ← gpow_mod_order G hg (add m (sub (mul (σ n) (order G g hg)) n))])
 
     /-- El subgrupo cíclico generado por `g` (construcción directa). -/
     def cyclicSubgroup' (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
@@ -351,23 +459,39 @@ namespace Peano
         obtain ⟨ha_G, m, hm_idx, hm⟩ := (cyclicCarrier_mem_iff G g a).mp ha
         obtain ⟨hb_G, n, hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g b).mp hb
         rw [cyclicCarrier_mem_iff]
-        refine ⟨op_mem G ha_G hb_G, add m n, ?_, ?_⟩
-        · -- add m n ∈ Fin₀Set(σ card)? No necesariamente...
-          -- Necesitamos que el índice add m n esté en el conjunto de índices.
-          -- Esto falla si add m n ≥ σ card. Usamos periodicidad implícita aquí.
-          -- Como G es finito, por Pigeonhole, gpow G g (add m n) = gpow G g k
-          -- para algún k < σ card. Pero demostrar eso requiere B2.3 (orden).
-          sorry
-        · rw [gpow_add G hg, hm, hn]
+        have hord_ne : order G g hg ≠ 𝟘 := order_ne_zero G g hg
+        refine ⟨op_mem G ha_G hb_G, mod (add m n) (order G g hg), ?_, ?_⟩
+        · rw [ℕ₀FSet.mem_Fin₀Set_iff, lt_succ_iff_le]
+          exact le_trans _ (order G g hg) _
+            (lt_imp_le _ _ (mod_lt _ (order G g hg) hord_ne))
+            (order_le_card G g hg)
+        · rw [← hm, ← hn, ← gpow_add G hg, ← gpow_mod_order G hg (add m n)]
       inv_closed := fun a ha => by
         obtain ⟨ha_G, n, hn_idx, hn⟩ := (cyclicCarrier_mem_iff G g a).mp ha
         rw [cyclicCarrier_mem_iff]
-        -- G.inv a = G.inv (gpow G g n) por hn
-        -- = gpow G (G.inv g) n por gpow_inv
-        -- Pero gpow G (G.inv g) n es una potencia de G.inv g, no de g.
-        -- Sin orden de g, no podemos reducir (G.inv g)^n a g^k.
-        -- Se deja como sorry hasta B2.3.
-        exact ⟨inv_mem G ha_G, n, hn_idx, by sorry⟩
+        have hord_ne : order G g hg ≠ 𝟘 := order_ne_zero G g hg
+        have h_n_le : le₀ n (mul (σ n) (order G g hg)) :=
+          succ_mul n (order G g hg) ▸
+            le_trans n (mul n (order G g hg)) (add (mul n (order G g hg)) (order G g hg))
+              (mul_le_right n (order G g hg) hord_ne)
+              (le_self_add (mul n (order G g hg)) (order G g hg))
+        have h_inv_a : G.inv a = gpow G g (sub (mul (σ n) (order G g hg)) n) := by
+          rw [← hn]
+          apply (inv_unique G (gpow_mem G hg n)
+                  (gpow_mem G hg (sub (mul (σ n) (order G g hg)) n)) _).symm
+          exact ⟨by rw [← gpow_add G hg, add_comm n _,
+                         sub_k_add_k (mul (σ n) (order G g hg)) n h_n_le,
+                         gpow_mul_order_eq_id G hg (σ n)],
+                 by rw [← gpow_add G hg,
+                         sub_k_add_k (mul (σ n) (order G g hg)) n h_n_le,
+                         gpow_mul_order_eq_id G hg (σ n)]⟩
+        refine ⟨inv_mem G ha_G,
+                mod (sub (mul (σ n) (order G g hg)) n) (order G g hg), ?_, ?_⟩
+        · rw [ℕ₀FSet.mem_Fin₀Set_iff, lt_succ_iff_le]
+          exact le_trans _ (order G g hg) _
+            (lt_imp_le _ _ (mod_lt _ (order G g hg) hord_ne))
+            (order_le_card G g hg)
+        · rw [h_inv_a, ← gpow_mod_order G hg (sub (mul (σ n) (order G g hg)) n)]
 
     /-!
     # § 5d. Normalidad

@@ -1167,11 +1167,11 @@ Desarrollo completo:
 
 ## Estado actual de sorry (actualizado 2026-04-16)
 
-Tras la sesi\u00f3n de limpieza de sorry de Phase 25 + a\u00f1adido B3 cíclico, el proyecto tiene **9 sorry** (7 Phase-25 preexistentes − 5 resueltos + 2 nuevos B3.2 + 2 nuevos orphan → neto 9).
+Tras la sesión de limpieza de sorry de Phase 25 + añadido B3 cíclico, el proyecto tiene **9 sorry** (7 Phase-25 preexistentes − 5 resueltos + 2 nuevos B3.2 + 2 nuevos orphan → neto 9).
 
 Desglose actual:
 
-| # | Archivo | L\u00ednea | Teorema | Dificultad |
+| # | Archivo | Línea | Teorema | Dificultad |
 |---|---------|-------|---------|------------|
 | 1 | `Perm.lean` | 39 | `FunPerm.comp is_perm` | Media |
 | 2 | `Group.lean` | 311 | `cyclicSubgroup` op·inv⁻¹ closed | Media (bloqueado en B2.3) |
@@ -1182,7 +1182,7 @@ Desglose actual:
 | 7 | `Sylow.lean` | 71 | `sylow_first` | Muy alta |
 | 8 | `Sylow.lean` | 88 | `sylow_second` | Muy alta |
 | 9 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
-| 7 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
+| 10 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
 
 ### Sorry ya eliminados en esta sesión (7 de 14)
 

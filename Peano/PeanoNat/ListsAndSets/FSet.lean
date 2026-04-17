@@ -52,12 +52,11 @@ namespace Peano
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 1. Aliases de tipos concretos
-    -- ══════════════════════════════════════════════════════════════════
 
-    /-- Conjunto finito de naturales ℕ₀. -/
+    /-- Conjunto finito de naturales de Peano (ℕ₀). -/
     abbrev ℕ₀FSet := FSet ℕ₀
 
-    /-- Conjunto finito de naturales positivos ℕ₁. -/
+    /-- Conjunto finito de naturales positivos (ℕ₁). -/
     abbrev ℕ₁FSet := FSet ℕ₁
 
     /-- Conjunto finito de naturales ≥ 2 (ℕ₂). -/
@@ -158,6 +157,64 @@ namespace Peano
         FSet α
           :=
       ⟨s.elems.filter p, List.Pairwise.filter p s.sorted⟩
+
+  end FSet
+
+  /-- Dos listas de ℕ₀ estrictamente ordenadas con la misma pertenencia son iguales.
+      Unicidad de la forma canónica sorted. -/
+  private theorem sorted_nodup_unique_list :
+      ∀ {l₁ l₂ : List ℕ₀},
+      List.Pairwise (· < ·) l₁ → List.Pairwise (· < ·) l₂ →
+      (∀ z : ℕ₀, z ∈ l₁ ↔ z ∈ l₂) → l₁ = l₂
+    | [], [], _, _, _ => rfl
+    | [], y :: ys, _, _, hmem =>
+        absurd ((hmem y).mpr List.mem_cons_self) List.not_mem_nil
+    | x :: xs, [], _, _, hmem =>
+        absurd ((hmem x).mp List.mem_cons_self) List.not_mem_nil
+    | x :: xs, y :: ys, hs₁, hs₂, hmem =>
+        have hxs₁ := List.pairwise_cons.mp hs₁
+        have hxs₂ := List.pairwise_cons.mp hs₂
+        have hxy : x = y := by
+          have hx_in : x ∈ y :: ys := (hmem x).mp List.mem_cons_self
+          have hy_in : y ∈ x :: xs := (hmem y).mpr List.mem_cons_self
+          rcases List.mem_cons.mp hx_in with rfl | hx_ys
+          · rfl
+          · rcases List.mem_cons.mp hy_in with rfl | hy_xs
+            · rfl
+            · exact absurd
+                (Peano.StrictOrder.lt_trans_wp
+                  (List.rel_of_pairwise_cons hs₁ hy_xs)
+                  (List.rel_of_pairwise_cons hs₂ hx_ys))
+                (Peano.StrictOrder.nlt_self x)
+        have htail : xs = ys := by
+          apply sorted_nodup_unique_list hxs₁.2 hxs₂.2
+          intro z
+          constructor
+          · intro hz
+            have hzy := (hmem z).mp (List.mem_cons.mpr (Or.inr hz))
+            rcases List.mem_cons.mp hzy with h_eq | h
+            · -- h_eq : z = y; hz : z ∈ xs; hence x < z with hxy : x = y → x < x
+              have h_lt : lt₀ x z := List.rel_of_pairwise_cons hs₁ hz
+              rw [h_eq, ← hxy] at h_lt
+              exact absurd h_lt (Peano.StrictOrder.nlt_self x)
+            · exact h
+          · intro hz
+            have hzx := (hmem z).mpr (List.mem_cons.mpr (Or.inr hz))
+            rcases List.mem_cons.mp hzx with h_eq | h
+            · -- h_eq : z = x; hz : z ∈ ys; hence y < z with hxy : x = y → y < y
+              have h_lt : lt₀ y z := List.rel_of_pairwise_cons hs₂ hz
+              rw [h_eq, hxy] at h_lt
+              exact absurd h_lt (Peano.StrictOrder.nlt_self y)
+            · exact h
+        Eq.trans (congrArg (List.cons x) htail) (congrArg (· :: ys) hxy)
+
+  namespace FSet
+
+    /-- Extensionalidad semántica de `ℕ₀FSet`: dos conjuntos con la misma
+        pertenencia (∀ z, z ∈ s₁ ↔ z ∈ s₂) son iguales. -/
+    theorem FSet.eq_of_mem_iff {s₁ s₂ : FSet ℕ₀}
+        (h : ∀ z : ℕ₀, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂ :=
+      FSet.ext (sorted_nodup_unique_list s₁.sorted s₂.sorted h)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 4. Inserción ordenada sobre List ℕ₀
@@ -577,6 +634,7 @@ end Peano
 export Peano.FSet (
   FSet
   FSet.ext
+  FSet.eq_of_mem_iff
   ℕ₀FSet
   ℕ₁FSet
   ℕ₂FSet

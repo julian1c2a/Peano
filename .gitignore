@@ -3,6 +3,9 @@
 .lake
 .env
 
+# Escondidos
+.*
+
 # Editor / IDE
 /.vscode
 .vscode

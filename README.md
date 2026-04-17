@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 51 jobs · 9 sorry (en módulos de teoría de grupos) · 0 errores
+> **Build:** 51 jobs · 6 sorry (Action×2, Cosets×1, Sylow×3) · 9 warnings totales · 0 errores
 > **Licencia:** MIT
 
 ---
@@ -152,13 +152,14 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 
 - **FSet**: conjuntos finitos ordenados con invariantes `UniqueKeys` + `SortedByKey`
 - **FSetFSet**: conjuntos de conjuntos finitos
-- **FSetFunction** (~90 declaraciones):
+- **FSetFunction** (~92 declaraciones):
   - `MapOn`: funciones totales entre FSet, composición (`comp`), asociatividad (`comp_assoc`)
   - `Im`: imagen, cardinalidad de la imagen
   - Inyectividad, sobreyectividad, biyectividad con iff de cardinalidad
   - `leftInverse`, `rightInverse`, `inverse` para biyecciones
   - **Principio del Palomar**: inyectiva ⇒ card(dom) ≤ card(cod), sobreyectiva ⇒ card(cod) ≤ card(dom)
   - Preimagen (`PreIm`), fibras, restricción
+  - Conteo por fibras uniformes: `card_eq_mul_of_uniform_fibers`
   - `BinOpOn`: operaciones binarias sobre FSet
   - Endomorfismos: `EndoOn`, especialización para funciones A → A
   - **Perm**: tipo de permutaciones `A → A` biyectivas, inversas, composición
@@ -239,7 +240,7 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 - [x] **List.lean** → `ListsAndSets/List.lean` — listas y operaciones
 - [x] **FSet.lean** → `ListsAndSets/FSet.lean` — conjuntos finitos ordenados
 - [x] **FSetFSet.lean** — conjuntos de conjuntos finitos
-- [x] **FSetFunction.lean** — MapOn, Im, inyectividad/sobreyectividad/biyectividad, Pigeonhole, inversas, Perm, ~90 declaraciones
+- [x] **FSetFunction.lean** — MapOn, Im, inyectividad/sobreyectividad/biyectividad, Pigeonhole, inversas, Perm, `card_eq_mul_of_uniform_fibers`, ~92 declaraciones
 
 ### En curso (Phase 25 — Teoría de grupos finitos) 🔶
 

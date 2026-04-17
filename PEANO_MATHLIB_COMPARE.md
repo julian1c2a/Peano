@@ -2,9 +2,9 @@
 
 ## Aritmética de Naturales, Decidibilidad y Módulos Relacionados
 
-**Fecha:** 2026-04-16 (actualizado desde 2026-04-09)
+**Fecha:** 2026-04-17 (actualizado desde 2026-04-09)
 **Autor:** Análisis sobre el proyecto de Julián Calderón Almendros
-**Rama analizada:** `main` (51 build jobs, 9 sorry en grupo finito)
+**Rama analizada:** `makingdecidable` (51 build jobs, 6 sorry en grupo finito)
 **Versión Mathlib4 referenciada:** master (abril 2026)
 
 ---

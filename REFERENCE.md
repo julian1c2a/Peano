@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 51 build jobs · 9 sorry (grupo finito) · 0 errores · Lean 4 v4.29.0
+> 51 build jobs · 6 sorry (grupo finito) · 9 warnings (3 no-sorry) · 0 errores · Lean 4 v4.29.0
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -64,7 +64,7 @@
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
-| **Teoría de grupos finitos** *(9 sorry)* | | | |
+| **Teoría de grupos finitos** *(6 sorry)* | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |

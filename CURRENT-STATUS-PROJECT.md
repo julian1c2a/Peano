@@ -16,8 +16,8 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
 lake build      →  Build completed successfully (51 jobs)
-sorry count     →  5 (en 3 módulos de teoría de grupos)
-warnings        →  5 (solo sorry warnings)
+sorry count     →  6 (en 3 módulos de teoría de grupos)
+warnings        →  9 (6 sorry warnings + 3 `unused variable` en Group.lean)
 errors          →  0
 ```
 
@@ -134,6 +134,8 @@ errors          →  0
   - § 2: `Im`, `rightInverse`, `leftInverse`, `inverse`, involution
   - § 3: Pigeonhole, card inequalities/equalities, iff characterizations
   - § 3b: **`not_injective_of_card_lt`**, **`collision_of_card_lt`** (2026-04-16) — necesarios para B2.3 `order`
+  - § 3e: **`card_eq_mul_of_uniform_fibers`** (2026-04-17) — conteo por fibras uniformes
+  - `FSet.eq_of_mem_iff` añadido en `FSet.lean` y usado como extensionalidad de trabajo
   - § 3d: `PreIm`, fibras, restricción
   - § 3e: Endomorfismos (`EndoOn`)
   - § 3f: Permutaciones (`Perm` structure)

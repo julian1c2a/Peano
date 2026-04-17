@@ -1,6 +1,6 @@
 # AI Assistant Guide — Documentation Standards
 
-**Last updated:** 2026-04-08 21:00
+**Last updated:** 2026-04-17 18:30
 **Author**: Julián Calderón Almendros
 
 This document establishes requirements and standards for technical documentation of this Lean 4 project.
@@ -471,21 +471,21 @@ Peano/
     │   ├── Product.lean        # Productos finitos (∏)
     │   ├── Fibonacci.lean      # Sucesión de Fibonacci
     │   ├── Counting.lean       # Conteo en FSet
-    │   ├── Perm.lean           # Permutaciones (⚠ 1 sorry)
-    │   ├── Group.lean          # Grupo finito (⚠ 1 sorry)
+    │   ├── Perm.lean           # Permutaciones
+    │   ├── Group.lean          # Grupo finito
     │   ├── Sign.lean           # Signo de permutación
     │   ├── Orbit.lean          # Órbitas de acción
     │   └── GroupTheory/
-    │       ├── Action.lean     # Acciones de grupo (⚠ 4 sorry)
+    │       ├── Action.lean     # Acciones de grupo (⚠ 2 sorry)
     │       └── Sylow/
-    │           ├── Cosets.lean # Clases laterales (⚠ 5 sorry)
+    │           ├── Cosets.lean # Clases laterales (⚠ 1 sorry)
     │           └── Sylow.lean  # Teoremas de Sylow (⚠ 3 sorry)
     ├── ListsAndSets/
     │   ├── List.lean           # Listas: Sorted, Perm, filter, map
     │   ├── ListList.lean       # Listas de listas
     │   ├── FSet.lean           # Conjuntos finitos (Quotient)
     │   ├── FSetFSet.lean       # Conjuntos de conjuntos
-    │   └── FSetFunction.lean   # MapOn, Im, inyectividad (~90 decl.)
+    │   └── FSetFunction.lean   # MapOn, Im, inyectividad (~92 decl.)
     ├── NumberTheory/
     │   ├── ModEq.lean          # Congruencias modulares
     │   ├── Totient.lean        # Función de Euler φ

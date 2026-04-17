@@ -1,13 +1,13 @@
 ﻿# Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-16
+**Última actualización:** 2026-04-17
 **Autor**: Julián Calderón Almendros
 
 ---
 
 ## Resumen
 
-Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida íntegramente desde los axiomas de Peano. Incluye aritmética completa de ℕ₀, teoría de números (Fermat, Euler, CRT), conjuntos finitos con funciones y principio del palomar, y primeros pasos en teoría de grupos finitos (permutaciones, acciones, coclases, Sylow).
+Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida íntegramente desde los axiomas de Peano. Incluye aritmética completa de ℕ₀, teoría de números (Fermat, Euler, CRT), conjuntos finitos con funciones y principio del palomar, y teoría de grupos finitos (permutaciones, orden de elemento, subgrupo cíclico, acciones, coclases, Sylow).
 
 ---
 
@@ -16,8 +16,8 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
 lake build      →  Build completed successfully (51 jobs)
-sorry count     →  9 (en 5 módulos de teoría de grupos)
-warnings        →  9 (solo sorry warnings)
+sorry count     →  5 (en 3 módulos de teoría de grupos)
+warnings        →  5 (solo sorry warnings)
 errors          →  0
 ```
 
@@ -25,11 +25,11 @@ errors          →  0
 
 | Archivo | Líneas | Cantidad | Bloqueado por |
 |---|---|---|---|
-| `Combinatorics/Perm.lean` | 39 | 1 | Pendiente |
-| `Combinatorics/Group.lean` | 311, 344 | 2 | B2.3 `order` (cyclicSubgroup / cyclicSubgroup') |
-| `Combinatorics/GroupTheory/Action.lean` | 116, 132 | 2 | Pendiente |
-| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 126 | 1 | Pendiente |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 71, 88, 105 | 3 | Pendiente |
+| `Combinatorics/GroupTheory/Action.lean` | 119, 153 | 2 | `orbit_stabilizer` (Lagrange + G/Stab≅Orb), `orbits_partition` (extensionalidad sorted) |
+| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 128 | 1 | `lagrange` (partición en cosetos + conteo) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 75, 94, 114 | 3 | `sylow_first` (Cauchy), `sylow_second`, `sylow_third` |
+
+> `Perm.lean` (1 sorry) y `Group.lean` (3 sorry) — **eliminados en sesión 2026-04-15–17**.
 
 ---
 
@@ -81,14 +81,14 @@ errors          →  0
 | `Combinatorics/Product.lean` | `Peano.Product` | Productorias `∏` | ✅ |
 | `Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | Fibonacci, Cassini, fib_add | ✅ |
 | `Combinatorics/Counting.lean` | `Peano.Counting` | Conteo combinatorio | ✅ |
-| `Combinatorics/Perm.lean` | `Peano.Perm` | Permutaciones | ⚠ sorry |
+| `Combinatorics/Perm.lean` | `Peano.Perm` | Permutaciones, `FunPerm`, composición | ✅ |
 | `Combinatorics/Sign.lean` | `Peano.Sign` | Signo de permutaciones | ✅ |
 | `Combinatorics/Orbit.lean` | `Peano.Orbit` | Órbitas | ✅ |
-| `Combinatorics/Group.lean` | `Peano.Group` | FinGroup, Subgroup, gpow, trivial/improper/cyclic, IsNormal, inter | ⚠ sorry |
+| `Combinatorics/Group.lean` | `Peano.Group` | FinGroup, Subgroup, gpow, `order`, subgrupos trivial/impropio/cíclico, IsNormal, inter | ✅ |
 | **GroupTheory/** | | | |
-| `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo | ⚠ sorry |
-| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases | ⚠ sorry |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow | ⚠ sorry |
+| `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix` | ⚠ 2 sorry |
+| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card` | ⚠ 1 sorry |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III | ⚠ 3 sorry |
 
 ---
 
@@ -141,23 +141,24 @@ errors          →  0
 
 ### Phase 25: Teoría de grupos finitos (2026-04 — en curso)
 
-- **Perm.lean**: Tipo de permutaciones (⚠ 1 sorry).
-- **Group.lean**: `FinGroup`, `Subgroup`, `gpow`/lemas, subgrupos trivial/impropio/cíclico, `IsNormal`, `Subgroup.inter` (⚠ 2 sorry: cyclicSubgroup bloqueados en B2.3).
+- **Perm.lean**: Tipo de permutaciones, `FunPerm.comp is_perm` — **✅ sin sorry** (commit `9a17a8e`).
+- **Group.lean**: `FinGroup`, `Subgroup`, `gpow` + lemas, `order`/`order_pos`/`gpow_order_eq_id`/`gpow_mod_order`, subgrupos trivial/impropio/cíclico, `IsNormal`, `Subgroup.inter` — **✅ sin sorry** (commit `413c6e3`).
 - **Sign.lean**: Signo de permutaciones (paridad). ✅
 - **Orbit.lean**: Órbitas de permutaciones. ✅
 - **Counting.lean**: Conteo combinatorio. ✅
-- **Action.lean**: Acciones de grupo, órbita-estabilizador (⚠ 2 sorry).
-- **Sylow/Cosets.lean**: Coclases, índice, Lagrange (⚠ 1 sorry).
-- **Sylow/Sylow.lean**: Teoremas de Sylow (⚠ 3 sorry).
+- **Action.lean**: Acciones de grupo, órbita, estabilizador, subgrupo fijo (⚠ 2 sorry: `orbit_stabilizer`, `orbits_partition`).
+- **Sylow/Cosets.lean**: Coclases, índice, `cosetRel` (⚠ 1 sorry: `lagrange`).
+- **Sylow/Sylow.lean**: Teoremas de Sylow I/II/III (⚠ 3 sorry).
 
 ---
 
 ## Próximos objetivos
 
-- **B2.3 `order`**: Implementar orden de un elemento — desbloquea 2 sorry en `cyclicSubgroup`. Estrategia: `collision_of_card_lt` (ya disponible en FSetFunction) + `gpow_sub_eq_id` + `well_ordering_principle`.
-- **B3 restante**: Subgrupo.product (B3.7), Subgroup.join (B3.8, requiere generatedSubgroup).
-- **B4**: GroupHom.Im, GroupHom.ker, comp, mono↔ker trivial.
-- **Completar sorry** en Action.lean, Cosets.lean, Sylow.lean.
+- **B6 `lagrange`** (Cosets.lean:128): partición de G en cosetos de H + conteo por fibras (|G| = |H|·[G:H]).
+- **B7 `orbit_stabilizer`** (Action.lean:119): biyección G/Stab(x) ≅ Orb(x) — necesita Lagrange.
+- **B8 `orbits_partition`** (Action.lean:153): extensionalidad de FSet (sorted list equality).
+- **B9 Sylow I** (sylow_first): Cauchy → p-subgrupo de orden p^k.
+- **B10 Sylow II/III**: acción por conjugación + conteo mod p.
 - **Phase 22**: Extensión a enteros ℤ (tipo inductivo canónico).
 - **Phase 23**: Extensión a racionales ℚ (estructura con invariante de coprimalidad).
 

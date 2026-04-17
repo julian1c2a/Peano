@@ -2,6 +2,32 @@
 
 ## [Unreleased]
 
+### Added (2026-04-17)
+
+- **Group.lean § 4d — Orden de elemento de grupo (B2.3)**:
+  - `gpow_sub_eq_id`: si `gpow g m = gpow g n` con `n ≤ m` entonces `gpow g (m-n) = id`.
+  - `orderExists` (private): existencia del mínimo `k ≥ 1` con `gpow g k = id`,
+    usando `collision_of_card_lt` (palomar) + `well_ordering_principle`.
+  - `order_wop` (private): mínimo k > 0 con `gpow g k = id`.
+  - `order` (noncomputable): el orden de `g` en `G`, `order G g : ℕ₀`.
+  - `order_pos`: `1 ≤ order G g` para todo `g ∈ G`.
+  - `gpow_order_eq_id`: `gpow G g (order G g) = G.id`.
+  - `order_minimal`: `order G g` es el mínimo positivo con `gpow g k = id`.
+  - `order_le_card`: `order G g ≤ G.carrier.card` (de `collision_of_card_lt`).
+  - `gpow_mul_order_eq_id`: `gpow G g (mul n (order G g)) = G.id` para todo `n`.
+  - `gpow_mod_order`: `gpow G g n = gpow G g (n % (order G g))`.
+  - Imports añadidos: `Peano.Prelim`, `Peano.PeanoNat.Sub`, `Peano.PeanoNat.Mul`, `Peano.PeanoNat.Div`.
+  - Opened: `Peano.Sub` para acceder a `sub`.
+
+- **Group.lean § 5 — Subgrupo cíclico completo (B3)** (commit `413c6e3`, 8→5 sorry):
+  - `cyclicSubgroup` sorry eliminado: cierre por `op · inv⁻¹` usando `gpow_mod_order`.
+  - `cyclicSubgroup'` sorrys eliminados: `op_closed` y `inv_closed` vía `gpow_mod_order`.
+  - Build: 51 jobs, 0 errores, **5 sorry warnings** (−3 respecto a 2026-04-16).
+
+- **Perm.lean + FSetFunction.lean — B1a** (commit `9a17a8e`, 9→8 sorry):
+  - `perm_map_of_injective_on_nodup` añadido a `FSetFunction.lean` § 3f.
+  - `FunPerm.comp is_perm` demostrado en `Perm.lean` vía inyectividad de composición.
+
 ### Added (2026-04-16)
 
 - **FSetFunction.lean \u00a7 3b \u2014 Palomar con colisi\u00f3n expl\u00edcita**:

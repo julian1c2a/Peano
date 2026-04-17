@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-15
+**Last updated:** 2026-04-17
 **Author**: Julián Calderón Almendros
 
 > This file tracks planned development phases. Each phase includes
@@ -36,7 +36,12 @@
 | 21 | Naturals completion (ℕ₀) | 🔶 In progress |
 | 22 | Integer extension (ℤ) | ❌ Pending |
 | 23 | Rational extension (ℚ) | ❌ Pending |
-| 24 | FSet Generalization | 🔶 In progress |
+| 24 | FSet Generalization | ✅ Complete |
+| 25 | Finite Group Theory | 🔶 In progress |
+| 26 | B6–B10: Lagrange + Orbit-Stabilizer + Sylow | ❌ Pending |
+| 27 | GroupHom, quotient groups | ❌ Pending |
+| 22 | Integer extension (ℤ) | ❌ Pending |
+| 23 | Rational extension (ℚ) | ❌ Pending |
 
 ---
 
@@ -1134,65 +1139,64 @@ Desarrollo completo:
 ## Phase 25: Finite Group Theory
 
 **Objective**: Permutation groups, group actions, orbits, and Sylow theorems.
-**Status**: 🔶 In progress
+**Status**: 🔶 In progress (5 sorry restantes de 14 originales)
 
-### 25.1. Modules completados (sin sorry)
+### 25.1 — Progreso acumulado (sesiones 2026-04-15 — 2026-04-17)
 
-- **Combinatorics/Counting.lean**: Conteo combinatorio
-- **Combinatorics/Sign.lean**: Signo de permutaciones (paridad de transposiciones)
-- **Combinatorics/Orbit.lean**: Órbitas de elementos bajo permutaciones
+| Bloque | Teorema | Estado | Commit |
+|--------|---------|--------|--------|
+| B1a | `FunPerm.comp is_perm` | ✅ | `9a17a8e` |
+| B1b | `FSet.ext` | ✅ (ya existía) | — |
+| B2.1–2.2 | `gpow_comm_single`, `gpow_inv` | ✅ | `9a17a8e` |
+| **B2.3** | `orderExists`, `order`, `gpow_order_eq_id`, `gpow_mod_order` | ✅ | `413c6e3` |
+| **B3** | `cyclicSubgroup` (op·inv⁻¹), `cyclicSubgroup'` (op_closed, inv_closed) | ✅ | `413c6e3` |
+| B4 | `cosetRel_symm`, `cosetRel_trans`, `coset_card_eq_subgroup_card` | ✅ | anterior |
+| B5 | `mem_orb_iff`, `GroupAction.stab` como Subgroup | ✅ | anterior |
+| **B6** | `lagrange` | ❌ Pending | — |
+| **B7** | `orbit_stabilizer` | ❌ Pending | — |
+| **B8** | `orbits_partition` (extensionalidad FSet) | ❌ Pending | — |
+| **B9** | `sylow_first` (Cauchy) | ❌ Pending | — |
+| **B10** | `sylow_second`, `sylow_third` | ❌ Pending | — |
 
-### 25.2. Modules con sorry pendientes
+### 25.2 — Estado actual de sorry (2026-04-17): **5 restantes**
 
-- **Combinatorics/Perm.lean**: Permutaciones (1 sorry)
-- **Combinatorics/Group.lean**: Grupo simétrico Sym(A) (1 sorry)
-- **Combinatorics/GroupTheory/Action.lean**: Acciones de grupo (4 sorry)
-- **Combinatorics/GroupTheory/Sylow/Cosets.lean**: Coclases (5 sorry)
-- **Combinatorics/GroupTheory/Sylow/Sylow.lean**: Teoremas de Sylow (3 sorry)
+| # | Archivo | Línea | Teorema | Estrategia pendiente |
+|---|---------|-------|---------|----------------------|
+| 1 | `Action.lean` | 119 | `orbit_stabilizer` | Lagrange + biyección G/Stab(x)≅Orb(x) |
+| 2 | `Action.lean` | 153 | `orbits_partition` (rama izq.) | Extensionalidad FSet (sorted list eq) |
+| 3 | `Cosets.lean` | 128 | `lagrange` | Partición en cosetos + conteo por fibras |
+| 4 | `Sylow.lean` | 75 | `sylow_first` | Cauchy + inducción sobre orden de p-subgrupo |
+| 5 | `Sylow.lean` | 94 | `sylow_second` | Acción de H sobre G/K por mult. izq. |
+| 6 | `Sylow.lean` | 114 | `sylow_third` | Acción por conjugación + conteo mod p |
 
-### Orden de ejecución
+> Nota: `Sylow.lean` declara 3 sorry (líneas 75, 94, 114) aunque la tabla global registra 5 sorry totales.
+
+### 25.3 — Orden de ataque recomendado
 
 ```
-25.1 Counting.lean ✅
-25.2 Perm.lean ⚠ (1 sorry)
-25.3 Sign.lean ✅
-25.4 Orbit.lean ✅
-25.5 Group.lean ⚠ (1 sorry)
-25.6 Action.lean ⚠ (4 sorry)
-25.7 Sylow/Cosets.lean ⚠ (1 sorry — lagrange)
-25.8 Sylow/Sylow.lean ⚠ (3 sorry)
+B6 lagrange          ←  clave: todas las acciones lo necesitan
+B8 orbits_partition  ←  solo necesita extensionalidad FSet (más fácil)
+B7 orbit_stabilizer  ←  necesita B6
+B9 sylow_first       ←  necesita B7 + B6
+B10 sylow_second/third ← necesita B9
 ```
+
+### 25.4 — Ingredientes disponibles para B6 (lagrange)
+
+- `cosetRel` es relación de equivalencia (refl, symm, trans ✅)
+- `coset_card_eq_subgroup_card` : `|gH| = |H|` ✅
+- Falta: demostrar que los cosetos particionan G y sumar cardinales
+- Herramientas útiles: `FSetFunction.card_eq_of_injections`,
+  `collision_of_card_lt`, `Fin₀Set_card`
+
+### 25.5 — Ingredientes disponibles para B8 (orbits_partition)
+
+- `FSet.ext` ✅ disponible
+- Se necesita que si z ∈ orb(x) ∩ orb(y), entonces orb(x) = orb(y)
+- Ruta: `g₁·x = z = g₂·y` → `x = g₁⁻¹·g₂·y` → biyección orb(x)↔orb(y)
+- Luego aplicar `FSet.ext` (ya demostrado)
 
 ---
-
-## Estado actual de sorry (actualizado 2026-04-16)
-
-Tras la sesión de limpieza de sorry de Phase 25 + añadido B3 cíclico, el proyecto tiene **9 sorry** (7 Phase-25 preexistentes − 5 resueltos + 2 nuevos B3.2 + 2 nuevos orphan → neto 9).
-
-Desglose actual:
-
-| # | Archivo | Línea | Teorema | Dificultad |
-|---|---------|-------|---------|------------|
-| 1 | `Perm.lean` | 39 | `FunPerm.comp is_perm` | Media |
-| 2 | `Group.lean` | 311 | `cyclicSubgroup` op·inv⁻¹ closed | Media (bloqueado en B2.3) |
-| 3 | `Group.lean` | 344 | `cyclicSubgroup'` inv_closed | Media (bloqueado en B2.3) |
-| 4 | `Action.lean` | 116 | `orbit_stabilizer` | Alta |
-| 5 | `Action.lean` | 132 | `orbits_partition` (rama left) | Media |
-| 6 | `Cosets.lean` | 126 | `lagrange` | Alta |
-| 7 | `Sylow.lean` | 71 | `sylow_first` | Muy alta |
-| 8 | `Sylow.lean` | 88 | `sylow_second` | Muy alta |
-| 9 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
-| 10 | `Sylow.lean` | 105 | `sylow_third` | Muy alta |
-
-### Sorry ya eliminados en esta sesión (7 de 14)
-
-- `Group.lean`: Sym/Perm duplicado → eliminada definición con sorry (−1)
-- `Cosets.lean`: `mem_leftCoset_iff` → demostrado con `List.mem_filter` + `List.any_eq_true` (−1)
-- `Cosets.lean`: `cosetRel_symm` → demostrado con `inv_op_eq` + `inv_inv_eq` + `H.inv_closed` (−1)
-- `Cosets.lean`: `cosetRel_trans` → demostrado con asociatividad + `H.op_closed` (−1)
-- `Cosets.lean`: `coset_card_eq_subgroup_card` → demostrado con biyección `h ↦ g·h` (MapOn.Bijective.card_eq) (−1)
-- `Action.lean`: `mem_orb_iff` → demostrado con `List.mem_filter` + `List.any_eq_true` (−1)
-- `Action.lean`: `GroupAction.stab` → construido como Subgroup vía `ℕ₀FSet.filter` (−1)
 
 ---
 

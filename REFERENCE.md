@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-16
+**Última actualización:** 2026-04-17
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -56,9 +56,9 @@
 | **Listas y conjuntos finitos** | | | |
 | `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `ListList`, `FSet` |
 | `Peano/PeanoNat/ListsAndSets/ListList.lean` | `Peano.ListList` | `List` | — |
-| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List` | `FSetFSet`, `FSetFunction`, `Counting` |
+| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFSet`, `FSetFunction`, `Counting`, `Group` |
 | `Peano/PeanoNat/ListsAndSets/FSetFSet.lean` | `Peano.FSetFSet` | `FSet` | — |
-| `Peano/PeanoNat/ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | `FSet`, `List` | `Perm` |
+| `Peano/PeanoNat/ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | `FSet`, `List`, `Mul` | `Perm`, `Group` |
 | **Teoría de números** | | | |
 | `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | `Arith`, `Primes` | `Totient`, `CRT`, `Fermat` |
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
@@ -2631,93 +2631,197 @@ $\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, ..., p-1\}$ son copri
 ## 24. ListsAndSets/FSetFunction.lean — `namespace Peano.FSetFunction`
 
 **Archivo**: `Peano/PeanoNat/ListsAndSets/FSetFunction.lean`
-**Dependencias**: `FSet`, `List`
-**Dependido por**: `Perm`
-**Tamaño**: ~1550 líneas, ~92 declaraciones exportadas
+**Dependencias**: `ListsAndSets/List`, `ListsAndSets/FSet`, `ListsAndSets/FSetFSet`, `Mul`
+**Dependido por**: `Combinatorics/Perm`, `Combinatorics/Group`
+**Estado**: ✅ sin `sorry` en este módulo
 
-El módulo más grande del proyecto. Define la noción de función total entre conjuntos finitos (`MapOn`), sus propiedades (inyectividad, sobreyectividad, biyectividad), inversa, el principio del palomar, y los tipos de permutación finite (`FunPerm`) y operación binaria (`BinOpOn`).
+Módulo polimórfico sobre tipos `α`, `β` con `[DecidableEq]` y `[LT]` que desarrolla:
 
-### 24.1. § 1 — `MapOn`: función entre FSet [D]
+1. funciones entre conjuntos finitos (`MapOn`),
+2. imagen/preimagen/fibras,
+3. cardinalidad por inyección/sobreyeción/biyeción,
+4. principio del palomar,
+5. endomorfismos y permutaciones,
+6. tablas de funciones (`FunTable`, `FunPerm`).
 
-**[D24.1]** `MapOn A B`
+### 24.1. Definiciones base [D]
 
-- **Lean4:** `structure MapOn (A : FSet α) (B : FSet β) where toFun : ℕ₀ → ℕ₀; map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems`
-- **Matemática:** Función total f: A → B, donde A, B son conjuntos finitos (`FSet`).
+**[D24.1]** `MapOn` (polimórfica)
 
-**[D24.2]** `MapOn.id`, `MapOn.comp`, `MapOn.comp_assoc`
+- **Lean4:**
 
-- Identidad `id_on A : MapOn A A`; composición `comp g f : MapOn A C`; asociatividad de composición.
+  ```
+  structure MapOn {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+      (A : FSet α) (B : FSet β) where
+    toFun : α → β
+    map_carrier : ∀ a, a ∈ A.elems → toFun a ∈ B.elems
+  ```
 
-### 24.2. § 2 — `Im`: imagen [D/T]
+- **Matemática:** aplicación total $f : A \to B$ entre conjuntos finitos con prueba de cierre.
 
-**[D24.3]** `MapOn.Im (f : MapOn A B) : FSet ℕ₀`
+**[D24.2]** `InjectiveOn`, `SurjectiveOn`, `MapOn.Injective`, `MapOn.Surjective`, `MapOn.Bijective`
 
-- Imagen `{f(a) | a ∈ A}` como `FSet`.
+**[D24.3]** `MapOn.comp`, `MapOn.id`
 
-**[T24.1]** `card_im_le_card_dom (f : MapOn A B) : f.Im.card ≤ A.card`
+**[D24.4]** `MapOn.Im`, `MapOn.PreIm`, `MapOn.fiber`, `MapOn.restrict`
 
-**[T24.2]** `card_im_eq_card_iff_injective (f : MapOn A B) : f.Im.card = A.card ↔ f.Injective`
+**[D24.5]** `BinOpOn`
 
-### 24.3. § 2b–2e — Inversas [D/T]
+- **Lean4:** `structure BinOpOn (A : FSet α) where toFun : α → α → α; map_carrier : ...`
 
-**[D24.4]** `MapOn.Injective`, `MapOn.Surjective`, `MapOn.Bijective`
+**[D24.6]** `Perm` (permutación como `MapOn A A` biyectiva)
 
-- Props proposicionales estándar sobre `MapOn`.
+**[D24.7]** `FunTable`, `FunPerm`
 
-**[D24.5]** `MapOn.rightInverse`, `MapOn.leftInverse`, `MapOn.inverse`
+### 24.2. Teoremas estructurales [T]
 
-- `rightInverse (f : MapOn A B) (hf : Surjective f) : MapOn B A`; análogamente `leftInverse` para inyecciones; `inverse` para biyecciones.
+**[T24.1]** Composición e identidad
 
-**[T24.3]** `inverse_involution (f : MapOn A A) (hf : Bijective f) : f.inverse.inverse = f`
+- `MapOn.comp_injective`, `MapOn.comp_surjective`, `MapOn.comp_bijective`, `MapOn.comp_assoc`
+- `MapOn.id_injective`, `MapOn.id_surjective`, `MapOn.id_bijective`, `MapOn.comp_id`, `MapOn.id_comp`
+- `MapOn.injective_of_comp_injective`, `MapOn.surjective_of_comp_surjective`
 
-### 24.4. § 3 — Principio del Palomar [T]
+**[T24.2]** Inversas
 
-**[T24.4]** `card_le_of_injective (f : MapOn A B) (hf : f.Injective) : A.card ≤ B.card`
+- `MapOn.rightInverse`, `MapOn.rightInverse_prop`, `MapOn.rightInverse_injective`
+- `MapOn.leftInverse`, `MapOn.leftInverse_prop`, `MapOn.leftInverse_surjective`
+- `MapOn.injective_of_has_leftInverse`, `MapOn.injective_iff_has_leftInverse`
+- `MapOn.surjective_of_has_rightInverse`, `MapOn.surjective_iff_has_rightInverse`
+- `MapOn.inverse`, `MapOn.inverse_left_prop`, `MapOn.inverse_right_prop`
+- `MapOn.inverse_injective`, `MapOn.inverse_surjective`, `MapOn.inverse_bijective`
+- `MapOn.inverse_inverse`, `MapOn.comp_inverse_left`, `MapOn.comp_inverse_right`
 
-- Si existe inyección A → B, entonces |A| ≤ |B|.
+### 24.3. Cardinalidad y palomar [T]
 
-**[T24.5]** `card_le_of_surjective (f : MapOn A B) (hf : f.Surjective) : B.card ≤ A.card`
+**[T24.3]** Imagen/cardinalidad
 
-- Si existe sobreyección A → B, entonces |B| ≤ |A|.
+- `card_image_of_injective`, `injective_of_card_image`
+- `card_image_of_surjective`, `surjective_of_card_image`
+- `card_le_of_injective`, `card_le_of_surjective`
 
-**[T24.6]** `not_injective_of_card_lt (f : MapOn A B) (h_lt : lt₀ B.card A.card) : ¬ f.Injective` *(añadido 2026-04-16)*
+**[T24.4]** Igualdad de cardinalidad
 
-- Contrapositivo de `card_le_of_injective`: si |B| < |A|, ninguna f: A → B puede ser inyectiva.
-- **Proof**: `absurd h_lt (nlt_of_le (card_le_of_injective f h_inj))` — término directo.
+- `card_eq_of_injections`, `card_eq_of_surjections`
+- `MapOn.Bijective.card_eq`
+- `MapOn.injective_iff_surjective_of_card_eq`
+- `MapOn.injective_iff_bijective_of_card_eq`
+- `MapOn.surjective_iff_bijective_of_card_eq`
 
-**[T24.7]** `collision_of_card_lt (f : MapOn A B) (h_lt : lt₀ B.card A.card) : ∃ a₁ a₂ : α, a₁ ∈ A.elems ∧ a₂ ∈ A.elems ∧ a₁ ≠ a₂ ∧ f.toFun a₁ = f.toFun a₂` *(añadido 2026-04-16)*
+**[T24.5]** Principio del palomar
 
-- Principio del palomar con testigos explícitos: si |B| < |A| entonces comparten imagen.
-- **Proof**: `Classical.byContradiction fun h_no_collision => not_injective_of_card_lt ...`
-- **Uso clave**: base para `orderExists` en B2.3 — la función `i ↦ gpow G g i` sobre `Fin₀Set(σ|G|) → G.carrier` produce colisión, dando `∃ n > 0, gpow G g n = G.id`.
+- `not_injective_of_card_lt`
+- `collision_of_card_lt`
 
-### 24.5. § 3c — Igualdad de cardinalidad [T]
+**[T24.6]** Nuevo (2026-04-17): conteo por fibras uniformes
 
-**[T24.8]** `card_eq_of_injections (f : MapOn A B) (hf : f.Injective) (g : MapOn B A) (hg : g.Injective) : A.card = B.card`
+- **Lean4:**
 
-- Schroeder-Bernstein finito.
+  ```
+  theorem card_eq_mul_of_uniform_fibers {α β : Type}
+    [DecidableEq α] [LT α] [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+    {A : FSet α} {B : FSet β}
+    (f : MapOn A B)
+    (k : ℕ₀) (h_uniform : ∀ b, b ∈ B.elems → (f.fiber b).card = k) :
+    A.card = mul k B.card
+  ```
 
-**[T24.9]** `card_eq_of_bijection (f : MapOn A B) (hf : f.Bijective) : A.card = B.card`
+- **Matemática:** si todas las fibras de $f : A \to B$ tienen cardinal $k$, entonces
+  $|A| = k\,|B|$.
+- **Dependencias internas clave:** `MapOn.fiber`, `sorted_nodup`, `lengthₚ`, `mul_succ`, `add_succ`, `succ_add`.
 
-### 24.6. § 3d–3f — Preimagen, Endomorfismos, Permutaciones [D]
+### 24.4. Preimagen/fibras/restricción [T]
 
-**[D24.6]** `MapOn.preIm (f : MapOn A B) (b : ℕ₀) : FSet ℕ₀` — Preimagen de un punto.
+**[T24.7]** `MapOn.mem_PreIm_iff`, `MapOn.PreIm_full`, `MapOn.card_PreIm_le`
 
-**[D24.7]** `EndoOn A` — Tipo alias para `MapOn A A` (endomorfismos).
+**[T24.8]** `MapOn.mem_fiber_iff`, `MapOn.card_fiber_le_one_of_injective`
 
-**[D24.8]** `MapOn.Perm A` — Subtype de `MapOn A A` que es biyectiva (permutación).
+**[T24.9]** `MapOn.restrict_injective`, `MapOn.mem_Im_restrict`
 
-### 24.7. § 4 — `BinOpOn` [D]
+### 24.5. Endomorfismos y permutaciones [T]
 
-**[D24.9]** `BinOpOn (A : FSet ℕ₀)` — Operación binaria cerrada: función `ℕ₀ → ℕ₀ → ℕ₀` tal que `∀ a b ∈ A, op a b ∈ A`.
+**[T24.10]** Endomorfismos (`f : A → A`)
 
-### 24.8. § 7 — `FunPerm` [D]
+- `MapOn.endo_injective_iff_surjective`
+- `MapOn.endo_injective_iff_bijective`
+- `MapOn.endo_surjective_iff_bijective`
+- `MapOn.endo_bijective_of_injective`
+- `MapOn.endo_bijective_of_surjective`
+- `MapOn.endo_leftInverse_eq_inverse`
+- `MapOn.endo_leftInverse_right_prop`
+- `MapOn.endo_rightInverse_eq_inverse`
+- `MapOn.endo_rightInverse_left_prop`
 
-**[D24.10]** `FunPerm (A : FSet ℕ₀)` — Permutación representada como tabla funcional biyectiva sobre `A`.
+**[T24.11]** `Perm`
 
-- Composición: `FunPerm.comp`, con `comp_assoc`.
-- Inversa: `FunPerm.inv`.
-- ⚠ 1 sorry: `FunPerm.comp is_perm` (cierre de la composición; ver `Perm.lean`).
+- `Perm.injective`, `Perm.surjective`, `Perm.id`, `Perm.comp`
+- `Perm.comp_id_fn`, `Perm.id_comp_fn`
+- `Perm.inv`, `Perm.inv_left`, `Perm.inv_right`, `Perm.inv_inv`
+- `Perm.comp_inv_left`, `Perm.comp_inv_right`, `Perm.comp_assoc`
+
+### 24.6. FunTable/FunPerm [D/T]
+
+**[D24.8]** `FunTable` (tabla de imágenes)
+
+- Campos: `table`, `len_eq`, `mem_all`.
+- Operaciones exportadas: `FunTable.apply`, `FunTable.applyElem`, `FunTable.applyElem_mem`, `FunTable.id`, `FunTable.comp`.
+
+**[D24.9]** `FunPerm` (tabla con `List.Perm table A.elems`)
+
+- Operaciones exportadas: `FunPerm.id`, `FunPerm.applyElem_injective`.
+
+### 24.7. Inventario de export (proyección completa)
+
+Bloque `export Peano.FSetFunction (...)` actualizado y proyectado al completo, incluyendo:
+
+1. `card_eq_mul_of_uniform_fibers` (nuevo encabezando el bloque),
+2. toda la API `MapOn` (§1–§3f),
+3. preimagen/fibras/restricción,
+4. `BinOpOn`, `FunTable`, `FunPerm`,
+5. auxiliares reexportados: `sorted_nodup`, `nodup_map_of_inj_on`, `perm_of_nodup_subset_same_length`, `perm_map_of_injective_on_nodup`.
+
+### 24.8. Archivo auxiliar reciente
+
+**Archivo**: `temp_check2.lean`
+
+- Contenido actual: `import Peano.PeanoNat.ListsAndSets.List` + `#check @List.length_erase_of_mem`.
+- Estado: archivo de sondeo/verificación interactiva (sin definiciones, sin teoremas, no exporta símbolos).
+- Impacto en REFERENCE: no añade API nueva del proyecto.
+
+## 24A. ListsAndSets/FSet.lean — actualización reciente (2026-04-16)
+
+**Archivo**: `Peano/PeanoNat/ListsAndSets/FSet.lean`
+**Namespace**: `Peano.FSet` (con lema privado en `Peano`)
+
+### 24A.1. Cambios proyectados [D/T]
+
+**[D24A.1]** Alias exportados
+
+- `ℕ₀FSet := FSet ℕ₀` (añadido)
+- `ℕ₁FSet := FSet ℕ₁` (añadido)
+- `ℕ₂FSet := FSet ℕ₂` (ya existente)
+
+**[T24A.1]** Extensionalidad semántica para `FSet ℕ₀`
+
+- **Lean4:**
+
+  ```
+  theorem FSet.eq_of_mem_iff {s₁ s₂ : FSet ℕ₀}
+    (h : ∀ z : ℕ₀, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂
+  ```
+
+- **Matemática:** si dos conjuntos finitos de `ℕ₀` tienen la misma pertenencia elemento a elemento,
+  entonces son iguales.
+- **Dependencias:** `FSet.ext` + lema privado de unicidad de listas ordenadas estrictas.
+
+**[T24A.2]** Lema privado de canonicidad (no exportado)
+
+- `sorted_nodup_unique_list` en `namespace Peano`:
+  igualdad de listas `List.Pairwise (· < ·)` por equivalencia de pertenencia.
+
+### 24A.2. Export block de FSet
+
+El bloque `export Peano.FSet (...)` ya incluye `FSet.eq_of_mem_iff`, `ℕ₀FSet`, `ℕ₁FSet` y
+permanece consistente con la API pública actual del módulo.
 
 ---
 

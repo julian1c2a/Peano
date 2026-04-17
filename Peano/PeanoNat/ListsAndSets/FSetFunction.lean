@@ -1,6 +1,7 @@
 import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFSet
+import Peano.PeanoNat.Mul
 
 /-!
 Copyright (c) 2026. All rights reserved.
@@ -1405,6 +1406,103 @@ namespace Peano
       exact ⟨a, h_sub a ha, rfl⟩
 
     /-!
+    # § 3e. Conteo por fibras uniformes
+    -/
+
+    /-- Descomposición de longitud por filtros complementarios. -/
+    private theorem lengthₚ_filter_split {α : Type} (p : α → Bool) :
+        ∀ l : List α,
+          lengthₚ l = add (lengthₚ (l.filter p)) (lengthₚ (l.filter (not ∘ p)))
+      | [] => by rfl
+      | x :: xs => by
+        have ih := lengthₚ_filter_split p xs
+        cases h : p x
+        · simp [List.filter, Function.comp, h, lengthₚ_cons, ih, add_succ]
+        · simp [List.filter, Function.comp, h, lengthₚ_cons, ih, succ_add]
+
+    /-- Lema auxiliar: si todos los elementos de `A` mapean a algo en `bs` (sin duplicados)
+        y todas las fibras tienen tamaño `k`, entonces `|A| = k · |bs|`. -/
+    private theorem card_eq_mul_fibers_aux {α β : Type}
+        [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+        (g : α → β) (k : ℕ₀) :
+        ∀ (A : FSet α) (bs : List β), bs.Nodup →
+        (∀ a, a ∈ A.elems → g a ∈ bs) →
+        (∀ b, b ∈ bs → (A.filter (fun a => decide (g a = b))).card = k) →
+        A.card = mul k (lengthₚ bs)
+      | A, [], _, h_cover, _ => by
+        simp only [FSet.card, lengthₚ]
+        cases h_elems : A.elems with
+        | nil => rfl
+        | cons a _ =>
+          exact absurd (h_cover a (h_elems ▸ List.mem_cons_self)) List.not_mem_nil
+      | A, b :: rest, h_nodup, h_cover, h_uniform => by
+        have hb_nodup : b ∉ rest := (List.nodup_cons.mp h_nodup).1
+        have hrest_nodup : rest.Nodup := (List.nodup_cons.mp h_nodup).2
+        let p  : α → Bool := fun a => decide (g a = b)
+        let np : α → Bool := not ∘ p
+        have h_split : A.card = add (A.filter p).card (A.filter np).card := by
+          unfold FSet.card FSet.filter
+          exact lengthₚ_filter_split p A.elems
+        have h_fb : (A.filter p).card = k := h_uniform b List.mem_cons_self
+        have h_cover_rest : ∀ a, a ∈ (A.filter np).elems → g a ∈ rest := by
+          intro a ha
+          simp [FSet.filter, np, p, Function.comp, decide_eq_false_iff_not] at ha
+          obtain ⟨ha_A, hp_false⟩ := ha
+          have h_fa_bs := h_cover a ha_A
+          rcases List.mem_cons.mp h_fa_bs with rfl | h_rest
+          · exact absurd rfl hp_false
+          · exact h_rest
+        have h_uniform_rest : ∀ b', b' ∈ rest →
+            ((A.filter np).filter (fun a => decide (g a = b'))).card = k := by
+          intro b' hb'
+          have hb'_ne : b' ≠ b := fun heq => hb_nodup (heq ▸ hb')
+          have hpred : ∀ a, (np a && decide (g a = b')) = decide (g a = b') := by
+            intro a
+            by_cases hq : g a = b'
+            · have hpfalse : decide (g a = b) = false := by
+                apply decide_eq_false_iff_not.mpr
+                intro hgb
+                exact hb'_ne (hq.symm.trans hgb)
+              have hnp_true : np a = true := by
+                unfold np p
+                simp [hpfalse]
+              simp [hq, hnp_true]
+            · simp [hq]
+          have hpred' : ∀ a, (decide (g a = b') && np a) = decide (g a = b') := by
+            intro a
+            rw [Bool.and_comm, hpred a]
+          have hlist : (A.elems.filter np).filter (fun a => decide (g a = b')) =
+              A.elems.filter (fun a => decide (g a = b')) := by
+            simp [List.filter_filter, hpred']
+          have hcard_eq :
+              ((A.filter np).filter (fun a => decide (g a = b'))).card =
+              (A.filter (fun a => decide (g a = b'))).card := by
+            unfold FSet.card FSet.filter
+            simpa using congrArg lengthₚ hlist
+          rw [hcard_eq]
+          exact h_uniform b' (List.mem_cons.mpr (Or.inr hb'))
+        have h_ih := card_eq_mul_fibers_aux g k (A.filter np) rest
+          hrest_nodup h_cover_rest h_uniform_rest
+        rw [h_split, h_fb, h_ih, lengthₚ_cons, mul_succ, add_comm]
+
+    /--
+    **Conteo por fibras uniformes**: si `f : A → B` es una función entre conjuntos finitos
+    y cada fibra `{a ∈ A | f(a) = b}` tiene exactamente `k` elementos (para todo `b ∈ B`),
+    entonces `|A| = k · |B|`.
+    -/
+    theorem card_eq_mul_of_uniform_fibers {α β : Type}
+      [DecidableEq α] [LT α] [DecidableEq β] [LT β] [StrictOrder.IrreflLT β]
+        {A : FSet α} {B : FSet β}
+        (f : MapOn A B)
+        (k : ℕ₀) (h_uniform : ∀ b, b ∈ B.elems → (f.fiber b).card = k) :
+        A.card = mul k B.card := by
+      unfold MapOn.fiber at h_uniform
+      exact card_eq_mul_fibers_aux f.toFun k A B.elems
+        (sorted_nodup B.sorted)
+        (fun a ha => f.map_carrier a ha)
+        (fun b hb => h_uniform b hb)
+
+    /-!
     # § 4. BinOpOn — operación binaria cerrada sobre un FSet
     -/
 
@@ -1604,6 +1702,7 @@ namespace Peano
 end Peano
 
 export Peano.FSetFunction (
+  card_eq_mul_of_uniform_fibers
   -- § 1. MapOn
   MapOn
   MapOn.comp

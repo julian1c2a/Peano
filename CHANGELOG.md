@@ -4,6 +4,22 @@
 
 ### Added (2026-04-17)
 
+- **ListsAndSets/FSet.lean + FSetFunction.lean — cierre de infraestructura para Lagrange**:
+  - `FSet.eq_of_mem_iff` añadido y exportado en `FSet.lean` (extensionalidad por pertenencia en `FSet ℕ₀`).
+  - `ℕ₀FSet` y `ℕ₁FSet` añadidos explícitamente en `FSet.lean`.
+  - `card_eq_mul_of_uniform_fibers` añadido y exportado en `FSetFunction.lean` (§ 3d/3e).
+  - Soporte interno: lema auxiliar de descomposición por filtros complementarios + inducción sobre fibras uniformes.
+  - `FSetFunction.lean` importa `Peano.PeanoNat.Mul` para el cierre aritmético del conteo.
+
+- **Documentación técnica sincronizada**:
+  - `REFERENCE.md` reproyectado con la API pública actual de `FSet.lean` y `FSetFunction.lean`.
+  - `NEXT-STEPS.md` simplificado y reorientado a pendientes reales (Cosets/Action/Sylow).
+
+- **Estado de build actualizado (snapshot de sesión)**:
+  - `lake build`: 0 errores.
+  - Sorries activos: 6 (`Action`: 2, `Cosets`: 1, `Sylow`: 3).
+  - Warnings no-sorry: 3 variables no usadas en `Group.lean`.
+
 - **Group.lean § 4d — Orden de elemento de grupo (B2.3)**:
   - `gpow_sub_eq_id`: si `gpow g m = gpow g n` con `n ≤ m` entonces `gpow g (m-n) = id`.
   - `orderExists` (private): existencia del mínimo `k ≥ 1` con `gpow g k = id`,

@@ -966,6 +966,27 @@ namespace Peano
     instance : LT ℕ₁ := ⟨lt₁⟩
     instance : LT ℕ₂ := ⟨lt₂⟩
 
+    /-- Irreflexividad estándar de `<` en `ℕ₀`, para interoperar con lemmas
+        de orden de la stdlib sobre listas lexicográficas. -/
+    instance : Std.Irrefl (fun a b : ℕ₀ => a < b) where
+      irrefl := lt_irrefl
+
+    /-- Asimetría estándar de `<` en `ℕ₀`. -/
+    instance : Std.Asymm (fun a b : ℕ₀ => a < b) where
+      asymm := lt_asymm
+
+    /-- Tricotomía estándar de `<` en `ℕ₀` (forma de la stdlib). -/
+    instance : Std.Trichotomous (fun a b : ℕ₀ => a < b) where
+      trichotomous := fun a b h_ab h_ba =>
+        lt_nor_gt_then_eq a b ⟨h_ab, h_ba⟩
+
+    /-- Transitividad de `<` en `ℕ₀` como instancia de typeclass. -/
+    instance : Trans (fun a b : ℕ₀ => a < b) (fun a b : ℕ₀ => a < b)
+        (fun a b : ℕ₀ => a < b) where
+      trans := by
+        intro a b c h_ab h_bc
+        exact lt_trans a b c h_ab h_bc
+
     /-- Clase auxiliar: el orden `<` es irreflexivo sobre `α`.
         Requerida por los lemas del Principio del Palomar en FSetFunction. -/
     class IrreflLT (α : Type) [LT α] : Prop where

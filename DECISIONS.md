@@ -139,3 +139,17 @@ Each entry records *what* was decided and *why*, for future reference.
 **Rationale**: [Why this choice over alternatives?]
 
 **Consequences**: [What are the trade-offs?]
+
+<!-- AUTO-UPDATE-2026-04-17-START -->
+## Actualizacion de estado - 2026-04-17
+
+- Estado del build: compila en el estado actual de la rama makingdecidable.
+- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
+- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
+- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
+- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
+- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
+- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
+
+<!-- AUTO-UPDATE-2026-04-17-END -->
+

@@ -349,3 +349,17 @@
 - `PeanoNatArith.lean`: Demostración completa de `gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b` usando inducción bien fundada con patrón `H` doblemente generalizado.
 - `PeanoNatArith.lean`: Exportados `divides_sub`, `divides_mod` y `gcd_greatest` desde `Peano.NatArith`.
 - `REFERENCE.md`: Actualizada con los nuevos teoremas.
+
+<!-- AUTO-UPDATE-2026-04-17-START -->
+## Actualizacion de estado - 2026-04-17
+
+- Estado del build: compila en el estado actual de la rama makingdecidable.
+- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
+- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
+- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
+- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
+- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
+- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
+
+<!-- AUTO-UPDATE-2026-04-17-END -->
+

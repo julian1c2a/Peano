@@ -14,6 +14,7 @@ License: MIT
 import Peano.PeanoNat
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.ListsAndSets.EquivRel
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.Combinatorics.Group
 
@@ -23,6 +24,7 @@ namespace Peano
   namespace GroupTheory
 
     open Peano.FSet
+    open Peano.EquivRel
     open Peano.FSetFunction
     open Peano.Group
     open Peano.Mul
@@ -117,6 +119,120 @@ namespace Peano
       rw [key]
       exact H.op_closed _ _ hab hbc
 
+    /-- `cosetRel` como relación de equivalencia sobre `G.carrier`. -/
+    def cosetEquivRel (G : FinGroup) (H : Subgroup G) : EquivRelOn G.carrier where
+      rel      := cosetRel G H
+      decRel   := by
+        intro a b
+        unfold cosetRel
+        infer_instance
+      refl_on  := fun a ha => cosetRel_refl G H a ha
+      symm_on  := fun a b ha hb hab => cosetRel_symm G H a b ha hb hab
+      trans_on := fun a b c ha hb hc hab hbc =>
+        cosetRel_trans G H a b c ha hb hc hab hbc
+
+    /-- Para `g ∈ G`, la clase de equivalencia de `g` por `cosetRel`
+        coincide punto a punto con el coseto izquierdo `gH`. -/
+    theorem mem_classOf_cosetEquivRel_iff_leftCoset
+        (G : FinGroup) (H : Subgroup G) (g x : ℕ₀)
+        (hg : g ∈ G.carrier.elems) :
+        x ∈ ((cosetEquivRel G H).classOf g).elems ↔
+        x ∈ (leftCoset G H g).elems := by
+      constructor
+      · intro hx
+        have hxA : x ∈ G.carrier.elems :=
+          ((cosetEquivRel G H).mem_classOf_iff g x).mp hx |>.1
+        have hrel : cosetRel G H g x :=
+          ((cosetEquivRel G H).mem_classOf_iff g x).mp hx |>.2
+        have hInH : G.op (G.inv g) x ∈ H.carrier.elems := hrel
+        have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg
+        have hEq : G.op g (G.op (G.inv g) x) = x := by
+          rw [← G.op_assoc g (G.inv g) x hg hginv hxA,
+              (G.op_inv g hg).1,
+              (G.op_id x hxA).2]
+        exact (mem_leftCoset_iff G H g x hg).mpr ⟨G.op (G.inv g) x, hInH, hEq⟩
+      · intro hx
+        obtain ⟨h, hh, hEq⟩ := (mem_leftCoset_iff G H g x hg).mp hx
+        have hxA : x ∈ G.carrier.elems := by
+          rw [← hEq]
+          exact op_mem G hg (H.subset h hh)
+        have hrel : cosetRel G H g x := by
+          unfold cosetRel
+          rw [← hEq]
+          have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg
+          rw [← G.op_assoc (G.inv g) g h hginv hg (H.subset h hh),
+              (G.op_inv g hg).2,
+              (G.op_id h (H.subset h hh)).2]
+          exact hh
+        exact ((cosetEquivRel G H).mem_classOf_iff g x).mpr ⟨hxA, hrel⟩
+
+    /-- Igualdad extensional: clase de `g` por `cosetRel` = coseto `gH`. -/
+    theorem classOf_cosetEquivRel_eq_leftCoset
+        (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
+        (hg : g ∈ G.carrier.elems) :
+        (cosetEquivRel G H).classOf g = leftCoset G H g := by
+      apply FSet.eq_of_mem_iff
+      intro x
+      exact mem_classOf_cosetEquivRel_iff_leftCoset G H g x hg
+
+    /-- Corolario de cardinal: toda clase por `cosetRel` tiene cardinal `|H|`. -/
+    theorem classOf_cosetEquivRel_card_eq_subgroup_card
+        (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
+        (hg : g ∈ G.carrier.elems) :
+        ((cosetEquivRel G H).classOf g).card = H.carrier.card := by
+      rw [classOf_cosetEquivRel_eq_leftCoset G H g hg]
+      exact coset_card_eq_subgroup_card G H g hg
+
+    /-- Familia canónica de representantes de clases para `cosetRel` en `G`.
+        Se usa como soporte finito para el conteo por clases en Lagrange. -/
+    def cosetClassFamily (G : FinGroup) (H : Subgroup G) :
+        (cosetEquivRel G H).ClassFamily :=
+      (cosetEquivRel G H).canonicalClassFamily
+
+    /-- Cobertura canónica: todo `x ∈ G` pertenece a la clase de algún representante
+        de la familia canónica por cosetos. -/
+    theorem mem_some_cosetClassFamily_class
+        (G : FinGroup) (H : Subgroup G)
+        (x : ℕ₀) (hx : x ∈ G.carrier.elems) :
+        ∃ r, r ∈ (cosetClassFamily G H).reps ∧
+          x ∈ ((cosetEquivRel G H).classOf r).elems :=
+      (cosetClassFamily G H).cover x hx
+
+    /-- Lista canónica de clases de equivalencia por cosetos en `G`. -/
+    def cosetClasses (G : FinGroup) (H : Subgroup G) : List ℕ₀FSet :=
+      (cosetEquivRel G H).classes
+
+    /-- Uniformidad de cardinal en `cosetClasses`: cada clase tiene cardinal `|H|`. -/
+    theorem card_eq_subgroup_card_of_mem_cosetClasses
+        (G : FinGroup) (H : Subgroup G) (C : ℕ₀FSet)
+        (hC : C ∈ cosetClasses G H) :
+        C.card = H.carrier.card := by
+      rcases ((cosetEquivRel G H).mem_classes_iff C).mp hC with ⟨g, hg, hCg⟩
+      rw [← hCg]
+      exact classOf_cosetEquivRel_card_eq_subgroup_card G H g hg
+
+    /-- Cobertura por clases canónicas de cosetos: todo `x ∈ G` pertenece a
+        alguna clase de `cosetClasses`. -/
+    theorem mem_some_cosetClasses
+        (G : FinGroup) (H : Subgroup G)
+        (x : ℕ₀) (hx : x ∈ G.carrier.elems) :
+        ∃ C, C ∈ cosetClasses G H ∧ x ∈ C.elems :=
+      (cosetEquivRel G H).classes_cover x hx
+
+    /-- Si `x ∈ C` y `C` es una clase canónica por cosetos, entonces
+        `C` coincide con la clase de `x`. -/
+    theorem cosetClass_eq_classOf_of_mem
+        (G : FinGroup) (H : Subgroup G)
+        (C : ℕ₀FSet) (x : ℕ₀)
+        (hC : C ∈ cosetClasses G H) (hxC : x ∈ C.elems) :
+        C = (cosetEquivRel G H).classOf x := by
+      rcases (cosetEquivRel G H).mem_classes_elim hC with ⟨a, ha, hCa⟩
+      rw [hCa] at hxC
+      have hEq : (cosetEquivRel G H).classOf x = (cosetEquivRel G H).classOf a :=
+        (cosetEquivRel G H).classOf_eq_of_mem_classOf a x ha hxC
+      rw [hCa]
+      exact hEq.symm
+
     /-- Si `a ~ b` por `cosetRel`, entonces `aH ⊆ bH`. -/
     theorem leftCoset_subset_of_rel (G : FinGroup) (H : Subgroup G)
         (a b : ℕ₀)
@@ -182,12 +298,60 @@ namespace Peano
     /-- **Lema de Lagrange**: el orden de `H` divide al orden de `G`.
         Más precisamente, `|G| = |H| · [G:H]` donde `[G:H]` es el índice. -/
     theorem lagrange (G : FinGroup) (H : Subgroup G) :
-        ∃ k : ℕ₀, mul H.carrier.card k = G.carrier.card :=
-      sorry
-      -- Ingredientes disponibles:
-      --   cosetRel es equivalencia (refl, symm, trans ya demostrados)
-      --   coset_card_eq_subgroup_card : |gH| = |H|
-      -- Falta: partición de G en cosetos + conteo por fibras
+        ∃ k : ℕ₀, mul H.carrier.card k = G.carrier.card := by
+      let classes := cosetClasses G H
+      let classesSorted := sortFSetList classes
+      have h_sorted : Sorted (· < ·) classesSorted :=
+        sorted_sortFSetList classes
+      let classesFSet : Nat0FSetFSet :=
+        Nat0FSetFSet.ofSortedList classesSorted h_sorted
+
+      have h_uniform : ∀ C, C ∈ classes → C.card = H.carrier.card :=
+        card_eq_subgroup_card_of_mem_cosetClasses G H
+
+      let f : MapOn G.carrier classesFSet := {
+        toFun := fun x => (cosetEquivRel G H).classOf x
+        map_carrier := fun x hx => by
+          have hx_class : (cosetEquivRel G H).classOf x ∈ classes :=
+            (cosetEquivRel G H).classOf_mem_classes_of_mem x hx
+          exact (mem_sortFSetList_iff
+            (x := (cosetEquivRel G H).classOf x)
+            (l := classes)).mpr hx_class
+      }
+
+      have h_fiber : ∀ C, C ∈ classesFSet.elems → (f.fiber C).card = H.carrier.card :=
+        fun C hCfs => by
+          have hC : C ∈ classes :=
+            (mem_sortFSetList_iff (x := C) (l := classes)).mp hCfs
+
+          have h_fiber_eq : f.fiber C = C := by
+            apply FSet.eq_of_mem_iff
+            intro x
+            constructor
+            · intro hx
+              have hxData := (MapOn.mem_fiber_iff f C x).mp hx
+              have hxClass : x ∈ ((cosetEquivRel G H).classOf x).elems :=
+                (cosetEquivRel G H).classOf_nonempty_of_mem x hxData.1
+              have hfx : (cosetEquivRel G H).classOf x = C := by
+                simpa [f] using hxData.2
+              exact hfx ▸ hxClass
+            · intro hxC
+              have hCeq : C = (cosetEquivRel G H).classOf x :=
+                cosetClass_eq_classOf_of_mem G H C x hC hxC
+              have hxClass : x ∈ ((cosetEquivRel G H).classOf x).elems := by
+                simpa [← hCeq] using hxC
+              have hxG : x ∈ G.carrier.elems :=
+                (cosetEquivRel G H).classOf_subset_domain x x hxClass
+              exact (MapOn.mem_fiber_iff f C x).mpr ⟨hxG, by simp [f, hCeq.symm]⟩
+
+          calc
+            (f.fiber C).card = C.card := by simp [h_fiber_eq]
+            _ = H.carrier.card := h_uniform C hC
+
+      have h_card :=
+        FSetFunction.card_eq_mul_of_uniform_fibers f H.carrier.card h_fiber
+
+      exact ⟨classesFSet.card, Eq.symm h_card⟩
 
   end GroupTheory
 end Peano

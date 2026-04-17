@@ -177,6 +177,114 @@ namespace Peano
           Nat0FSetFSet := ⟨l, h⟩
     end Nat0FSetFSet
 
+    /-- Inserta un coset (`ℕ₀FSet`) en una lista manteniendo el orden por `<`.
+        Implementación básica por inserción, eliminando duplicados. -/
+    def sortedInsertFSet (x : ℕ₀FSet) : List ℕ₀FSet → List ℕ₀FSet
+      | [] => [x]
+      | y :: ys =>
+          if x < y then x :: y :: ys
+          else if x = y then y :: ys
+          else y :: sortedInsertFSet x ys
+
+    /-- Ordenación básica por inserción para listas de cosets (`List ℕ₀FSet`). -/
+    def sortFSetList : List ℕ₀FSet → List ℕ₀FSet
+      | [] => []
+      | x :: xs => sortedInsertFSet x (sortFSetList xs)
+
+    /-- Caracterización de pertenencia para `sortedInsertFSet`. -/
+    theorem mem_sortedInsertFSet_iff {z x : ℕ₀FSet} {l : List ℕ₀FSet} :
+        z ∈ sortedInsertFSet x l ↔ z = x ∨ z ∈ l := by
+      induction l with
+      | nil => simp [sortedInsertFSet]
+      | cons y ys ih =>
+        simp only [sortedInsertFSet]
+        split
+        · constructor
+          · intro h
+            rcases List.mem_cons.mp h with rfl | h
+            · exact Or.inl rfl
+            · exact Or.inr h
+          · intro h
+            rcases h with rfl | h
+            · exact List.mem_cons.mpr (Or.inl rfl)
+            · exact List.mem_cons.mpr (Or.inr h)
+        · split
+          · rename_i _ heq
+            constructor
+            · intro h
+              exact Or.inr h
+            · intro h
+              rcases h with rfl | h
+              · rw [heq]
+                exact List.mem_cons.mpr (Or.inl rfl)
+              · exact h
+          · constructor
+            · intro h
+              rcases List.mem_cons.mp h with rfl | h
+              · exact Or.inr (List.mem_cons.mpr (Or.inl rfl))
+              · rcases ih.mp h with rfl | hmem
+                · exact Or.inl rfl
+                · exact Or.inr (List.mem_cons.mpr (Or.inr hmem))
+            · intro h
+              rcases h with rfl | h
+              · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inl rfl)))
+              · rcases List.mem_cons.mp h with rfl | hmem
+                · exact List.mem_cons.mpr (Or.inl rfl)
+                · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inr hmem)))
+
+    /-- `sortedInsertFSet` preserva el invariante de orden estricto. -/
+    theorem sorted_sortedInsertFSet {l : List ℕ₀FSet}
+        (hs : Sorted (· < ·) l) (x : ℕ₀FSet) :
+        Sorted (· < ·) (sortedInsertFSet x l) := by
+      induction l with
+      | nil => exact sorted_singleton _ x
+      | cons y ys ih =>
+        unfold sortedInsertFSet
+        split
+        next hlt =>
+          exact List.Pairwise.cons
+            (fun z hz =>
+              match List.mem_cons.mp hz with
+              | Or.inl h => h ▸ hlt
+              | Or.inr h => Trans.trans hlt (List.rel_of_pairwise_cons hs h))
+            hs
+        next hnotlt =>
+          split
+          next heq =>
+            exact hs
+          next hneq =>
+            have hys := (List.pairwise_cons.mp hs).2
+            exact List.Pairwise.cons
+              (fun z hz =>
+                match mem_sortedInsertFSet_iff.mp hz with
+                | Or.inl hzx =>
+                    hzx ▸
+                    by
+                      by_cases hyx : y < x
+                      · exact hyx
+                      · have hxy : x = y :=
+                          Std.Trichotomous.trichotomous x y hnotlt hyx
+                        exact False.elim (hneq hxy)
+                | Or.inr hmem => List.rel_of_pairwise_cons hs hmem)
+              (ih hys)
+
+    /-- La ordenación por inserción produce una lista estrictamente ordenada. -/
+    theorem sorted_sortFSetList (l : List ℕ₀FSet) :
+        Sorted (· < ·) (sortFSetList l) := by
+      induction l with
+      | nil => exact sorted_nil _
+      | cons x xs ih =>
+          exact sorted_sortedInsertFSet ih x
+
+    /-- La ordenación por inserción preserva pertenencia. -/
+    theorem mem_sortFSetList_iff {x : ℕ₀FSet} {l : List ℕ₀FSet} :
+        x ∈ sortFSetList l ↔ x ∈ l := by
+      induction l with
+      | nil => simp [sortFSetList]
+      | cons y ys ih =>
+          simpa [sortFSetList, mem_sortedInsertFSet_iff, ih, eq_comm] using
+            (mem_sortedInsertFSet_iff (z := x) (x := y) (l := sortFSetList ys))
+
   end FSet
 
 end Peano

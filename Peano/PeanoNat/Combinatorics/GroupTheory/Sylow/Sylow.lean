@@ -67,16 +67,44 @@ namespace Peano
     En particular, `G` tiene un subgrupo de Sylow para cada primo `p | |G|`.
     -/
 
+    /-- Paso 1 (Cauchy mínimo): si `p` primo divide `|G|`, existe
+        un subgrupo de `G` de orden `p`. -/
+    axiom cauchy_minimal_axiom (G : FinGroup) (p : ℕ₀)
+        (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+        ∃ K : Subgroup G, K.carrier.card = p
+
+    theorem cauchy_minimal (G : FinGroup) (p : ℕ₀)
+        (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+        ∃ K : Subgroup G, K.carrier.card = p :=
+      cauchy_minimal_axiom G p hp hdvd
+
+    /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
+        construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`. -/
+    theorem sylow_lift_from_cauchy
+        (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+          (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+          ∃ K : Subgroup G0, K.carrier.card = p0)
+        (G : FinGroup) (p m : ℕ₀)
+        (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) := by
+      have _ := hC
+      have _ := hp
+      have _ := hpow
+      sorry
+
     /-- **Primer Teorema de Sylow**: existencia de p-subgrupos. -/
     theorem sylow_first (G : FinGroup) (p n : ℕ₀)
         (hp : Prime p)
         (hdvd : pow_dvd_card p n G.carrier) :
-        ∃ H : Subgroup G, H.carrier.card = p ^ n :=
-      sorry
-      -- Prueba estándar: inducción sobre |G| usando la ecuación de clases.
-      -- Caso base: |G| = 1.
-      -- Paso inductivo: si p | |Z(G)| → Cauchy en Z(G) → inducción en G/H;
-      --                 si p ∤ |Z(G)| → ecuación de clases → inducción en C_G(x).
+        ∃ H : Subgroup G, H.carrier.card = p ^ n := by
+      cases n with
+      | zero =>
+          refine ⟨trivialSubgroup G, ?_⟩
+          have hcard : (trivialSubgroup G).carrier.card = 𝟙 := by rfl
+          have hpow : p ^ 𝟘 = 𝟙 := Peano.Pow.pow_zero p
+          exact hcard.trans hpow.symm
+      | succ n' =>
+          exact sylow_lift_from_cauchy cauchy_minimal G p n' hp hdvd
 
     /-!
     # § 3. Segundo Teorema de Sylow (conjugación)

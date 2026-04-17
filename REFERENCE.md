@@ -3016,3 +3016,17 @@ structure GroupHom (G H : FinGroup) where
 > §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
 > §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
 > §43 `GroupTheory/Sylow/Cosets.lean`, §44 `GroupTheory/Sylow/Sylow.lean`.
+
+<!-- AUTO-UPDATE-2026-04-17-START -->
+## Actualizacion de estado - 2026-04-17
+
+- Estado del build: compila en el estado actual de la rama makingdecidable.
+- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
+- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
+- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
+- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
+- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
+- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
+
+<!-- AUTO-UPDATE-2026-04-17-END -->
+

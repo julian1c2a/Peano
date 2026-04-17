@@ -18,6 +18,7 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.Combinatorics.Group
+import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 
 set_option autoImplicit false
 
@@ -116,7 +117,85 @@ namespace Peano
     theorem orbit_stabilizer {G : FinGroup} {X : ℕ₀FSet}
         (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) :
         mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card :=
-      sorry  -- requiere Lagrange + biyección G/Stab(x) ≅ Orb(x)
+      by
+        let S := α.stab x hx
+        let f : MapOn G.carrier (α.orb x) := {
+          toFun := fun g => α.act g x
+          map_carrier := fun g hg =>
+            (mem_orb_iff α x (α.act g x) hx).mpr ⟨g, hg, rfl⟩
+        }
+
+        have h_fiber : ∀ y, y ∈ (α.orb x).elems → (f.fiber y).card = S.carrier.card := by
+          intro y hy
+          obtain ⟨gy, hgy, hgyx⟩ := (mem_orb_iff α x y hx).mp hy
+
+          have h_fiber_eq_coset : f.fiber y = leftCoset G S gy := by
+            apply FSet.eq_of_mem_iff
+            intro g
+            constructor
+            · intro hgFib
+              have hgData := (MapOn.mem_fiber_iff f y g).mp hgFib
+              have hg_mem : g ∈ G.carrier.elems := hgData.1
+              have hg_eq : α.act g x = y := hgData.2
+
+              let h : ℕ₀ := G.op (G.inv gy) g
+              have hhG : h ∈ G.carrier.elems :=
+                op_mem G (inv_mem G hgy) hg_mem
+              have hh_fix : α.act h x = x := by
+                have hInvY : α.act (G.inv gy) y = x := by
+                  calc
+                    α.act (G.inv gy) y = α.act (G.inv gy) (α.act gy x) := by
+                      rw [← hgyx]
+                    _ = α.act (G.op (G.inv gy) gy) x := by
+                      rw [α.act_compat (G.inv gy) gy x (inv_mem G hgy) hgy hx]
+                    _ = α.act G.id x := by rw [(G.op_inv gy hgy).2]
+                    _ = x := α.act_id x hx
+                calc
+                  α.act h x = α.act (G.inv gy) (α.act g x) := by
+                    unfold h
+                    rw [α.act_compat (G.inv gy) g x (inv_mem G hgy) hg_mem hx]
+                  _ = α.act (G.inv gy) y := by rw [hg_eq]
+                  _ = x := hInvY
+
+              have hhS : h ∈ S.carrier.elems := by
+                exact List.mem_filter.mpr ⟨hhG, decide_eq_true_eq.mpr hh_fix⟩
+
+              have hrep : G.op gy h = g := by
+                calc
+                  G.op gy h = G.op gy (G.op (G.inv gy) g) := by rfl
+                  _ = G.op (G.op gy (G.inv gy)) g := by
+                    rw [← G.op_assoc gy (G.inv gy) g hgy (inv_mem G hgy) hg_mem]
+                  _ = G.op G.id g := by rw [(G.op_inv gy hgy).1]
+                  _ = g := by simpa using (G.op_id g hg_mem).2
+
+              exact (mem_leftCoset_iff G S gy g hgy).mpr ⟨h, hhS, hrep⟩
+
+            · intro hgCos
+              obtain ⟨h, hhS, hEq⟩ := (mem_leftCoset_iff G S gy g hgy).mp hgCos
+              have hhG : h ∈ G.carrier.elems := S.subset h hhS
+              have hh_fix : α.act h x = x := by
+                exact decide_eq_true_eq.mp ((List.mem_filter.mp hhS).2)
+              have hg_mem : g ∈ G.carrier.elems := by
+                rw [← hEq]
+                exact op_mem G hgy hhG
+              have hact : α.act g x = y := by
+                rw [← hEq,
+                    ← α.act_compat gy h x hgy hhG hx,
+                    hh_fix,
+                    hgyx]
+              exact (MapOn.mem_fiber_iff f y g).mpr ⟨hg_mem, hact⟩
+
+          calc
+            (f.fiber y).card = (leftCoset G S gy).card := by rw [h_fiber_eq_coset]
+            _ = S.carrier.card := coset_card_eq_subgroup_card G S gy hgy
+
+        have h_card :=
+          FSetFunction.card_eq_mul_of_uniform_fibers f S.carrier.card h_fiber
+
+        calc
+          mul (α.orb x).card S.carrier.card = mul S.carrier.card (α.orb x).card := by
+            rw [mul_comm]
+          _ = G.carrier.card := Eq.symm h_card
 
     /-!
     # § 5. Ecuación de clases
@@ -150,7 +229,52 @@ namespace Peano
           obtain ⟨z, hzx, hzy⟩ := h
           obtain ⟨g₁, hg₁, hg₁_eq⟩ := (mem_orb_iff α x z hx).mp hzx
           obtain ⟨g₂, hg₂, hg₂_eq⟩ := (mem_orb_iff α y z hy).mp hzy
-          sorry  -- requiere pairwise-sorted extensionality
+          have hxy_mem : x ∈ (α.orb y).elems := by
+            refine (mem_orb_iff α y x hy).mpr ?_
+            refine ⟨G.op (G.inv g₁) g₂, op_mem G (inv_mem G hg₁) hg₂, ?_⟩
+            have hzx' : α.act g₁ x = α.act g₂ y := by
+              exact hg₁_eq.trans hg₂_eq.symm
+            calc
+              α.act (G.op (G.inv g₁) g₂) y = α.act (G.inv g₁) (α.act g₂ y) := by
+                rw [α.act_compat (G.inv g₁) g₂ y (inv_mem G hg₁) hg₂ hy]
+              _ = α.act (G.inv g₁) (α.act g₁ x) := by rw [hzx']
+              _ = α.act (G.op (G.inv g₁) g₁) x := by
+                rw [α.act_compat (G.inv g₁) g₁ x (inv_mem G hg₁) hg₁ hx]
+              _ = α.act G.id x := by rw [(G.op_inv g₁ hg₁).2]
+              _ = x := α.act_id x hx
+
+          have hyx_mem : y ∈ (α.orb x).elems := by
+            refine (mem_orb_iff α x y hx).mpr ?_
+            refine ⟨G.op (G.inv g₂) g₁, op_mem G (inv_mem G hg₂) hg₁, ?_⟩
+            have hzy' : α.act g₂ y = α.act g₁ x := by
+              exact hg₂_eq.trans hg₁_eq.symm
+            calc
+              α.act (G.op (G.inv g₂) g₁) x = α.act (G.inv g₂) (α.act g₁ x) := by
+                rw [α.act_compat (G.inv g₂) g₁ x (inv_mem G hg₂) hg₁ hx]
+              _ = α.act (G.inv g₂) (α.act g₂ y) := by rw [hzy']
+              _ = α.act (G.op (G.inv g₂) g₂) y := by
+                rw [α.act_compat (G.inv g₂) g₂ y (inv_mem G hg₂) hg₂ hy]
+              _ = α.act G.id y := by rw [(G.op_inv g₂ hg₂).2]
+              _ = y := α.act_id y hy
+
+          have horb_eq : α.orb x = α.orb y := by
+            apply FSet.eq_of_mem_iff
+            intro w
+            constructor
+            · intro hwx
+              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff α x w hx).mp hwx
+              obtain ⟨k, hk, hkx⟩ := (mem_orb_iff α y x hy).mp hxy_mem
+              exact (mem_orb_iff α y w hy).mpr
+                ⟨G.op g k, op_mem G hg hk, by
+                  rw [← α.act_compat g k y hg hk hy, hkx, hgw]⟩
+            · intro hwy
+              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff α y w hy).mp hwy
+              obtain ⟨k, hk, hky⟩ := (mem_orb_iff α x y hx).mp hyx_mem
+              exact (mem_orb_iff α x w hx).mpr
+                ⟨G.op g k, op_mem G hg hk, by
+                  rw [← α.act_compat g k x hg hk hx, hky, hgw]⟩
+
+          exact congrArg FSet.elems horb_eq
         · right
           intro z
           rcases Classical.em (z ∈ (α.orb x).elems) with hzx | hzx

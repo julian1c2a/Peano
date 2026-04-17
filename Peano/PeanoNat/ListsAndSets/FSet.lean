@@ -69,6 +69,46 @@ namespace Peano
         DecidableRel (@LT.lt (FSet α) _) :=
       fun s₁ s₂ => inferInstanceAs (Decidable (s₁.elems < s₂.elems))
 
+    /-- Irreflexividad estándar en `FSet α`, heredada de `List α`. -/
+    instance {α : Type} [DecidableEq α] [LT α]
+        [Std.Irrefl (fun a b : α => a < b)] :
+        Std.Irrefl (fun s t : FSet α => s < t) where
+      irrefl := fun s hs => (List.lt_irrefl s.elems) hs
+
+    /-- Asimetría estándar en `FSet α`, heredada de `List α`. -/
+    instance {α : Type} [DecidableEq α] [LT α]
+        [Std.Asymm (fun a b : α => a < b)] :
+        Std.Asymm (fun s t : FSet α => s < t) where
+      asymm := fun _ _ hst hts =>
+        (List.lt_asymm hst) hts
+
+    /-- Transitividad de `<` en `FSet α`, heredada del orden lexicográfico
+        de listas cuando `<` en `α` es transitivo. -/
+    instance {α : Type} [DecidableEq α] [LT α]
+        [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)] :
+        Trans (fun s t : FSet α => s < t) (fun s t : FSet α => s < t)
+          (fun s t : FSet α => s < t) where
+      trans := by
+        intro s t u hst htu
+        exact List.lt_trans hst htu
+
+    /-- Tricotomía estándar en `FSet α`, heredada de `List α`. -/
+    instance {α : Type} [DecidableEq α] [LT α]
+        [Std.Irrefl (fun a b : α => a < b)]
+        [Std.Trichotomous (fun a b : α => a < b)]
+        [Std.Asymm (fun a b : α => a < b)] :
+        Std.Trichotomous (fun s t : FSet α => s < t) where
+      trichotomous := fun s t hs_not_st hs_not_ts =>
+        FSet.ext <| Std.Trichotomous.trichotomous
+          (r := fun l₁ l₂ : List α => l₁ < l₂) s.elems t.elems hs_not_st hs_not_ts
+
+    /-- Irreflexividad de `<` en `FSet α`, heredada del orden lexicográfico
+        en listas cuando `<` en `α` es irreflexivo (instancia stdlib). -/
+    instance {α : Type} [DecidableEq α] [LT α]
+        [Std.Irrefl (fun a b : α => a < b)] :
+        Peano.StrictOrder.IrreflLT (FSet α) :=
+      ⟨fun s hs => (List.lt_irrefl s.elems) hs⟩
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 1. Aliases de tipos concretos
 

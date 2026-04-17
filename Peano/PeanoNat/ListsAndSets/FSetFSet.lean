@@ -143,6 +143,40 @@ namespace Peano
           PeanoValFSet := ⟨l, h⟩
     end PeanoValFSet
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 19. FSet de FSet (conjuntos de conjuntos)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Conjunto finito de conjuntos finitos de `ℕ₀`. -/
+    abbrev Nat0FSetFSet := FSet ℕ₀FSet
+
+    /-- Igualdad decidible en `ℕ₀FSet` (heredada de `FSet`). -/
+    instance instDecidableEqNat0FSet : DecidableEq ℕ₀FSet := inferInstance
+
+    /-- Orden en `ℕ₀FSet` (heredado de `FSet`). -/
+    instance instLTNat0FSet : LT ℕ₀FSet := inferInstance
+
+    /-- Comparación decidible en `ℕ₀FSet`. -/
+    instance instDecidableRelLtNat0FSet : DecidableRel (@LT.lt ℕ₀FSet instLTNat0FSet) :=
+      inferInstance
+
+    /-- Igualdad decidible en `Nat0FSetFSet`. -/
+    instance instDecidableEqNat0FSetFSet : DecidableEq Nat0FSetFSet := inferInstance
+
+    /-- Orden en `Nat0FSetFSet`. -/
+    instance instLTNat0FSetFSet : LT Nat0FSetFSet := inferInstance
+
+    /-- Comparación decidible en `Nat0FSetFSet`. -/
+    instance instDecidableRelLtNat0FSetFSet :
+        DecidableRel (@LT.lt Nat0FSetFSet instLTNat0FSetFSet) := inferInstance
+
+    namespace Nat0FSetFSet
+      def empty : Nat0FSetFSet := FSet.empty
+      def singleton (s : ℕ₀FSet) : Nat0FSetFSet := FSet.singleton s
+      def ofSortedList (l : List ℕ₀FSet) (h : Sorted (· < ·) l) :
+          Nat0FSetFSet := ⟨l, h⟩
+    end Nat0FSetFSet
+
   end FSet
 
 end Peano
@@ -157,4 +191,5 @@ export Peano.FSet (
   GTupleListFSet
   HTupleListFSet
   PeanoValFSet
+  Nat0FSetFSet
 )

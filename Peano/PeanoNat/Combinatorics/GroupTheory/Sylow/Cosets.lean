@@ -117,6 +117,64 @@ namespace Peano
       rw [key]
       exact H.op_closed _ _ hab hbc
 
+    /-- Si `a ~ b` por `cosetRel`, entonces `aH ⊆ bH`. -/
+    theorem leftCoset_subset_of_rel (G : FinGroup) (H : Subgroup G)
+        (a b : ℕ₀)
+        (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
+        (hab : cosetRel G H a b) :
+        ∀ x, x ∈ (leftCoset G H a).elems → x ∈ (leftCoset G H b).elems := by
+      intro x hx
+      have habH : G.op (G.inv a) b ∈ H.carrier.elems := hab
+      obtain ⟨h, hh, hax⟩ := (mem_leftCoset_iff G H a x ha).mp hx
+      have h_invab_memG : G.op (G.inv a) b ∈ G.carrier.elems := H.subset _ habH
+      have h_inv_invab_memH : G.inv (G.op (G.inv a) b) ∈ H.carrier.elems :=
+        H.inv_closed _ habH
+      have hh_memG : h ∈ G.carrier.elems := H.subset _ hh
+      let hAux : ℕ₀ := G.op (G.inv (G.op (G.inv a) b)) h
+      have hhAux : hAux ∈ H.carrier.elems :=
+        H.op_closed _ _ h_inv_invab_memH hh
+      have hbx : G.op b hAux = x := by
+        have hbab : b = G.op a (G.op (G.inv a) b) := by
+          rw [← G.op_assoc a (G.inv a) b ha (inv_mem G ha) hb,
+              (G.op_inv a ha).1, (G.op_id b hb).2]
+        have hstep1 : G.op b hAux = G.op (G.op a (G.op (G.inv a) b)) hAux :=
+          congrArg (fun t => G.op t hAux) hbab
+        calc
+          G.op b hAux
+              = G.op (G.op a (G.op (G.inv a) b))
+                  hAux := hstep1
+          _ = G.op a
+                (G.op (G.op (G.inv a) b)
+                  hAux) := by
+                    rw [G.op_assoc a (G.op (G.inv a) b)
+                      hAux
+                      ha h_invab_memG (H.subset _ hhAux)]
+          _ = G.op a
+                (G.op (G.op (G.inv a) b)
+                  (G.op (G.inv (G.op (G.inv a) b)) h)) := by
+                    simp [hAux]
+          _ = G.op a (G.op (G.op (G.op (G.inv a) b) (G.inv (G.op (G.inv a) b))) h) := by
+                    rw [← G.op_assoc (G.op (G.inv a) b) (G.inv (G.op (G.inv a) b)) h
+                      h_invab_memG (inv_mem G h_invab_memG) hh_memG]
+          _ = G.op a h := by
+                    rw [(G.op_inv (G.op (G.inv a) b) h_invab_memG).1,
+                        (G.op_id h hh_memG).2]
+          _ = x := hax
+      exact (mem_leftCoset_iff G H b x hb).mpr ⟨hAux, hhAux, hbx⟩
+
+    /-- Si `a ~ b`, entonces los cosetos izquierdos coinciden: `aH = bH`. -/
+    theorem leftCoset_eq_of_rel (G : FinGroup) (H : Subgroup G)
+        (a b : ℕ₀)
+        (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
+        (hab : cosetRel G H a b) :
+        leftCoset G H a = leftCoset G H b := by
+      apply FSet.eq_of_mem_iff
+      intro x
+      constructor
+      · exact leftCoset_subset_of_rel G H a b ha hb hab x
+      · have hba : cosetRel G H b a := cosetRel_symm G H a b ha hb hab
+        exact leftCoset_subset_of_rel G H b a hb ha hba x
+
     /-!
     # § 3. Lema de Lagrange
     -/

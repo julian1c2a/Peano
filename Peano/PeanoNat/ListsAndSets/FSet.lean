@@ -50,6 +50,25 @@ namespace Peano
         {s₁ s₂ : FSet α} (h : s₁.elems = s₂.elems) : s₁ = s₂ := by
       cases s₁; cases s₂; cases h; rfl
 
+    /-- Igualdad decidible en `FSet α`: dos conjuntos son iguales si y solo si
+        sus listas canónicas de elementos coinciden. -/
+    instance {α : Type} [DecidableEq α] [LT α] : DecidableEq (FSet α) :=
+      fun s₁ s₂ =>
+        if h : s₁.elems = s₂.elems then
+          isTrue (FSet.ext h)
+        else
+          isFalse (fun hs => h (congrArg FSet.elems hs))
+
+    /-- Orden en `FSet α` inducido por el orden lexicográfico de `List α`
+        sobre la representación canónica `elems`. -/
+    instance {α : Type} [DecidableEq α] [LT α] : LT (FSet α) where
+      lt s₁ s₂ := s₁.elems < s₂.elems
+
+    /-- Decidabilidad del orden en `FSet α`, heredada de `List α`. -/
+    instance {α : Type} [DecidableEq α] [LT α] [DecidableRel (@LT.lt α _)] :
+        DecidableRel (@LT.lt (FSet α) _) :=
+      fun s₁ s₂ => inferInstanceAs (Decidable (s₁.elems < s₂.elems))
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 1. Aliases de tipos concretos
 
@@ -76,6 +95,12 @@ namespace Peano
 
     instance : DecidableRel (@LT.lt Nats _) :=
       fun a b => inferInstanceAs (Decidable (natsToInt a < natsToInt b))
+
+    /-- Decidabilidad de `<` en `ℕ₀`, expuesta como `DecidableRel`.
+        Esto permite heredar comparación decidible en `FSet ℕ₀` y, por extensión,
+        en niveles anidados como `FSet (FSet ℕ₀)`. -/
+    instance : DecidableRel (@LT.lt ℕ₀ _) :=
+      fun a b => Peano.StrictOrder.decidableLt a b
 
     /-- Conjunto finito de naturales Nats. -/
     abbrev NatsFSet := FSet Nats

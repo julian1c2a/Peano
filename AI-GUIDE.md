@@ -434,7 +434,7 @@ considering documentation complete and up to date.
 Organize modules into **thematic subdirectories** inside `Peano/`.
 Each subdirectory groups related modules and corresponds to a sub-namespace.
 
-Current structure (2026-04-16, 51 build jobs):
+Current structure (2026-04-19, 52 build jobs):
 
 ```
 Peano/
@@ -476,10 +476,10 @@ Peano/
     │   ├── Sign.lean           # Signo de permutación
     │   ├── Orbit.lean          # Órbitas de acción
     │   └── GroupTheory/
-    │       ├── Action.lean     # Acciones de grupo (⚠ 2 sorry)
+    │       ├── Action.lean     # Acciones de grupo
     │       └── Sylow/
-    │           ├── Cosets.lean # Clases laterales (⚠ 1 sorry)
-    │           └── Sylow.lean  # Teoremas de Sylow (⚠ 3 sorry)
+    │           ├── Cosets.lean # Clases laterales
+    │           └── Sylow.lean  # Teoremas de Sylow (⚠ 4 sorry)
     ├── ListsAndSets/
     │   ├── List.lean           # Listas: Sorted, Perm, filter, map
     │   ├── ListList.lean       # Listas de listas
@@ -673,7 +673,132 @@ An informal design journal for recording ideas, alternatives considered,
 open questions, and future directions. Not normative — purely exploratory.
 Useful for AI context on "why" decisions were made.
 
-<!-- AUTO-UPDATE-2026-04-17-START -->
+### (29.) Commands
+
+A set of high-level instructions that trigger a predefined multi-step workflow.
+Commands are addressed to the AI assistant and named using a short verb phrase.
+Each command is defined in this section (§29) with its exact steps.
+
+> To invoke a command, write its name in the chat, e.g.: **`actualiza doc`**
+
+---
+
+## Commands
+
+### `actualiza doc`
+
+**Purpose**: Full documentation pass — synchronize all living documentation files
+with the current state of the codebase after a development session.
+
+**Steps** (execute in order):
+
+1. **Run the build** and record the result:
+   - `lake build` — note the number of jobs, errors, sorry count, and any warnings.
+
+2. **Read the current state** of these files (to diff against later):
+   - `NEXT-STEPS.md` — current sorry table and phase status.
+   - `CHANGELOG.md` — latest entry date.
+   - `CURRENT-STATUS-PROJECT.md` — build snapshot and module status table.
+   - `AI-GUIDE.md` — directory structure block inside § 22.
+
+3. **Identify what changed** since the last documentation update:
+   - Which sorries were closed (compare `check-sorry.bash` output vs NEXT-STEPS.md table).
+   - Which new theorems, definitions, or modules were added.
+   - Which modules changed status (🔄 → 🔶 → ✅ → 🧊).
+   - Current build numbers (jobs, errors, sorry count).
+
+4. **Update `CHANGELOG.md`**:
+   - Add a new `### Added (YYYY-MM-DD)` block under `## [Unreleased]`.
+   - List every closed sorry, new declaration, and structural change.
+   - Include build stats: jobs, errors, sorry count, warnings.
+   - Follow the existing entry format (bullet points grouped by module).
+
+5. **Update `NEXT-STEPS.md`**:
+   - Update `**Last updated:**` timestamp.
+   - Update § 1 "Estado Actual" snapshot: build status, error count, sorry count.
+   - Update § 1.1 "Completado recientemente": move closed items here.
+   - Update § 1.2 "Sorries vigentes": remove closed sorries; update line numbers for open ones.
+   - Update priority sections if the next objective changed.
+
+6. **Update `CURRENT-STATUS-PROJECT.md`**:
+   - Update `**Last updated:**` timestamp.
+   - Update build snapshot block: date, jobs, errors, sorry count.
+   - Update the module status table: mark newly completed modules ✅ or 🧊.
+
+7. **Update `AI-GUIDE.md` § 22 directory structure block** (if modules were added/removed):
+   - Update the tree listing.
+   - Update the sorry count annotations (e.g., `⚠ 3 sorry` → `⚠ 2 sorry`).
+   - Update the "Current structure" date.
+
+8. **Update `REFERENCE.md`** for every `.lean` file modified in the session:
+   - Project new public declarations following rules §1–§14.
+   - Update module status codes.
+   - Add timestamps.
+
+9. **Verify consistency**:
+   - Sorry count in NEXT-STEPS.md = sorry count in CHANGELOG.md = `check-sorry.bash` output.
+   - All new public declarations appear in their module's `export` block.
+   - REFERENCE.md timestamps are newer than the `.lean` file timestamps for modified modules.
+
+10. **Report a brief summary** to the user:
+    - Sorries closed this session.
+    - New declarations added.
+    - Files updated.
+    - Remaining sorries and their location.
+
+**Files touched by this command** (in order of update):
+`CHANGELOG.md` → `NEXT-STEPS.md` → `CURRENT-STATUS-PROJECT.md` → `AI-GUIDE.md` → `REFERENCE.md`
+
+**Note**: Steps 4–8 may be done in parallel when changes are independent across modules.
+Never overwrite content from prior sessions — only prepend new entries or update
+clearly demarcated snapshot blocks.
+
+---
+
+### `dame situación`
+
+**Purpose**: Instant read-only status report. No files are modified. Gives a complete,
+structured picture of the project's current state in a single response.
+
+**Steps** (all read-only, execute in parallel where possible):
+
+1. **Run `check-sorry.bash`** — get the current sorry count and file locations.
+2. **Run `lake build`** — confirm 0 errors; record job count and warning count.
+3. **Read `NEXT-STEPS.md` § 1.2** — get the canonical sorry table (names + lines).
+4. **Read `CURRENT-STATUS-PROJECT.md`** — get the module status table.
+5. **Read `CHANGELOG.md`** — get the most recent entry to know what changed last.
+
+**Output format** (always in this order):
+
+```
+## Situación — YYYY-MM-DD
+
+### Build
+- Jobs: N  |  Errores: 0  |  Sorries activos: N  |  Warnings: N
+
+### Sorries vigentes
+| Archivo | Línea | Teorema | Estrategia |
+|---------|-------|---------|------------|
+| ...     | ...   | ...     | ...        |
+
+### Último cambio documentado
+- Fecha: YYYY-MM-DD
+- Resumen: <primera línea del último bloque CHANGELOG>
+
+### Módulos con estado incompleto
+| Módulo | Estado | Bloqueado por |
+|--------|--------|---------------|
+| ...    | ...    | ...           |
+
+### Próximo objetivo
+<Extraído de NEXT-STEPS.md § 2>
+```
+
+**Files read** (none modified):
+`check-sorry.bash` output → `NEXT-STEPS.md` → `CURRENT-STATUS-PROJECT.md` → `CHANGELOG.md`
+
+---
+
 ## Actualizacion de estado - 2026-04-17
 
 - Estado del build: compila en el estado actual de la rama makingdecidable.
@@ -685,4 +810,3 @@ Useful for AI context on "why" decisions were made.
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
-

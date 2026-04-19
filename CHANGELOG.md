@@ -2,7 +2,34 @@
 
 ## [Unreleased]
 
-### Added (2026-04-17)
+### Added (2026-04-19)
+
+- **Sylow.lean — lemas privados para `cauchy_minimal` completamente formalizados (sin sorry)**:
+  - `card_pos_of_mem_aux`: si `x ∈ S.elems` entonces `lt₀ 𝟘 S.card` (usando `unfold FSet.card` + `cases` sobre la lista).
+  - `order_dvd_of_pow_eq_id`: si `g^m = e` y `m > 0` entonces `ord(g) ∣ m`.
+  - `order_eq_prime_of_pow`: si `g ≠ e`, `g^p = e`, `p` primo, entonces `ord(g) = p` (vía `prime_imp_irreducible`).
+  - `gpow_lt_p_mem_cyclic`: si `i < p` y `p ∣ |G|`, entonces `g^i ∈ ⟨g⟩`.
+  - `cyclicSubgroup_card_eq_prime`: construye biyección explícita `Fin₀Set(p) → ⟨g⟩` (inyectividad + sobreyectividad) y concluye `|⟨g⟩| = p`.
+  - `cauchy_minimal` formalizado condicionalmente: la conclusión final sigue en sorry (argumento de McKay — conteo módulo p sobre p-tuplos).
+  - **Todos los lemas auxiliares: 0 sorry.**
+
+- **Sylow.lean — correcciones de infraestructura**:
+  - Añadido `open Peano.Sub` (faltaba `sub` en scope).
+  - Añadido `private abbrev Prime := Peano.Primes.Prime` para resolver la ambigüedad entre `Arith.Prime` (exportado por `Arith.lean`) y `Primes.Prime` (exportado por `Primes.lean`).
+  - Sustituido `by_contra` (no válido en este proyecto) por estructura directa `rcases trichotomy ... / exfalso` en la prueba de inyectividad.
+  - Corregidos patrones `rcases ... with h | rfl` cuando la variable ya no era libre tras la sustitución.
+  - `simp only [f] at h_eq` añadido para desdoblar `f.toFun` antes de reescribir en la prueba de inyectividad.
+  - Corregida la orientación de `h_card` en `cyclicSubgroup_card_eq_prime` (`h_card.symm`).
+
+- **AI-GUIDE.md — sección de Comandos**:
+  - Añadida § 29 "Commands" con definición formal del comando `actualiza doc` (10 pasos).
+  - El comando describe el workflow completo de sincronización de documentación tras una sesión de desarrollo.
+
+- **Estado de build (snapshot 2026-04-19)**:
+  - `lake build`: 0 errores, 52 jobs.
+  - Sorry activos: 4 (todos en `Sylow.lean`: `cauchy_minimal`, `sylow_lift_from_cauchy`, `sylow_first` n>0, `sylow_third`).
+  - `check-sorry.bash`: 8 sorry en 3 archivos (4 Sylow.lean + 2 Perm.lean comentados + 2 Primes.lean comentados).
+  - Warnings no-sorry: 4 (1 `unused variable` en Sylow.lean + 3 en Group.lean).
 
 - **ListsAndSets/FSet.lean + FSetFunction.lean — cierre de infraestructura para Lagrange**:
   - `FSet.eq_of_mem_iff` añadido y exportado en `FSet.lean` (extensionalidad por pertenencia en `FSet ℕ₀`).
@@ -362,4 +389,3 @@
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
-

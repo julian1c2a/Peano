@@ -15,9 +15,10 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (51 jobs)
+lake build      →  Build completed successfully (52 jobs)   [2026-04-19]
 sorry count     →  4 (todos en Sylow.lean)
-warnings        →  7 (4 sorry warnings + 3 `unused variable` en Group.lean)
+check-sorry     →  8 total (4 Sylow + 2 Perm.lean comentados + 2 Primes.lean comentados)
+warnings        →  5 (4 sorry warnings + 1 `unused variable` en Sylow.lean)
 errors          →  0
 ```
 
@@ -25,12 +26,13 @@ errors          →  0
 
 | Archivo | Líneas | Cantidad | Bloqueado por |
 |---|---|---|---|
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~93 | 1 | `cauchy_minimal` (acción sobre p-tuplos) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~110 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~122 | 1 | `sylow_second` (conjugación de p-subgrupos) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~142 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~234 | 1 | `cauchy_minimal` (argumento de McKay) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~258 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~287 | 1 | `sylow_second` (conjugación de p-subgrupos) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~307 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
 
 > `Cosets.lean` (`lagrange`), `Action.lean` (`orbit_stabilizer`, `orbits_partition`), `Perm.lean`, `Group.lean` — **todos cerrados en sesiones 2026-04-15–19**.
+> Lemas privados de `cauchy_minimal` (5 lemas, biyección `Fin₀Set(p) → ⟨g⟩`) — **cerrados en sesión 2026-04-19**.
 
 ---
 

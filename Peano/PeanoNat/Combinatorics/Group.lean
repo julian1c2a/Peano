@@ -256,7 +256,7 @@ namespace Peano
     theorem gpow_order_eq_id (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
         gpow G g (order G g hg) = G.id := (order_spec G g hg).1.2
 
-    private theorem order_ne_zero (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+    theorem order_ne_zero (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
         order G g hg ≠ 𝟘 := (ne_of_lt 𝟘 _ (order_pos G g hg)).symm
 
     theorem order_minimal (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
@@ -391,13 +391,13 @@ namespace Peano
     # § 5c. Subgrupo cíclico
     !-/
 
-    private def cyclicCarrier (G : FinGroup) (g : ℕ₀) : ℕ₀FSet :=
+    def cyclicCarrier (G : FinGroup) (g : ℕ₀) : ℕ₀FSet :=
       ℕ₀FSet.filter
         (fun x => (ℕ₀FSet.Fin₀Set (σ G.carrier.card)).elems.any
                     (fun i => decide (gpow G g i = x)))
         G.carrier
 
-    private theorem cyclicCarrier_id_in (G : FinGroup) (g : ℕ₀) :
+    theorem cyclicCarrier_id_in (G : FinGroup) (g : ℕ₀) :
         G.id ∈ (cyclicCarrier G g).elems :=
       List.mem_filter.mpr ⟨G.id_in,
         List.any_eq_true.mpr ⟨𝟘,
@@ -405,7 +405,7 @@ namespace Peano
             (by unfold Peano.StrictOrder.lt₀; trivial),
           decide_eq_true_eq.mpr (gpow_zero G g)⟩⟩
 
-    private theorem cyclicCarrier_mem_iff (G : FinGroup) (g x : ℕ₀) :
+    theorem cyclicCarrier_mem_iff (G : FinGroup) (g x : ℕ₀) :
         x ∈ (cyclicCarrier G g).elems ↔
           x ∈ G.carrier.elems ∧
           ∃ i ∈ (ℕ₀FSet.Fin₀Set (σ G.carrier.card)).elems, gpow G g i = x := by

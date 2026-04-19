@@ -9,12 +9,21 @@
 
 ## 1. Estado Actual (snapshot)
 
-- Build global: OK (51 jobs).
+- Build global: OK (52 jobs).
 - Errores: 0.
 - Sorries activos: 4 (todos en `Sylow.lean`).
-- Warnings no-sorry: 3 (variables no usadas en Group.lean).
+- `check-sorry.bash` total: 8 (4 Sylow + 2 en Perm.lean comentarios + 2 en Primes.lean comentarios).
+- Warnings no-sorry: 4 (1 `unused variable` en Sylow.lean, 3 en Group.lean).
 
-### 1.1. Completado recientemente (sesión 2026-04-17–19)
+### 1.1. Completado recientemente (sesión 2026-04-19)
+
+- Todos los lemas privados de `cauchy_minimal` en `Sylow.lean` — **cerrados sin sorry**:
+  - `card_pos_of_mem_aux`, `order_dvd_of_pow_eq_id`, `order_eq_prime_of_pow`, `gpow_lt_p_mem_cyclic`, `cyclicSubgroup_card_eq_prime`.
+  - Biyección `Fin₀Set(p) → ⟨g⟩` formalizada completamente (inyectividad + sobreyectividad).
+- Infraestructura Sylow.lean saneada: `open Peano.Sub`, `private abbrev Prime`, correcciones de `by_contra`, `rcases rfl`, orientación de igualdades.
+- `actualiza doc` añadido como comando en AI-GUIDE.md § 29.
+
+### 1.1. Completado en sesiones anteriores (2026-04-17–18)
 
 - `FSet.eq_of_mem_iff` en `ListsAndSets/FSet.lean`.
 - `card_eq_mul_of_uniform_fibers` en `ListsAndSets/FSetFunction.lean`.
@@ -28,10 +37,10 @@ Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
 
 | Línea | Teorema | Estrategia conocida |
 |---|---|---|
-| ~93 | `cauchy_minimal` | G actúa sobre p-tuplos con producto e; órbitas de tamaño 1 ó p |
-| ~110 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
-| ~122 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
-| ~142 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
+| ~234 | `cauchy_minimal` (McKay) | G actúa sobre p-tuplos con producto e; órbitas de tamaño 1 ó p |
+| ~258 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
+| ~287 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
+| ~307 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
 
 ---
 

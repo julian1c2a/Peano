@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-17
+**Última actualización:** 2026-04-19
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -16,8 +16,8 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
 lake build      →  Build completed successfully (51 jobs)
-sorry count     →  6 (en 3 módulos de teoría de grupos)
-warnings        →  9 (6 sorry warnings + 3 `unused variable` en Group.lean)
+sorry count     →  4 (todos en Sylow.lean)
+warnings        →  7 (4 sorry warnings + 3 `unused variable` en Group.lean)
 errors          →  0
 ```
 
@@ -25,11 +25,12 @@ errors          →  0
 
 | Archivo | Líneas | Cantidad | Bloqueado por |
 |---|---|---|---|
-| `Combinatorics/GroupTheory/Action.lean` | 119, 153 | 2 | `orbit_stabilizer` (Lagrange + G/Stab≅Orb), `orbits_partition` (extensionalidad sorted) |
-| `Combinatorics/GroupTheory/Sylow/Cosets.lean` | 128 | 1 | `lagrange` (partición en cosetos + conteo) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | 75, 94, 114 | 3 | `sylow_first` (Cauchy), `sylow_second`, `sylow_third` |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~93 | 1 | `cauchy_minimal` (acción sobre p-tuplos) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~110 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~122 | 1 | `sylow_second` (conjugación de p-subgrupos) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~142 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
 
-> `Perm.lean` (1 sorry) y `Group.lean` (3 sorry) — **eliminados en sesión 2026-04-15–17**.
+> `Cosets.lean` (`lagrange`), `Action.lean` (`orbit_stabilizer`, `orbits_partition`), `Perm.lean`, `Group.lean` — **todos cerrados en sesiones 2026-04-15–19**.
 
 ---
 
@@ -86,9 +87,9 @@ errors          →  0
 | `Combinatorics/Orbit.lean` | `Peano.Orbit` | Órbitas | ✅ |
 | `Combinatorics/Group.lean` | `Peano.Group` | FinGroup, Subgroup, gpow, `order`, subgrupos trivial/impropio/cíclico, IsNormal, inter | ✅ |
 | **GroupTheory/** | | | |
-| `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix` | ⚠ 2 sorry |
-| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card` | ⚠ 1 sorry |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III | ⚠ 3 sorry |
+| `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix`, `orbit_stabilizer`, `orbits_partition` | ✅ |
+| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card`, `lagrange` | ✅ |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III | ⚠ 4 sorry |
 
 ---
 
@@ -180,4 +181,3 @@ errors          →  0
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
-

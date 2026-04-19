@@ -68,15 +68,14 @@ namespace Peano
     -/
 
     /-- Paso 1 (Cauchy mínimo): si `p` primo divide `|G|`, existe
-        un subgrupo de `G` de orden `p`. -/
-    axiom cauchy_minimal_axiom (G : FinGroup) (p : ℕ₀)
-        (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
-        ∃ K : Subgroup G, K.carrier.card = p
-
+        un subgrupo de `G` de orden `p`.
+        Estrategia: G actúa sobre los p-tuplos (g₁,…,gₚ) con g₁·…·gₚ = e
+        por permutación cíclica; las órbitas tienen tamaño 1 ó p; el total
+        es divisible por p → existe una órbita de tamaño 1 ≠ identidad. -/
     theorem cauchy_minimal (G : FinGroup) (p : ℕ₀)
         (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
-        ∃ K : Subgroup G, K.carrier.card = p :=
-      cauchy_minimal_axiom G p hp hdvd
+        ∃ K : Subgroup G, K.carrier.card = p := by
+      sorry  -- acción de G sobre p-tuplos con producto e; órbitas de tamaño 1 ó p
 
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
         construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`. -/

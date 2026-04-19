@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-19
 **Author**: Julián Calderón Almendros
 
 > Plan operativo simplificado: solo estado actual, bloqueos reales y siguientes pasos ejecutables.
@@ -11,68 +11,76 @@
 
 - Build global: OK (51 jobs).
 - Errores: 0.
-- Sorries activos: 6.
+- Sorries activos: 4 (todos en `Sylow.lean`).
 - Warnings no-sorry: 3 (variables no usadas en Group.lean).
 
-### 1.1. Completado recientemente
+### 1.1. Completado recientemente (sesión 2026-04-17–19)
 
 - `FSet.eq_of_mem_iff` en `ListsAndSets/FSet.lean`.
 - `card_eq_mul_of_uniform_fibers` en `ListsAndSets/FSetFunction.lean`.
-- Proyección en `REFERENCE.md` actualizada al estado de ambos módulos.
+- `lagrange` en `Combinatorics/GroupTheory/Sylow/Cosets.lean` — **cerrado**.
+- `orbit_stabilizer` y `orbits_partition` en `Combinatorics/GroupTheory/Action.lean` — **cerrados**.
+- `cauchy_minimal_axiom` convertido de `axiom` a `sorry` (trazable en build).
 
 ### 1.2. Sorries vigentes (fuente de verdad)
 
-- `Combinatorics/GroupTheory/Sylow/Cosets.lean`: 1 (`lagrange`).
-- `Combinatorics/GroupTheory/Action.lean`: 2 (`orbit_stabilizer`, `orbits_partition`).
-- `Combinatorics/GroupTheory/Sylow/Sylow.lean`: 3.
+Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
+
+| Línea | Teorema | Estrategia conocida |
+|---|---|---|
+| ~93 | `cauchy_minimal` | G actúa sobre p-tuplos con producto e; órbitas de tamaño 1 ó p |
+| ~110 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
+| ~122 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
+| ~142 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
 
 ---
 
-## 2. Prioridad Inmediata (P0)
+## 2. Prioridad Inmediata (P0) — Cerrar Sylow.lean
 
-## 2.1. Cerrar `lagrange` en Cosets
+### 2.1. `cauchy_minimal` — **primer objetivo**
 
-Objetivo:
-- Probar `∃ k, mul H.carrier.card k = G.carrier.card`.
+Objetivo: `∃ K : Subgroup G, K.carrier.card = p`.
 
 Estrategia:
-- Definir/aplicar el mapa a clases laterales.
-- Usar `card_eq_mul_of_uniform_fibers` con fibras uniformes de tamaño `|H|`.
-- Obtener `k = |G/H|`.
 
-Criterio de salida:
-- `Cosets.lean` sin sorry.
+- Construir el conjunto `T = { (g₁,…,gₚ) ∈ Gᵖ | g₁·…·gₚ = e }`. `|T| = |G|^(p-1)` que es divisible por `p`.
+- G actúa sobre T por rotación cíclica de la tupla.
+- Las órbitas tienen tamaño 1 ó p (p primo, órden de la acción divide a p).
+- `|T| ≡ #{órbitas de tamaño 1} (mod p)` → al menos p órbitas fijas → p ≥ 2 → existe una fija con `g ≠ e` → ese g tiene orden p → genera un subgrupo de orden p.
 
-## 2.2. Cerrar `Action.lean`
+Herramientas disponibles:
 
-Objetivo:
-- Resolver `orbit_stabilizer`.
-- Resolver rama restante de `orbits_partition`.
+- `Action.lean` (órbitas, tamaños) ✅
+- `FSetFunction` (conteo, fibras) ✅
+- `Cosets.lean` (Lagrange) ✅
 
-Dependencia:
-- Consumir `lagrange` ya cerrado.
+Criterio de salida: `cauchy_minimal` sin sorry.
 
-Criterio de salida:
-- `Action.lean` sin sorry.
+### 2.2. `sylow_lift_from_cauchy`
 
-## 2.3. Cerrar `Sylow.lean`
+Dependencia: `cauchy_minimal` cerrado.
 
-Objetivo:
-- Eliminar 3 sorrys restantes.
+Estrategia:
 
-Dependencia:
-- `Cosets.lean` y `Action.lean` completos.
+- Inducción sobre m.
+- Dado H de orden pᵐ, N(H)/H tiene orden divisible por p (vía Lagrange + hipótesis p^(m+1) | |G|).
+- Cauchy en N(H)/H da K/H de orden p → K de orden pᵐ⁺¹.
 
-Criterio de salida:
-- `Sylow.lean` sin sorry.
+### 2.3. `sylow_second`
+
+Dependencia: Sylow I completo, acciones sobre G/K disponibles.
+
+### 2.4. `sylow_third`
+
+Dependencia: `sylow_second`.
 
 ---
 
 ## 3. Documentación (P1)
 
-- Mantener `REFERENCE.md` sincronizado cada vez que se cierre un sorry en módulos de grupos.
-- Actualizar `CHANGELOG.md` por lote de cierres (Cosets/Action/Sylow).
-- Actualizar `CURRENT-STATUS-PROJECT.md` al pasar de 6 → 0 sorry.
+- Actualizar `CURRENT-STATUS-PROJECT.md` al pasar de 4 → 0 sorry.
+- Actualizar `CHANGELOG.md` por lote de cierres de Sylow.
+- Mantener `REFERENCE.md` sincronizado.
 
 ---
 
@@ -80,10 +88,13 @@ Criterio de salida:
 
 - [x] `FSet.eq_of_mem_iff` en FSet.lean
 - [x] `card_eq_mul_of_uniform_fibers` en FSetFunction.lean
-- [x] Verificar `lake build`
-- [ ] Cerrar `lagrange` (Cosets)
-- [ ] Cerrar `orbit_stabilizer` y `orbits_partition` (Action)
-- [ ] Cerrar 3 sorrys de Sylow
+- [x] Cerrar `lagrange` (Cosets)
+- [x] Cerrar `orbit_stabilizer` y `orbits_partition` (Action)
+- [x] `cauchy_minimal_axiom` → sorry (trazable)
+- [ ] Cerrar `cauchy_minimal` (Sylow/cauchy)
+- [ ] Cerrar `sylow_lift_from_cauchy`
+- [ ] Cerrar `sylow_second`
+- [ ] Cerrar `sylow_third`
 - [ ] Dejar build con 0 sorry
 - [ ] Sincronizar `REFERENCE.md`, `CHANGELOG.md`, `CURRENT-STATUS-PROJECT.md`
 
@@ -93,8 +104,7 @@ Criterio de salida:
 
 - `lake build`
 - `lake build 2>&1 | Select-String -Pattern "error|sorry|warning"`
-- `grep -n "sorry" Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean`
-- `grep -n "sorry" Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean`
+- `Get-ChildItem -Recurse -Filter "*.lean" -Path "Peano" | Select-String -Pattern "^\s+sorry"`
 - `grep -n "sorry" Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean`
 
 <!-- AUTO-UPDATE-2026-04-17-START -->
@@ -109,4 +119,3 @@ Criterio de salida:
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
-

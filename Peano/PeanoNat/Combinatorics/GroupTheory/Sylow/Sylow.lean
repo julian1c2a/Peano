@@ -24,6 +24,7 @@ import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Group
 import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 import Peano.PeanoNat.Combinatorics.GroupTheory.Action
+import Peano.PeanoNat.NumberTheory.Totient
 
 set_option autoImplicit false
 
@@ -40,6 +41,7 @@ namespace Peano
     open Peano.Sub
     open Peano.StrictOrder
     open Peano.Order
+    open Peano.Totient
 
     -- Desambiguación: Prime se refiere a Peano.Primes.Prime
     private abbrev Prime := Peano.Primes.Prime
@@ -92,7 +94,7 @@ namespace Peano
 
     /-- Si g^m = e y m > 0, entonces ord(g) divide a m. -/
     private theorem order_dvd_of_pow_eq_id (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
-        {m : ℕ₀} (hm_pos : lt₀ 𝟘 m) (hm_eq : gpow G g m = G.id) :
+        {m : ℕ₀} (_hm_pos : lt₀ 𝟘 m) (hm_eq : gpow G g m = G.id) :
         ∃ k, Mul.mul (order G g hg) k = m := by
       have hord_ne := order_ne_zero G g hg
       have h_mod_eq : gpow G g (mod m (order G g hg)) = G.id := by
@@ -267,10 +269,80 @@ namespace Peano
           (listProd_mem G (fun y hy => h₁ y (List.mem_cons_of_mem x hy)))
           (listProd_mem G h₂)).symm
 
-    /-- Rotación de lista: mueve la cabeza al final. -/
-    private def rotateList : List ℕ₀ → List ℕ₀
+    /-- Subtipo de listas genéricas de longitud fija `n`. -/
+    def Vector (α : Type) (n : ℕ₀) : Type :=
+      { l : List α // lengthₚ l = n }
+
+    /-- Rotación de lista genérica: mueve la cabeza al final. -/
+    private def rotateList {α : Type} : List α → List α
       | []      => []
       | x :: xs => xs ++ [x]
+
+    /-- La rotación preserva la longitud de la lista. -/
+    private theorem lengthₚ_rotateList {α : Type} (l : List α) :
+        lengthₚ (rotateList l) = lengthₚ l := by
+      cases l with
+      | nil => rfl
+      | cons x xs =>
+        have h_rot : rotateList (x :: xs) = xs ++ [x] := rfl
+        rw [h_rot, lengthₚ_append, lengthₚ_singleton, add_one, lengthₚ_cons]
+
+    /-- Rotación cíclica sobre el subtipo de longitud fija. -/
+    private def rotateVector {α : Type} {n : ℕ₀} (v : Vector α n) : Vector α n :=
+      ⟨rotateList v.val, by rw [lengthₚ_rotateList, v.property]⟩
+
+    /-- Producto de los elementos de un Vector. -/
+    private def listProdVector (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : ℕ₀ :=
+      listProd G v.val
+
+    /-- Igualdad decidible para Vector. -/
+    instance vectorDecEq {n : ℕ₀} : DecidableEq (Vector ℕ₀ n) :=
+      fun ⟨v₁, h₁⟩ ⟨v₂, h₂⟩ =>
+        match decEq v₁ v₂ with
+        | isTrue h => isTrue (by cases h; rfl)
+        | isFalse h => isFalse (fun h_eq => by cases h_eq; exact h rfl)
+
+    /-- Orden lexicográfico estricto para listas de ℕ₀. -/
+    private def listLex : List ℕ₀ → List ℕ₀ → Prop
+      | [], [] => False
+      | [], _::_ => True
+      | _::_, [] => False
+      | x::xs, y::ys => lt₀ x y ∨ (x = y ∧ listLex xs ys)
+
+    instance vectorLT {n : ℕ₀} : LT (Vector ℕ₀ n) :=
+      ⟨fun v₁ v₂ => listLex v₁.val v₂.val⟩
+
+    instance vectorDecLT {n : ℕ₀} : DecidableRel (@LT.lt (Vector ℕ₀ n) _) :=
+      fun ⟨v₁, _⟩ ⟨v₂, _⟩ =>
+        let rec decListLex (l₁ l₂ : List ℕ₀) : Decidable (listLex l₁ l₂) :=
+          match l₁, l₂ with
+          | [], [] => isFalse id
+          | [], _::_ => isTrue trivial
+          | _::_, [] => isFalse id
+          | x::xs, y::ys =>
+            match decEq x y with
+            | isTrue h_eq =>
+              match decListLex xs ys with
+              | isTrue h_rest => isTrue (Or.inr ⟨h_eq, h_rest⟩)
+              | isFalse h_nrest =>
+                have h_nlt : ¬ lt₀ x y := by cases h_eq; exact lt_irrefl x
+                isFalse (fun h => h.elim h_nlt (fun h_and => h_nrest h_and.right))
+            | isFalse h_neq =>
+              match decidableLt x y with
+              | isTrue h_lt => isTrue (Or.inl h_lt)
+              | isFalse h_nlt => isFalse (fun h => h.elim h_nlt (fun h_and => h_neq h_and.left))
+        decListLex v₁ v₂
+
+    /-- Genera todas las combinaciones de vectores de longitud `n` con elementos de `elems`. -/
+    private def allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)
+      | 𝟘 => [⟨[], rfl⟩]
+      | σ n =>
+        let recs := allVectorsList elems n
+        let rec flatMapAux (l : List (Vector ℕ₀ n)) : List (Vector ℕ₀ (σ n)) :=
+          match l with
+          | [] => []
+          | v :: vs => (List.map (fun x => ⟨x :: v.val, by rw [lengthₚ_cons, v.property]⟩) elems) ++ flatMapAux vs
+        flatMapAux recs
 
     /-- La rotación preserva la condición listProd = id. -/
     private theorem listProd_rotate_eq_id (G : FinGroup) {l : List ℕ₀}
@@ -303,6 +375,25 @@ namespace Peano
       induction n with
       | zero     => rfl
       | succ n' ih => rw [gpow_succ, ih, (G.op_id G.id G.id_in).1]
+
+    /-- Operación de McKay sobre una lista.
+        Dado `[x₁, ..., x_k]`, devuelve `[x₂, ..., x_k, (x₁ ... x_k)⁻¹]`. -/
+    private def mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀
+      | [] => []
+      | x :: xs => xs ++ [G.inv (listProd G (x :: xs))]
+
+    /-- La operación de McKay preserva la longitud de la lista. -/
+    private theorem lengthₚ_mckayShiftList (G : FinGroup) (l : List ℕ₀) :
+        lengthₚ (mckayShiftList G l) = lengthₚ l := by
+      cases l with
+      | nil => rfl
+      | cons x xs =>
+        have h_shift : mckayShiftList G (x :: xs) = xs ++ [G.inv (listProd G (x :: xs))] := rfl
+        rw [h_shift, lengthₚ_append, lengthₚ_singleton, add_one, lengthₚ_cons]
+
+    /-- Operación de McKay elevada a Vector. -/
+    private def mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n :=
+      ⟨mckayShiftList G v.val, by rw [lengthₚ_mckayShiftList, v.property]⟩
 
     /-- Argumento de McKay: p divide el cardinal de {g ∈ G | g^p = e}.
 

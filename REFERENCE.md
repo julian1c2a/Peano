@@ -3011,7 +3011,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** 🔄 En progreso (4 sorrys).
+**Estado:** 🔄 En progreso (4 sorrys). *Última actualización: 2026-04-20.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3025,42 +3025,47 @@ structure GroupHom (G H : FinGroup) where
 
 **[D44.5]** `isSylowSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop`
 
-### 44.2. Teorema de Cauchy (Mckay) [T]
+**[D44.6]** `Vector (α : Type) (n : ℕ₀) : Type` — subtipo `{ l : List α // lengthₚ l = n }`. *Computable.* Instancias exportadas: `vectorDecEq : DecidableEq (Vector ℕ₀ n)`, `vectorLT : LT (Vector ℕ₀ n)`, `vectorDecLT : DecidableRel (@LT.lt (Vector ℕ₀ n) _)`.
 
-**Lemas auxiliares privados:**
+### 44.2. Teorema de Cauchy (McKay) [T]
+
+**Lemas auxiliares privados (todos sin sorry):**
+
 - `card_pos_of_mem_aux`, `order_dvd_of_pow_eq_id`, `order_eq_prime_of_pow`, `gpow_lt_p_mem_cyclic`, `cyclicSubgroup_card_eq_prime`.
 
-**Infraestructura de Listas/Tuplas para McKay:**
+**Infraestructura de Listas/Tuplas para McKay (privada):**
+
 - `listProd (G : FinGroup) : List ℕ₀ → ℕ₀`
-- `listProd_mem`, `listProd_append`
-- `Vector (α : Type) (n : ℕ₀)`: Subtipo de listas de longitud `n`. Instancias de `DecidableEq` y `LT`.
-- `allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)`
+- `listProd_mem`, `listProd_append`, `listProd_singleton`
+- `allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)` — generador combinatorio.
 
-**Operación McKay:**
+**Operación McKay (privada):**
+
 - `rotateList`, `lengthₚ_rotateList`, `listProd_rotate_eq_id`.
-- `mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀`: desplaza y añade inverso.
-- `lengthₚ_mckayShiftList`, `mckayShiftList_mem`.
-- `append_singleton_inj`, `mckayShiftList_inj`: Inyectividad del operador de McKay.
+- `mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀` — desplaza y añade inverso del producto.
+- `mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n` — versión tipada.
+- `lengthₚ_mckayShiftList`, `mckayShiftList_mem` (preservación de G).
+- `append_singleton_inj`, `mckayShiftList_inj` (inyectividad).
 
-**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) ...` ⚠️ sorry
+**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ...) : p ∣ F.card` ⚠️ sorry
 
-- `p` divide al cardinal de los elementos cuyo orden divide a `p`.
+- `p` divide al cardinal del conjunto fijo `F = {g ∈ G | g^p = e}`. Estrategia: conteo de órbitas bajo la rotación de McKay sobre p-tuplas de producto neutro.
 
-**[T44.2]** `cauchy_minimal (G : FinGroup) (p : ℕ₀) (hp : Prime p) ...`
+**[T44.2]** `cauchy_minimal (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : ∃ K : Subgroup G, K.carrier.card = p`
 
-- Existencia de un subgrupo de cardinal `p`. Demostrado usando `mckay_p_dvd_powEqId`.
+- Demostrado condicionalmente usando `mckay_p_dvd_powEqId` (el único sorry del teorema de Cauchy). Todos los demás lemas auxiliares están cerrados.
 
 ### 44.3. Teoremas de Sylow [T]
 
-**[T44.3]** `sylow_lift_from_cauchy` ⚠️ sorry
+**[T44.3]** `sylow_lift_from_cauchy (hC : ...) (G : FinGroup) (p m : ℕ₀) ... : ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)` ⚠️ sorry
 
 **[T44.4]** `sylow_first (G : FinGroup) (p n : ℕ₀) (hp : Prime p) (hdvd : pow_dvd_card p n G.carrier) : ∃ H : Subgroup G, H.carrier.card = p ^ n`
 
-- Demostrado por inducción usando `sylow_lift_from_cauchy`.
+- Demostrado por inducción: caso base `n=0` (subgrupo trivial), paso inductivo usa `sylow_lift_from_cauchy`.
 
-**[T44.5]** `sylow_second` ⚠️ sorry
+**[T44.5]** `sylow_second (G : FinGroup) (p : ℕ₀) (H K : Subgroup G) ...` ⚠️ sorry
 
-**[T44.6]** `sylow_third` ⚠️ sorry
+**[T44.6]** `sylow_third (G : FinGroup) (p : ℕ₀) (hp : Prime p) (sylows : ...) ... : (n_p ≡ 1 mod p) ∧ (n_p ∣ |G|)` ⚠️ sorry
 
 > **Secciones pendientes** (módulos sin sección en este documento):
 > §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
@@ -3084,3 +3089,15 @@ structure GroupHom (G H : FinGroup) where
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
+
+<!-- AUTO-UPDATE-2026-04-20-START -->
+## Actualizacion de estado - 2026-04-20
+
+- Estado del build: 52 jobs, 0 errores, 4 sorry warnings (todos en Sylow.lean).
+- Vector, allVectorsList, mckayShiftList, mckayShift completamente definidos y con instancias DecidableEq/LT/DecidableRel.
+- mckayShiftList_mem (preservacion) y mckayShiftList_inj (inyectividad) demostrados sin sorry.
+- cauchy_minimal formalizado condicionalmente: unico sorry es mckay_p_dvd_powEqId.
+- Sorries vigentes: mckay_p_dvd_powEqId (~498), sylow_lift_from_cauchy (~577), sylow_second (~610), sylow_third (~627).
+- D44.6 anadido en REFERENCE.md: Vector con sus tres instancias publicas.
+
+<!-- AUTO-UPDATE-2026-04-20-END -->

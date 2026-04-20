@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-19
+**Última actualización:** 2026-04-20
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,10 +15,10 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (52 jobs)   [2026-04-19]
+lake build      →  Build completed successfully (52 jobs)   [2026-04-20]
 sorry count     →  4 (todos en Sylow.lean)
-check-sorry     →  8 total (4 Sylow + 2 Perm.lean comentados + 2 Primes.lean comentados)
-warnings        →  5 (4 sorry warnings + 1 `unused variable` en Sylow.lean)
+check-sorry     →  8 total (4 Sylow + 2 Perm.lean comentarios + 2 Primes.lean comentarios)
+warnings        →  4 (4 sorry warnings)
 errors          →  0
 ```
 
@@ -26,13 +26,15 @@ errors          →  0
 
 | Archivo | Líneas | Cantidad | Bloqueado por |
 |---|---|---|---|
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~234 | 1 | `cauchy_minimal` (argumento de McKay) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~258 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~287 | 1 | `sylow_second` (conjugación de p-subgrupos) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~307 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~498 | 1 | `mckay_p_dvd_powEqId` (conteo de órbitas McKay) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~577 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~610 | 1 | `sylow_second` (conjugación de p-subgrupos) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~627 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
 
 > `Cosets.lean` (`lagrange`), `Action.lean` (`orbit_stabilizer`, `orbits_partition`), `Perm.lean`, `Group.lean` — **todos cerrados en sesiones 2026-04-15–19**.
 > Lemas privados de `cauchy_minimal` (5 lemas, biyección `Fin₀Set(p) → ⟨g⟩`) — **cerrados en sesión 2026-04-19**.
+> Infraestructura McKay (`Vector`, `allVectorsList`, `mckayShiftList`, `mckayShiftList_mem`, `mckayShiftList_inj`) — **completada en sesión 2026-04-20**.
+> `cauchy_minimal` formalizado condicionalmente: depende de `mckay_p_dvd_powEqId` (único sorry de Cauchy).
 
 ---
 
@@ -151,9 +153,9 @@ errors          →  0
 - **Sign.lean**: Signo de permutaciones (paridad). ✅
 - **Orbit.lean**: Órbitas de permutaciones. ✅
 - **Counting.lean**: Conteo combinatorio. ✅
-- **Action.lean**: Acciones de grupo, órbita, estabilizador, subgrupo fijo (⚠ 2 sorry: `orbit_stabilizer`, `orbits_partition`).
-- **Sylow/Cosets.lean**: Coclases, índice, `cosetRel` (⚠ 1 sorry: `lagrange`).
-- **Sylow/Sylow.lean**: Teoremas de Sylow I/II/III (⚠ 3 sorry).
+- **Action.lean**: Acciones de grupo, órbita, estabilizador, subgrupo fijo — **✅ sin sorry** (`orbit_stabilizer`, `orbits_partition` cerrados en sesión 2026-04-17).
+- **Sylow/Cosets.lean**: Coclases, índice, `cosetRel`, `lagrange` — **✅ sin sorry** (cerrado en sesión 2026-04-17).
+- **Sylow/Sylow.lean**: Teoremas de Sylow I/II/III (⚠ 4 sorry: `mckay_p_dvd_powEqId`, `sylow_lift_from_cauchy`, `sylow_second`, `sylow_third`).
 
 ---
 
@@ -183,3 +185,14 @@ errors          →  0
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
+
+<!-- AUTO-UPDATE-2026-04-20-START -->
+## Actualizacion de estado - 2026-04-20
+
+- Estado del build: 52 jobs, 0 errores, 4 sorry warnings (todos en Sylow.lean).
+- Infraestructura McKay completada: Vector, allVectorsList, mckayShiftList, mckayShift, mckayShiftList_mem, mckayShiftList_inj, append_singleton_inj.
+- cauchy_minimal formalizado condicionalmente: todos los lemas auxiliares cerrados; unico sorry es mckay_p_dvd_powEqId (conteo de orbitas mod p).
+- Sorries vigentes: mckay_p_dvd_powEqId (~498), sylow_lift_from_cauchy (~577), sylow_second (~610), sylow_third (~627).
+- Objetivo proximo: formalizar mckay_p_dvd_powEqId usando Action.lean (ecuacion de clases).
+
+<!-- AUTO-UPDATE-2026-04-20-END -->

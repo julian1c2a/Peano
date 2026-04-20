@@ -1,4 +1,4 @@
-/-
+﻿/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -473,34 +473,488 @@ namespace Peano
           have hxy : x = y := op_cancel_right G hys_mem hx_mem hy_mem h_prod_eq
           rw [hxy, hxs_ys]
 
-    /-- Argumento de McKay: p divide el cardinal de {g ∈ G | g^p = e}.
+    -- ─── Infraestructura de rotación iterada ─────────────────────────────────
 
-        **Estrategia** (pendiente de formalizar completamente):
 
-        Sea T = {(g₁,…,gₚ) ∈ Gᵖ | g₁·…·gₚ = e}.
 
-        Paso 1 — |T| = |G|^(p−1):
-          La función (g₁,…,gₚ) ↦ (g₁,…,g_{p-1}) es una biyección T → G^{p−1}
-          (el último elemento queda determinado: gₚ = (g₁·…·g_{p-1})⁻¹).
+    private def nthRotate {α : Type} : ℕ₀ → List α → List α
 
-        Paso 2 — p | |T|:
-          p | |G|  y  |T| = |G|^(p−1)  ⇒  p | |G|^(p−1) = |T|
-          (usando `divides_mul_left` y `pow_succ`, ya que p ≥ 2).
+      | 𝟘,    l => l
 
-        Paso 3 — Partición en órbitas bajo rotación:
-          ρ(g₁,…,gₚ) = (g₂,…,gₚ,g₁) preserva T (demostrado por `listProd_rotate_eq_id`).
-          Aplicar ρ p veces es la identidad en listas de longitud p.
-          Como p es primo, cada órbita bajo ⟨ρ⟩ tiene tamaño 1 ó p.
-          Tamaño 1 ⟺ la tupla es constante (g,…,g) ⟺ g^p = e ⟺ g ∈ F.
+      | σ n', l => nthRotate n' (rotateList l)
 
-        Paso 4 — |T| ≡ |F| (mod p):
-          |T| = |F| + p·#{órbitas no triviales},  luego  p | |T|  ⟹  p | |F|.  -/
+
+
+    private theorem nthRotate_succ_comm {α : Type} (k : ℕ₀) (l : List α) :
+
+        nthRotate k (rotateList l) = rotateList (nthRotate k l) := by
+
+      induction k generalizing l with
+
+      | zero => rfl
+
+      | succ k' ih => exact ih (rotateList l)
+
+
+
+    private theorem nthRotate_add {α : Type} (k₁ k₂ : ℕ₀) (l : List α) :
+
+        nthRotate (add k₁ k₂) l = nthRotate k₁ (nthRotate k₂ l) := by
+
+      induction k₁ generalizing l with
+
+      | zero =>
+
+        simp only [zero_add]
+
+        rfl
+
+      | succ k₁' ih =>
+
+        rw [succ_add k₁' k₂]
+
+        show nthRotate (add k₁' k₂) (rotateList l) =
+
+             nthRotate k₁' (rotateList (nthRotate k₂ l))
+
+        rw [ih (rotateList l), nthRotate_succ_comm k₂ l]
+
+
+
+    private theorem nthRotate_mul_period {α : Type} (l : List α) (k : ℕ₀)
+
+        (h : nthRotate k l = l) (n : ℕ₀) : nthRotate (mul n k) l = l := by
+
+      induction n with
+
+      | zero => rw [zero_mul]; rfl
+
+      | succ n' ih =>
+
+        rw [succ_mul n' k, nthRotate_add (mul n' k) k l]
+
+        rw [h]; exact ih
+
+
+
+    private theorem nthRotate_append_general {α : Type} :
+
+        ∀ (n : ℕ₀) (ys zs : List α), lengthₚ ys = n →
+
+        nthRotate n (ys ++ zs) = zs ++ ys := by
+
+      intro n
+
+      induction n with
+
+      | zero =>
+
+        intro ys zs h
+
+        cases ys with
+
+        | nil => simp [List.nil_append, List.append_nil]; rfl
+
+        | cons b ys' => cases h
+
+      | succ n' ih =>
+
+        intro ys zs h
+
+        cases ys with
+
+        | nil => cases h
+
+        | cons b ys' =>
+
+          have h' : lengthₚ ys' = n' := by
+
+            have : σ (lengthₚ ys') = σ n' := by simpa [lengthₚ_cons] using h
+
+            injection this
+
+          show nthRotate n' (rotateList ((b :: ys') ++ zs)) = zs ++ (b :: ys')
+
+          have hrot : rotateList ((b :: ys') ++ zs) = ys' ++ (zs ++ [b]) := by
+
+            simp [rotateList, List.append_assoc]
+
+          rw [hrot, ih ys' (zs ++ [b]) h']
+
+          simp [List.append_assoc]
+
+
+
+    private theorem nthRotate_length_self {α : Type} (l : List α) :
+
+        nthRotate (lengthₚ l) l = l := by
+
+      have h := nthRotate_append_general (lengthₚ l) l [] rfl
+
+      simp at h; exact h
+
+
+
+    private theorem rotateList_fixed_all_eq {α : Type} (a : α) (xs : List α)
+
+        (h : xs ++ [a] = a :: xs) : ∀ x ∈ xs, x = a := by
+
+      induction xs with
+
+      | nil => intro x hx; exact absurd hx List.not_mem_nil
+
+      | cons b ys ih =>
+
+        intro x hx
+
+        simp only [List.cons_append] at h
+
+        injection h with hba h_rest
+
+        rcases List.mem_cons.mp hx with rfl | hy
+
+        · exact hba
+
+        · exact ih (hba ▸ h_rest) x hy
+
+
+
+    private theorem nthRotate_fixed_all {α : Type} (l : List α)
+
+        (h : rotateList l = l) (k : ℕ₀) : nthRotate k l = l := by
+
+      induction k with
+
+      | zero => rfl
+
+      | succ k' ih =>
+
+        show nthRotate k' (rotateList l) = l
+
+        rw [h]; exact ih
+
+
+
+    private theorem gpow_comm_left (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems) (n : ℕ₀) :
+
+        G.op g (gpow G g n) = G.op (gpow G g n) g := by
+
+      have h1 : gpow G g (add 𝟙 n) = G.op g (gpow G g n) := by
+
+        rw [gpow_add G hg 𝟙 n, gpow_one G g hg]
+
+      have h2 : gpow G g (add n 𝟙) = G.op (gpow G g n) g := by
+
+        rw [gpow_add G hg n 𝟙, gpow_one G g hg]
+
+      rw [← h1, add_comm 𝟙 n, h2]
+
+
+
+    private theorem listProd_all_eq_gpow (G : FinGroup) (a : ℕ₀)
+
+        (ha : a ∈ G.carrier.elems) (l : List ℕ₀) (hl : ∀ x ∈ l, x = a) :
+
+        listProd G l = gpow G a (lengthₚ l) := by
+
+      induction l with
+
+      | nil => simp [listProd_nil, gpow_zero]
+
+      | cons x xs ih =>
+
+        have hx : x = a := hl x List.mem_cons_self
+
+        have hxs : ∀ y ∈ xs, y = a := fun y hy => hl y (List.mem_cons_of_mem x hy)
+
+        rw [listProd_cons, hx, ih hxs, lengthₚ_cons, gpow_succ]
+
+        exact gpow_comm_left G ha (lengthₚ xs)
+
+
+
+    -- ─── gcd y argumento de Bézout ────────────────────────────────────────────
+
+
+
+    open Peano.Arith in
+
+    private theorem gcd_eq_one_of_pos_lt_prime (k p : ℕ₀) (hk_pos : lt₀ 𝟘 k)
+
+        (hk_lt : lt₀ k p) (hp : Prime p) : gcd k p = 𝟙 := by
+
+      have h_dvd_p : Divides (gcd k p) p := gcd_divides_right k p
+
+      obtain ⟨c, hc⟩ := h_dvd_p
+
+      rcases (prime_imp_irreducible hp).2 (gcd k p) c hc.symm with h1 | hc1
+
+      · exact h1
+
+      · rw [hc1, mul_one] at hc
+
+        have h_dvd_k : Divides (gcd k p) k := gcd_divides_left k p
+
+        rw [← hc] at h_dvd_k
+
+        obtain ⟨m, hm⟩ := h_dvd_k
+
+        cases m with
+
+        | zero =>
+
+          rw [mul_zero] at hm
+
+          exact absurd hm (ne_of_lt 𝟘 k hk_pos).symm
+
+        | succ m' =>
+
+          have hle : le₀ p (mul p (σ m')) := mul_le_right p (σ m') (Peano.Axioms.succ_neq_zero m')
+
+          rw [← hm] at hle
+
+          exact absurd hk_lt (le_then_ngt p k hle)
+
+
+
+    open Peano.Arith in
+
+    private theorem nthRotate_one_fixed_of_gcd_one {α : Type} (l : List α) (k p : ℕ₀)
+
+        (hk : nthRotate k l = l) (hp_rot : nthRotate p l = l)
+
+        (hgcd : gcd k p = 𝟙) : nthRotate 𝟙 l = l := by
+
+      obtain ⟨n, m, h⟩ := bezout_natform k p
+
+      rw [hgcd] at h
+
+      rcases h with h1 | h2
+
+      · -- h1 : 𝟙 = sub (mul n k) (mul m p)
+
+        have h1' : sub (mul n k) (mul m p) = 𝟙 := h1.symm
+
+        have hlt : lt₀ (mul m p) (mul n k) := by
+
+          apply (sub_pos_iff_lt (mul n k) (mul m p)).mp
+
+          rw [← h1]; exact le_refl 𝟙
+
+        have h_eq : add 𝟙 (mul m p) = mul n k := by
+
+          have key := sub_k_add_k (mul n k) (mul m p) (lt_imp_le _ _ hlt)
+
+          rw [h1'] at key; exact key
+
+        have h_mp : nthRotate (mul m p) l = l := nthRotate_mul_period l p hp_rot m
+
+        have h_nk : nthRotate (mul n k) l = l := nthRotate_mul_period l k hk n
+
+        calc nthRotate 𝟙 l
+
+            = nthRotate 𝟙 (nthRotate (mul m p) l) := by rw [h_mp]
+
+          _ = nthRotate (add 𝟙 (mul m p)) l := (nthRotate_add 𝟙 (mul m p) l).symm
+
+          _ = nthRotate (mul n k) l := by rw [h_eq]
+
+          _ = l := h_nk
+
+      · -- h2 : 𝟙 = sub (mul n p) (mul m k)
+
+        have h2' : sub (mul n p) (mul m k) = 𝟙 := h2.symm
+
+        have hlt : lt₀ (mul m k) (mul n p) := by
+
+          apply (sub_pos_iff_lt (mul n p) (mul m k)).mp
+
+          rw [← h2]; exact le_refl 𝟙
+
+        have h_eq : add 𝟙 (mul m k) = mul n p := by
+
+          have key := sub_k_add_k (mul n p) (mul m k) (lt_imp_le _ _ hlt)
+
+          rw [h2'] at key; exact key
+
+        have h_mk : nthRotate (mul m k) l = l := nthRotate_mul_period l k hk m
+
+        have h_np : nthRotate (mul n p) l = l := nthRotate_mul_period l p hp_rot n
+
+        calc nthRotate 𝟙 l
+
+            = nthRotate 𝟙 (nthRotate (mul m k) l) := by rw [h_mk]
+
+          _ = nthRotate (add 𝟙 (mul m k)) l := (nthRotate_add 𝟙 (mul m k) l).symm
+
+          _ = nthRotate (mul n p) l := by rw [h_eq]
+
+          _ = l := h_np
+
+
+
+    -- ─── Inyectividad de rotateVector en preimagen de punto fijo ─────────────
+
+    private theorem vector_eq_of_rotateVector_eq_fixed {n : ℕ₀}
+
+        (v w : Vector ℕ₀ n)
+
+        (hv_fixed : rotateVector v = v)
+
+        (hw_rot : rotateVector w = v) : w = v := by
+
+      apply Subtype.ext
+
+      have hrl_v : nthRotate 𝟙 v.val = v.val := congrArg Subtype.val hv_fixed
+
+      have hrl_w : nthRotate 𝟙 w.val = v.val := congrArg Subtype.val hw_rot
+
+      have hv_k : ∀ k : ℕ₀, nthRotate k v.val = v.val :=
+
+        fun k => nthRotate_fixed_all v.val hrl_v k
+
+      have hw_len : nthRotate n w.val = w.val := by
+
+        have := nthRotate_length_self w.val; rwa [w.property] at this
+
+      cases n with
+
+      | zero =>
+
+        have hv_nil : v.val = [] := by
+
+          rcases v with ⟨vl, hvl⟩; cases vl with
+
+          | nil => rfl
+
+          | cons x xs => rw [lengthₚ_cons] at hvl; exact absurd hvl (Peano.Axioms.succ_neq_zero _)
+
+        have hw_nil : w.val = [] := by
+
+          rcases w with ⟨wl, hwl⟩; cases wl with
+
+          | nil => rfl
+
+          | cons x xs => rw [lengthₚ_cons] at hwl; exact absurd hwl (Peano.Axioms.succ_neq_zero _)
+
+        exact hw_nil.trans hv_nil.symm
+
+      | succ n' =>
+
+        have hcalc : nthRotate (σ n') w.val = v.val :=
+
+          (congrArg (fun k => nthRotate k w.val) (add_one n').symm).trans
+
+            ((nthRotate_add n' 𝟙 w.val).trans (by rw [hrl_w]; exact hv_k n'))
+
+        exact hw_len.symm.trans hcalc
+
+    -- ─── Conteo de órbitas ───────────────────────────────────────────────────
+
+    private theorem mckay_orbit_count (p : ℕ₀) (hp : Prime p)
+
+        (T : List (Vector ℕ₀ p))
+
+        (hT_nodup : T.Nodup)
+
+        (hT_rot : ∀ v ∈ T, rotateVector v ∈ T) :
+
+        ∃ k : Nat, T.length = Nat.add
+          (T.filter (fun v => decide (rotateVector v = v))).length (Nat.mul (Ψ p) k) := by
+
+      -- Induction on lengthₚ T (a ℕ₀ value) via well_founded_lt
+
+      suffices H : ∀ (n : ℕ₀) (S : List (Vector ℕ₀ p)),
+
+          S.Nodup → (∀ v ∈ S, rotateVector v ∈ S) → lengthₚ S = n →
+
+          ∃ k : Nat, S.length = Nat.add (S.filter (fun v => decide (rotateVector v = v))).length (Nat.mul (Ψ p) k) from
+
+        H (lengthₚ T) T hT_nodup hT_rot rfl
+
+      intro n
+
+      induction n using well_founded_lt.induction
+
+      rename_i n ih
+
+      intro S hnodup hrot hlen
+
+      cases S with
+
+      | nil => exact ⟨0, rfl⟩
+
+      | cons v S' =>
+
+        by_cases hv : rotateVector v = v
+
+        · -- v is a fixed point
+
+          -- Show S' is also closed under rotation
+
+          have hS'_nodup := (List.nodup_cons.mp hnodup).2
+
+          have hS'_rot : ∀ w ∈ S', rotateVector w ∈ S' := by
+
+            intro w hw
+
+            have h1 : rotateVector w ∈ v :: S' := hrot w (List.mem_cons_of_mem v hw)
+
+            rcases List.mem_cons.mp h1 with hrwv | h2
+
+            · exfalso
+
+              have hw_eq_v : w = v := vector_eq_of_rotateVector_eq_fixed v w hv hrwv
+
+              rw [hw_eq_v] at hw
+
+              exact absurd hw (List.nodup_cons.mp hnodup).1
+
+            · exact h2
+
+          have hlen' : lengthₚ S' < n := by
+
+            have hsucc : n = σ (lengthₚ S') := by rw [← hlen]; exact (lengthₚ_cons v S').symm
+
+            rw [hsucc]; exact lt_succ_self (lengthₚ S')
+
+          obtain ⟨k, hk⟩ := ih (lengthₚ S') hlen' S' hS'_nodup hS'_rot rfl
+
+          refine ⟨k, ?_⟩
+
+          have h_filter : (v :: S').filter (fun v => decide (rotateVector v = v)) =
+
+              v :: S'.filter (fun v => decide (rotateVector v = v)) := by
+
+            apply List.filter_cons_of_pos
+
+            exact decide_eq_true hv
+
+          rw [h_filter]
+
+          -- Goal: (v::S').length = add (v::filter S').length K
+          -- = succ S'.length = add (succ (filter S').length) K
+          -- From hk: S'.length = add (filter S').length K
+
+          exact (congrArg Nat.succ hk).trans (Nat.succ_add _ _).symm
+
+        · -- v is not fixed; the orbit of v has size Ψ p
+
+          -- Sorry: the orbit sub-argument is deferred
+
+          sorry
+
+
+
     private theorem mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀)
+
         (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+
         p ∣ (ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier).card := by
+
       sorry
 
-    /-- Si una lista nodup de longitud ≥ 2 contiene `a`, existe otro elemento `b ≠ a`. -/
+
     private theorem exists_ne_of_nodup_length_ge_two {l : List ℕ₀} {a : ℕ₀}
         (ha : a ∈ l) (hlen : 2 ≤ l.length) (hnodup : l.Nodup) :
         ∃ b ∈ l, b ≠ a := by

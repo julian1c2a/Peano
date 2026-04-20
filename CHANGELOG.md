@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### Added (2026-04-20)
+
+- **Sylow.lean — Infraestructura para el argumento de McKay (Cauchy)**:
+  - Añadido el tipo `Vector α n` para listas de longitud fija garantizada por tipos.
+  - Añadidas instancias de `DecidableEq`, `LT` y `DecidableRel` para `Vector`.
+  - Añadido el generador combinatorio `allVectorsList`.
+  - Formalizada la operación de rotación de McKay: `mckayShiftList` y `mckayShift`.
+  - Demostrada la preservación del grupo: `mckayShiftList_mem`.
+  - Demostrada la inyectividad de la operación: `mckayShiftList_inj` y lema auxiliar `append_singleton_inj`.
+  - Build verificado: 52 jobs, 0 errores, 4 sorry warnings (reducidos los errores previos).
+
 ### Added (2026-04-19)
 
 - **Sylow.lean — lemas privados para `cauchy_minimal` completamente formalizados (sin sorry)**:

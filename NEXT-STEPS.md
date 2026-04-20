@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-19
+**Last updated:** 2026-04-20
 **Author**: Julián Calderón Almendros
 
 > Plan operativo simplificado: solo estado actual, bloqueos reales y siguientes pasos ejecutables.
@@ -14,6 +14,11 @@
 - Sorries activos: 4 (todos en `Sylow.lean`).
 - `check-sorry.bash` total: 8 (4 Sylow + 2 en Perm.lean comentarios + 2 en Primes.lean comentarios).
 - Warnings no-sorry: 4 (1 `unused variable` en Sylow.lean, 3 en Group.lean).
+
+### 1.1. Completado recientemente (sesión 2026-04-20)
+
+- **Infraestructura McKay en `Sylow.lean`**: Creado el tipo `Vector` (longitud fija), `allVectorsList` (generador de combinaciones), y probada la preservación (`mckayShiftList_mem`) e inyectividad (`mckayShiftList_inj`) de la operación de rotación de McKay sobre listas.
+- Errores de compilación resueltos; el archivo compila limpiamente a falta de los sorries lógicos.
 
 ### 1.1. Completado recientemente (sesión 2026-04-19)
 
@@ -37,10 +42,10 @@ Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
 
 | Línea | Teorema | Estrategia conocida |
 |---|---|---|
-| ~234 | `cauchy_minimal` (McKay) | G actúa sobre p-tuplos con producto e; órbitas de tamaño 1 ó p |
-| ~258 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
-| ~287 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
-| ~307 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
+| ~498 | `mckay_p_dvd_powEqId` | Conteo de órbitas de la rotación de McKay sobre listas de longitud p-1 |
+| ~577 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
+| ~610 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
+| ~627 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
 
 ---
 
@@ -48,14 +53,15 @@ Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
 
 ### 2.1. `cauchy_minimal` — **primer objetivo**
 
-Objetivo: `∃ K : Subgroup G, K.carrier.card = p`.
+Objetivo: Terminar de probar `mckay_p_dvd_powEqId` para cerrar el teorema de Cauchy.
 
 Estrategia:
 
-- Construir el conjunto `T = { (g₁,…,gₚ) ∈ Gᵖ | g₁·…·gₚ = e }`. `|T| = |G|^(p-1)` que es divisible por `p`.
-- G actúa sobre T por rotación cíclica de la tupla.
-- Las órbitas tienen tamaño 1 ó p (p primo, órden de la acción divide a p).
-- `|T| ≡ #{órbitas de tamaño 1} (mod p)` → al menos p órbitas fijas → p ≥ 2 → existe una fija con `g ≠ e` → ese g tiene orden p → genera un subgrupo de orden p.
+- Ya tenemos `allVectorsList` que genera las tuplas de longitud $p-1$, tamaño $|G|^{p-1}$.
+- Ya tenemos `mckayShiftList` que opera sobre estas tuplas.
+- Declarar la permutación `Perm` oficial instanciándola con `mckayShiftList`.
+- Probar que aplicar la permutación $p$ veces es la identidad.
+- Usar Ecuación de Clases/Órbitas para el conteo módulo $p$.
 
 Herramientas disponibles:
 

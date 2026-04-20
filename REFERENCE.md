@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-17
+**Última actualización:** 2026-04-20
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -3007,6 +3007,61 @@ structure GroupHom (G H : FinGroup) where
 
 ---
 
+## 44. Combinatorics/GroupTheory/Sylow/Sylow.lean — `namespace Peano.GroupTheory`
+
+*Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
+
+**Estado:** 🔄 En progreso (4 sorrys).
+
+### 44.1. Definiciones base [D]
+
+**[D44.1]** `dvd_card (p : ℕ₀) (H : ℕ₀FSet) : Prop`
+
+**[D44.2]** `pow_dvd_card (p k : ℕ₀) (H : ℕ₀FSet) : Prop`
+
+**[D44.3]** `isPSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop`
+
+**[D44.4]** `isSylowExponent (G : FinGroup) (p n : ℕ₀) : Prop`
+
+**[D44.5]** `isSylowSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop`
+
+### 44.2. Teorema de Cauchy (Mckay) [T]
+
+**Lemas auxiliares privados:**
+- `card_pos_of_mem_aux`, `order_dvd_of_pow_eq_id`, `order_eq_prime_of_pow`, `gpow_lt_p_mem_cyclic`, `cyclicSubgroup_card_eq_prime`.
+
+**Infraestructura de Listas/Tuplas para McKay:**
+- `listProd (G : FinGroup) : List ℕ₀ → ℕ₀`
+- `listProd_mem`, `listProd_append`
+- `Vector (α : Type) (n : ℕ₀)`: Subtipo de listas de longitud `n`. Instancias de `DecidableEq` y `LT`.
+- `allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)`
+
+**Operación McKay:**
+- `rotateList`, `lengthₚ_rotateList`, `listProd_rotate_eq_id`.
+- `mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀`: desplaza y añade inverso.
+- `lengthₚ_mckayShiftList`, `mckayShiftList_mem`.
+- `append_singleton_inj`, `mckayShiftList_inj`: Inyectividad del operador de McKay.
+
+**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) ...` ⚠️ sorry
+
+- `p` divide al cardinal de los elementos cuyo orden divide a `p`.
+
+**[T44.2]** `cauchy_minimal (G : FinGroup) (p : ℕ₀) (hp : Prime p) ...`
+
+- Existencia de un subgrupo de cardinal `p`. Demostrado usando `mckay_p_dvd_powEqId`.
+
+### 44.3. Teoremas de Sylow [T]
+
+**[T44.3]** `sylow_lift_from_cauchy` ⚠️ sorry
+
+**[T44.4]** `sylow_first (G : FinGroup) (p n : ℕ₀) (hp : Prime p) (hdvd : pow_dvd_card p n G.carrier) : ∃ H : Subgroup G, H.carrier.card = p ^ n`
+
+- Demostrado por inducción usando `sylow_lift_from_cauchy`.
+
+**[T44.5]** `sylow_second` ⚠️ sorry
+
+**[T44.6]** `sylow_third` ⚠️ sorry
+
 > **Secciones pendientes** (módulos sin sección en este documento):
 > §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
 > §30 `NumberSets.lean`, §31 `ModEq.lean`, §32 `NumberTheory/Fermat.lean`,
@@ -3015,7 +3070,7 @@ structure GroupHom (G H : FinGroup) where
 > §37 `Digits.lean`, §38 `Pairing.lean`,
 > §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
 > §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
-> §43 `GroupTheory/Sylow/Cosets.lean`, §44 `GroupTheory/Sylow/Sylow.lean`.
+> §43 `GroupTheory/Sylow/Cosets.lean`.
 
 <!-- AUTO-UPDATE-2026-04-17-START -->
 ## Actualizacion de estado - 2026-04-17
@@ -3029,4 +3084,3 @@ structure GroupHom (G H : FinGroup) where
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
-

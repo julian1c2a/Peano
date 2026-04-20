@@ -395,7 +395,6 @@ namespace Peano
     private def mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n :=
       ⟨mckayShiftList G v.val, by rw [lengthₚ_mckayShiftList, v.property]⟩
 
-
     /-- La operación de McKay preserva la pertenencia al grupo G. -/
     private theorem mckayShiftList_mem (G : FinGroup) {l : List ℕ₀}
         (hl : ∀ x ∈ l, x ∈ G.carrier.elems) :
@@ -423,20 +422,15 @@ namespace Peano
         xs ++ [a] = ys ++ [b] →
         xs = ys ∧ a = b
       | [], [], a, b, _, heq => by
-        have h_eq : a = b := by injection heq with h; exact h
-        exact ⟨rfl, h_eq⟩
+        cases heq
+        exact ⟨rfl, rfl⟩
       | x::xs, [], a, b, hlen, _ => by
-        rw [lengthₚ_cons, lengthₚ_nil] at hlen
         cases hlen
       | [], y::ys, a, b, hlen, _ => by
-        rw [lengthₚ_nil, lengthₚ_cons] at hlen
         cases hlen
       | x::xs, y::ys, a, b, hlen, heq => by
         injection heq with hxy heq_rest
-        have hlen_rest : lengthₚ xs = lengthₚ ys := by
-          rw [lengthₚ_cons, lengthₚ_cons] at hlen
-          injection hlen with h
-          exact h
+        have hlen_rest : lengthₚ xs = lengthₚ ys := by injection hlen
         have ⟨hxs_ys, hab⟩ := append_singleton_inj xs ys a b hlen_rest heq_rest
         rw [hxy, hxs_ys]
         exact ⟨rfl, hab⟩
@@ -458,13 +452,9 @@ namespace Peano
       | cons x xs =>
         cases l₂ with
         | nil =>
-          rw [lengthₚ_cons, lengthₚ_nil] at hlen
           cases hlen
         | cons y ys =>
-          have hlen_xs_ys : lengthₚ xs = lengthₚ ys := by
-            rw [lengthₚ_cons, lengthₚ_cons] at hlen
-            injection hlen with h
-            exact h
+          have hlen_xs_ys : lengthₚ xs = lengthₚ ys := by injection hlen
           have heq_shift : xs ++ [G.inv (listProd G (x :: xs))] = ys ++ [G.inv (listProd G (y :: ys))] := heq
           obtain ⟨hxs_ys, hinv_eq⟩ := append_singleton_inj xs ys _ _ hlen_xs_ys heq_shift
           have h_prod_eq : listProd G (x :: xs) = listProd G (y :: ys) := by
@@ -480,7 +470,7 @@ namespace Peano
           have hy_mem : y ∈ G.carrier.elems := hl₂ y (List.mem_cons_self)
           have hys_mem : listProd G ys ∈ G.carrier.elems :=
             listProd_mem G (fun z hz => hl₂ z (List.mem_cons_of_mem y hz))
-          have hxy : x = y := op_cancel_right G hx_mem hy_mem hys_mem h_prod_eq
+          have hxy : x = y := op_cancel_right G hys_mem hx_mem hy_mem h_prod_eq
           rw [hxy, hxs_ys]
 
     /-- Argumento de McKay: p divide el cardinal de {g ∈ G | g^p = e}.

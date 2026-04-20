@@ -282,8 +282,7 @@ namespace Peano
       induction l with
       | nil => simp [sortFSetList]
       | cons y ys ih =>
-          simpa [sortFSetList, mem_sortedInsertFSet_iff, ih, eq_comm] using
-            (mem_sortedInsertFSet_iff (z := x) (x := y) (l := sortFSetList ys))
+          simp [sortFSetList, mem_sortedInsertFSet_iff, ih];
 
   end FSet
 

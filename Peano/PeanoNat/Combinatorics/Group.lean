@@ -375,9 +375,9 @@ namespace Peano
       carrier    := G.carrier
       nonempty   := ⟨G.id, G.id_in⟩
       subset     := fun _ ha => ha
-      op_closed  := fun a b ha hb => op_mem G ha hb
+      op_closed  := fun _a _b ha hb => op_mem G ha hb
       id_in      := G.id_in
-      inv_closed := fun a ha => inv_mem G ha
+      inv_closed := fun _a ha => inv_mem G ha
 
     /-- Un subgrupo es trivial si tiene exactamente un elemento. -/
     def Subgroup.IsTrivial {G : FinGroup} (H : Subgroup G) : Prop :=

@@ -395,6 +395,94 @@ namespace Peano
     private def mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n :=
       ⟨mckayShiftList G v.val, by rw [lengthₚ_mckayShiftList, v.property]⟩
 
+
+    /-- La operación de McKay preserva la pertenencia al grupo G. -/
+    private theorem mckayShiftList_mem (G : FinGroup) {l : List ℕ₀}
+        (hl : ∀ x ∈ l, x ∈ G.carrier.elems) :
+        ∀ x ∈ mckayShiftList G l, x ∈ G.carrier.elems := by
+      cases l with
+      | nil =>
+        intro x hx
+        cases hx
+      | cons y ys =>
+        intro x hx
+        have h_append : x ∈ ys ∨ x ∈ [G.inv (listProd G (y :: ys))] := List.mem_append.mp hx
+        rcases h_append with h_ys | h_inv
+        · exact hl x (List.mem_cons_of_mem y h_ys)
+        · have h_eq : x = G.inv (listProd G (y :: ys)) := by
+            rcases List.mem_cons.mp h_inv with h | h
+            · exact h
+            · cases h
+          rw [h_eq]
+          exact inv_mem G (listProd_mem G hl)
+
+    /-- Lema auxiliar: añadir elementos al final es inyectivo si las listas tienen misma longitud. -/
+    private theorem append_singleton_inj {α : Type} :
+        ∀ (xs ys : List α) (a b : α),
+        lengthₚ xs = lengthₚ ys →
+        xs ++ [a] = ys ++ [b] →
+        xs = ys ∧ a = b
+      | [], [], a, b, _, heq => by
+        have h_eq : a = b := by injection heq with h; exact h
+        exact ⟨rfl, h_eq⟩
+      | x::xs, [], a, b, hlen, _ => by
+        rw [lengthₚ_cons, lengthₚ_nil] at hlen
+        cases hlen
+      | [], y::ys, a, b, hlen, _ => by
+        rw [lengthₚ_nil, lengthₚ_cons] at hlen
+        cases hlen
+      | x::xs, y::ys, a, b, hlen, heq => by
+        injection heq with hxy heq_rest
+        have hlen_rest : lengthₚ xs = lengthₚ ys := by
+          rw [lengthₚ_cons, lengthₚ_cons] at hlen
+          injection hlen with h
+          exact h
+        have ⟨hxs_ys, hab⟩ := append_singleton_inj xs ys a b hlen_rest heq_rest
+        rw [hxy, hxs_ys]
+        exact ⟨rfl, hab⟩
+
+    /-- La operación de McKay es inyectiva. -/
+    private theorem mckayShiftList_inj (G : FinGroup) {l₁ l₂ : List ℕ₀}
+        (hl₁ : ∀ x ∈ l₁, x ∈ G.carrier.elems)
+        (hl₂ : ∀ x ∈ l₂, x ∈ G.carrier.elems)
+        (hlen : lengthₚ l₁ = lengthₚ l₂)
+        (heq : mckayShiftList G l₁ = mckayShiftList G l₂) :
+        l₁ = l₂ := by
+      cases l₁ with
+      | nil =>
+        cases l₂ with
+        | nil => rfl
+        | cons y ys =>
+          rw [lengthₚ_nil, lengthₚ_cons] at hlen
+          cases hlen
+      | cons x xs =>
+        cases l₂ with
+        | nil =>
+          rw [lengthₚ_cons, lengthₚ_nil] at hlen
+          cases hlen
+        | cons y ys =>
+          have hlen_xs_ys : lengthₚ xs = lengthₚ ys := by
+            rw [lengthₚ_cons, lengthₚ_cons] at hlen
+            injection hlen with h
+            exact h
+          have heq_shift : xs ++ [G.inv (listProd G (x :: xs))] = ys ++ [G.inv (listProd G (y :: ys))] := heq
+          obtain ⟨hxs_ys, hinv_eq⟩ := append_singleton_inj xs ys _ _ hlen_xs_ys heq_shift
+          have h_prod_eq : listProd G (x :: xs) = listProd G (y :: ys) := by
+            have h1 : listProd G (x :: xs) ∈ G.carrier.elems := listProd_mem G hl₁
+            have h2 : listProd G (y :: ys) ∈ G.carrier.elems := listProd_mem G hl₂
+            have h3 : G.inv (G.inv (listProd G (x :: xs))) = G.inv (G.inv (listProd G (y :: ys))) := by
+              rw [hinv_eq]
+            rw [inv_inv_eq G h1, inv_inv_eq G h2] at h3
+            exact h3
+          rw [hxs_ys] at h_prod_eq
+          simp only [listProd_cons] at h_prod_eq
+          have hx_mem : x ∈ G.carrier.elems := hl₁ x (List.mem_cons_self)
+          have hy_mem : y ∈ G.carrier.elems := hl₂ y (List.mem_cons_self)
+          have hys_mem : listProd G ys ∈ G.carrier.elems :=
+            listProd_mem G (fun z hz => hl₂ z (List.mem_cons_of_mem y hz))
+          have hxy : x = y := op_cancel_right G hx_mem hy_mem hys_mem h_prod_eq
+          rw [hxy, hxs_ys]
+
     /-- Argumento de McKay: p divide el cardinal de {g ∈ G | g^p = e}.
 
         **Estrategia** (pendiente de formalizar completamente):

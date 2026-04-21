@@ -1,4 +1,4 @@
-﻿/-
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -851,13 +851,14 @@ namespace Peano
 
     -- ─── Conteo de órbitas ───────────────────────────────────────────────────
 
-    private theorem mckay_orbit_remove (p : ℕ₀) (S : List (Vector ℕ₀ p))
-        (v : Vector ℕ₀ p) (hv_in : v ∈ S) (hv : rotateVector v ≠ v)
-        (hnodup : S.Nodup) (hrot : ∀ w ∈ S, rotateVector w ∈ S) :
+    private theorem mckay_orbit_remove
+      (p : ℕ₀) (hp : Prime p) (S : List (Vector ℕ₀ p)) (v : Vector ℕ₀ p) (hv_in : v ∈ S) (hv : rotateVector v ≠ v)
+      (hnodup : S.Nodup) (hrot : ∀ w ∈ S, rotateVector w ∈ S) :
         ∃ S' : List (Vector ℕ₀ p), S'.Nodup ∧ (∀ w ∈ S', rotateVector w ∈ S') ∧
         lengthₚ S = Peano.Add.add (lengthₚ S') p ∧
         lengthₚ (S.filter (fun w => decide (rotateVector w = w))) =
-        lengthₚ (S'.filter (fun w => decide (rotateVector w = w))) := sorry
+        lengthₚ (S'.filter (fun w => decide (rotateVector w = w)))
+          := sorry
 
     private theorem mckay_orbit_count (p : ℕ₀) (hp : Prime p)
         (T : List (Vector ℕ₀ p))
@@ -907,7 +908,7 @@ namespace Peano
           exact (Peano.Add.succ_add _ _).symm
         · -- v is not fixed; the orbit of v has size Ψ p
           obtain ⟨S_rem, hS_rem_nodup, hS_rem_rot, hlen_S, hfilter_S⟩ :=
-            mckay_orbit_remove p (v :: S') v (List.mem_cons_self) hv hnodup hrot
+            mckay_orbit_remove p hp (v :: S') v (List.mem_cons_self) hv hnodup hrot
           have hlen_S_rem_lt : lengthₚ S_rem < n := by
             have h1 : n = Peano.Add.add (lengthₚ S_rem) p := hlen ▸ hlen_S
             rw [h1]
@@ -926,18 +927,17 @@ namespace Peano
             rw [mul_succ, add_comm]
           rw [h_mul_succ, add_assoc]
 
-    private theorem mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀)
-
-        (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
-
-        p ∣ (ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier).card := by
-
+    private theorem mckay_p_dvd_powEqId
+      (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+        p ∣ (ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier).card
+          := by
       sorry
 
 
     private theorem exists_ne_of_nodup_length_ge_two {l : List ℕ₀} {a : ℕ₀}
-        (ha : a ∈ l) (hlen : 2 ≤ l.length) (hnodup : l.Nodup) :
-        ∃ b ∈ l, b ≠ a := by
+      (ha : a ∈ l) (hlen : 2 ≤ l.length) (hnodup : l.Nodup) :
+        ∃ b ∈ l, b ≠ a
+          := by
       cases l with
       | nil => exact absurd ha List.not_mem_nil
       | cons x xs =>
@@ -958,8 +958,9 @@ namespace Peano
 
     /-- Si `a ∈ F.elems` y `|F| ≥ 2`, existe `b ∈ F.elems` con `b ≠ a`. -/
     private theorem exists_ne_of_card_ge {F : ℕ₀FSet} {a : ℕ₀}
-        (ha : a ∈ F.elems) (hcard : le₀ 𝟚 F.card) :
-        ∃ b ∈ F.elems, b ≠ a := by
+      (ha : a ∈ F.elems) (hcard : le₀ 𝟚 F.card) :
+        ∃ b ∈ F.elems, b ≠ a
+          := by
       have hnodup := FSetFunction.sorted_nodup F.sorted
       have hlen : 2 ≤ F.elems.length :=
         (isomorph_Λ_le 2 F.elems.length).mpr hcard
@@ -970,9 +971,10 @@ namespace Peano
         Estrategia: G actúa sobre los p-tuplos (g₁,…,gₚ) con g₁·…·gₚ = e
         por permutación cíclica; las órbitas tienen tamaño 1 ó p; el total
         es divisible por p → existe una órbita de tamaño 1 ≠ identidad. -/
-    theorem cauchy_minimal (G : FinGroup) (p : ℕ₀)
-        (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
-        ∃ K : Subgroup G, K.carrier.card = p := by
+    theorem cauchy_minimal
+      (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+        ∃ K : Subgroup G, K.carrier.card = p
+          := by
       -- Existencia de g ≠ e con g^p = e (argumento de McKay)
       have h_exists : ∃ g ∈ G.carrier.elems, g ≠ G.id ∧ gpow G g p = G.id := by
         -- F = {g ∈ G | g^p = e}
@@ -1009,12 +1011,13 @@ namespace Peano
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
         construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`. -/
     theorem sylow_lift_from_cauchy
-        (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
-          (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+        (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
-        (G : FinGroup) (p m : ℕ₀)
-        (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
-        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) := by
+      (G : FinGroup) (p m : ℕ₀)
+      (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)
+          := by
       have _ := hC
       have _ := hp
       have _ := hpow

@@ -799,6 +799,39 @@ structured picture of the project's current state in a single response.
 
 ---
 
+### `proyecta`
+
+**Purpose**: Extract all new or modified non-private definitions, notations, axioms, and theorems from the currently locked or modified `.lean` files and project them into `REFERENCE.md`.
+
+**Steps** (execute in order):
+
+1. **Identify modified modules**: Identify all `.lean` files that have been modified during the current session (or that the user explicitly indicates).
+2. **Extract public symbols**: For each modified file, extract its full `export` block.
+3. **Draft the projection**: Translate each exported symbol into its mathematical notation and Lean 4 signature as described in rules §4 to §7. Note its dependencies.
+4. **Update `REFERENCE.md`**: Locate the module's section in `REFERENCE.md`. Insert the newly extracted symbols in the correct subsections. Update the module's modification timestamp in `REFERENCE.md`.
+5. **Verify**: Ensure every symbol in the `export` block now appears in `REFERENCE.md` and no private symbols are exposed.
+
+**Files touched by this command**: `REFERENCE.md`
+
+---
+
+### `guarda y sube`
+
+**Purpose**: Automate the standard workflow for safely saving work, committing it, pushing it to the remote repository, and resetting the locks for the next task.
+
+**Steps** (execute in order):
+
+1. **Verify build**: Ensure the project compiles by running `lake build`.
+2. **Unlock files**: Run `bash git-lock.bash unlock <file>` for all currently locked `.lean` files.
+3. **Stage changes**: Run `git add .` to stage all modified files (including documentation, scripts, and code).
+4. **Commit**: Run `git commit -m "<Summary of changes>"` using the standard commit format based on the session's work. Propose the commit message to the user or generate it autonomously based on the changes if confident.
+5. **Push**: Run `git push` to upload the changes to the current branch.
+6. **Relock files**: Run `bash git-lock.bash lock <file>` on the active files you were working on to resume the session safely.
+
+**Files touched by this command**: git state, `locked_files.txt` (via `git-lock.bash`)
+
+---
+
 ## Actualizacion de estado - 2026-04-17
 
 - Estado del build: compila en el estado actual de la rama makingdecidable.

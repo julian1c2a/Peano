@@ -1,4 +1,4 @@
-/-
+﻿/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
@@ -851,100 +851,80 @@ namespace Peano
 
     -- ─── Conteo de órbitas ───────────────────────────────────────────────────
 
+    private theorem mckay_orbit_remove (p : ℕ₀) (S : List (Vector ℕ₀ p))
+        (v : Vector ℕ₀ p) (hv_in : v ∈ S) (hv : rotateVector v ≠ v)
+        (hnodup : S.Nodup) (hrot : ∀ w ∈ S, rotateVector w ∈ S) :
+        ∃ S' : List (Vector ℕ₀ p), S'.Nodup ∧ (∀ w ∈ S', rotateVector w ∈ S') ∧
+        lengthₚ S = Peano.Add.add (lengthₚ S') p ∧
+        lengthₚ (S.filter (fun w => decide (rotateVector w = w))) =
+        lengthₚ (S'.filter (fun w => decide (rotateVector w = w))) := sorry
+
     private theorem mckay_orbit_count (p : ℕ₀) (hp : Prime p)
-
         (T : List (Vector ℕ₀ p))
-
         (hT_nodup : T.Nodup)
-
         (hT_rot : ∀ v ∈ T, rotateVector v ∈ T) :
-
-        ∃ k : Nat, T.length = Nat.add
-          (T.filter (fun v => decide (rotateVector v = v))).length (Nat.mul (Ψ p) k) := by
-
+        ∃ k : ℕ₀, lengthₚ T = Peano.Add.add
+          (lengthₚ (T.filter (fun v => decide (rotateVector v = v)))) (Peano.Mul.mul p k) := by
       -- Induction on lengthₚ T (a ℕ₀ value) via well_founded_lt
-
       suffices H : ∀ (n : ℕ₀) (S : List (Vector ℕ₀ p)),
-
           S.Nodup → (∀ v ∈ S, rotateVector v ∈ S) → lengthₚ S = n →
-
-          ∃ k : Nat, S.length = Nat.add (S.filter (fun v => decide (rotateVector v = v))).length (Nat.mul (Ψ p) k) from
-
+          ∃ k : ℕ₀, lengthₚ S = Peano.Add.add (lengthₚ (S.filter (fun v => decide (rotateVector v = v)))) (Peano.Mul.mul p k) from
         H (lengthₚ T) T hT_nodup hT_rot rfl
-
       intro n
-
       induction n using well_founded_lt.induction
-
       rename_i n ih
-
       intro S hnodup hrot hlen
-
       cases S with
-
-      | nil => exact ⟨0, rfl⟩
-
+      | nil => exact ⟨𝟘, rfl⟩
       | cons v S' =>
-
         by_cases hv : rotateVector v = v
-
         · -- v is a fixed point
-
           -- Show S' is also closed under rotation
-
           have hS'_nodup := (List.nodup_cons.mp hnodup).2
-
           have hS'_rot : ∀ w ∈ S', rotateVector w ∈ S' := by
-
             intro w hw
-
             have h1 : rotateVector w ∈ v :: S' := hrot w (List.mem_cons_of_mem v hw)
-
             rcases List.mem_cons.mp h1 with hrwv | h2
-
             · exfalso
-
               have hw_eq_v : w = v := vector_eq_of_rotateVector_eq_fixed v w hv hrwv
-
               rw [hw_eq_v] at hw
-
               exact absurd hw (List.nodup_cons.mp hnodup).1
-
             · exact h2
-
           have hlen' : lengthₚ S' < n := by
-
             have hsucc : n = σ (lengthₚ S') := by rw [← hlen]; exact (lengthₚ_cons v S').symm
-
             rw [hsucc]; exact lt_succ_self (lengthₚ S')
-
           obtain ⟨k, hk⟩ := ih (lengthₚ S') hlen' S' hS'_nodup hS'_rot rfl
-
           refine ⟨k, ?_⟩
-
           have h_filter : (v :: S').filter (fun v => decide (rotateVector v = v)) =
-
               v :: S'.filter (fun v => decide (rotateVector v = v)) := by
-
             apply List.filter_cons_of_pos
-
             exact decide_eq_true hv
-
           rw [h_filter]
-
-          -- Goal: (v::S').length = add (v::filter S').length K
-          -- = succ S'.length = add (succ (filter S').length) K
-          -- From hk: S'.length = add (filter S').length K
-
-          exact (congrArg Nat.succ hk).trans (Nat.succ_add _ _).symm
-
+          -- Goal: lengthₚ (v::S') = add (lengthₚ (v::filter S')) K
+          -- = σ (lengthₚ S') = add (σ (lengthₚ (filter S'))) K
+          -- From hk: lengthₚ S' = add (lengthₚ (filter S')) K
+          rw [lengthₚ_cons, lengthₚ_cons, hk]
+          exact (Peano.Add.succ_add _ _).symm
         · -- v is not fixed; the orbit of v has size Ψ p
-
-          -- Sorry: the orbit sub-argument is deferred
-
-          sorry
-
-
+          obtain ⟨S_rem, hS_rem_nodup, hS_rem_rot, hlen_S, hfilter_S⟩ :=
+            mckay_orbit_remove p (v :: S') v (List.mem_cons_self) hv hnodup hrot
+          have hlen_S_rem_lt : lengthₚ S_rem < n := by
+            have h1 : n = Peano.Add.add (lengthₚ S_rem) p := hlen ▸ hlen_S
+            rw [h1]
+            -- We need `lengthₚ S_rem < lengthₚ S_rem + p`
+            -- Since p is prime, p > 0.
+            have hp_pos : Peano.StrictOrder.lt₀ 𝟘 p := pos_of_ne_zero p hp.1
+            exact lt_add_of_pos_right hp_pos
+          obtain ⟨k', hk'⟩ := ih (lengthₚ S_rem) hlen_S_rem_lt S_rem hS_rem_nodup hS_rem_rot rfl
+          refine ⟨σ k', ?_⟩
+          rw [hlen_S, hfilter_S, hk']
+          -- Goal: add (add (lengthₚ (filter S_rem)) (mul p k')) p =
+          --       add (lengthₚ (filter S_rem)) (mul p (succ k'))
+          -- Since mul p (succ k') = add (mul p k') p
+          -- and add is associative
+          have h_mul_succ : Peano.Mul.mul p (σ k') = Peano.Add.add (Peano.Mul.mul p k') p := by
+            rw [mul_succ, add_comm]
+          rw [h_mul_succ, add_assoc]
 
     private theorem mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀)
 

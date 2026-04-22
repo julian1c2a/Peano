@@ -858,7 +858,267 @@ namespace Peano
         lengthₚ S = Peano.Add.add (lengthₚ S') p ∧
         lengthₚ (S.filter (fun w => decide (rotateVector w = w))) =
         lengthₚ (S'.filter (fun w => decide (rotateVector w = w)))
-          := sorry
+          := by
+      -- ── Fact: p-fold rotation is identity ────────────────────────────────
+      have hp_period : nthRotate p v.val = v.val := by
+        have h := nthRotate_length_self v.val; rwa [v.property] at h
+      -- ── Rotations preserve vector length ─────────────────────────────────
+      have nthRotate_len : ∀ k : ℕ₀, lengthₚ (nthRotate k v.val) = p := by
+        intro k; induction k with
+        | zero => exact v.property
+        | succ k' ih =>
+          show lengthₚ (nthRotate k' (rotateList v.val)) = p
+          rw [nthRotate_succ_comm k' v.val, lengthₚ_rotateList]; exact ih
+      -- ── No early return: orbit_no_return ─────────────────────────────────
+      have orbit_no_return : ∀ k : ℕ₀, lt₀ 𝟘 k → lt₀ k p → nthRotate k v.val ≠ v.val := by
+        intro k hk_pos hk_lt heq
+        have hgcd : Peano.Arith.gcd k p = 𝟙 :=
+          gcd_eq_one_of_pos_lt_prime k p hk_pos hk_lt hp
+        have h1 : nthRotate 𝟙 v.val = v.val :=
+          nthRotate_one_fixed_of_gcd_one v.val k p heq hp_period hgcd
+        exact hv (Subtype.ext h1)
+      -- ── Define orbit ─────────────────────────────────────────────────────
+      let orb : ℕ₀ → Vector ℕ₀ p := fun k => ⟨nthRotate k v.val, nthRotate_len k⟩
+      have rv_orb_eq : ∀ k : ℕ₀, rotateVector (orb k) = orb (σ k) := fun k =>
+        Subtype.ext (nthRotate_succ_comm k v.val).symm
+      let orbit : List (Vector ℕ₀ p) := (ℕ₀FSet.Fin₀Set p).elems.map orb
+      -- ── orb is injective on Fin₀Set p ────────────────────────────────────
+      have orb_inj : ∀ i j : ℕ₀,
+          i ∈ (ℕ₀FSet.Fin₀Set p).elems → j ∈ (ℕ₀FSet.Fin₀Set p).elems →
+          orb i = orb j → i = j := by
+        intro i j hi hj heq
+        have hi_lt := (ℕ₀FSet.mem_Fin₀Set_iff p i).mp hi
+        have hj_lt := (ℕ₀FSet.mem_Fin₀Set_iff p j).mp hj
+        have heq_val : nthRotate i v.val = nthRotate j v.val := congrArg Subtype.val heq
+        rcases trichotomy i j with h_lt | h_eq | h_gt
+        · exfalso
+          have hpj : add (sub p j) j = p := sub_k_add_k p j (lt_imp_le j p hj_lt)
+          exact orbit_no_return _ (lt_of_lt_of_le (sub_pos_of_lt hj_lt) (le_self_add _ _))
+            (by have := (add_lt_add_left_iff (sub p j) i j).mpr h_lt; rwa [hpj] at this)
+            (calc nthRotate (add (sub p j) i) v.val
+                  = nthRotate (sub p j) (nthRotate i v.val) := nthRotate_add _ _ _
+                _ = nthRotate (sub p j) (nthRotate j v.val) := by rw [heq_val]
+                _ = nthRotate (add (sub p j) j) v.val := (nthRotate_add _ _ _).symm
+                _ = nthRotate p v.val := by rw [hpj]
+                _ = v.val := hp_period)
+        · exact h_eq
+        · exfalso
+          have hpi : add (sub p i) i = p := sub_k_add_k p i (lt_imp_le i p hi_lt)
+          exact orbit_no_return _ (lt_of_lt_of_le (sub_pos_of_lt hi_lt) (le_self_add _ _))
+            (by have := (add_lt_add_left_iff (sub p i) j i).mpr h_gt; rwa [hpi] at this)
+            (calc nthRotate (add (sub p i) j) v.val
+                  = nthRotate (sub p i) (nthRotate j v.val) := nthRotate_add _ _ _
+                _ = nthRotate (sub p i) (nthRotate i v.val) := by rw [heq_val]
+                _ = nthRotate (add (sub p i) i) v.val := (nthRotate_add _ _ _).symm
+                _ = nthRotate p v.val := by rw [hpi]
+                _ = v.val := hp_period)
+      -- ── orbit is nodup ───────────────────────────────────────────────────
+      have orbit_nodup : orbit.Nodup :=
+        nodup_map_of_inj_on orb _ (sorted_nodup (ℕ₀FSet.Fin₀Set p).sorted) orb_inj
+      -- ── orbit has length p ───────────────────────────────────────────────
+      have orbit_len_p : Λ orbit.length = p := by
+        show Λ ((ℕ₀FSet.Fin₀Set p).elems.map orb).length = p
+        rw [List.length_map]; exact ℕ₀FSet.Fin₀Set_card p
+      -- ── orbit elements are in S ──────────────────────────────────────────
+      have orbit_sub_S : ∀ k : ℕ₀, lt₀ k p → orb k ∈ S := by
+        intro k hk
+        induction k with
+        | zero =>
+          have : orb 𝟘 = v := Subtype.ext rfl
+          rw [this]; exact hv_in
+        | succ k' ih =>
+          have hk'_lt := lt_trans k' (σ k') p (lt_succ_self k') hk
+          rw [← rv_orb_eq k']; exact hrot (orb k') (ih hk'_lt)
+      have orbit_mem_S : ∀ w ∈ orbit, w ∈ S := by
+        intro w hw
+        obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hw
+        exact hk_eq ▸ orbit_sub_S k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
+      -- ── orbit has no fixed points ─────────────────────────────────────────
+      have orbit_no_fixed : ∀ k : ℕ₀, lt₀ k p → rotateVector (orb k) ≠ orb k := by
+        intro k hk heq
+        have hval : rotateList (nthRotate k v.val) = nthRotate k v.val :=
+          congrArg Subtype.val heq
+        have h_succ_eq : nthRotate (σ k) v.val = nthRotate k v.val := by
+          show nthRotate k (rotateList v.val) = nthRotate k v.val
+          rw [nthRotate_succ_comm k v.val]; exact hval
+        have h_sub_k : add (sub p k) k = p := sub_k_add_k p k (lt_imp_le k p hk)
+        have h_sp_k : nthRotate (sub p k) (nthRotate k v.val) = v.val := by
+          rw [← nthRotate_add, h_sub_k]; exact hp_period
+        have h_sp_sk : nthRotate (sub p k) (nthRotate (σ k) v.val) = v.val := by
+          rw [h_succ_eq]; exact h_sp_k
+        have h_add_eq : add (sub p k) (σ k) = σ p := by
+          rw [← add_one k, add_assoc, h_sub_k, add_one]
+        have h_sp : nthRotate (σ p) v.val = v.val := by
+          have h : nthRotate (add (sub p k) (σ k)) v.val = v.val := by
+            rw [nthRotate_add]; exact h_sp_sk
+          rwa [h_add_eq] at h
+        have h_sp_eq : nthRotate (σ p) v.val = rotateList v.val := by
+          show nthRotate p (rotateList v.val) = rotateList v.val
+          rw [nthRotate_succ_comm p v.val, hp_period]
+        exact hv (Subtype.ext (h_sp_eq.symm.trans h_sp))
+      -- ── rotateList is injective on lists of length p ──────────────────────
+      have rl_inj : ∀ l₁ l₂ : List ℕ₀, lengthₚ l₁ = p → lengthₚ l₂ = p →
+          rotateList l₁ = rotateList l₂ → l₁ = l₂ := by
+        intro l₁ l₂ h₁ h₂ heq
+        cases l₁ with
+        | nil =>
+          cases l₂ with
+          | nil => rfl
+          | cons b bs =>
+            simp only [lengthₚ_nil, lengthₚ_cons] at h₁ h₂
+            exact absurd (h₂.trans h₁.symm) (Peano.Axioms.succ_neq_zero _)
+        | cons a as =>
+          cases l₂ with
+          | nil =>
+            simp only [lengthₚ_nil, lengthₚ_cons] at h₁ h₂
+            exact absurd (h₁.trans h₂.symm) (Peano.Axioms.succ_neq_zero _)
+          | cons b bs =>
+            have hlen : lengthₚ as = lengthₚ bs := by
+              have : σ (lengthₚ as) = σ (lengthₚ bs) :=
+                calc σ (lengthₚ as) = lengthₚ (a :: as) := (lengthₚ_cons a as).symm
+                  _ = p := h₁
+                  _ = lengthₚ (b :: bs) := h₂.symm
+                  _ = σ (lengthₚ bs) := lengthₚ_cons b bs
+              injection this
+            obtain ⟨has, hab⟩ := append_singleton_inj as bs a b hlen heq
+            rw [has, hab]
+      -- ── orbit preimage: rv w ∈ orbit → w ∈ orbit ─────────────────────────
+      have orbit_preimage : ∀ w : Vector ℕ₀ p, rotateVector w ∈ orbit → w ∈ orbit := by
+        intro w hw
+        obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hw
+        have hk_lt := (ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in
+        have hrv : rotateList w.val = nthRotate k v.val := (congrArg Subtype.val hk_eq).symm
+        rw [List.mem_map]
+        cases k with
+        | zero =>
+          have h_p1_le : le₀ 𝟙 p :=
+            le_trans 𝟙 𝟚 p (Or.inl (lt_succ_self 𝟙)) (prime_ge_two hp)
+          have h_sub1p : add (sub p 𝟙) 𝟙 = p := sub_k_add_k p 𝟙 h_p1_le
+          have h_sub_lt : lt₀ (sub p 𝟙) p := by
+            have := @lt_add_of_pos_right (sub p 𝟙) 𝟙 (pos_of_ne_zero 𝟙 (Peano.Axioms.succ_neq_zero 𝟘))
+            rwa [h_sub1p] at this
+          have h_ntp : nthRotate p w.val = w.val := by
+            have h := nthRotate_length_self w.val; rwa [w.property] at h
+          have h_wval : w.val = nthRotate (sub p 𝟙) v.val :=
+            calc w.val
+                = nthRotate p w.val := h_ntp.symm
+              _ = nthRotate (add (sub p 𝟙) 𝟙) w.val := by rw [h_sub1p]
+              _ = nthRotate (sub p 𝟙) (nthRotate 𝟙 w.val) := nthRotate_add _ _ _
+              _ = nthRotate (sub p 𝟙) (rotateList w.val) := rfl
+              _ = nthRotate (sub p 𝟙) v.val := by rw [hrv]; rfl
+          exact ⟨sub p 𝟙, (ℕ₀FSet.mem_Fin₀Set_iff p (sub p 𝟙)).mpr h_sub_lt,
+                 Subtype.ext h_wval.symm⟩
+        | succ k' =>
+          have hk'_lt := lt_trans k' (σ k') p (lt_succ_self k') hk_lt
+          have heq_rl : rotateList w.val = rotateList (nthRotate k' v.val) :=
+            hrv.trans (nthRotate_succ_comm k' v.val)
+          have h_wval : w.val = nthRotate k' v.val :=
+            rl_inj w.val (nthRotate k' v.val) w.property (nthRotate_len k') heq_rl
+          exact ⟨k', (ℕ₀FSet.mem_Fin₀Set_iff p k').mpr hk'_lt,
+                 Subtype.ext h_wval.symm⟩
+      -- ── orbit is closed under rotateVector ───────────────────────────────
+      have orbit_closed_rv : ∀ w ∈ orbit, rotateVector w ∈ orbit := by
+        intro w hw
+        obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hw
+        have hk_lt := (ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in
+        subst hk_eq
+        rw [rv_orb_eq k, List.mem_map]
+        rcases (lt_succ_iff_lt_or_eq (σ k) p).mp
+            ((succ_lt_succ_iff k p).mpr hk_lt) with h_lt | h_eq
+        · exact ⟨σ k, (ℕ₀FSet.mem_Fin₀Set_iff p (σ k)).mpr h_lt, rfl⟩
+        · have h_sk : nthRotate (σ k) v.val = v.val := by rw [h_eq]; exact hp_period
+          exact ⟨𝟘, (ℕ₀FSet.mem_Fin₀Set_iff p 𝟘).mpr (pos_of_ne_zero p hp.1),
+                 Subtype.ext h_sk.symm⟩
+      -- ── Inline nodup_subset_length_le ────────────────────────────────────
+      have nodup_sub_len : ∀ {l₁ l₂ : List (Vector ℕ₀ p)},
+          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
+        intro l₁ l₂
+        induction l₁ generalizing l₂ with
+        | nil => intro _ _; exact Nat.zero_le _
+        | cons a l₁' ih =>
+          intro hnd hsub
+          rw [List.nodup_cons] at hnd
+          obtain ⟨ha_nin, hnd'⟩ := hnd
+          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+          have h_ih := ih hnd' (fun x hx => by
+            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
+            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
+          rw [List.length_cons]
+          have h_pos : 0 < l₂.length := by
+            cases l₂ with
+            | nil => exact absurd ha2 List.not_mem_nil
+            | cons _ _ => exact Nat.zero_lt_succ _
+          have h_erase_len := List.length_erase_of_mem ha2
+          omega
+      -- ── Define S' and prove its properties ───────────────────────────────
+      refine ⟨S.filter (fun w => !decide (w ∈ orbit)), ?_, ?_, ?_, ?_⟩
+      -- Property 1: S'.Nodup
+      · exact List.filter_sublist.nodup hnodup
+      -- Property 2: S' is closed under rotateVector
+      · intro w hw
+        rw [List.mem_filter] at hw ⊢
+        obtain ⟨hw_S, hw_not⟩ := hw
+        have hw_not_orbit : w ∉ orbit := by
+          intro h; simp [decide_eq_true h] at hw_not
+        exact ⟨hrot w hw_S, by
+          have hn : rotateVector w ∉ orbit := fun hrv_in => hw_not_orbit (orbit_preimage w hrv_in)
+          simp [hn]⟩
+      -- Property 3: lengthₚ S = add (lengthₚ S') p
+      · have filter_part : ∀ (l : List (Vector ℕ₀ p)) (q : Vector ℕ₀ p → Bool),
+            l.length = Nat.add (l.filter q).length (l.filter (fun x => !q x)).length := by
+          intro l q
+          induction l with
+          | nil => simp
+          | cons x xs ih =>
+            cases h : q x
+            · have e1 : (x :: xs).filter q = xs.filter q := by simp [h]
+              have e2 : (x :: xs).filter (fun y => !q y) = x :: xs.filter (fun y => !q y) := by
+                simp [h]
+              simp only [e1, e2, List.length_cons, Nat.add_eq] at *; omega
+            · have e1 : (x :: xs).filter q = x :: xs.filter q := by simp [h]
+              have e2 : (x :: xs).filter (fun y => !q y) = xs.filter (fun y => !q y) := by
+                simp [h]
+              simp only [e1, e2, List.length_cons, Nat.add_eq] at *; omega
+        have filter_orbit_len :
+            (S.filter (fun w => decide (w ∈ orbit))).length = orbit.length := by
+          apply Nat.le_antisymm
+          · apply nodup_sub_len (List.filter_sublist.nodup hnodup)
+            intro w hw
+            exact of_decide_eq_true (List.mem_filter.mp hw).2
+          · apply nodup_sub_len orbit_nodup
+            intro w hw
+            rw [List.mem_filter]
+            exact ⟨orbit_mem_S w hw, decide_eq_true hw⟩
+        have hnat : S.length =
+            Nat.add (S.filter (fun w => !decide (w ∈ orbit))).length orbit.length := by
+          have h := filter_part S (fun w => decide (w ∈ orbit))
+          rw [filter_orbit_len] at h; simp only [Nat.add_eq] at h ⊢; omega
+        suffices h3 : Λ S.length = add (Λ (S.filter (fun w => !decide (w ∈ orbit))).length) p by
+          simpa [lengthₚ] using h3
+        rw [hnat, isomorph_Λ_add, orbit_len_p]
+      -- Property 4: filter equality
+      · suffices h4 : (S.filter (fun w => decide (rotateVector w = w))).length =
+              ((S.filter (fun w => !decide (w ∈ orbit))).filter
+                (fun w => decide (rotateVector w = w))).length by
+          exact congrArg Λ h4
+        apply Nat.le_antisymm
+        · apply nodup_sub_len (List.filter_sublist.nodup hnodup)
+          intro w hw
+          rw [List.mem_filter] at hw ⊢
+          obtain ⟨hw_S, hw_fixed⟩ := hw
+          refine ⟨?_, hw_fixed⟩
+          rw [List.mem_filter]
+          refine ⟨hw_S, ?_⟩
+          have hn : w ∉ orbit := by
+            intro hw_orbit
+            obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hw_orbit
+            exact orbit_no_fixed k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
+              (hk_eq ▸ of_decide_eq_true hw_fixed)
+          simp [hn]
+        · apply nodup_sub_len (List.filter_sublist.nodup (List.filter_sublist.nodup hnodup))
+          intro w hw
+          rw [List.mem_filter] at hw ⊢
+          exact ⟨(List.mem_filter.mp hw.1).1, hw.2⟩
 
     private theorem mckay_orbit_count (p : ℕ₀) (hp : Prime p)
         (T : List (Vector ℕ₀ p))

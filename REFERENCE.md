@@ -3011,7 +3011,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** 🔄 En progreso (4 sorrys). *Última actualización: 2026-04-20.*
+**Estado:** 🔄 En progreso (4 sorrys). *Última actualización: 2026-04-22.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3029,31 +3029,51 @@ structure GroupHom (G H : FinGroup) where
 
 ### 44.2. Teorema de Cauchy (McKay) [T]
 
-**Lemas auxiliares privados (todos sin sorry):**
+**Lemas de subgrupo cíclico (privados, sin sorry):**
 
 - `card_pos_of_mem_aux`, `order_dvd_of_pow_eq_id`, `order_eq_prime_of_pow`, `gpow_lt_p_mem_cyclic`, `cyclicSubgroup_card_eq_prime`.
 
-**Infraestructura de Listas/Tuplas para McKay (privada):**
+**Infraestructura de Listas/Tuplas para McKay (privada, sin sorry):**
 
-- `listProd (G : FinGroup) : List ℕ₀ → ℕ₀`
-- `listProd_mem`, `listProd_append`, `listProd_singleton`
-- `allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)` — generador combinatorio.
+- `listProd (G : FinGroup) : List ℕ₀ → ℕ₀`, `listProd_nil`, `listProd_cons`, `listProd_mem`, `listProd_append`, `listProd_singleton`.
+- `rotateList {α} : List α → List α` — rotación cíclica de un paso.
+- `lengthₚ_rotateList`, `rotateList_fixed_all_eq`.
+- `rotateVector {α} {n} (v : Vector α n) : Vector α n` — versión tipada de `rotateList`.
+- `listProdVector (G : FinGroup) {n} (v : Vector ℕ₀ n) : ℕ₀`.
+- `allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)` — generador combinatorio de `n`-tuplas.
+- `listProd_rotate_eq_id`.
+- `gpow_id_eq_id`.
 
-**Operación McKay (privada):**
+**Operación de desplazamiento de McKay (privada, sin sorry):**
 
-- `rotateList`, `lengthₚ_rotateList`, `listProd_rotate_eq_id`.
 - `mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀` — desplaza y añade inverso del producto.
-- `mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n` — versión tipada.
-- `lengthₚ_mckayShiftList`, `mckayShiftList_mem` (preservación de G).
-- `append_singleton_inj`, `mckayShiftList_inj` (inyectividad).
+- `mckayShift (G : FinGroup) {n} (v : Vector ℕ₀ n) : Vector ℕ₀ n` — versión tipada.
+- `lengthₚ_mckayShiftList`, `mckayShiftList_mem` (preservación de G), `append_singleton_inj`, `mckayShiftList_inj` (inyectividad).
 
-**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ...) : p ∣ F.card` ⚠️ sorry
+**Infraestructura de rotación iterada (privada, sin sorry):**
 
-- `p` divide al cardinal del conjunto fijo `F = {g ∈ G | g^p = e}`. Estrategia: conteo de órbitas bajo la rotación de McKay sobre p-tuplas de producto neutro.
+- `nthRotate {α} : ℕ₀ → List α → List α` — `k`-ésima iteración de `rotateList`.
+- `nthRotate_succ_comm : nthRotate k (rotateList l) = rotateList (nthRotate k l)`.
+- `nthRotate_add : nthRotate (k₁ + k₂) l = nthRotate k₁ (nthRotate k₂ l)`.
+- `nthRotate_length_self : nthRotate (lengthₚ l) l = l` — periodicidad natural.
+- `nthRotate_mul_period`, `nthRotate_append_general`, `nthRotate_fixed_all`.
+- `gcd_eq_one_of_pos_lt_prime (k p : ℕ₀) (hk_pos hk_lt : _) (hp : Prime p) : gcd k p = 𝟙`.
+- `nthRotate_one_fixed_of_gcd_one` — si `gcd k p = 1` y `nthRotate k l = l` entonces `rotateList l = l`.
+- `vector_eq_of_rotateVector_eq_fixed` — si `v` es fijo y `rotateVector w = v` entonces `w = v`.
+- `gpow_comm_left`, `listProd_all_eq_gpow`.
+
+**Argumento de McKay sobre Vector ℕ₀ p (privado, sin sorry):**
+
+- `mckay_orbit_remove (p) (hp) (S) (v ∈ S) (hv : rotateVector v ≠ v) (hnodup) (hrot) : ∃ S', S'.Nodup ∧ (∀ w ∈ S', rotateVector w ∈ S') ∧ |S| = |S'| + p ∧ fix(S) = fix(S')` — extrae la órbita de `v` bajo `rotateVector` (de tamaño exactamente `p`) y devuelve el complemento `S'`. Sub-lemas internos: `orb_inj`, `orbit_no_fixed`, `rl_inj`, `orbit_preimage`, `orbit_closed_rv`, `nodup_sub_len`, `filter_part`. **Cerrado en sesión 2026-04-22.**
+- `mckay_orbit_count (p) (hp) (T) (hT_nodup) (hT_rot) : ∃ k, |T| = |fix(T)| + p·k` — el cardinal de `T` es el de sus puntos fijos más un múltiplo de `p`. Usa `mckay_orbit_remove` por inducción bien fundada. **Sin sorry.**
+
+**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : p ∣ |{g ∈ G | g^p = e}|` ⚠️ sorry
+
+- `p` divide al cardinal del conjunto fijo `F = {g ∈ G | g^p = e}`. Estrategia pendiente: instanciar `mckay_orbit_count` sobre el conjunto de p-tuplas de G con producto neutro.
 
 **[T44.2]** `cauchy_minimal (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : ∃ K : Subgroup G, K.carrier.card = p`
 
-- Demostrado condicionalmente usando `mckay_p_dvd_powEqId` (el único sorry del teorema de Cauchy). Todos los demás lemas auxiliares están cerrados.
+- Demostrado condicionalmente usando `mckay_p_dvd_powEqId` (único sorry de Cauchy). Todos los demás auxiliares están cerrados.
 
 ### 44.3. Teoremas de Sylow [T]
 
@@ -3101,3 +3121,15 @@ structure GroupHom (G H : FinGroup) where
 - D44.6 anadido en REFERENCE.md: Vector con sus tres instancias publicas.
 
 <!-- AUTO-UPDATE-2026-04-20-END -->
+
+<!-- AUTO-UPDATE-2026-04-22-START -->
+## Actualizacion de estado - 2026-04-22
+
+- Estado del build: 52 jobs, 0 errores, 4 sorry warnings (sin cambio).
+- mckay_orbit_remove demostrado completamente sin sorry (sesion 2026-04-22).
+- mckay_orbit_count ya compilaba; confirmado sin sorry.
+- Seccion 44.2 de REFERENCE.md ampliada: rotateVector, nthRotate y familia, gcd_eq_one_of_pos_lt_prime, nthRotate_one_fixed_of_gcd_one, vector_eq_of_rotateVector_eq_fixed, mckay_orbit_remove, mckay_orbit_count.
+- Sorries vigentes: mckay_p_dvd_powEqId (~1190), sylow_lift_from_cauchy (~1273), sylow_second (~1307), sylow_third (~1324).
+- Proximo objetivo: mckay_p_dvd_powEqId (conectar mckay_orbit_count con el conteo sobre G^p).
+
+<!-- AUTO-UPDATE-2026-04-22-END -->

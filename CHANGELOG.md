@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added (2026-04-22)
+
+- **Sylow.lean — `mckay_orbit_remove` demostrado sin sorry**:
+  - Prueba completa del lema privado `mckay_orbit_remove`: dado un elemento `v ∈ S` no fijo bajo `rotateVector`, extrae su órbita de tamaño exactamente `p` y produce `S' = S \ orbit(v)` con cuatro propiedades garantizadas por tipos: `S'.Nodup`, cierre bajo rotación, `|S| = |S'| + p`, y `fix(S) = fix(S')`.
+  - Sublemmas internos completamente demostrados: `orb_inj` (inyectividad de la órbita), `orbit_no_fixed` (ningún elemento de la órbita es fijo), `rl_inj` (inyectividad de `rotateList` para listas de longitud `p`), `orbit_preimage` (preimagen bajo `rotateVector` permanece en la órbita), `orbit_closed_rv` (cierre de la órbita bajo `rotateVector`), `nodup_sub_len` (lista nodup de sublista tiene longitud ≤), `filter_part` (partición de lista por predicado booleano).
+  - Obstáculos técnicos resueltos: doble-reescritura de `p` en `rw [← hpj]`, cálculo de motive para `▸`, `Nat.add` opaco para `omega` (solucionado con `simp only [Nat.add_eq]`), `linarith` ausente sin Mathlib (reemplazado por `omega`), `List.Nodup.filter` inexistente (reemplazado por `List.filter_sublist.nodup`), dirección de `congrArg Subtype.val`.
+  - Build: 52 jobs, 0 errores, 4 sorry warnings (sin cambio en el número de sorrys públicos).
+
 ### Added (2026-04-20)
 
 - **Sylow.lean — Infraestructura para el argumento de McKay (Cauchy)**:

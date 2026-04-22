@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-20
+**Última actualización:** 2026-04-22
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (52 jobs)   [2026-04-20]
+lake build      →  Build completed successfully (52 jobs)   [2026-04-22]
 sorry count     →  4 (todos en Sylow.lean)
 check-sorry     →  8 total (4 Sylow + 2 Perm.lean comentarios + 2 Primes.lean comentarios)
 warnings        →  4 (4 sorry warnings)
@@ -26,14 +26,15 @@ errors          →  0
 
 | Archivo | Líneas | Cantidad | Bloqueado por |
 |---|---|---|---|
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~498 | 1 | `mckay_p_dvd_powEqId` (conteo de órbitas McKay) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~577 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~610 | 1 | `sylow_second` (conjugación de p-subgrupos) |
-| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~627 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~1190 | 1 | `mckay_p_dvd_powEqId` (conteo de órbitas McKay sobre G^p) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~1273 | 1 | `sylow_lift_from_cauchy` (inducción + normalizer) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~1307 | 1 | `sylow_second` (conjugación de p-subgrupos) |
+| `Combinatorics/GroupTheory/Sylow/Sylow.lean` | ~1324 | 1 | `sylow_third` (n_p ≡ 1 mod p) |
 
 > `Cosets.lean` (`lagrange`), `Action.lean` (`orbit_stabilizer`, `orbits_partition`), `Perm.lean`, `Group.lean` — **todos cerrados en sesiones 2026-04-15–19**.
 > Lemas privados de `cauchy_minimal` (5 lemas, biyección `Fin₀Set(p) → ⟨g⟩`) — **cerrados en sesión 2026-04-19**.
 > Infraestructura McKay (`Vector`, `allVectorsList`, `mckayShiftList`, `mckayShiftList_mem`, `mckayShiftList_inj`) — **completada en sesión 2026-04-20**.
+> `mckay_orbit_remove` y `mckay_orbit_count` (lemas privados del argumento de McKay sobre `Vector ℕ₀ p`) — **cerrados en sesión 2026-04-22**.
 > `cauchy_minimal` formalizado condicionalmente: depende de `mckay_p_dvd_powEqId` (único sorry de Cauchy).
 
 ---

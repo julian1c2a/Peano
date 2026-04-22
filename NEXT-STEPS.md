@@ -1,6 +1,6 @@
 # Next Steps — Peano
 
-**Last updated:** 2026-04-20
+**Last updated:** 2026-04-22
 **Author**: Julián Calderón Almendros
 
 > Plan operativo simplificado: solo estado actual, bloqueos reales y siguientes pasos ejecutables.
@@ -14,6 +14,13 @@
 - Sorries activos: 4 (todos en `Sylow.lean`).
 - `check-sorry.bash` total: 8 (4 Sylow + 2 en Perm.lean comentarios + 2 en Primes.lean comentarios).
 - Warnings no-sorry: 4 (1 `unused variable` en Sylow.lean, 3 en Group.lean).
+
+### 1.1. Completado recientemente (sesión 2026-04-22)
+
+- **`mckay_orbit_remove` demostrado sin sorry** (`Sylow.lean`):
+  - Dado `v ∈ S` no fijo, extrae la órbita de tamaño `p` bajo `rotateVector` y devuelve `S' = S \ orbit(v)` con `S'.Nodup`, cierre bajo rotación, `|S| = |S'| + p`, y `fix(S) = fix(S')`.
+  - Sub-lemas internos completos: `orb_inj`, `orbit_no_fixed`, `rl_inj`, `orbit_preimage`, `orbit_closed_rv`, `nodup_sub_len`, `filter_part`.
+  - `mckay_orbit_count` también compila limpiamente (ya estaba estructurado, usa `mckay_orbit_remove`).
 
 ### 1.1. Completado recientemente (sesión 2026-04-20)
 
@@ -42,10 +49,10 @@ Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
 
 | Línea | Teorema | Estrategia conocida |
 |---|---|---|
-| ~498 | `mckay_p_dvd_powEqId` | Conteo de órbitas de la rotación de McKay sobre listas de longitud p-1 |
-| ~577 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
-| ~610 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
-| ~627 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
+| ~1190 | `mckay_p_dvd_powEqId` | Conectar `mckay_orbit_count` (probado) con el conteo de `{g ∈ G | g^p = e}` sobre G^p |
+| ~1273 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
+| ~1307 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
+| ~1324 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
 
 ---
 
@@ -106,7 +113,9 @@ Dependencia: `sylow_second`.
 - [x] Cerrar `lagrange` (Cosets)
 - [x] Cerrar `orbit_stabilizer` y `orbits_partition` (Action)
 - [x] `cauchy_minimal_axiom` → sorry (trazable)
-- [ ] Cerrar `cauchy_minimal` (Sylow/cauchy)
+- [x] `mckay_orbit_remove` y `mckay_orbit_count` — cerrados (2026-04-22)
+- [ ] Cerrar `mckay_p_dvd_powEqId` (conecta `mckay_orbit_count` con el conteo sobre G^p)
+- [ ] Cerrar `cauchy_minimal` (depende de `mckay_p_dvd_powEqId`)
 - [ ] Cerrar `sylow_lift_from_cauchy`
 - [ ] Cerrar `sylow_second`
 - [ ] Cerrar `sylow_third`

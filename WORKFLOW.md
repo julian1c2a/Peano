@@ -219,3 +219,16 @@ bash update-toolchain.bash vX.Y.Z    # update Lean version
 
 <!-- AUTO-UPDATE-2026-04-23b-END -->
 
+<!-- AUTO-UPDATE-2026-04-24-START -->
+## Actualizacion de estado - 2026-04-24
+
+- Estado del build: 52 jobs · 0 errores · 0 warnings.
+- Binom.lean: nuevo teorema binom_prime_row (publico) y auxiliar privado binom_prime_row_aux.
+  - Prueba: via binom_mul_factorials + mul_cancelation_right + mul_cancelation_left (sin set, sin conv_lhs).
+  - Enuncia: C(p·r, p) = r · C(p·r−1, p−1) para p ≠ 0, r ≠ 0.
+- REFERENCE.md: entrada T16.10 agregada.
+- NEXT-STEPS.md: pasos 2 y 4 marcados como completados; siguiente meta: C(p·r, p) ≡ r (mod p).
+- Pendientes activos: C(pr,p) ≡ r (mod p), Lucas, Wielandt, 5 axiomas privados de Sylow.
+
+<!-- AUTO-UPDATE-2026-04-24-END -->
+

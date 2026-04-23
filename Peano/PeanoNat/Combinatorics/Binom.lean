@@ -352,6 +352,102 @@ namespace Peano
 
     end PrimeDvdBinom
 
+    -- ── Identidad de fila: C(p·r, p) = r · C(p·r−1, p−1) ────────────────────────
+
+    private theorem binom_prime_row_aux (p' r' : ℕ₀) :
+        C(mul (σ p') (σ r'), σ p') = mul (σ r') (C(sub (mul (σ p') (σ r')) 𝟙, p')) := by
+      have hn_pos : lt₀ 𝟘 (mul (σ p') (σ r')) := mul_pos (lt_zero_succ p') (lt_zero_succ r')
+      have hn_ne : mul (σ p') (σ r') ≠ 𝟘 := Ne.symm (ne_of_lt 𝟘 _ hn_pos)
+      have h_n_succ : σ (sub (mul (σ p') (σ r')) 𝟙) = mul (σ p') (σ r') := by
+        rw [sub_one, tau_eq_rho_if_ne_zero _ hn_ne]; exact σ_ρ_eq_self _ hn_ne
+      have h_p_le_n : le₀ (σ p') (mul (σ p') (σ r')) :=
+        mul_le_right (σ p') (σ r') (succ_neq_zero r')
+      have h_p'_le : le₀ p' (sub (mul (σ p') (σ r')) 𝟙) := by
+        have h : le₀ (σ p') (σ (sub (mul (σ p') (σ r')) 𝟙)) := h_n_succ.symm ▸ h_p_le_n
+        exact (succ_le_succ_iff p' _).mp h
+      have h_sub_sub : sub (sub (mul (σ p') (σ r')) 𝟙) p' = sub (mul (σ p') (σ r')) (σ p') := by
+        rw [sub_succ_succ_eq, h_n_succ]
+      have eq1 : mul (mul C(mul (σ p') (σ r'), σ p') (factorial (σ p')))
+                     (factorial (sub (mul (σ p') (σ r')) (σ p'))) =
+                 factorial (mul (σ p') (σ r')) :=
+        binom_mul_factorials h_p_le_n
+      have eq2 : mul (mul C(sub (mul (σ p') (σ r')) 𝟙, p') (factorial p'))
+                     (factorial (sub (mul (σ p') (σ r')) (σ p'))) =
+                 factorial (sub (mul (σ p') (σ r')) 𝟙) := by
+        have h := binom_mul_factorials h_p'_le; rw [h_sub_sub] at h; exact h
+      have h_fact_n : factorial (mul (σ p') (σ r')) =
+          mul (factorial (sub (mul (σ p') (σ r')) 𝟙)) (mul (σ p') (σ r')) := by
+        have h1 : factorial (mul (σ p') (σ r')) =
+            factorial (σ (sub (mul (σ p') (σ r')) 𝟙)) := congrArg factorial h_n_succ.symm
+        rw [h1, factorial_succ (sub (mul (σ p') (σ r')) 𝟙), h_n_succ]
+      have stepA : mul (mul C(mul (σ p') (σ r'), σ p') (σ p'))
+                       (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p')))) =
+                   factorial (mul (σ p') (σ r')) := by
+        have inner : mul (σ p') (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p')))) =
+            mul (factorial (σ p')) (factorial (sub (mul (σ p') (σ r')) (σ p'))) := by
+          rw [← mul_assoc (factorial p') (σ p') (factorial (sub (mul (σ p') (σ r')) (σ p'))),
+              mul_comm (σ p') (factorial p'), ← factorial_succ p']
+        calc mul (mul C(mul (σ p') (σ r'), σ p') (σ p'))
+                 (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))
+            = mul C(mul (σ p') (σ r'), σ p')
+                  (mul (σ p') (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))) :=
+                mul_assoc (σ p') C(mul (σ p') (σ r'), σ p')
+                    (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))
+          _ = mul C(mul (σ p') (σ r'), σ p')
+                  (mul (factorial (σ p')) (factorial (sub (mul (σ p') (σ r')) (σ p')))) :=
+                by rw [inner]
+          _ = mul (mul C(mul (σ p') (σ r'), σ p') (factorial (σ p')))
+                  (factorial (sub (mul (σ p') (σ r')) (σ p'))) := by
+                rw [← mul_assoc (factorial (σ p')) C(mul (σ p') (σ r'), σ p')
+                        (factorial (sub (mul (σ p') (σ r')) (σ p')))]
+          _ = factorial (mul (σ p') (σ r')) := eq1
+      have stepB : mul (mul (mul (σ p') (σ r')) C(sub (mul (σ p') (σ r')) 𝟙, p'))
+                       (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p')))) =
+                   factorial (mul (σ p') (σ r')) := by
+        calc mul (mul (mul (σ p') (σ r')) C(sub (mul (σ p') (σ r')) 𝟙, p'))
+                 (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))
+            = mul (mul (σ p') (σ r'))
+                  (mul C(sub (mul (σ p') (σ r')) 𝟙, p')
+                       (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))) :=
+                mul_assoc C(sub (mul (σ p') (σ r')) 𝟙, p') (mul (σ p') (σ r'))
+                    (mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))))
+          _ = mul (mul (σ p') (σ r'))
+                  (mul (mul C(sub (mul (σ p') (σ r')) 𝟙, p') (factorial p'))
+                       (factorial (sub (mul (σ p') (σ r')) (σ p')))) := by
+                rw [← mul_assoc (factorial p') C(sub (mul (σ p') (σ r')) 𝟙, p')
+                        (factorial (sub (mul (σ p') (σ r')) (σ p')))]
+          _ = mul (mul (σ p') (σ r')) (factorial (sub (mul (σ p') (σ r')) 𝟙)) := by rw [eq2]
+          _ = mul (factorial (sub (mul (σ p') (σ r')) 𝟙)) (mul (σ p') (σ r')) :=
+                mul_comm (mul (σ p') (σ r')) (factorial (sub (mul (σ p') (σ r')) 𝟙))
+          _ = factorial (mul (σ p') (σ r')) := h_fact_n.symm
+      have h_factor_ne : mul (factorial p') (factorial (sub (mul (σ p') (σ r')) (σ p'))) ≠ 𝟘 := by
+        intro h
+        rcases (mul_eq_zero _ _).mp h with h1 | h2
+        · exact factorial_ne_zero p' h1
+        · exact factorial_ne_zero (sub (mul (σ p') (σ r')) (σ p')) h2
+      have h_mid : mul C(mul (σ p') (σ r'), σ p') (σ p') =
+                   mul (mul (σ p') (σ r')) C(sub (mul (σ p') (σ r')) 𝟙, p') :=
+        mul_cancelation_right _ _ _ h_factor_ne (stepA.trans stepB.symm)
+      have h_rhs : mul (mul (σ p') (σ r')) C(sub (mul (σ p') (σ r')) 𝟙, p') =
+                   mul (σ p') (mul (σ r') C(sub (mul (σ p') (σ r')) 𝟙, p')) :=
+        mul_assoc (σ r') (σ p') C(sub (mul (σ p') (σ r')) 𝟙, p')
+      rw [mul_comm C(mul (σ p') (σ r'), σ p') (σ p'), h_rhs] at h_mid
+      exact mul_cancelation_left (σ p') C(mul (σ p') (σ r'), σ p')
+        (mul (σ r') C(sub (mul (σ p') (σ r')) 𝟙, p')) (succ_neq_zero p') h_mid
+
+    /- C(p·r, p) = r · C(p·r−1, p−1) para p ≠ 0, r ≠ 0. -/
+    theorem binom_prime_row {p r : ℕ₀} (hp : p ≠ 𝟘) (hr : r ≠ 𝟘) :
+        C(mul p r, p) = mul r (C(sub (mul p r) 𝟙, sub p 𝟙)) := by
+      cases p with
+      | zero => exact absurd rfl hp
+      | succ p' =>
+      cases r with
+      | zero => exact absurd rfl hr
+      | succ r' =>
+      have h_sub_p : sub (σ p') 𝟙 = p' := by rw [sub_one]; exact τ_σ_eq_self p'
+      rw [h_sub_p]
+      exact binom_prime_row_aux p' r'
+
   end Binom
 end Peano
 
@@ -370,4 +466,5 @@ export Peano.Binom (
   binom_succ_n_by_n
   binom_mul_factorials
   prime_dvd_binom_prime
+  binom_prime_row
 )

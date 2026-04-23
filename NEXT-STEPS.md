@@ -56,7 +56,7 @@ Sub-lemmas needed:
 - `prime_not_dvd_factorial` (private): `p prime, k < p → p ∤ k!`
 - `prime_dvd_binom_prime` (public): `p prime, 0 < k < p → p | C(p,k)`
 
-**Step 2 — `C(p·r, p) = r · C(p·r-1, p-1)`** *(algebraic identity, in `Binom.lean`)*
+**Step 2 — `C(p·r, p) = r · C(p·r-1, p-1)`** *(algebraic identity, in `Binom.lean`)* ✓ DONE (`binom_prime_row`)
 
 From `binom_mul_factorials` applied twice:
 - `C(p·r, p) · p! · (p·r-p)! = (p·r)!`
@@ -148,8 +148,10 @@ This would allow:
 
 ## Immediate priorities (this session)
 
-1. **`prime_not_dvd_of_pos_lt`** (private, `Binom.lean`) — `p prime, 0 < a < p → p ∤ a`
-2. **`prime_not_dvd_factorial`** (private, `Binom.lean`) — `p prime, k < p → p ∤ k!`
-3. **`prime_dvd_binom_prime`** (public, `Binom.lean`) — `p prime, 0 < k < p → p | C(p,k)`
-4. (Next session) Prove `C(p·r, p) = r · C(p·r-1, p-1)`.
-5. (Next session) Prove `C(p·r, p) ≡ r (mod p)` by induction on r.
+1. ~~`prime_not_dvd_of_pos_lt` (private, `Binom.lean`)~~ ✓ DONE
+2. ~~`prime_not_dvd_factorial` (private, `Binom.lean`)~~ ✓ DONE
+3. ~~`prime_dvd_binom_prime` (public, `Binom.lean`)~~ ✓ DONE
+4. ~~Prove `C(p·r, p) = r · C(p·r-1, p-1)` (`binom_prime_row`)~~ ✓ DONE
+5. **Next**: Prove `C(p·r, p) ≡ r (mod p)` by induction on r using `binom_prime_row` and `prime_dvd_binom_prime`.
+   - Requires: modular arithmetic (Mod.lean or similar) — or inline the argument with `Divides`.
+   - Key induction: C(pr, p) = r·C(pr-1,p-1), and p | C(p,k) for 0 < k < p implies the congruence holds via an inductive congruence argument on r.

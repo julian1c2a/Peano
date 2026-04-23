@@ -2328,6 +2328,13 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
   - `prime_not_dvd_of_pos_lt {p a : ℕ₀} (ha_pos : lt₀ 𝟘 a) (ha_lt : lt₀ a p) : ¬ (p ∣ a)` — cualquier a con 0 < a < p no es divisible por p
   - `prime_not_dvd_factorial {p : ℕ₀} (hp : Prime p) : ∀ k, lt₀ k p → ¬ (p ∣ factorial k)` — por inducción usando el anterior
 
+**[T16.10]** `binom_prime_row`
+
+- **Lean4:** `theorem binom_prime_row {p r : ℕ₀} (hp : p ≠ 𝟘) (hr : r ≠ 𝟘) : C(mul p r, p) = mul r (C(sub (mul p r) 𝟙, sub p 𝟙))`
+- **Matemática:** p ≠ 0, r ≠ 0 ⇒ C(p·r, p) = r · C(p·r−1, p−1)
+- **Prueba:** Por inducción estructural en p y r (casos `zero` descartan hipótesis). Para p = σ p', r = σ r': via `binom_mul_factorials` aplicado a C(n,p) y C(n−1,p−1) (n = p·r), se establecen dos cadenas de igual a `n!` (stepA: C(n,p)·p·(p−1)!·(n−p)! = n!; stepB: n·C(n−1,p−1)·(p−1)!·(n−p)! = n!). Cancelando el factor común `(p−1)!·(n−p)!` y luego `p`, se concluye C(n,p) = r·C(n−1,p−1).
+- **Auxiliar privado:** `binom_prime_row_aux (p' r' : ℕ₀) : C(mul (σ p') (σ r'), σ p') = mul (σ r') (C(sub (mul (σ p') (σ r')) 𝟙, p'))` — nucleo del argumento multiplicativo.
+
 ---
 
 ## 17. Combinatorics/NewtonBinom.lean — `namespace Peano.NewtonBinom`

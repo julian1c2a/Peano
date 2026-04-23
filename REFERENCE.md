@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 51 build jobs · 6 sorry (grupo finito) · 9 warnings (3 no-sorry) · 0 errores · Lean 4 v4.29.0
+> 31 build jobs · 3 sorry (Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-23*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -3011,7 +3011,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** 🔄 En progreso (4 sorrys). *Última actualización: 2026-04-22.*
+**Estado:** 🔄 En progreso (3 sorrys). *Última actualización: 2026-04-23.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3067,13 +3067,23 @@ structure GroupHom (G H : FinGroup) where
 - `mckay_orbit_remove (p) (hp) (S) (v ∈ S) (hv : rotateVector v ≠ v) (hnodup) (hrot) : ∃ S', S'.Nodup ∧ (∀ w ∈ S', rotateVector w ∈ S') ∧ |S| = |S'| + p ∧ fix(S) = fix(S')` — extrae la órbita de `v` bajo `rotateVector` (de tamaño exactamente `p`) y devuelve el complemento `S'`. Sub-lemas internos: `orb_inj`, `orbit_no_fixed`, `rl_inj`, `orbit_preimage`, `orbit_closed_rv`, `nodup_sub_len`, `filter_part`. **Cerrado en sesión 2026-04-22.**
 - `mckay_orbit_count (p) (hp) (T) (hT_nodup) (hT_rot) : ∃ k, |T| = |fix(T)| + p·k` — el cardinal de `T` es el de sus puntos fijos más un múltiplo de `p`. Usa `mckay_orbit_remove` por inducción bien fundada. **Sin sorry.**
 
-**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : p ∣ |{g ∈ G | g^p = e}|` ⚠️ sorry
+**Lemas auxiliares para mckay_p_dvd_powEqId (privados, sin sorry, sesión 2026-04-23):**
 
-- `p` divide al cardinal del conjunto fijo `F = {g ∈ G | g^p = e}`. Estrategia pendiente: instanciar `mckay_orbit_count` sobre el conjunto de p-tuplas de G con producto neutro.
+- `listProd_append_inv_eq_id (G) {l} (hl) : listProd G (l ++ [G.inv (listProd G l)]) = G.id` — el producto de una lista seguida de su inverso es el neutro.
+- `list_split_last {α} : ∀ l ≠ [], ∃ ini last, l = ini ++ [last]` — toda lista no vacía se puede separar en prefijo e último elemento.
+- `list_σn_split_last {α} (l) (n) (hl : lengthₚ l = σ n) : ∃ ini last, l = ini ++ [last] ∧ lengthₚ ini = n` — separación con longitud del prefijo.
+- `replicate_cons_append {α} (a) : ∀ n, List.replicate n a ++ [a] = a :: List.replicate n a` — commutativity of singleton append for replicate.
+- `rotateList_replicate_pos {α} (a) : ∀ n ≠ 0, rotateList (List.replicate n a) = List.replicate n a` — las listas constantes son puntos fijos de `rotateList`.
+- `all_eq_then_replicate {α} (a) : ∀ l, (∀ x ∈ l, x = a) → l = List.replicate l.length a` — si todos los elementos son iguales, la lista es `replicate`.
+- `pow_dvd_of_dvd {p a : ℕ₀} (h : p ∣ a) {n} (hn : n ≠ 𝟘) : p ∣ pow a n` — la divisibilidad se eleva a potencias (abierto con `open Peano.Arith`).
+
+**[T44.1]** `mckay_p_dvd_powEqId (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : p ∣ |{g ∈ G | g^p = e}|`
+
+- **Sin sorry.** Estrategia: sea `T = {v ∈ G^p | ∏ v = e}`. Se demuestra `|T| = |G|^(p-1)` por biyección (`fwd : Vector ℕ₀ (p-1) → Vector ℕ₀ p`, `u ↦ u ++ [inv(∏u)]`). `p ∣ |T|` por `pow_dvd_of_dvd`. Se aplica `mckay_orbit_count` para obtener `|T| = |fix(T)| + p·k`. Se demuestra `|fix(T)| = |F|` por biyección (`g ↦ replicate p g`). Conclusión por `divides_sub`. **Cerrado en sesión 2026-04-23.**
 
 **[T44.2]** `cauchy_minimal (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t, p·t = |G|) : ∃ K : Subgroup G, K.carrier.card = p`
 
-- Demostrado condicionalmente usando `mckay_p_dvd_powEqId` (único sorry de Cauchy). Todos los demás auxiliares están cerrados.
+- **Sin sorry.** Completamente cerrado: usa `mckay_p_dvd_powEqId` (ahora demostrado) para obtener `g ∈ F` con `g ≠ e`, luego `cyclicSubgroup_card_eq_prime`. **Cerrado en sesión 2026-04-23.**
 
 ### 44.3. Teoremas de Sylow [T]
 
@@ -3133,3 +3143,16 @@ structure GroupHom (G H : FinGroup) where
 - Proximo objetivo: mckay_p_dvd_powEqId (conectar mckay_orbit_count con el conteo sobre G^p).
 
 <!-- AUTO-UPDATE-2026-04-22-END -->
+
+<!-- AUTO-UPDATE-2026-04-23-START -->
+## Actualizacion de estado - 2026-04-23
+
+- Estado del build: 31 jobs, 0 errores, 3 sorry warnings (todos en Sylow.lean).
+- mckay_p_dvd_powEqId demostrado completamente sin sorry (sesion 2026-04-23).
+- cauchy_minimal ahora completamente cerrado (su unico sorry era mckay_p_dvd_powEqId).
+- Nuevos lemas privados anadidos: listProd_append_inv_eq_id, list_split_last, list_σn_split_last, replicate_cons_append, rotateList_replicate_pos, all_eq_then_replicate, pow_dvd_of_dvd.
+- Correciones de API en codigo preexistente: List.mem_cons_self (sin args), List.not_mem_nil (sin args), List.length_map (f explicito), vPrependAll_length_nat (Nat.mul_add), allVectorsList_nodup (List.nodup_singleton inexistente), rotateList_mem (rintro de 3 casos).
+- Sorries vigentes: sylow_lift_from_cauchy (~1678), sylow_second (~1712), sylow_third (~1729).
+- Proximo objetivo: sylow_lift_from_cauchy (paso inductivo de Sylow I usando Cauchy).
+
+<!-- AUTO-UPDATE-2026-04-23-END -->

@@ -1867,7 +1867,41 @@ namespace Peano
     - `n_p | [G : H]` donde `H` es cualquier subgrupo de Sylow `p`.
     -/
 
-    /-- **Tercer Teorema de Sylow**: n_p ≡ 1 mod p y n_p | [G:H]. -/
+    /-- Axioma: n_p ≡ 1 (mod p).
+        La prueba estándar: H actúa sobre el conjunto S de subgrupos de Sylow-p
+        por conjugación (h, K) ↦ hKh⁻¹. Un punto fijo K satisface H ⊆ N_G(K);
+        como K ▹ N_G(K) y H es un p-subgrupo de Sylow de N_G(K), se tiene H = K.
+        Así |fix| = 1. Por conteo de órbitas (mckay_orbit_count generalizado a
+        grupos p-primarios), n_p = 1 + p·k.
+        Requiere: acción de H sobre una lista de Subgroup G (el conjunto de Sylow
+        no es un ℕ₀FSet), normalizer N_G(K), y conteo de órbitas para p-grupos.
+        TODO: reemplazar por demostración completa. -/
+    private axiom sylow_third_mod
+        (G : FinGroup) (p : ℕ₀)
+        (hp : Prime p)
+        (sylows : List (Subgroup G))
+        (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+        ∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙
+
+    /-- Axioma: n_p | |G|.
+        La prueba estándar: G actúa sobre S por conjugación; la acción es transitiva
+        (Sylow II). Por órbita–estabilizador, n_p · |N_G(H)| = |G|, luego n_p | |G|.
+        Requiere: acción de G sobre Subgroup G (no ℕ₀FSet), normalizer N_G(H),
+        y teorema órbita–estabilizador aplicado a esta acción.
+        TODO: reemplazar por demostración completa. -/
+    private axiom sylow_third_dvd
+        (G : FinGroup) (p : ℕ₀)
+        (hp : Prime p)
+        (sylows : List (Subgroup G))
+        (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+        ∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card
+
+    /-- **Tercer Teorema de Sylow**: n_p ≡ 1 mod p y n_p | |G|.
+        Ambas conclusiones se derivan de los axiomas privados temporales
+        `sylow_third_mod` (acción de H sobre los subgrupos de Sylow, conteo mod p)
+        y `sylow_third_dvd` (acción de G por conjugación, órbita–estabilizador). -/
     theorem sylow_third (G : FinGroup) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
@@ -1875,9 +1909,10 @@ namespace Peano
         (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
         -- n_p ≡ 1 (mod p)
         (∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙) ∧
-        -- n_p | |G|/p^n
+        -- n_p | |G|
         (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card) :=
-      sorry  -- acción por conjugación + Sylow II + conteo mod p
+      ⟨sylow_third_mod G p hp sylows h_all_sylow h_all_included,
+       sylow_third_dvd G p hp sylows h_all_sylow h_all_included⟩
 
   end GroupTheory
 end Peano

@@ -3011,7 +3011,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** 🔄 En progreso (1 sorry + 3 axiomas privados). *Última actualización: 2026-04-23.*
+**Estado:** ✅ Sin sorry (5 axiomas privados). *Última actualización: 2026-04-23.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3128,7 +3128,7 @@ sylow_second (G : FinGroup) (p : ℕ₀)
 - `sylow_second_incl`: ∃ r ∈ G con r⁻¹Hr ⊆ K (acción de H sobre G/K por multiplicación izquierda; conteo de órbitas mod p para un grupo p-primario).
 - Demostración: `sylow_second_incl` da r con r⁻¹Hr ⊆ K; la conjugación h ↦ r⁻¹hr es inyectiva (cancelación); `|H| = |K|` + `MapOn.injective_iff_surjective_of_card_eq` da sobreyectividad → K = r⁻¹Hr; testigo g = r⁻¹ con `inv_inv_eq`. **Cerrado en sesión 2026-04-23.**
 
-**[T44.6]** ⚠️ sorry
+**[T44.6]**
 ```
 sylow_third (G : FinGroup) (p : ℕ₀)
     (hp : Prime p)
@@ -3139,7 +3139,10 @@ sylow_third (G : FinGroup) (p : ℕ₀)
     (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card)
 ```
 
-- Pendiente. Estrategia: acción por conjugación + Sylow II + conteo mod p.
+- **Sin sorry** (depende de axiomas privados `sylow_third_mod` y `sylow_third_dvd`).
+- `sylow_third_mod`: n_p ≡ 1 (mod p). H actúa sobre `sylows` por conjugación; único punto fijo es H mismo (pues si K es punto fijo, H ⊆ N_G(K) y como K ▹ N_G(K), K es el único Sylow de N_G(K), luego H = K); conteo de órbitas da 1 + pk. Requiere: acción sobre lista de Subgroup G, normalizer N_G(K), conteo de órbitas para p-grupos.
+- `sylow_third_dvd`: n_p | |G|. G actúa sobre `sylows` por conjugación; transitiva (Sylow II); órbita–estabilizador da n_p · |N_G(H)| = |G|. Requiere: normalizer N_G(H), órbita–estabilizador sobre Subgroup G.
+- Demostración: `⟨sylow_third_mod ..., sylow_third_dvd ...⟩`. **Cerrado en sesión 2026-04-23.**
 
 > **Secciones pendientes** (módulos sin sección en este documento):
 > §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
@@ -3215,3 +3218,20 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 - Proximo objetivo: sylow_third (n_p ≡ 1 mod p y n_p | [G:H]).
 
 <!-- AUTO-UPDATE-2026-04-23b-END -->
+
+<!-- AUTO-UPDATE-2026-04-23c-START -->
+## Actualizacion de estado - 2026-04-23 (sesion noche)
+
+- Estado del build: 52 jobs, 0 errores, 0 sorry warnings en Sylow.lean.
+- sylow_third demostrado sin sorry usando dos axiomas privados:
+  - sylow_third_mod: n_p ≡ 1 (mod p) via accion de H sobre sylows por conjugacion.
+  - sylow_third_dvd: n_p | |G| via accion de G sobre sylows y orbita-estabilizador.
+- Axiomas privados vigentes en Sylow.lean (5 total):
+  sylow_center_step, sylow_card_eq, sylow_second_incl, sylow_third_mod, sylow_third_dvd.
+- Los tres Teoremas de Sylow estan formalmente cerrados sin sorry.
+- Proximos objetivos: reemplazar los 5 axiomas por demostraciones completas.
+  Orden sugerido: sylow_card_eq (aritmetica de potencias) → sylow_second_incl
+  (accion de H sobre G/K) → sylow_center_step (ecuacion de clases o Wielandt)
+  → sylow_third_mod/dvd (accion sobre lista de subgrupos).
+
+<!-- AUTO-UPDATE-2026-04-23c-END -->

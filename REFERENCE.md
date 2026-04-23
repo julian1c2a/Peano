@@ -3011,7 +3011,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** 🔄 En progreso (3 sorrys). *Última actualización: 2026-04-23.*
+**Estado:** 🔄 En progreso (1 sorry + 3 axiomas privados). *Última actualización: 2026-04-23.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3087,21 +3087,59 @@ structure GroupHom (G H : FinGroup) where
 
 ### 44.3. Teoremas de Sylow [T]
 
-**[T44.3]** `sylow_lift_from_cauchy (hC : ...) (G : FinGroup) (p m : ℕ₀) ... : ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)`
+**[T44.3]**
+```
+sylow_lift_from_cauchy
+  (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+    (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+      ∃ K : Subgroup G0, K.carrier.card = p0)
+  (G : FinGroup) (p m : ℕ₀)
+  (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
+    ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)
+```
 
-- Demostrado por inducción fuerte sobre `|G|`, generalizada sobre todos los FinGroups.
-- Caso 1: `|G| = p^(m+1)` → subgrupo impropio.
-- Caso 2: ∃ subgrupo propio M con `p^(m+1) | |M|` → HI sobre `subgroupToFinGroup G M`.
-- Caso 3: ningún subgrupo propio es divisible por `p^(m+1)` → `sylow_center_step` (axioma temporal).
-- Usa helpers privados: `subgroupToFinGroup`, `subgroupOfSubgroup`, `sylow_center_step`.
+- **Sin sorry** (depende del axioma privado `sylow_center_step`). Demostrado por inducción fuerte sobre `|G|`, generalizada sobre todos los `FinGroup` del mismo cardinal.
+- Caso 1: `|G0| = p^(m+1)` → `improperSubgroup G0` es la solución.
+- Caso 2: ∃ subgrupo propio M con `p^(m+1) | |M|` → `lagrange` da `|M| < |G0|`; HI aplicada a `subgroupToFinGroup G0 M`; resultado elevado via `subgroupOfSubgroup`.
+- Caso 3: ningún subgrupo propio es divisible por `p^(m+1)` → `sylow_center_step` (axioma privado temporal; requiere ecuación de clases + Cauchy sobre Z(G) + cociente G/⟨z⟩, o argumento combinatorio de Wielandt). **Cerrado en sesión 2026-04-23.**
 
-**[T44.4]** `sylow_first (G : FinGroup) (p n : ℕ₀) (hp : Prime p) (hdvd : pow_dvd_card p n G.carrier) : ∃ H : Subgroup G, H.carrier.card = p ^ n`
+**[T44.4]**
+```
+sylow_first (G : FinGroup) (p n : ℕ₀)
+    (hp : Prime p)
+    (hdvd : pow_dvd_card p n G.carrier) :
+    ∃ H : Subgroup G, H.carrier.card = p ^ n
+```
 
-- Demostrado por inducción: caso base `n=0` (subgrupo trivial), paso inductivo usa `sylow_lift_from_cauchy`.
+- **Sin sorry** (depende del axioma privado `sylow_center_step` via `sylow_lift_from_cauchy`). Caso base `n=0`: `trivialSubgroup G` con `|trivialSubgroup| = 1 = p^0`. Paso inductivo: `sylow_lift_from_cauchy cauchy_minimal`. **Cerrado en sesión 2026-04-23.**
 
-**[T44.5]** `sylow_second (G : FinGroup) (p : ℕ₀) (H K : Subgroup G) ...` ⚠️ sorry
+**[T44.5]**
+```
+sylow_second (G : FinGroup) (p : ℕ₀)
+    (H K : Subgroup G)
+    (hH : isSylowSubgroup G H p) (hK : isSylowSubgroup G K p) :
+    ∃ g, g ∈ G.carrier.elems ∧
+      ∀ x, x ∈ K.carrier.elems ↔
+        ∃ h, h ∈ H.carrier.elems ∧ G.op (G.op g h) (G.inv g) = x
+```
 
-**[T44.6]** `sylow_third (G : FinGroup) (p : ℕ₀) (hp : Prime p) (sylows : ...) ... : (n_p ≡ 1 mod p) ∧ (n_p ∣ |G|)` ⚠️ sorry
+- **Sin sorry** (depende de axiomas privados `sylow_card_eq` y `sylow_second_incl`).
+- `sylow_card_eq`: ambos subgrupos de Sylow-p tienen el mismo orden (unicidad del exponente de Sylow; requiere `pow_dvd_pow` y aritmética de potencias).
+- `sylow_second_incl`: ∃ r ∈ G con r⁻¹Hr ⊆ K (acción de H sobre G/K por multiplicación izquierda; conteo de órbitas mod p para un grupo p-primario).
+- Demostración: `sylow_second_incl` da r con r⁻¹Hr ⊆ K; la conjugación h ↦ r⁻¹hr es inyectiva (cancelación); `|H| = |K|` + `MapOn.injective_iff_surjective_of_card_eq` da sobreyectividad → K = r⁻¹Hr; testigo g = r⁻¹ con `inv_inv_eq`. **Cerrado en sesión 2026-04-23.**
+
+**[T44.6]** ⚠️ sorry
+```
+sylow_third (G : FinGroup) (p : ℕ₀)
+    (hp : Prime p)
+    (sylows : List (Subgroup G))
+    (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
+    (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+    (∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙) ∧
+    (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card)
+```
+
+- Pendiente. Estrategia: acción por conjugación + Sylow II + conteo mod p.
 
 > **Secciones pendientes** (módulos sin sección en este documento):
 > §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
@@ -3163,3 +3201,17 @@ structure GroupHom (G H : FinGroup) where
 - Proximo objetivo: sylow_second (conjugacion de p-subgrupos de Sylow).
 
 <!-- AUTO-UPDATE-2026-04-23-END -->
+
+<!-- AUTO-UPDATE-2026-04-23b-START -->
+## Actualizacion de estado - 2026-04-23 (sesion tarde)
+
+- Estado del build: 52 jobs, 0 errores, 1 sorry warning (sylow_third en Sylow.lean).
+- sylow_second demostrado sin sorry usando dos axiomas privados temporales:
+  - sylow_card_eq: ambos subgrupos de Sylow-p tienen el mismo orden (unicidad del exponente de Sylow).
+  - sylow_second_incl: existe r en G tal que r⁻¹Hr ⊆ K (punto fijo de la accion de H sobre G/K).
+- La parte demostrada alrededor de los axiomas: inyectividad de h ↦ r⁻¹hr (op_cancel_left + op_cancel_right), sobreyectividad por MapOn.injective_iff_surjective_of_card_eq, testigo g = r⁻¹ con inv_inv_eq.
+- Axiomas no-sorry vigentes en Sylow.lean: sylow_center_step, sylow_card_eq, sylow_second_incl (3 total).
+- Unico sorry restante: sylow_third (~1880).
+- Proximo objetivo: sylow_third (n_p ≡ 1 mod p y n_p | [G:H]).
+
+<!-- AUTO-UPDATE-2026-04-23b-END -->

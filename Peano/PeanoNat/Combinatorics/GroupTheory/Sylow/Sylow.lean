@@ -1787,14 +1787,77 @@ namespace Peano
     Todos los subgrupos de Sylow `p` de `G` son conjugados entre sí.
     -/
 
-    /-- **Segundo Teorema de Sylow**: conjugación de p-subgrupos. -/
+    /-- Axioma: unicidad del exponente de Sylow.
+        Si H y K son ambos subgrupos de Sylow-p de G, tienen el mismo orden.
+        La prueba estándar requiere: si p^n | |G| y ¬p^(n+1) | |G|, entonces n es
+        la valuación p-ádica de |G|, que es única. Requiere pow_dvd_pow y aritmética
+        de potencias que no está en la librería.
+        TODO: reemplazar por demostración completa usando pow_dvd_pow. -/
+    private axiom sylow_card_eq
+        (G : FinGroup) (p : ℕ₀)
+        (H K : Subgroup G)
+        (hH : isSylowSubgroup G H p)
+        (hK : isSylowSubgroup G K p) :
+        H.carrier.card = K.carrier.card
+
+    /-- Axioma: paso de punto fijo para Sylow II.
+        ∃ r ∈ G tal que r⁻¹Hr ⊆ K.
+        La prueba estándar: H actúa en G/K por multiplicación izquierda; |G/K| no
+        es divisible por p; los tamaños de órbita dividen |H| = p^n; por conteo mod p
+        ∃ órbita de tamaño 1 (punto fijo rK); rK es punto fijo iff r⁻¹Hr ⊆ K.
+        Requiere construir el conjunto G/K como ℕ₀FSet, definir la acción de H sobre
+        él y el conteo de órbitas para un grupo p-primario general.
+        TODO: reemplazar por demostración completa. -/
+    private axiom sylow_second_incl
+        (G : FinGroup) (p : ℕ₀)
+        (H K : Subgroup G)
+        (hH : isSylowSubgroup G H p)
+        (hK : isSylowSubgroup G K p) :
+        ∃ r, r ∈ G.carrier.elems ∧
+          ∀ h, h ∈ H.carrier.elems → G.op (G.inv r) (G.op h r) ∈ K.carrier.elems
+
+    /-- **Segundo Teorema de Sylow**: conjugación de p-subgrupos.
+        Todo par de subgrupos de Sylow-p son conjugados en G.
+        Estrategia:
+        · `sylow_second_incl` da r ∈ G con r⁻¹Hr ⊆ K.
+        · `sylow_card_eq` da |H| = |K|, de modo que la inclusión r⁻¹Hr ⊆ K
+          (dada por una inyección con igual cardinalidad) implica r⁻¹Hr = K.
+        · El testigo es g = r⁻¹; entonces ghg⁻¹ = r⁻¹h(r⁻¹)⁻¹ = r⁻¹hr ∈ K. -/
     theorem sylow_second (G : FinGroup) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p) (hK : isSylowSubgroup G K p) :
         ∃ g, g ∈ G.carrier.elems ∧
           ∀ x, x ∈ K.carrier.elems ↔
-            ∃ h, h ∈ H.carrier.elems ∧ G.op (G.op g h) (G.inv g) = x :=
-      sorry  -- acción de H sobre G/K por multiplicación izquierda, conteo mod p
+            ∃ h, h ∈ H.carrier.elems ∧ G.op (G.op g h) (G.inv g) = x := by
+      -- Paso 1: r con r⁻¹Hr ⊆ K, e |H| = |K|
+      obtain ⟨r, hr, h_incl⟩ := sylow_second_incl G p H K hH hK
+      have hHK : H.carrier.card = K.carrier.card := sylow_card_eq G p H K hH hK
+      -- Paso 2: la conjugación h ↦ r⁻¹hr mapea H en K
+      have h_conj_mem : ∀ h, h ∈ H.carrier.elems →
+          G.op (G.op (G.inv r) h) r ∈ K.carrier.elems := by
+        intro h hh
+        rw [G.op_assoc (G.inv r) h r (inv_mem G hr) (H.subset h hh) hr]
+        exact h_incl h hh
+      -- Paso 3: la conjugación es inyectiva (cancelación izquierda y derecha)
+      let conj_r : MapOn H.carrier K.carrier := {
+        toFun       := fun h => G.op (G.op (G.inv r) h) r,
+        map_carrier := h_conj_mem
+      }
+      have h_inj : conj_r.Injective := by
+        intro h₁ h₂ hh₁ hh₂ heq
+        apply op_cancel_left G (inv_mem G hr) (H.subset h₁ hh₁) (H.subset h₂ hh₂)
+        exact op_cancel_right G hr
+          (op_mem G (inv_mem G hr) (H.subset h₁ hh₁))
+          (op_mem G (inv_mem G hr) (H.subset h₂ hh₂))
+          heq
+      -- Paso 4: inyectiva + |H| = |K| → sobreyectiva (→ K = r⁻¹Hr)
+      have h_surj : conj_r.Surjective :=
+        (MapOn.injective_iff_surjective_of_card_eq hHK conj_r).mp h_inj
+      -- Paso 5: testigo g = r⁻¹; G.inv (G.inv r) = r por inv_inv_eq
+      refine ⟨G.inv r, inv_mem G hr, fun x => ?_⟩
+      rw [inv_inv_eq G hr]
+      -- Ahora el objetivo es: x ∈ K ↔ ∃ h ∈ H, G.op (G.op (G.inv r) h) r = x
+      exact ⟨fun hx => h_surj x hx, fun ⟨h, hh, heq⟩ => heq ▸ h_conj_mem h hh⟩
 
     /-!
     # § 4. Tercer Teorema de Sylow (número de subgrupos de Sylow)

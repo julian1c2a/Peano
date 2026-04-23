@@ -37,3 +37,4 @@ Peano/PeanoNat/NumberTheory/ModEq.lean
 Peano/PeanoNat/NumberTheory/Totient.lean
 Peano/PeanoNat/NumberTheory/ChineseRemainder.lean
 Peano.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean

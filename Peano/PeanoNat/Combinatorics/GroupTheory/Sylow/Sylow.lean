@@ -333,16 +333,147 @@ namespace Peano
               | isFalse h_nlt => isFalse (fun h => h.elim h_nlt (fun h_and => h_neq h_and.left))
         decListLex v₁ v₂
 
+    /-- Prepone cada elemento de `elems` al frente de cada vector de la lista. -/
+    private def vPrependAll (elems : List ℕ₀) {n : ℕ₀} :
+        List (Vector ℕ₀ n) → List (Vector ℕ₀ (σ n))
+      | [] => []
+      | v :: vs =>
+        (elems.map (fun x => ⟨x :: v.val, by rw [lengthₚ_cons, v.property]⟩))
+        ++ vPrependAll elems vs
+
     /-- Genera todas las combinaciones de vectores de longitud `n` con elementos de `elems`. -/
     private def allVectorsList (elems : List ℕ₀) : (n : ℕ₀) → List (Vector ℕ₀ n)
       | 𝟘 => [⟨[], rfl⟩]
-      | σ n =>
-        let recs := allVectorsList elems n
-        let rec flatMapAux (l : List (Vector ℕ₀ n)) : List (Vector ℕ₀ (σ n)) :=
-          match l with
-          | [] => []
-          | v :: vs => (List.map (fun x => ⟨x :: v.val, by rw [lengthₚ_cons, v.property]⟩) elems) ++ flatMapAux vs
-        flatMapAux recs
+      | σ n => vPrependAll elems (allVectorsList elems n)
+
+    private theorem vPrependAll_mem_iff (elems : List ℕ₀) {n : ℕ₀} (z : Vector ℕ₀ (σ n)) :
+        ∀ l : List (Vector ℕ₀ n),
+        z ∈ vPrependAll elems l ↔ ∃ v ∈ l, ∃ x ∈ elems, z.val = x :: v.val
+      | [] => by simp [vPrependAll]
+      | v :: vs => by
+          simp only [vPrependAll, List.mem_append, List.mem_map]
+          constructor
+          · rintro (⟨x, hx_in, hxz⟩ | hz_vs)
+            · exact ⟨v, List.mem_cons_self, x, hx_in, (congrArg Subtype.val hxz).symm⟩
+            · obtain ⟨u, hu, x, hx, hzu⟩ := (vPrependAll_mem_iff elems z vs).mp hz_vs
+              exact ⟨u, List.mem_cons_of_mem _ hu, x, hx, hzu⟩
+          · rintro ⟨u, hu, x, hx, hzu⟩
+            rcases List.mem_cons.mp hu with rfl | hu'
+            · left; exact ⟨x, hx, Subtype.ext hzu.symm⟩
+            · right; exact (vPrependAll_mem_iff elems z vs).mpr ⟨u, hu', x, hx, hzu⟩
+
+    private theorem nodup_append_of {α : Type} {l₁ l₂ : List α}
+        (h1 : l₁.Nodup) (h2 : l₂.Nodup) (hd : ∀ a, a ∈ l₁ → a ∉ l₂) :
+        (l₁ ++ l₂).Nodup := by
+      induction l₁ with
+      | nil => exact h2
+      | cons a l₁' ih =>
+        obtain ⟨ha_nin, h1'⟩ := List.nodup_cons.mp h1
+        rw [List.cons_append, List.nodup_cons]
+        refine ⟨?_, ih h1' (fun b hb => hd b (List.mem_cons_of_mem _ hb))⟩
+        intro hmem
+        rw [List.mem_append] at hmem
+        exact hmem.elim ha_nin (hd a List.mem_cons_self)
+
+    private theorem vPrependAll_nodup (elems : List ℕ₀) (helems_nd : elems.Nodup) {n : ℕ₀} :
+        ∀ l : List (Vector ℕ₀ n), l.Nodup → (vPrependAll elems l).Nodup
+      | [], _ => List.nodup_nil
+      | v :: vs, hnd => by
+          obtain ⟨hv_nin, hvs_nd⟩ := List.nodup_cons.mp hnd
+          simp only [vPrependAll]
+          apply nodup_append_of
+          · apply nodup_map_of_inj_on _ _ helems_nd
+            intro a b _ _ heq
+            exact (List.cons.inj (congrArg Subtype.val heq)).1
+          · exact vPrependAll_nodup elems helems_nd vs hvs_nd
+          · intro w hw_map hw_tail
+            rw [List.mem_map] at hw_map
+            obtain ⟨x, _, hxw⟩ := hw_map
+            obtain ⟨u, hu_in, _, _, hyw⟩ := (vPrependAll_mem_iff elems w vs).mp hw_tail
+            have h2 : v.val = u.val :=
+              (List.cons.inj ((congrArg Subtype.val hxw).trans hyw)).2
+            exact hv_nin ((Subtype.ext h2).symm ▸ hu_in)
+
+    private theorem vPrependAll_length_nat (elems : List ℕ₀) {n : ℕ₀} :
+        ∀ l : List (Vector ℕ₀ n),
+        (vPrependAll elems l).length = Nat.mul elems.length l.length
+      | [] => by simp [vPrependAll]
+      | _ :: vs => by
+          simp only [vPrependAll, List.length_append, List.length_map, List.length_cons]
+          rw [vPrependAll_length_nat elems vs]
+          simp [Nat.mul_add, Nat.mul_one, Nat.add_comm]
+
+    private theorem vPrependAll_card (elems : List ℕ₀) {n : ℕ₀} (l : List (Vector ℕ₀ n)) :
+        lengthₚ (vPrependAll elems l) = mul (lengthₚ elems) (lengthₚ l) := by
+      unfold lengthₚ; rw [vPrependAll_length_nat, isomorph_Λ_mul]
+
+    private theorem allVectorsList_mem_elems (elems : List ℕ₀) :
+        ∀ {n : ℕ₀} (v : Vector ℕ₀ n), v ∈ allVectorsList elems n → ∀ x ∈ v.val, x ∈ elems
+      | 𝟘, v, hv, x, hx => by
+          simp only [allVectorsList, List.mem_singleton] at hv
+          subst hv; exact absurd hx List.not_mem_nil
+      | σ _, v, hv, x, hx => by
+          simp only [allVectorsList] at hv
+          obtain ⟨u, hu, y, hy_in, hvu⟩ := (vPrependAll_mem_iff elems v _).mp hv
+          rw [hvu] at hx
+          rcases List.mem_cons.mp hx with rfl | hx'
+          · exact hy_in
+          · exact allVectorsList_mem_elems elems u hu x hx'
+
+    private theorem allVectorsList_complete (elems : List ℕ₀) :
+        ∀ {n : ℕ₀} (v : Vector ℕ₀ n), (∀ x ∈ v.val, x ∈ elems) → v ∈ allVectorsList elems n
+      | 𝟘, v, _ => by
+          simp only [allVectorsList]
+          apply List.mem_singleton.mpr
+          apply Subtype.ext
+          rcases v with ⟨l, hl⟩; cases l with
+          | nil => rfl
+          | cons x xs =>
+            simp only [lengthₚ_cons] at hl
+            exact absurd hl (Peano.Axioms.succ_neq_zero _)
+      | σ n', v, h_mem => by
+          simp only [allVectorsList]
+          rw [vPrependAll_mem_iff]
+          rcases v with ⟨l, hl⟩; cases l with
+          | nil =>
+            have : (𝟘 : ℕ₀) = σ n' := hl
+            exact absurd this.symm (Peano.Axioms.succ_neq_zero n')
+          | cons x xs =>
+            have h_xs_len : lengthₚ xs = n' := by
+              rw [lengthₚ_cons] at hl
+              exact Peano.Axioms.succ_inj_pos_wp hl
+            exact ⟨⟨xs, h_xs_len⟩,
+                   allVectorsList_complete elems ⟨xs, h_xs_len⟩
+                     (fun y hy => h_mem y (List.mem_cons_of_mem x hy)),
+                   x, h_mem x List.mem_cons_self, rfl⟩
+
+    private theorem allVectorsList_nodup (elems : List ℕ₀) (hnd : elems.Nodup) :
+        ∀ n : ℕ₀, (allVectorsList elems n).Nodup
+      | 𝟘 => by simp [allVectorsList]
+      | σ n' => by
+          simp only [allVectorsList]
+          exact vPrependAll_nodup elems hnd _ (allVectorsList_nodup elems hnd n')
+
+    private theorem allVectorsList_card (elems : List ℕ₀) :
+        ∀ n : ℕ₀, lengthₚ (allVectorsList elems n) = pow (lengthₚ elems) n
+      | 𝟘 => by simp only [allVectorsList]; rw [lengthₚ_singleton, pow_zero]
+      | σ n' => by
+          simp only [allVectorsList]
+          rw [vPrependAll_card, allVectorsList_card elems n', pow_succ, mul_comm]
+
+    private theorem rotateList_mem {α : Type} (a : α) :
+        ∀ l : List α, a ∈ rotateList l ↔ a ∈ l
+      | [] => by simp [rotateList]
+      | x :: xs => by
+          simp only [rotateList, List.mem_append, List.mem_cons]
+          constructor
+          · rintro (h | rfl | h)
+            · exact Or.inr h
+            · exact Or.inl rfl
+            · exact absurd h List.not_mem_nil
+          · rintro (rfl | h)
+            · exact Or.inr (Or.inl rfl)
+            · exact Or.inl h
 
     /-- La rotación preserva la condición listProd = id. -/
     private theorem listProd_rotate_eq_id (G : FinGroup) {l : List ℕ₀}
@@ -1187,11 +1318,284 @@ namespace Peano
             rw [mul_succ, add_comm]
           rw [h_mul_succ, add_assoc]
 
+    private theorem listProd_append_inv_eq_id (G : FinGroup) {l : List ℕ₀}
+        (hl : ∀ x ∈ l, x ∈ G.carrier.elems) :
+        listProd G (l ++ [G.inv (listProd G l)]) = G.id := by
+      have hprod_mem : listProd G l ∈ G.carrier.elems := listProd_mem G hl
+      rw [listProd_append G l [G.inv (listProd G l)] hl
+            (fun x hx => by rw [List.mem_singleton] at hx; rw [hx]; exact inv_mem G hprod_mem),
+          listProd_singleton G (inv_mem G hprod_mem)]
+      exact (G.op_inv (listProd G l) hprod_mem).1
+
+    private theorem list_split_last {α : Type} : ∀ (l : List α), l ≠ [] →
+        ∃ (ini : List α) (last : α), l = ini ++ [last] := by
+      intro l hl
+      induction l with
+      | nil => exact absurd rfl hl
+      | cons x xs ih =>
+        by_cases hxs : xs = []
+        · subst hxs; exact ⟨[], x, rfl⟩
+        · obtain ⟨ini, last, h⟩ := ih hxs
+          exact ⟨x :: ini, last, by rw [h, ← List.cons_append]⟩
+
+    private theorem list_σn_split_last {α : Type} (l : List α) (n : ℕ₀)
+        (hl : lengthₚ l = σ n) :
+        ∃ (ini : List α) (last : α), l = ini ++ [last] ∧ lengthₚ ini = n := by
+      have hl_ne : l ≠ [] := by
+        intro h0; rw [h0, lengthₚ_nil] at hl
+        exact absurd hl (Peano.Axioms.succ_neq_zero n).symm
+      obtain ⟨ini, last, h_split⟩ := list_split_last l hl_ne
+      refine ⟨ini, last, h_split, ?_⟩
+      have h_len : lengthₚ (ini ++ [last]) = σ n := h_split ▸ hl
+      rw [lengthₚ_append, lengthₚ_singleton, add_one] at h_len
+      exact succ_inj_pos_wp h_len
+
+    private theorem replicate_cons_append {α : Type} (a : α) : ∀ n : Nat,
+        List.replicate n a ++ [a] = a :: List.replicate n a
+      | Nat.zero => rfl
+      | Nat.succ n' => by
+          rw [List.replicate_succ, List.cons_append]
+          exact congrArg (a :: ·) (replicate_cons_append a n')
+
+    private theorem rotateList_replicate_pos {α : Type} (a : α) : ∀ n : Nat,
+        n ≠ 0 → rotateList (List.replicate n a) = List.replicate n a
+      | Nat.zero, h => absurd rfl h
+      | Nat.succ n', _ => by
+          simp only [List.replicate_succ, rotateList]
+          exact replicate_cons_append a n'
+
+    private theorem all_eq_then_replicate {α : Type} (a : α) :
+        ∀ (l : List α), (∀ x ∈ l, x = a) → l = List.replicate l.length a
+      | [], _ => rfl
+      | x :: xs, h => by
+          have hx := h x List.mem_cons_self
+          have hxs := fun y hy => h y (List.mem_cons_of_mem x hy)
+          rw [hx, List.length_cons, List.replicate_succ]
+          exact congrArg (a :: ·) (all_eq_then_replicate a xs hxs)
+
+    open Peano.Arith in
+    private theorem pow_dvd_of_dvd {p a : ℕ₀} (h : p ∣ a) {n : ℕ₀} (hn : n ≠ 𝟘) : p ∣ pow a n := by
+      cases n with
+      | zero => exact absurd rfl hn
+      | succ n' => rw [pow_succ]; exact divides_mul_left h
+
+    open Peano.Arith in
     private theorem mckay_p_dvd_powEqId
       (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
         p ∣ (ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier).card
           := by
-      sorry
+      let F := ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier
+      have hp_ge_2 : le₀ 𝟚 p := prime_ge_two hp
+      have h_p1_le : le₀ 𝟙 p := le_trans 𝟙 𝟚 p (Or.inl (lt_succ_self 𝟙)) hp_ge_2
+      have h_sub1p : add (sub p 𝟙) 𝟙 = p := sub_k_add_k p 𝟙 h_p1_le
+      have h_succ_sub1p : σ (sub p 𝟙) = p := by rw [← add_one]; exact h_sub1p
+      have h_sub1p_ne : sub p 𝟙 ≠ 𝟘 := by
+        intro h0
+        have h1 : 𝟙 = p := by rw [h0, zero_add] at h_sub1p; exact h_sub1p
+        have h2 : lt₀ 𝟙 p := lt_of_lt_of_le (lt_succ_self 𝟙) hp_ge_2
+        rw [← h1] at h2; exact absurd h2 (lt_irrefl 𝟙)
+      have h_Ψp_ne : Ψ p ≠ 0 := fun h0 =>
+        hp.1 (Ψ_inj p 𝟘 (h0.trans isomorph_0_Ψ.symm))
+      have helems_nd : G.carrier.elems.Nodup := sorted_nodup G.carrier.sorted
+      let T := (allVectorsList G.carrier.elems p).filter
+        (fun v => decide (listProd G v.val = G.id))
+      have hT_nodup : T.Nodup :=
+        List.filter_sublist.nodup (allVectorsList_nodup G.carrier.elems helems_nd p)
+      have hT_rot : ∀ v ∈ T, rotateVector v ∈ T := by
+        intro v hv
+        rw [List.mem_filter] at hv ⊢
+        obtain ⟨hv_all, hv_prod⟩ := hv
+        have hv_mem := allVectorsList_mem_elems G.carrier.elems v hv_all
+        exact ⟨allVectorsList_complete G.carrier.elems ⟨rotateList v.val,
+                  by rw [lengthₚ_rotateList, v.property]⟩
+                  (fun x hx => hv_mem x ((rotateList_mem x v.val).mp hx)),
+               decide_eq_true (listProd_rotate_eq_id G hv_mem (of_decide_eq_true hv_prod))⟩
+      obtain ⟨k_orb, hk_orb⟩ := mckay_orbit_count p hp T hT_nodup hT_rot
+      let fixed_T := T.filter (fun v => decide (rotateVector v = v))
+      have nodup_sub_len_p : ∀ {l₁ l₂ : List (Vector ℕ₀ p)},
+          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
+        intro l₁ l₂
+        induction l₁ generalizing l₂ with
+        | nil => intro _ _; exact Nat.zero_le _
+        | cons a l₁' ih =>
+          intro hnd hsub
+          rw [List.nodup_cons] at hnd
+          obtain ⟨ha_nin, hnd'⟩ := hnd
+          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+          have h_ih := ih hnd' (fun x hx => by
+            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
+            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
+          rw [List.length_cons]
+          have h_pos : 0 < l₂.length := by
+            cases l₂ with
+            | nil => exact absurd ha2 List.not_mem_nil
+            | cons _ _ => exact Nat.zero_lt_succ _
+          have h_erase_len := List.length_erase_of_mem ha2
+          omega
+      -- |T| = pow |G| (sub p 1)
+      have h_T_card : lengthₚ T = pow G.carrier.card (sub p 𝟙) := by
+        have hcard : G.carrier.card = lengthₚ G.carrier.elems := rfl
+        rw [hcard, ← allVectorsList_card G.carrier.elems]
+        show Λ T.length = Λ (allVectorsList G.carrier.elems (sub p 𝟙)).length
+        let fwd : Vector ℕ₀ (sub p 𝟙) → Vector ℕ₀ p :=
+          fun u => ⟨u.val ++ [G.inv (listProd G u.val)],
+            by rw [lengthₚ_append, lengthₚ_singleton, add_one, u.property, h_succ_sub1p]⟩
+        let img := (allVectorsList G.carrier.elems (sub p 𝟙)).map fwd
+        have h_img_len : img.length = (allVectorsList G.carrier.elems (sub p 𝟙)).length := by
+          change ((allVectorsList G.carrier.elems (sub p 𝟙)).map fwd).length = _
+          exact List.length_map fwd
+        have h_img_sub_T : ∀ v ∈ img, v ∈ T := by
+          intro v hv
+          rw [List.mem_map] at hv
+          obtain ⟨u, hu, rfl⟩ := hv
+          rw [List.mem_filter]
+          have hu_mem := allVectorsList_mem_elems G.carrier.elems u hu
+          exact ⟨allVectorsList_complete G.carrier.elems (fwd u) (fun x hx => by
+                  simp only [fwd] at hx
+                  rw [List.mem_append, List.mem_singleton] at hx
+                  rcases hx with hxu | rfl
+                  · exact hu_mem x hxu
+                  · exact inv_mem G (listProd_mem G hu_mem)),
+                 decide_eq_true (by simp only [fwd]; exact listProd_append_inv_eq_id G hu_mem)⟩
+        have h_T_sub_img : ∀ v ∈ T, v ∈ img := by
+          intro v hv
+          rw [List.mem_filter] at hv
+          obtain ⟨hv_all, hv_prod⟩ := hv
+          have hv_mem := allVectorsList_mem_elems G.carrier.elems v hv_all
+          have hv_len : lengthₚ v.val = σ (sub p 𝟙) := v.property.trans h_succ_sub1p.symm
+          obtain ⟨ini, last, h_split, h_ini_len⟩ := list_σn_split_last v.val (sub p 𝟙) hv_len
+          let u : Vector ℕ₀ (sub p 𝟙) := ⟨ini, h_ini_len⟩
+          have h_ini_mem : ∀ x ∈ ini, x ∈ G.carrier.elems :=
+            fun x hx => hv_mem x (h_split ▸ List.mem_append.mpr (Or.inl hx))
+          have h_last_mem : last ∈ G.carrier.elems :=
+            hv_mem last (h_split ▸ List.mem_append.mpr (Or.inr (List.mem_singleton.mpr rfl)))
+          have h_prod_id : listProd G (ini ++ [last]) = G.id := by
+            rw [← h_split]; exact of_decide_eq_true hv_prod
+          have h_prod_split : G.op (listProd G ini) last = G.id := by
+            have hq := listProd_append G ini [last] h_ini_mem
+              (fun x hx => by rw [List.mem_singleton] at hx; rw [hx]; exact h_last_mem)
+            rw [listProd_singleton G h_last_mem] at hq
+            exact hq.symm.trans h_prod_id
+          have h_last_eq : last = G.inv (listProd G ini) :=
+            op_cancel_left G (listProd_mem G h_ini_mem) h_last_mem
+              (inv_mem G (listProd_mem G h_ini_mem))
+              (h_prod_split.trans
+                (G.op_inv (listProd G ini) (listProd_mem G h_ini_mem)).1.symm)
+          rw [List.mem_map]
+          exact ⟨u, allVectorsList_complete G.carrier.elems u h_ini_mem,
+                 Subtype.ext (by show ini ++ [G.inv (listProd G ini)] = v.val; rw [← h_last_eq, ← h_split])⟩
+        have h_img_nd : img.Nodup :=
+          nodup_map_of_inj_on fwd (allVectorsList G.carrier.elems (sub p 𝟙))
+            (allVectorsList_nodup G.carrier.elems helems_nd (sub p 𝟙))
+            (fun u1 u2 _ _ heq => by
+              obtain ⟨h_ini, _⟩ :=
+                append_singleton_inj u1.val u2.val _ _
+                  (u1.property.trans u2.property.symm)
+                  (congrArg Subtype.val heq)
+              exact Subtype.ext h_ini)
+        exact congrArg Λ (Nat.le_antisymm
+          (calc T.length ≤ img.length := nodup_sub_len_p hT_nodup h_T_sub_img
+                _ = _ := h_img_len)
+          (calc (allVectorsList G.carrier.elems (sub p 𝟙)).length
+                = img.length := h_img_len.symm
+                _ ≤ T.length := nodup_sub_len_p h_img_nd h_img_sub_T))
+      -- p ∣ |T|
+      have h_p_dvd_T : p ∣ lengthₚ T := by
+        rw [h_T_card]
+        obtain ⟨t, ht⟩ := hdvd
+        exact pow_dvd_of_dvd ⟨t, ht.symm⟩ h_sub1p_ne
+      -- |fixed_T| = F.card
+      have h_rep_len : ∀ g : ℕ₀, lengthₚ (List.replicate (Ψ p) g) = p := fun g => by
+        unfold lengthₚ; rw [List.length_replicate, ΛΨ]
+      have h_fixed_card : lengthₚ fixed_T = F.card := by
+        let fwd2 : ℕ₀ → Vector ℕ₀ p :=
+          fun g => ⟨List.replicate (Ψ p) g, h_rep_len g⟩
+        let img2 := F.elems.map fwd2
+        have h_img2_sub_fixed : ∀ v ∈ img2, v ∈ fixed_T := by
+          intro v hv
+          rw [List.mem_map] at hv
+          obtain ⟨g, hg_F, rfl⟩ := hv
+          rw [List.mem_filter]
+          have hg_in : g ∈ G.carrier.elems := (List.mem_filter.mp hg_F).1
+          have hg_pow : gpow G g p = G.id := of_decide_eq_true (List.mem_filter.mp hg_F).2
+          refine ⟨?_, decide_eq_true (Subtype.ext (rotateList_replicate_pos g (Ψ p) h_Ψp_ne))⟩
+          rw [List.mem_filter]
+          refine ⟨?_, ?_⟩
+          · apply allVectorsList_complete
+            intro x hx
+            rw [List.mem_replicate] at hx; rw [hx.2]; exact hg_in
+          · apply decide_eq_true
+            rw [show (fwd2 g).val = List.replicate (Ψ p) g from rfl,
+                listProd_all_eq_gpow G g hg_in (List.replicate (Ψ p) g)
+                  (fun x hx => (List.mem_replicate.mp hx).2),
+                h_rep_len g]
+            exact hg_pow
+        have h_fixed_sub_img2 : ∀ v ∈ fixed_T, v ∈ img2 := by
+          intro v hv
+          rw [List.mem_filter, List.mem_filter] at hv
+          obtain ⟨⟨hv_all, hv_prod⟩, hv_fixed⟩ := hv
+          have hv_mem := allVectorsList_mem_elems G.carrier.elems v hv_all
+          have hv_rot : rotateList v.val = v.val :=
+            congrArg Subtype.val (@of_decide_eq_true _ (vectorDecEq _ _) hv_fixed)
+          have hv_ne : v.val ≠ [] := by
+            intro h0
+            have : lengthₚ ([] : List ℕ₀) = p := h0 ▸ v.property
+            rw [lengthₚ_nil] at this; exact hp.1 this.symm
+          obtain ⟨g, xs, h_cons⟩ := List.exists_cons_of_ne_nil hv_ne
+          have hrot : xs ++ [g] = g :: xs := by
+            have := h_cons ▸ hv_rot; simp only [rotateList] at this; exact this
+          have h_all_g : ∀ x ∈ v.val, x = g := by
+            rw [h_cons]; intro x hx
+            rcases List.mem_cons.mp hx with rfl | hx'
+            · rfl
+            · exact rotateList_fixed_all_eq g xs hrot x hx'
+          have h_len_eq : v.val.length = Ψ p :=
+            Λ_inj v.val.length (Ψ p) (v.property.trans (ΛΨ p).symm)
+          have h_rep_eq : v.val = List.replicate (Ψ p) g := by
+            rw [← h_len_eq]; exact all_eq_then_replicate g v.val h_all_g
+          have h_g_in_G : g ∈ G.carrier.elems := by
+            apply hv_mem; rw [h_cons]; exact List.mem_cons_self
+          have h_g_pow : gpow G g p = G.id := by
+            have h_prod := of_decide_eq_true hv_prod
+            rw [h_rep_eq, listProd_all_eq_gpow G g h_g_in_G (List.replicate (Ψ p) g)
+                  (fun x hx => (List.mem_replicate.mp hx).2),
+                h_rep_len g] at h_prod
+            exact h_prod
+          have h_g_in_F : g ∈ F.elems :=
+            List.mem_filter.mpr ⟨h_g_in_G, decide_eq_true h_g_pow⟩
+          rw [List.mem_map]
+          exact ⟨g, h_g_in_F, Subtype.ext h_rep_eq.symm⟩
+        have h_img2_nd : img2.Nodup :=
+          nodup_map_of_inj_on fwd2 F.elems (sorted_nodup F.sorted)
+            (fun a b _ _ heq => by
+              have h := congrArg Subtype.val heq
+              simp only [fwd2] at h
+              cases hn : Ψ p with
+              | zero => exact absurd hn h_Ψp_ne
+              | succ n' =>
+                rw [hn, List.replicate_succ, List.replicate_succ] at h
+                exact (List.cons.inj h).1)
+        have h_fixed_nd : fixed_T.Nodup := List.filter_sublist.nodup hT_nodup
+        have h_len_eq2 : fixed_T.length = img2.length :=
+          Nat.le_antisymm
+            (nodup_sub_len_p h_fixed_nd (fun v hv => h_fixed_sub_img2 v hv))
+            (nodup_sub_len_p h_img2_nd (fun v hv => h_img2_sub_fixed v hv))
+        show Λ fixed_T.length = lengthₚ F.elems
+        rw [h_len_eq2, List.length_map fwd2]; rfl
+      -- Divisibility arithmetic
+      have h_dvd_fixed : p ∣ lengthₚ fixed_T := by
+        by_cases h_fl_zero : lengthₚ fixed_T = 𝟘
+        · rw [h_fl_zero]; exact divides_zero p
+        · have h_fl_pos : lt₀ 𝟘 (lengthₚ fixed_T) := pos_of_ne_zero _ h_fl_zero
+          have h_pk_lt : lt₀ (Peano.Mul.mul p k_orb)
+              (add (lengthₚ fixed_T) (Peano.Mul.mul p k_orb)) := by
+            rw [add_comm]; exact lt_add_of_pos_right h_fl_pos
+          have h_sub_eq : sub (add (lengthₚ fixed_T) (Peano.Mul.mul p k_orb))
+              (Peano.Mul.mul p k_orb) = lengthₚ fixed_T := by
+            rw [add_comm]; exact add_k_sub_k (lengthₚ fixed_T) (Peano.Mul.mul p k_orb)
+          rw [← h_sub_eq]
+          exact divides_sub h_pk_lt (hk_orb ▸ h_p_dvd_T) ⟨k_orb, rfl⟩
+      exact h_fixed_card ▸ h_dvd_fixed
 
 
     private theorem exists_ne_of_nodup_length_ge_two {l : List ℕ₀} {a : ℕ₀}

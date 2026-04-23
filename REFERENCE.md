@@ -2258,7 +2258,7 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ## 16. Combinatorics/Binom.lean — `namespace Peano.Binom`
 
-*Dependencias: `…Mul`, `Sub`, `Factorial`*
+*Dependencias: `…Mul`, `Sub`, `Factorial`, `Primes`*
 
 ### 16.1. Definiciones
 

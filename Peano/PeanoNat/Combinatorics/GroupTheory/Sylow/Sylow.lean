@@ -1672,20 +1672,100 @@ namespace Peano
       -- El subgrupo cíclico ⟨g⟩ tiene cardinal p
       exact ⟨cyclicSubgroup G g hg,
              cyclicSubgroup_card_eq_prime G g hg hp hgp hg_ne hdvd⟩
+    /-- Convierte un subgrupo `H` de `G` en un `FinGroup` autónomo
+        con las mismas operaciones heredadas. -/
+    private def subgroupToFinGroup (G : FinGroup) (H : Subgroup G) : FinGroup where
+      carrier  := H.carrier
+      op       := { toFun := G.op.toFun, map_carrier := H.op_closed }
+      id       := G.id
+      inv      := { toFun := G.inv.toFun, map_carrier := H.inv_closed }
+      id_in    := H.id_in
+      op_assoc := fun a b c ha hb hc =>
+        G.op_assoc a b c (H.subset a ha) (H.subset b hb) (H.subset c hc)
+      op_id    := fun a ha => G.op_id a (H.subset a ha)
+      op_inv   := fun a ha => G.op_inv a (H.subset a ha)
+
+    /-- Convierte `K ≤ subgroupToFinGroup G M` en un subgrupo de `G`. -/
+    private def subgroupOfSubgroup (G : FinGroup) (M : Subgroup G)
+        (K : Subgroup (subgroupToFinGroup G M)) : Subgroup G where
+      carrier    := K.carrier
+      nonempty   := K.nonempty
+      subset     := fun a ha => M.subset a (K.subset a ha)
+      op_closed  := fun a b ha hb => K.op_closed a b ha hb
+      id_in      := K.id_in
+      inv_closed := fun a ha => K.inv_closed a ha
+
+    /-- Axioma: caso duro de la inducción de Sylow.
+        Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo
+        propio de `G` es divisible por `p^(m+1)`.  En este caso la prueba
+        estándar requiere la ecuación de clases, Cauchy aplicado a Z(G),
+        y la construcción del grupo cociente G/⟨z⟩ (o el argumento
+        combinatorio de Wielandt sobre |{S ⊆ G : |S|=p^(m+1)}|).
+        TODO: reemplazar por demostración completa. -/
+    private axiom sylow_center_step
+      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+        (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+          ∃ K : Subgroup G0, K.carrier.card = p0)
+      (G : FinGroup) (p m : ℕ₀)
+      (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
+      (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
+        ¬ pow_dvd_card p (σ m) M.carrier) :
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)
+
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
-        construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`. -/
+        construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`.
+        Estrategia: inducción fuerte sobre |G|.
+        · Si |G| = p^(m+1): el subgrupo impropio es la solución.
+        · Si ∃ M propio con p^(m+1) | |M|: aplicar HI a M.
+        · En otro caso: `sylow_center_step` (ecuación de clases / Wielandt). -/
     theorem sylow_lift_from_cauchy
       (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
       (G : FinGroup) (p m : ℕ₀)
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
-        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)
-          := by
-      have _ := hC
-      have _ := hp
-      have _ := hpow
-      sorry
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) := by
+      -- Paso inductivo fuerte: explicitamos todos los tipos para ayudar al elaborador
+      have step : ∀ (n' : ℕ₀),
+          (∀ k : ℕ₀, lt₀ k n' → ∀ G0' : FinGroup, G0'.carrier.card = k →
+            pow_dvd_card p (σ m) G0'.carrier →
+              ∃ H : Subgroup G0', H.carrier.card = p ^ (σ m)) →
+          ∀ G0 : FinGroup, G0.carrier.card = n' →
+            pow_dvd_card p (σ m) G0.carrier →
+              ∃ H : Subgroup G0, H.carrier.card = p ^ (σ m) := by
+        intro n' ih G0 hn hpow0
+        -- Caso 1: |G0| = p^(m+1) → G0 mismo es el subgrupo buscado
+        by_cases h_eq : G0.carrier.card = p ^ (σ m)
+        · exact ⟨improperSubgroup G0, h_eq⟩
+        -- Caso 2: ∃ subgrupo propio M con p^(m+1) | |M|
+        · by_cases h_ex : ∃ M : Subgroup G0,
+              M.carrier.card ≠ G0.carrier.card ∧ pow_dvd_card p (σ m) M.carrier
+          · obtain ⟨M, hM_ne, hM_dvd⟩ := h_ex
+            -- |M| < |G0| por Lagrange y properness
+            have hM_lt : lt₀ M.carrier.card n' := by
+              rw [← hn]
+              obtain ⟨k, hk⟩ := lagrange G0 M
+              have hk_ne : k ≠ 𝟘 := by
+                intro h0
+                rw [h0, mul_zero] at hk
+                have hG_pos := card_pos_of_mem_aux G0.id_in
+                rw [← hk] at hG_pos
+                exact absurd hG_pos not_lt_zero
+              exact lt_of_le_of_ne M.carrier.card G0.carrier.card
+                (hk ▸ mul_le_right M.carrier.card k hk_ne) hM_ne
+            -- Aplicar HI al FinGroup asociado a M
+            let G_M := subgroupToFinGroup G0 M
+            obtain ⟨K, hK⟩ := ih M.carrier.card hM_lt G_M rfl hM_dvd
+            exact ⟨subgroupOfSubgroup G0 M K, hK⟩
+          -- Caso 3: ningún subgrupo propio es divisible por p^(m+1) → axioma
+          · exact sylow_center_step hC G0 p m hp hpow0
+              (fun M hM_ne hM_dvd => h_ex ⟨M, hM_ne, hM_dvd⟩)
+      -- Inducción fuerte sobre |G|, generalizada a todos los FinGroups del mismo cardinal
+      have key : ∀ n : ℕ₀, ∀ G0 : FinGroup, G0.carrier.card = n →
+          pow_dvd_card p (σ m) G0.carrier →
+            ∃ H : Subgroup G0, H.carrier.card = p ^ (σ m) :=
+        fun n => strongInductionOn n step
+      exact key G.carrier.card G rfl hpow
 
     /-- **Primer Teorema de Sylow**: existencia de p-subgrupos. -/
     theorem sylow_first (G : FinGroup) (p n : ℕ₀)

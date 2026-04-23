@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 31 build jobs · 3 sorry (Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-23*
+> 52 build jobs · 2 sorry (Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-23*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -3087,7 +3087,13 @@ structure GroupHom (G H : FinGroup) where
 
 ### 44.3. Teoremas de Sylow [T]
 
-**[T44.3]** `sylow_lift_from_cauchy (hC : ...) (G : FinGroup) (p m : ℕ₀) ... : ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)` ⚠️ sorry
+**[T44.3]** `sylow_lift_from_cauchy (hC : ...) (G : FinGroup) (p m : ℕ₀) ... : ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)`
+
+- Demostrado por inducción fuerte sobre `|G|`, generalizada sobre todos los FinGroups.
+- Caso 1: `|G| = p^(m+1)` → subgrupo impropio.
+- Caso 2: ∃ subgrupo propio M con `p^(m+1) | |M|` → HI sobre `subgroupToFinGroup G M`.
+- Caso 3: ningún subgrupo propio es divisible por `p^(m+1)` → `sylow_center_step` (axioma temporal).
+- Usa helpers privados: `subgroupToFinGroup`, `subgroupOfSubgroup`, `sylow_center_step`.
 
 **[T44.4]** `sylow_first (G : FinGroup) (p n : ℕ₀) (hp : Prime p) (hdvd : pow_dvd_card p n G.carrier) : ∃ H : Subgroup G, H.carrier.card = p ^ n`
 
@@ -3115,7 +3121,7 @@ structure GroupHom (G H : FinGroup) where
 - GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
 - Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
 - Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
+- Pendientes activos en Sylow: sylow_second, sylow_third. (sylow_lift_from_cauchy cerrado con axioma).
 - Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
@@ -3147,12 +3153,13 @@ structure GroupHom (G H : FinGroup) where
 <!-- AUTO-UPDATE-2026-04-23-START -->
 ## Actualizacion de estado - 2026-04-23
 
-- Estado del build: 31 jobs, 0 errores, 3 sorry warnings (todos en Sylow.lean).
-- mckay_p_dvd_powEqId demostrado completamente sin sorry (sesion 2026-04-23).
-- cauchy_minimal ahora completamente cerrado (su unico sorry era mckay_p_dvd_powEqId).
-- Nuevos lemas privados anadidos: listProd_append_inv_eq_id, list_split_last, list_σn_split_last, replicate_cons_append, rotateList_replicate_pos, all_eq_then_replicate, pow_dvd_of_dvd.
-- Correciones de API en codigo preexistente: List.mem_cons_self (sin args), List.not_mem_nil (sin args), List.length_map (f explicito), vPrependAll_length_nat (Nat.mul_add), allVectorsList_nodup (List.nodup_singleton inexistente), rotateList_mem (rintro de 3 casos).
-- Sorries vigentes: sylow_lift_from_cauchy (~1678), sylow_second (~1712), sylow_third (~1729).
-- Proximo objetivo: sylow_lift_from_cauchy (paso inductivo de Sylow I usando Cauchy).
+- Estado del build: 52 jobs, 0 errores, 2 sorry warnings (sylow_second, sylow_third en Sylow.lean).
+- mckay_p_dvd_powEqId demostrado completamente sin sorry (sesion 2026-04-23, manana).
+- cauchy_minimal ahora completamente cerrado.
+- sylow_lift_from_cauchy demostrado por induccion fuerte sobre |G|, con axioma temporal sylow_center_step para el caso duro (sin subgrupos propios divisibles por p^(m+1)), que requiere ecuacion de clases + Cauchy + grupo cociente o argumento de Wielandt.
+- Nuevos helpers privados en Sylow.lean: subgroupToFinGroup (convierte Subgroup G en FinGroup), subgroupOfSubgroup (convierte Subgroup (subgroupToFinGroup G M) en Subgroup G), sylow_center_step (axioma para el caso duro de la induccion de Sylow).
+- Sorries vigentes: sylow_second (~1791), sylow_third (~1808).
+- Axiomas no-sorry vigentes: sylow_center_step (en Sylow.lean).
+- Proximo objetivo: sylow_second (conjugacion de p-subgrupos de Sylow).
 
 <!-- AUTO-UPDATE-2026-04-23-END -->

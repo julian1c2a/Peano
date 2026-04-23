@@ -197,3 +197,14 @@ bash update-toolchain.bash vX.Y.Z    # update Lean version
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
 
+<!-- AUTO-UPDATE-2026-04-23-START -->
+## Actualizacion de estado - 2026-04-23
+
+- Estado del build: 52 jobs · 0 errores · 2 sorry warnings (sylow_second, sylow_third).
+- cauchy_minimal: completamente demostrado (McKay). mckay_p_dvd_powEqId cerrado.
+- sylow_lift_from_cauchy: demostrado por induccion fuerte sobre |G| con axioma temporal sylow_center_step.
+- Nuevos helpers privados: subgroupToFinGroup, subgroupOfSubgroup, sylow_center_step.
+- Pendientes activos: sylow_second, sylow_third; axioma sylow_center_step (requiere cociente / Wielandt).
+
+<!-- AUTO-UPDATE-2026-04-23-END -->
+

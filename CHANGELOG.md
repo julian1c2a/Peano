@@ -2,6 +2,39 @@
 
 ## [Unreleased]
 
+### Added (2026-04-24)
+
+- **Binom.lean — `binom_prime_row` demostrado (T16.10)**:
+  - `binom_prime_row {p r : ℕ₀} (hp : p ≠ 𝟘) (hr : r ≠ 𝟘) : C(mul p r, p) = mul r (C(sub (mul p r) 𝟙, sub p 𝟙))` — la identidad de fila C(p·r, p) = r · C(p·r−1, p−1).
+  - Prueba: via `binom_mul_factorials` aplicado dos veces (stepA sobre C(n,p), stepB sobre n·C(n−1,p−1)), seguida de cancelación de factores comunes por `mul_cancelation_right` y `mul_cancelation_left`.
+  - Auxiliar privado `binom_prime_row_aux (p' r' : ℕ₀)` aísla el caso succ/succ para evitar `set` y `conv_lhs` (no disponibles en Lean 4.29.0 sin Mathlib).
+  - Trampa resuelta: `rw [← h]` reescribe **todas** las ocurrencias incluyendo sub-expresiones → solución con `congrArg factorial h.symm` para apuntar solo el argumento exterior.
+  - Build: 52 jobs · 0 errores · 0 warnings.
+
+### Added (2026-04-23)
+
+- **Binom.lean — `prime_dvd_binom_prime` demostrado (T16.9)**:
+  - Nuevos lemas privados: `prime_not_dvd_of_pos_lt {p a : ℕ₀} (ha_pos ha_lt) : ¬ (p ∣ a)` (0 < a < p implica p ∤ a) y `prime_not_dvd_factorial {p : ℕ₀} (hp : Prime p) : ∀ k, k < p → ¬ (p ∣ k!)` (por inducción).
+  - `prime_dvd_binom_prime {p k : ℕ₀} (hp : Prime p) (hk_pos hk_lt) : p ∣ C(p, k)` — p primo, 0 < k < p ⇒ p ∣ C(p,k).
+  - Estrategia: C(p,k)·k!·(p−k)! = p! via `binom_mul_factorials`; p | p! via `factorial_succ` + `divides_mul_left`; p ∤ k! y p ∤ (p−k)! via lemas privados; Euclides `hp.2.2` aplicado dos veces.
+  - Trampa resuelta: ambigüedad de `Prime` entre `Arith.Prime` y `Primes.Prime` resuelta con `private abbrev Prime := Peano.Primes.Prime` (patrón ya presente en Sylow.lean línea 47).
+  - Nueva dependencia: `Binom.lean` importa `Peano.PeanoNat.Primes` (actualizado en tabla de módulos y cabecera §16).
+
+- **Sylow.lean — todos los teoremas de Sylow formalmente cerrados (0 sorry, 5 axiomas privados)**:
+  - `cauchy_minimal` — demostrado por el argumento de órbitas de McKay: conteo módulo p sobre p-tuplos del grupo, con `mckay_orbit_count` y `mckay_orbit_remove`.
+  - `sylow_lift_from_cauchy` — demostrado por inducción fuerte sobre |G|: caso base trivial, caso p^(n+1) | |G| delegado al axioma privado `sylow_center_step`, caso p^(n+1) ∤ |G| via subgrupos propios.
+  - `sylow_first` — demostrado vía `sylow_lift_from_cauchy` + `cauchy_minimal`.
+  - `sylow_second` — demostrado con dos axiomas privados temporales (`sylow_card_eq`, `sylow_second_incl`).
+  - `sylow_third` — demostrado con dos axiomas privados temporales (`sylow_third_mod`, `sylow_third_dvd`).
+  - **5 axiomas privados pendientes**: `sylow_center_step` (paso inductivo, ruta Wielandt), `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`.
+  - Infraestructura añadida: `subgroupToFinGroup`, `subgroupOfSubgroup`, `mckay_p_dvd_powEqId`, `mckay_orbit_remove`.
+  - Build: 52 jobs · 0 errores · 0 warnings.
+
+- **NEXT-STEPS.md — ruta de Wielandt documentada**:
+  - 5 pasos para eliminar `sylow_center_step`: `p | C(p,k)` → C(pr,p) = r·C(pr−1,p−1) → C(pr,p) ≡ r (mod p) → Lucas → argumento de punto fijo de Wielandt.
+  - Roadmaps para los otros 4 axiomas privados.
+  - Plan a largo plazo de polimorfismo de `FinGroup` sobre tipo arbitrario.
+
 ### Added (2026-04-22)
 
 - **Sylow.lean — `mckay_orbit_remove` demostrado sin sorry**:

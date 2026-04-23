@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 51 jobs · 6 sorry (Action×2, Cosets×1, Sylow×3) · 9 warnings totales · 0 errores
+> **Build:** 52 jobs · 0 errores · 0 warnings · Sylow: 0 sorry (5 axiomas privados pendientes)
 > **Licencia:** MIT
 
 ---
@@ -142,7 +142,7 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 
 - **Potenciación**: `pow_add`, `pow_mul`, monotonía
 - **Factorial**: `factorial_pos`, `factorial_le_mono`
-- **Coeficientes binomiales**: Pascal, fórmula factorial ($C(n,k) \cdot k! \cdot (n-k)! = n!$), simetría
+- **Coeficientes binomiales**: Pascal, fórmula factorial ($C(n,k) \cdot k! \cdot (n-k)! = n!$), simetría, $p \mid C(p,k)$ para $0 < k < p$, identidad de fila $C(pr,p) = r \cdot C(pr{-}1,p{-}1)$
 - **Binomio de Newton**: $(a+b)^n = \sum_{k=0}^{n} C(n,k) \cdot a^k \cdot b^{n-k}$ (demostrado)
 - **Sumatorias/Productorias**: linealidad, monotonía, desplazamiento, inversión
 - **Fibonacci**: identidad de Cassini, `fib_add`, propiedades
@@ -164,15 +164,21 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
   - Endomorfismos: `EndoOn`, especialización para funciones A → A
   - **Perm**: tipo de permutaciones `A → A` biyectivas, inversas, composición
 
-### Teoría de grupos finitos (⚠ en desarrollo)
+### Teoría de grupos finitos
 
-- **Group.lean**: grupo simétrico `Sym(A)`, operación de grupo
+- **Group.lean**: `FinGroup`, `Subgroup`, `gpow`, subgrupos trivial/impropio/cíclico/normal, orden de elemento
 - **Sign.lean**: signo de permutaciones (paridad de transposiciones)
 - **Orbit.lean**: órbitas de elementos bajo permutaciones
-- **Action.lean**: acciones de grupo sobre conjuntos finitos
-- **Sylow**: coclases (`Cosets.lean`), primeros pasos hacia teoremas de Sylow (`Sylow.lean`)
+- **Action.lean**: acciones de grupo, órbitas y estabilizadores, `orbit_stabilizer`, `orbits_partition`
+- **Cosets.lean**: coclases, Lagrange ($|H| \cdot k = |G|$), conteo por fibras
+- **Sylow.lean**: los tres teoremas de Sylow **formalmente cerrados** (0 sorry):
+  - `cauchy_minimal` — argumento de órbitas de McKay
+  - `sylow_first` — existencia de p-subgrupo de Sylow
+  - `sylow_second` — conjugación de subgrupos de Sylow
+  - `sylow_third` — $n_p \equiv 1 \pmod{p}$ y $n_p \mid |G|$
+  - ⚠ 5 axiomas privados pendientes de prueba (ruta Wielandt en curso)
 
-> *Los módulos de teoría de grupos contienen `sorry` pendientes; son work-in-progress.*
+> *Perm.lean: 2 sorry (descomposición en ciclos/signo). `sylow_center_step`, `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`: axiomas privados en Sylow.lean.*
 
 ### Decidabilidad completa
 
@@ -244,20 +250,27 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 
 ### En curso (Phase 25 — Teoría de grupos finitos) 🔶
 
-- [x] **Perm.lean** — tipo de permutaciones
-- [x] **Group.lean** — grupo simétrico Sym(A)
+- [x] **Perm.lean** — tipo de permutaciones (⚠ 2 sorry: ciclos/signo)
+- [x] **Group.lean** — FinGroup, Subgroup, gpow, subgrupos especiales, orden de elemento
 - [x] **Sign.lean** — signo de permutaciones
 - [x] **Orbit.lean** — órbitas
 - [x] **Counting.lean** — conteo combinatorio
-- [ ] **Action.lean** — acciones de grupo (⚠ sorry pendientes)
-- [ ] **Sylow/Cosets.lean** — coclases (⚠ sorry pendientes)
-- [ ] **Sylow/Sylow.lean** — teoremas de Sylow (⚠ sorry pendientes)
+- [x] **Action.lean** — acciones de grupo, orbit_stabilizer, orbits_partition
+- [x] **Sylow/Cosets.lean** — coclases, Lagrange
+- [x] **Sylow/Sylow.lean** — los 3 teoremas formalmente cerrados (0 sorry)
+- [ ] **Eliminar 5 axiomas privados** en Sylow.lean (ruta Wielandt):
+  - [x] `p | C(p,k)` para 0 < k < p — `prime_dvd_binom_prime` (Binom.lean)
+  - [x] `C(pr, p) = r · C(pr−1, p−1)` — `binom_prime_row` (Binom.lean)
+  - [ ] `C(pr, p) ≡ r (mod p)` por inducción sobre r
+  - [ ] Teorema de Lucas: `C(p^n·r, p^n) ≡ r (mod p)`
+  - [ ] Argumento de punto fijo de Wielandt → `sylow_center_step`
+  - [ ] `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`
 
 ### Futuro
 
 - **Phase 22**: Extensión a enteros `ℤ` (tipo inductivo canónico)
 - **Phase 23**: Extensión a racionales `ℚ` (estructura con invariante de coprimalidad)
-- **Completar sorry** en módulos de teoría de grupos avanzada
+- **FinGroup polimórfico**: refactorizar `FinGroup` sobre tipo arbitrario `α` (necesario para grupos cociente y acciones sobre `List (Subgroup G)`)
 
 ---
 

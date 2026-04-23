@@ -208,3 +208,14 @@ bash update-toolchain.bash vX.Y.Z    # update Lean version
 
 <!-- AUTO-UPDATE-2026-04-23-END -->
 
+<!-- AUTO-UPDATE-2026-04-23b-START -->
+## Actualizacion de estado - 2026-04-23b
+
+- Estado del build: 52 jobs · 0 errores · 0 warnings.
+- Sylow.lean: todos los teoremas cerrados (0 sorry, 5 axiomas privados).
+- Binom.lean: nuevo import Primes.lean; tres nuevos lemas: prime_not_dvd_of_pos_lt (privado), prime_not_dvd_factorial (privado), prime_dvd_binom_prime (publico).
+- NEXT-STEPS.md: ruta de Wielandt documentada (Lucas + combinatoria para eliminar sylow_center_step).
+- Pendientes activos: C(pr,p) = r·C(pr-1,p-1), C(pr,p) ≡ r (mod p), Wielandt, 5 axiomas privados de Sylow.
+
+<!-- AUTO-UPDATE-2026-04-23b-END -->
+

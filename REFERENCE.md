@@ -47,7 +47,7 @@
 | **Combinatoria** | | | |
 | `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt`, `Digits` |
 | `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `Add`, `Mul` | `Binom`, `NewtonBinom` |
-| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `Mul`, `Sub`, `Factorial` | `NewtonBinom` |
+| `Peano/PeanoNat/Combinatorics/Binom.lean` | `Peano.Binom` | `Mul`, `Sub`, `Factorial`, `Primes` | `NewtonBinom` |
 | `Peano/PeanoNat/Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | `Pow`, `Factorial`, `Binom`, `Summation` | — |
 | `Peano/PeanoNat/Combinatorics/Summation.lean` | `Peano.Summation` | `Add`, `Mul` | `NewtonBinom`, `Product` |
 | `Peano/PeanoNat/Combinatorics/Product.lean` | `Peano.Product` | `Mul`, `Summation` | `Totient` |
@@ -2318,6 +2318,15 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem binom_mul_factorials {n k : ℕ₀} (h : Le k n) : mul (mul (binom n k) (factorial k)) (factorial (sub n k)) = factorial n`
 - **Matemática:** k ≤ n ⇒ C(n,k) · k! · (n−k)! = n!
+
+**[T16.9]** `prime_dvd_binom_prime`
+
+- **Lean4:** `theorem prime_dvd_binom_prime {p k : ℕ₀} (hp : Prime p) (hk_pos : lt₀ 𝟘 k) (hk_lt : lt₀ k p) : p ∣ C(p, k)`
+- **Matemática:** p primo, 0 < k < p ⇒ p ∣ C(p,k)
+- **Prueba:** De `binom_mul_factorials`: C(p,k)·k!·(p−k)! = p!. Como p primo, p | p!. Como k < p y (p−k) < p, la primedad implica p ∤ k! y p ∤ (p−k)! (lema privado `prime_not_dvd_factorial`). Entonces p | C(p,k) por el teorema de Euclides (`hp.2.2`).
+- **Auxiliares privados:**
+  - `prime_not_dvd_of_pos_lt {p a : ℕ₀} (ha_pos : lt₀ 𝟘 a) (ha_lt : lt₀ a p) : ¬ (p ∣ a)` — cualquier a con 0 < a < p no es divisible por p
+  - `prime_not_dvd_factorial {p : ℕ₀} (hp : Prime p) : ∀ k, lt₀ k p → ¬ (p ∣ factorial k)` — por inducción usando el anterior
 
 ---
 

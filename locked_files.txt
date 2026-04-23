@@ -26,7 +26,6 @@ Peano/PeanoNat/Log.lean
 Peano/PeanoNat/Sqrt.lean
 Peano/PeanoNat/Combinatorics/Pow.lean
 Peano/PeanoNat/Combinatorics/Factorial.lean
-Peano/PeanoNat/Combinatorics/Binom.lean
 Peano/PeanoNat/Combinatorics/NewtonBinom.lean
 Peano/PeanoNat/Combinatorics/Summation.lean
 Peano/PeanoNat/Combinatorics/Product.lean
@@ -38,3 +37,4 @@ Peano/PeanoNat/NumberTheory/Totient.lean
 Peano/PeanoNat/NumberTheory/ChineseRemainder.lean
 Peano.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
+Peano/PeanoNat/Combinatorics/Binom.lean

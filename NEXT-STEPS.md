@@ -1,145 +1,155 @@
-# Next Steps — Peano
+# Next Steps — Eliminating the Remaining Private Axioms
 
-**Last updated:** 2026-04-22
-**Author**: Julián Calderón Almendros
-
-> Plan operativo simplificado: solo estado actual, bloqueos reales y siguientes pasos ejecutables.
+*Last updated: 2026-04-23*
+*Author: Julián Calderón Almendros*
 
 ---
 
-## 1. Estado Actual (snapshot)
+## Current status
 
-- Build global: OK (52 jobs).
-- Errores: 0.
-- Sorries activos: 4 (todos en `Sylow.lean`).
-- `check-sorry.bash` total: 8 (4 Sylow + 2 en Perm.lean comentarios + 2 en Primes.lean comentarios).
-- Warnings no-sorry: 4 (1 `unused variable` en Sylow.lean, 3 en Group.lean).
+`Sylow.lean` compiles with 0 errors and 0 sorry warnings.
+All three Sylow theorems are formally closed, backed by 5 private axioms:
 
-### 1.1. Completado recientemente (sesión 2026-04-22)
-
-- **`mckay_orbit_remove` demostrado sin sorry** (`Sylow.lean`):
-  - Dado `v ∈ S` no fijo, extrae la órbita de tamaño `p` bajo `rotateVector` y devuelve `S' = S \ orbit(v)` con `S'.Nodup`, cierre bajo rotación, `|S| = |S'| + p`, y `fix(S) = fix(S')`.
-  - Sub-lemas internos completos: `orb_inj`, `orbit_no_fixed`, `rl_inj`, `orbit_preimage`, `orbit_closed_rv`, `nodup_sub_len`, `filter_part`.
-  - `mckay_orbit_count` también compila limpiamente (ya estaba estructurado, usa `mckay_orbit_remove`).
-
-### 1.1. Completado recientemente (sesión 2026-04-20)
-
-- **Infraestructura McKay en `Sylow.lean`**: Creado el tipo `Vector` (longitud fija), `allVectorsList` (generador de combinaciones), y probada la preservación (`mckayShiftList_mem`) e inyectividad (`mckayShiftList_inj`) de la operación de rotación de McKay sobre listas.
-- Errores de compilación resueltos; el archivo compila limpiamente a falta de los sorries lógicos.
-
-### 1.1. Completado recientemente (sesión 2026-04-19)
-
-- Todos los lemas privados de `cauchy_minimal` en `Sylow.lean` — **cerrados sin sorry**:
-  - `card_pos_of_mem_aux`, `order_dvd_of_pow_eq_id`, `order_eq_prime_of_pow`, `gpow_lt_p_mem_cyclic`, `cyclicSubgroup_card_eq_prime`.
-  - Biyección `Fin₀Set(p) → ⟨g⟩` formalizada completamente (inyectividad + sobreyectividad).
-- Infraestructura Sylow.lean saneada: `open Peano.Sub`, `private abbrev Prime`, correcciones de `by_contra`, `rcases rfl`, orientación de igualdades.
-- `actualiza doc` añadido como comando en AI-GUIDE.md § 29.
-
-### 1.1. Completado en sesiones anteriores (2026-04-17–18)
-
-- `FSet.eq_of_mem_iff` en `ListsAndSets/FSet.lean`.
-- `card_eq_mul_of_uniform_fibers` en `ListsAndSets/FSetFunction.lean`.
-- `lagrange` en `Combinatorics/GroupTheory/Sylow/Cosets.lean` — **cerrado**.
-- `orbit_stabilizer` y `orbits_partition` en `Combinatorics/GroupTheory/Action.lean` — **cerrados**.
-- `cauchy_minimal_axiom` convertido de `axiom` a `sorry` (trazable en build).
-
-### 1.2. Sorries vigentes (fuente de verdad)
-
-Todos en `Combinatorics/GroupTheory/Sylow/Sylow.lean`:
-
-| Línea | Teorema | Estrategia conocida |
+| Axiom | Used by | Difficulty |
 |---|---|---|
-| ~1190 | `mckay_p_dvd_powEqId` | Conectar `mckay_orbit_count` (probado) con el conteo de `{g ∈ G | g^p = e}` sobre G^p |
-| ~1273 | `sylow_lift_from_cauchy` | Inducción en m; normalizar con cociente G/K, aplicar Cauchy |
-| ~1307 | `sylow_second` | Acción de H sobre G/K por multiplicación izquierda; conteo mod p |
-| ~1324 | `sylow_third` | Acción por conjugación + Sylow II + conteo mod p |
+| `sylow_card_eq` | `sylow_second` | Medium |
+| `sylow_second_incl` | `sylow_second` | Hard |
+| `sylow_center_step` | `sylow_lift_from_cauchy` | Hard |
+| `sylow_third_mod` | `sylow_third` | Very hard |
+| `sylow_third_dvd` | `sylow_third` | Very hard |
 
 ---
 
-## 2. Prioridad Inmediata (P0) — Cerrar Sylow.lean
+## Roadmap: eliminating `sylow_center_step` via Wielandt's combinatorial proof
 
-### 2.1. `cauchy_minimal` — **primer objetivo**
+The standard textbook proof of Sylow I uses either:
+- **Class equation + Cauchy on Z(G) + quotient G/⟨z⟩** — blocked: FinGroup requires `ℕ₀` elements, no quotient groups.
+- **Wielandt's combinatorial argument** — feasible: reduces to a congruence `C(p^n·r, p^n) ≡ r (mod p)`.
 
-Objetivo: Terminar de probar `mckay_p_dvd_powEqId` para cerrar el teorema de Cauchy.
+We follow **Wielandt's path**.
 
-Estrategia:
+### Wielandt's argument (sketch)
 
-- Ya tenemos `allVectorsList` que genera las tuplas de longitud $p-1$, tamaño $|G|^{p-1}$.
-- Ya tenemos `mckayShiftList` que opera sobre estas tuplas.
-- Declarar la permutación `Perm` oficial instanciándola con `mckayShiftList`.
-- Probar que aplicar la permutación $p$ veces es la identidad.
-- Usar Ecuación de Clases/Órbitas para el conteo módulo $p$.
+Let `|G| = p^n · r` with `p ∤ r`. Consider the set
+`Ω = { X ⊆ G : |X| = p^n }`, with `|Ω| = C(p^n·r, p^n)`.
 
-Herramientas disponibles:
+`G` acts on `Ω` by left translation. A fixed point of this action is a subgroup of order `p^n` (Sylow p-subgroup).
 
-- `Action.lean` (órbitas, tamaños) ✅
-- `FSetFunction` (conteo, fibras) ✅
-- `Cosets.lean` (Lagrange) ✅
+By Lucas / direct congruence: `C(p^n·r, p^n) ≡ r (mod p)`, so `p ∤ |Ω|`.
 
-Criterio de salida: `cauchy_minimal` sin sorry.
+Since `G` acts and `p ∤ |Ω|`, at least one orbit has size not divisible by `p`, hence size 1 (it is a fixed point), giving a Sylow p-subgroup.
 
-### 2.2. `sylow_lift_from_cauchy`
+### Step-by-step proof plan
 
-Dependencia: `cauchy_minimal` cerrado.
+**Step 1 — `p | C(p,k)` for `0 < k < p`** *(in `Binom.lean`)*
 
-Estrategia:
+Key tool: `binom_mul_factorials : C(n,k) · k! · (n-k)! = n!`
 
-- Inducción sobre m.
-- Dado H de orden pᵐ, N(H)/H tiene orden divisible por p (vía Lagrange + hipótesis p^(m+1) | |G|).
-- Cauchy en N(H)/H da K/H de orden p → K de orden pᵐ⁺¹.
+Proof sketch:
+- `p | p!` (p divides its own factorial)
+- `p ∤ k!` for `k < p` (no factor from 1..k is divisible by p) — requires `prime_not_dvd_of_pos_lt`
+- `p ∤ (p-k)!` similarly
+- From `C(p,k) · k! · (p-k)! = p!` and `p ∤ (k! · (p-k)!)`, conclude `p | C(p,k)` via `coprime_dvd_of_dvd_mul`
 
-### 2.3. `sylow_second`
+Sub-lemmas needed:
+- `prime_not_dvd_of_pos_lt` (private): `p prime, 0 < a < p → p ∤ a`
+- `prime_not_dvd_factorial` (private): `p prime, k < p → p ∤ k!`
+- `prime_dvd_binom_prime` (public): `p prime, 0 < k < p → p | C(p,k)`
 
-Dependencia: Sylow I completo, acciones sobre G/K disponibles.
+**Step 2 — `C(p·r, p) = r · C(p·r-1, p-1)`** *(algebraic identity, in `Binom.lean`)*
 
-### 2.4. `sylow_third`
+From `binom_mul_factorials` applied twice:
+- `C(p·r, p) · p! · (p·r-p)! = (p·r)!`
+- `C(p·r-1, p-1) · (p-1)! · (p·r-p)! = (p·r-1)!`
 
-Dependencia: `sylow_second`.
+Divide: `C(p·r, p) / C(p·r-1, p-1) = (p·r)! / (p · (p·r-1)!) = r`.
+
+In ℕ₀ (no division): prove via `mul_left_cancel` applied to the factorial equation.
+
+**Step 3 — `C(p·r, p) ≡ r (mod p)` by induction** *(in `Binom.lean` or new `Lucas.lean`)*
+
+Use Step 2 + `p | C(p,k)` (Step 1 generalized) to show `C(p·r, p) ≡ r·C(p·r-1,p-1) ≡ r (mod p)` by induction on r.
+
+Full Lucas' theorem: `C(p^n·r, p^n) ≡ r (mod p)`.
+
+**Step 4 — Wielandt's combinatorial argument** *(in `Sylow.lean` or new `Wielandt.lean`)*
+
+- Define `Ω` as the list of all p^n-element sublists of G.
+- `|Ω| = C(|G|, p^n)`.
+- G-action by left translation on Ω.
+- Fixed point ↔ left-translation-stable set of size p^n ↔ subgroup.
+- `C(p^n·r, p^n) ≡ r (mod p)` and `p ∤ r` → `p ∤ |Ω|` → some orbit has size not divisible by p → size 1 (p-group orbit counting) → fixed point exists.
+
+**Step 5 — Replace `sylow_center_step` axiom** *(in `Sylow.lean`)*
+
+With Wielandt established, `sylow_center_step` follows:
+given `p^(m+1) | |G|` and no proper subgroup has order `p^(m+1)`, a Wielandt fixed point gives the required subgroup.
 
 ---
 
-## 3. Documentación (P1)
+## Roadmap: eliminating `sylow_card_eq`
 
-- Actualizar `CURRENT-STATUS-PROJECT.md` al pasar de 4 → 0 sorry.
-- Actualizar `CHANGELOG.md` por lote de cierres de Sylow.
-- Mantener `REFERENCE.md` sincronizado.
-
----
-
-## 4. Checklist de ejecución
-
-- [x] `FSet.eq_of_mem_iff` en FSet.lean
-- [x] `card_eq_mul_of_uniform_fibers` en FSetFunction.lean
-- [x] Cerrar `lagrange` (Cosets)
-- [x] Cerrar `orbit_stabilizer` y `orbits_partition` (Action)
-- [x] `cauchy_minimal_axiom` → sorry (trazable)
-- [x] `mckay_orbit_remove` y `mckay_orbit_count` — cerrados (2026-04-22)
-- [ ] Cerrar `mckay_p_dvd_powEqId` (conecta `mckay_orbit_count` con el conteo sobre G^p)
-- [ ] Cerrar `cauchy_minimal` (depende de `mckay_p_dvd_powEqId`)
-- [ ] Cerrar `sylow_lift_from_cauchy`
-- [ ] Cerrar `sylow_second`
-- [ ] Cerrar `sylow_third`
-- [ ] Dejar build con 0 sorry
-- [ ] Sincronizar `REFERENCE.md`, `CHANGELOG.md`, `CURRENT-STATUS-PROJECT.md`
+Add `pow_dvd_pow` to `Pow.lean`:
+```
+pow_dvd_pow : a ≤ b → p^a | p^b
+```
+Then: if `p^n | |G|` and `¬p^(n+1) | |G|`, then `n` is unique (the Sylow exponent is well-defined).
+Both Sylow p-subgroups have order `p^n` by definition → `sylow_card_eq` follows.
 
 ---
 
-## 5. Comandos de control
+## Roadmap: eliminating `sylow_second_incl`
 
-- `lake build`
-- `lake build 2>&1 | Select-String -Pattern "error|sorry|warning"`
-- `Get-ChildItem -Recurse -Filter "*.lean" -Path "Peano" | Select-String -Pattern "^\s+sorry"`
-- `grep -n "sorry" Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean`
+Build H-action on G/K (cosets as `ℕ₀FSet`):
+- Cosets already in library (Sylow/Cosets.lean).
+- H acts by left multiplication on left cosets of K.
+- Adapt `mckay_orbit_count` to show: since |H| is a p-power and |G/K| = |G|/|K| ≡ 1 ≢ 0 (mod p) (K is Sylow), some coset is fixed.
+- Fixed coset `rK` means H·rK = rK, i.e., r⁻¹Hr ⊆ K.
 
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
+---
 
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
+## Roadmap: eliminating `sylow_third_mod` and `sylow_third_dvd`
 
-<!-- AUTO-UPDATE-2026-04-17-END -->
+Requires:
+- Normalizer `N_G(K) = { g ∈ G | g⁻¹Kg = K }` (not yet in library).
+- G-action by conjugation on `List (Subgroup G)`.
+- Orbit-stabilizer theorem applied to this action.
+- For `sylow_third_mod`: H acts on Sylow subgroups; unique fixed point K with H=K → n_p ≡ 1 (mod p).
+- For `sylow_third_dvd`: orbit of K under G-conjugation has size |G|/|N_G(K)|; stabilizer = N_G(K) ⊇ K; so size divides |G|/|K| which divides |G|.
+
+These require substantial new infrastructure. **Do after** the Wielandt path is complete.
+
+---
+
+## FinGroup polymorphism (long term)
+
+Current `FinGroup` requires carrier ⊆ `ℕ₀` (via `ℕ₀FSet`). This blocks:
+- Quotient groups G/N
+- Subgroup actions on `List (Subgroup G)` (elements are `Subgroup G`, not `ℕ₀`)
+
+**Plan**: Make `FinGroup` a typeclass over an arbitrary type `α`:
+```lean
+class FinGroup (α : Type) where
+  elems : FSet α        -- finite set with decidable equality
+  op : α → α → α
+  id : α
+  inv : α → α
+  -- axioms: assoc, id_left, id_right, inv_left, inv_right
+```
+
+This would allow:
+- `FinGroup (Subgroup G)` instantiation for the conjugation action.
+- Quotient groups as `FinGroup (Coset G N)`.
+- Full generality for Sylow III and Sylow II.
+
+**When to do this**: After completing the Wielandt path and closing `sylow_center_step`. The refactor is independent of combinatorics work.
+
+---
+
+## Immediate priorities (this session)
+
+1. **`prime_not_dvd_of_pos_lt`** (private, `Binom.lean`) — `p prime, 0 < a < p → p ∤ a`
+2. **`prime_not_dvd_factorial`** (private, `Binom.lean`) — `p prime, k < p → p ∤ k!`
+3. **`prime_dvd_binom_prime`** (public, `Binom.lean`) — `p prime, 0 < k < p → p | C(p,k)`
+4. (Next session) Prove `C(p·r, p) = r · C(p·r-1, p-1)`.
+5. (Next session) Prove `C(p·r, p) ≡ r (mod p)` by induction on r.

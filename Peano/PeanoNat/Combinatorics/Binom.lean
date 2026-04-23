@@ -16,6 +16,7 @@ import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Combinatorics.Factorial
+import Peano.PeanoNat.Primes
 
 /-!
 Paso 1: El Caso Base (n=0)
@@ -281,6 +282,76 @@ namespace Peano
                 subst h_eq
                 rw [binom_self (σ k'), one_mul, sub_self, factorial_zero, mul_one]
 
+    -- ── Divisibilidad prima de coeficientes binomiales ────────────────────────
+
+    section PrimeDvdBinom
+      open Peano.Primes
+
+      private abbrev Prime := Peano.Primes.Prime
+
+      /- 0 < a < p → p ∤ a. -/
+      private theorem prime_not_dvd_of_pos_lt {p a : ℕ₀}
+          (ha_pos : lt₀ 𝟘 a) (ha_lt : lt₀ a p) : ¬ (p ∣ a) := by
+        intro ⟨k, hk⟩
+        cases k with
+        | zero =>
+            rw [mul_zero] at hk
+            exact absurd (hk ▸ ha_pos) (lt_irrefl 𝟘)
+        | succ k' =>
+            have h_ge : le₀ p a := by
+              rw [hk]
+              exact mul_le_right p (σ k') (succ_neq_zero k')
+            rcases h_ge with h_lt | h_eq
+            · exact absurd (lt_trans a p a ha_lt h_lt) (lt_irrefl a)
+            · exact absurd (h_eq ▸ ha_lt) (lt_irrefl a)
+
+      /- p primo, k < p → p ∤ k!. -/
+      private theorem prime_not_dvd_factorial {p : ℕ₀} (hp : Prime p) :
+          ∀ k : ℕ₀, lt₀ k p → ¬ (p ∣ factorial k) := by
+        intro k
+        induction k with
+        | zero =>
+            intro _ h_dvd
+            rw [factorial_zero] at h_dvd
+            have h_le : le₀ p 𝟙 := divides_le h_dvd (succ_neq_zero 𝟘)
+            have h_2_le_1 : le₀ 𝟚 𝟙 := le_trans 𝟚 p 𝟙 (prime_ge_two hp) h_le
+            exact absurd (lt_succ_self 𝟙) (le_then_ngt 𝟚 𝟙 h_2_le_1)
+        | succ k' ih =>
+            intro hsk_lt h_dvd
+            rw [factorial_succ] at h_dvd
+            have hk'_lt : lt₀ k' p := lt_trans k' (σ k') p (lt_succ_self k') hsk_lt
+            rcases hp.2.2 _ _ h_dvd with h1 | h2
+            · exact ih hk'_lt h1
+            · exact absurd h2 (prime_not_dvd_of_pos_lt (lt_zero_succ k') hsk_lt)
+
+      /- p primo, 0 < k < p → p ∣ C(p, k). -/
+      theorem prime_dvd_binom_prime {p k : ℕ₀} (hp : Prime p)
+          (hk_pos : lt₀ 𝟘 k) (hk_lt : lt₀ k p) : p ∣ C(p, k) := by
+        have h_k_le_p : le₀ k p := lt_imp_le_wp hk_lt
+        have h_binom := binom_mul_factorials h_k_le_p
+        have h_p_dvd_fact_p : p ∣ factorial p := by
+          cases p with
+          | zero => exact absurd rfl (prime_ne_zero hp)
+          | succ p' =>
+              rw [factorial_succ]
+              exact divides_mul_left (divides_refl (σ p'))
+        have h_p_dvd_lhs :
+            p ∣ mul (mul C(p, k) (factorial k)) (factorial (sub p k)) := by
+          rw [h_binom]; exact h_p_dvd_fact_p
+        have hk_ne_zero : k ≠ 𝟘 := Ne.symm (ne_of_lt 𝟘 k hk_pos)
+        have h_sub_lt : lt₀ (sub p k) p := sub_lt_self p k h_k_le_p hk_ne_zero
+        have h_not_dvd_sub : ¬ (p ∣ factorial (sub p k)) :=
+          prime_not_dvd_factorial hp (sub p k) h_sub_lt
+        have h_not_dvd_k : ¬ (p ∣ factorial k) :=
+          prime_not_dvd_factorial hp k hk_lt
+        rcases hp.2.2 _ _ h_p_dvd_lhs with h1 | h2
+        · rcases hp.2.2 _ _ h1 with h3 | h4
+          · exact h3
+          · exact absurd h4 h_not_dvd_k
+        · exact absurd h2 h_not_dvd_sub
+
+    end PrimeDvdBinom
+
   end Binom
 end Peano
 
@@ -298,4 +369,5 @@ export Peano.Binom (
   binom_one
   binom_succ_n_by_n
   binom_mul_factorials
+  prime_dvd_binom_prime
 )

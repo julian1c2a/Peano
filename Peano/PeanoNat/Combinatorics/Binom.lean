@@ -720,6 +720,54 @@ namespace Peano
           rwa [mul_one] at this
         exact h_row ▸ h_mul
 
+      /- Lucas generalizado: C(p^n · r, p^n) ≡ r [MOD p] para p primo y r ≠ 0.
+         Caso base n=0: C(r, 1) = r.
+         Paso inductivo: usa binom_pr_p_mod + la identidad de reducción
+         C(p·M, p·K) ≡ C(M, K) [MOD p], pendiente de demostración completa.
+         TODO: eliminar este axioma cuando se formalice la reducción de Lucas
+               C(p·M, p·K) ≡ C(M, K) [MOD p] para todo M, K. -/
+      private axiom binom_pow_p_mod_aux
+          (p M K : ℕ₀) (hp : Prime' p) :
+          C(mul p M, mul p K) ≡ C(M, K) [MOD p]
+
+      /- C(p^n · r, p^n) ≡ r [MOD p] para p primo, n ≥ 1 y r ≠ 0.
+         Prueba por inducción sobre n usando binom_pr_p_mod (base n=1)
+         y binom_pow_p_mod_aux (paso inductivo). -/
+      theorem binom_pow_p_mod {p r : ℕ₀} (hp : Prime' p) (hr : r ≠ 𝟘) :
+          ∀ n : ℕ₀, n ≠ 𝟘 → C(mul (pow p n) r, pow p n) ≡ r [MOD p] := by
+        intro n
+        induction n with
+        | zero => intro h; exact absurd rfl h
+        | succ n' ih =>
+          intro _
+          cases n' with
+          | zero =>
+            -- n = 1: C(p·r, p) ≡ r [MOD p]
+            simp only [pow_succ, pow_zero, one_mul]
+            exact binom_pr_p_mod hp hr
+          | succ n'' =>
+            -- n = n''+2: usamos C(p·M, p·K) ≡ C(M, K) con M = p^(n''+1)·r, K = p^(n''+1)
+            have ih' : C(mul (pow p (σ n'')) r, pow p (σ n'')) ≡ r [MOD p] :=
+              ih (succ_neq_zero n'')
+            -- p^(n''+2) = p^(n''+1) · p
+            have h_pow : pow p (σ (σ n'')) = mul (pow p (σ n'')) p :=
+              pow_succ p (σ n'')
+            -- mul (pow p^(n''+2)) r reescrito usando h_pow
+            -- = mul (mul (pow p (σ n'')) p) r
+            -- = mul p (mul (pow p (σ n'')) r)  [conm + assoc]
+            have h_eq : mul (pow p (σ (σ n''))) r =
+                mul p (mul (pow p (σ n'')) r) := by
+              rw [h_pow, mul_comm (pow p (σ n'')) p]
+              exact mul_assoc (pow p (σ n'')) p r
+            have h_pow_eq : pow p (σ (σ n'')) = mul p (pow p (σ n'')) := by
+              rw [h_pow, mul_comm]
+            rw [h_eq, h_pow_eq]
+            -- Ahora: C(mul p (pow p (σ n'')*r), mul p (pow p (σ n''))) ≡ r
+            -- Por binom_pow_p_mod_aux: C(p·M, p·K) ≡ C(M, K) [MOD p]
+            exact modEq_trans
+              (binom_pow_p_mod_aux p (mul (pow p (σ n'')) r) (pow p (σ n'')) hp)
+              ih'
+
     end BinomModP
 
   end Binom
@@ -742,4 +790,5 @@ export Peano.Binom (
   prime_dvd_binom_prime
   binom_prime_row
   binom_pr_p_mod
+  binom_pow_p_mod
 )

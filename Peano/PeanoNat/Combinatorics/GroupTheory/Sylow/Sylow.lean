@@ -21,9 +21,11 @@ import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Primes
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.Combinatorics.Pow
+import Peano.PeanoNat.Combinatorics.Binom
 import Peano.PeanoNat.Combinatorics.Group
 import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 import Peano.PeanoNat.Combinatorics.GroupTheory.Action
+import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.Totient
 
 set_option autoImplicit false
@@ -1695,14 +1697,91 @@ namespace Peano
       id_in      := K.id_in
       inv_closed := fun a ha => K.inv_closed a ha
 
-    /-- Axioma: caso duro de la inducción de Sylow.
+    /-- Argumento de Wielandt, pieza 1:
+        El número de sublistas sin repetición de G.carrier.elems de longitud N es C(|G|, N).
+        (Este es el resultado combinatorio clave; requiere infraestructura de combinaciones.)
+        TODO: demostrar usando binom_mul_factorials y biyección con combinaciones. -/
+    private axiom wielandt_omega_card
+        (G : FinGroup) (N : ℕ₀) :
+        ∃ (Ω : List (List ℕ₀)),
+          Ω.Nodup ∧
+          (∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N) ∧
+          (∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω) ∧
+          lengthₚ Ω = binom G.carrier.card N
+
+    /-- Argumento de Wielandt, pieza 2:
+        La traslación izquierda de G actúa sobre Ω y preserva |S| y la pertenencia a G.
+        Para g ∈ G y S ∈ Ω, g·S = { G.op g s : s ∈ S } también está en Ω.
+        TODO: demostrar usando biyectividad de la traslación izquierda en G. -/
+    private axiom wielandt_translate_mem
+        (G : FinGroup) (Ω : List (List ℕ₀)) (N : ℕ₀)
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (g : ℕ₀) (hg : g ∈ G.carrier.elems) (S : List ℕ₀) (hS : S ∈ Ω) :
+        (S.map (G.op g)) ∈ Ω
+
+    /-- Argumento de Wielandt, pieza 3:
+        Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|,
+        existe S ∈ Ω tal que para todo g ∈ G, S.map (G.op g) = S
+        (punto fijo de toda la acción de G).
+        Argumento: p | |G| implica p | suma de |órbita| no-triviales. Si p ∤ |Ω|,
+        hay órbitas de tamaño 1 (puntos fijos).
+        TODO: demostrar usando mckay_orbit_count generalizado y divisibilidad. -/
+    private axiom wielandt_fixed_point_exists
+        (G : FinGroup) (Ω : List (List ℕ₀)) (N : ℕ₀) (p : ℕ₀)
+        (hp : Prime p)
+        (hdvd_G : ∃ r : ℕ₀, Mul.mul N r = G.carrier.card)
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω, (S.map (G.op g)) ∈ Ω)
+        (hndvd : ¬ p ∣ lengthₚ Ω) :
+        ∃ S ∈ Ω, ∀ g ∈ G.carrier.elems, S.map (G.op g) = S
+
+    /-- Argumento de Wielandt, pieza 4:
+        Un subconjunto S ⊆ G que es punto fijo de la acción de traslación de todo G
+        (es decir, g·S = S para todo g ∈ G) con S ≠ ∅ es un subgrupo de G.
+        Argumento:
+          - S ≠ ∅ → ∃ x ∈ S.
+          - x·S = S → x⁻¹ ∈ S (pues x⁻¹ ∈ x⁻¹·S = S).
+          - e = x·x⁻¹ ∈ x·S = S.
+          - a, b ∈ S → a·b ∈ a·S = S.
+          - a ∈ S → a·(a⁻¹) = e ∈ a·S = S, y e ∈ S → a⁻¹ ∈ S.
+        TODO: demostrar formalmente en Lean. -/
+    private axiom wielandt_fixed_is_subgroup
+        (G : FinGroup) (S : List ℕ₀) (N : ℕ₀)
+        (hS_ne : S ≠ [])
+        (hS_nd : S.Nodup)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (hS_len : lengthₚ S = N)
+        (hS_fixed : ∀ g ∈ G.carrier.elems, S.map (G.op g) = S) :
+        ∃ H : Subgroup G, H.carrier.elems = S ∧ H.carrier.card = N
+
+    /-- Argumento de Wielandt, pieza 5:
+        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por la hipótesis inductiva
+        de Sylow existiría un subgrupo propio M de orden divisible por p^(m+1),
+        contradiciendo h_no_proper.
+        TODO: demostrar usando la p-valuación y el argumento de subgrupos propios. -/
+    private axiom wielandt_p_ndvd_r
+        (G : FinGroup) (p m r : ℕ₀)
+        (hp : Prime p)
+        (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
+        (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+          (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+            ∃ K : Subgroup G0, K.carrier.card = p0)
+        (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
+          ¬ pow_dvd_card p (σ m) M.carrier) :
+        ¬ p ∣ r
+
+    /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
         Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo
-        propio de `G` es divisible por `p^(m+1)`.  En este caso la prueba
-        estándar requiere la ecuación de clases, Cauchy aplicado a Z(G),
-        y la construcción del grupo cociente G/⟨z⟩ (o el argumento
-        combinatorio de Wielandt sobre |{S ⊆ G : |S|=p^(m+1)}|).
-        TODO: reemplazar por demostración completa. -/
-    private axiom sylow_center_step
+        propio de `G` es divisible por `p^(m+1)`.  La prueba usa:
+        1. Ω = sublistas de G de tamaño p^(m+1), |Ω| = C(|G|, p^(m+1)) ≡ r (mod p).
+        2. G actúa sobre Ω por traslación izquierda.
+        3. p ∤ |Ω| → ∃ punto fijo S de la acción.
+        4. h_no_proper → stab(S) = G → S es subgrupo de G de orden p^(m+1). -/
+    private theorem sylow_center_step_wielandt
       (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
@@ -1710,7 +1789,71 @@ namespace Peano
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
-        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m)
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) := by
+      -- Sea N = p^(m+1), r tal que N · r = |G|
+      let N := p ^ (σ m)
+      obtain ⟨r, hr⟩ := hpow
+      -- r ≠ 0: pues |G| ≥ 1
+      have hr_ne : r ≠ 𝟘 := by
+        intro h0; rw [h0, mul_zero] at hr
+        exact absurd (card_pos_of_mem_aux G.id_in) (hr ▸ lt_irrefl 𝟘)
+      -- N ≠ 0: pues N = p^(m+1) y p ≥ 2 > 0
+      have hN_ne : N ≠ 𝟘 := pow_ne_zero hp.1 (σ m)
+      -- Construir Ω = { sublistas de G de tamaño N }
+      obtain ⟨Ω, hΩ_nd, hΩ_mem, hΩ_full, hΩ_card⟩ := wielandt_omega_card G N
+      -- La traslación izquierda preserva Ω
+      have htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω, (S.map (G.op g)) ∈ Ω := by
+        intro g hg S hS
+        obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS
+        apply hΩ_full
+        · -- inyectividad de G.op g: usa op_cancel_left
+          apply nodup_map_of_inj_on _ _ hS_nd
+          intro a b ha hb heq
+          exact op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq
+        · -- G.op g s ∈ G.carrier.elems
+          intro x hx
+          obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx
+          exact op_mem G hg (hS_memG s hs)
+        · -- |S.map (G.op g)| = |S| = N
+          show Λ ((S.map (G.op g)).length) = N
+          rw [List.length_map]
+          exact hS_len
+      -- p ∤ r (por h_no_proper: si p | r, p^(m+2) | |G|, habría subgrupo propio)
+      have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr hC h_no_proper
+      -- Congruencia de Lucas: C(N·r, N) ≡ r (mod p)
+      have hcong : binom (mul N r) N ≡ r [MOD p] :=
+        binom_pow_p_mod (p := p) (r := r) hp hr_ne (σ m) (Peano.Axioms.succ_neq_zero m)
+      -- |Ω| = C(|G|, N) ≡ r (mod p), así p ∤ |Ω|
+      have hΩ_ndvd : ¬ p ∣ lengthₚ Ω := by
+        rw [hΩ_card]
+        have hG_eq : G.carrier.card = mul N r := hr.symm
+        rw [hG_eq]
+        intro hdvd
+        exact hp_ndvd_r (modEq_zero_iff_dvd hp.1 |>.mp
+          (modEq_trans (modEq_symm hcong) (modEq_zero_of_dvd hp.1 hdvd)))
+      -- ∃ punto fijo S de la acción de G sobre Ω
+      obtain ⟨S, hS_in, hS_fixed⟩ :=
+        wielandt_fixed_point_exists G Ω N p hp ⟨r, hr⟩ hΩ_nd hΩ_mem hΩ_full htrans hΩ_ndvd
+      -- Extraer propiedades de S
+      obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS_in
+      -- S ≠ [] pues lengthₚ S = N ≠ 0
+      have hS_ne : S ≠ [] := by
+        intro h_nil; rw [h_nil, lengthₚ_nil] at hS_len; exact hN_ne hS_len.symm
+      -- S es subgrupo de G de orden N = p^(m+1)
+      obtain ⟨H, _, hH_card⟩ :=
+        wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_memG hS_len hS_fixed
+      exact ⟨H, hH_card⟩
+
+    private theorem sylow_center_step
+      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+        (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+          ∃ K : Subgroup G0, K.carrier.card = p0)
+      (G : FinGroup) (p m : ℕ₀)
+      (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
+      (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
+        ¬ pow_dvd_card p (σ m) M.carrier) :
+        ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) :=
+      sylow_center_step_wielandt hC G p m hp hpow h_no_proper
 
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
         construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`.

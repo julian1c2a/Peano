@@ -1010,6 +1010,12 @@ namespace Peano
       trans  := fun h1 h2 => lt_trans_wp h1 h2
       trich  := fun a b h_nab h_nba => lt_nor_gt_then_eq a b ⟨h_nab, h_nba⟩
 
+    /-- `DecidableRel (<)` derivable de `StrictLinearOrder`.
+        Prioridad baja para no competir con instancias más específicas. -/
+    @[instance (priority := 50)]
+    instance instDecidableRelLtOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] : DecidableRel (@LT.lt α _) := slo.decLt
+
     instance decidableGt (n m : ℕ₀) :
       Decidable (gt₀ n m) :=
       if h_bgt_is_true : bgt₀ n m then

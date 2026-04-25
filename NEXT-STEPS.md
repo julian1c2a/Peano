@@ -23,6 +23,7 @@ All three Sylow theorems are formally closed, backed by 5 private axioms:
 ## Roadmap: eliminating `sylow_center_step` via Wielandt's combinatorial proof
 
 The standard textbook proof of Sylow I uses either:
+
 - **Class equation + Cauchy on Z(G) + quotient G/⟨z⟩** — blocked: FinGroup requires `ℕ₀` elements, no quotient groups.
 - **Wielandt's combinatorial argument** — feasible: reduces to a congruence `C(p^n·r, p^n) ≡ r (mod p)`.
 
@@ -46,12 +47,14 @@ Since `G` acts and `p ∤ |Ω|`, at least one orbit has size not divisible by `p
 Key tool: `binom_mul_factorials : C(n,k) · k! · (n-k)! = n!`
 
 Proof sketch:
+
 - `p | p!` (p divides its own factorial)
 - `p ∤ k!` for `k < p` (no factor from 1..k is divisible by p) — requires `prime_not_dvd_of_pos_lt`
 - `p ∤ (p-k)!` similarly
 - From `C(p,k) · k! · (p-k)! = p!` and `p ∤ (k! · (p-k)!)`, conclude `p | C(p,k)` via `coprime_dvd_of_dvd_mul`
 
 Sub-lemmas needed:
+
 - `prime_not_dvd_of_pos_lt` (private): `p prime, 0 < a < p → p ∤ a`
 - `prime_not_dvd_factorial` (private): `p prime, k < p → p ∤ k!`
 - `prime_dvd_binom_prime` (public): `p prime, 0 < k < p → p | C(p,k)`
@@ -59,6 +62,7 @@ Sub-lemmas needed:
 **Step 2 — `C(p·r, p) = r · C(p·r-1, p-1)`** *(algebraic identity, in `Binom.lean`)* ✓ DONE (`binom_prime_row`)
 
 From `binom_mul_factorials` applied twice:
+
 - `C(p·r, p) · p! · (p·r-p)! = (p·r)!`
 - `C(p·r-1, p-1) · (p-1)! · (p·r-p)! = (p·r-1)!`
 
@@ -90,9 +94,11 @@ given `p^(m+1) | |G|` and no proper subgroup has order `p^(m+1)`, a Wielandt fix
 ## Roadmap: eliminating `sylow_card_eq`
 
 Add `pow_dvd_pow` to `Pow.lean`:
+
 ```
 pow_dvd_pow : a ≤ b → p^a | p^b
 ```
+
 Then: if `p^n | |G|` and `¬p^(n+1) | |G|`, then `n` is unique (the Sylow exponent is well-defined).
 Both Sylow p-subgroups have order `p^n` by definition → `sylow_card_eq` follows.
 
@@ -101,6 +107,7 @@ Both Sylow p-subgroups have order `p^n` by definition → `sylow_card_eq` follow
 ## Roadmap: eliminating `sylow_second_incl`
 
 Build H-action on G/K (cosets as `ℕ₀FSet`):
+
 - Cosets already in library (Sylow/Cosets.lean).
 - H acts by left multiplication on left cosets of K.
 - Adapt `mckay_orbit_count` to show: since |H| is a p-power and |G/K| = |G|/|K| ≡ 1 ≢ 0 (mod p) (K is Sylow), some coset is fixed.
@@ -111,6 +118,7 @@ Build H-action on G/K (cosets as `ℕ₀FSet`):
 ## Roadmap: eliminating `sylow_third_mod` and `sylow_third_dvd`
 
 Requires:
+
 - Normalizer `N_G(K) = { g ∈ G | g⁻¹Kg = K }` (not yet in library).
 - G-action by conjugation on `List (Subgroup G)`.
 - Orbit-stabilizer theorem applied to this action.
@@ -124,10 +132,12 @@ These require substantial new infrastructure. **Do after** the Wielandt path is 
 ## FinGroup polymorphism (long term)
 
 Current `FinGroup` requires carrier ⊆ `ℕ₀` (via `ℕ₀FSet`). This blocks:
+
 - Quotient groups G/N
 - Subgroup actions on `List (Subgroup G)` (elements are `Subgroup G`, not `ℕ₀`)
 
 **Plan**: Make `FinGroup` a typeclass over an arbitrary type `α`:
+
 ```lean
 class FinGroup (α : Type) where
   elems : FSet α        -- finite set with decidable equality
@@ -138,6 +148,7 @@ class FinGroup (α : Type) where
 ```
 
 This would allow:
+
 - `FinGroup (Subgroup G)` instantiation for the conjugation action.
 - Quotient groups as `FinGroup (Coset G N)`.
 - Full generality for Sylow III and Sylow II.
@@ -157,6 +168,7 @@ Goal: transition `List.lean` / `FSet.lean` / related modules from an implementat
 `ListList.lean` only adds typeclass instances (`LE`, `LT`, `DecidableRel`, `Repr`) to types already defined in `List.lean`, fragmenting types from their core behaviour.
 
 Actions:
+
 - Move all sections from `ListList.lean` (§11–§15) to the end of `List.lean`.
 - Delete `ListList.lean`.
 - Update all imports that reference `ListList` (e.g. in `FSetFSet.lean`) to point to `Peano.PeanoNat.ListsAndSets.List`.
@@ -166,6 +178,7 @@ Actions:
 `sortedInsert` in `FSet.lean` is hard-wired to `ℕ₀` because it depends on `ℕ₀`-specific trichotomy / transitivity theorems.
 
 Actions:
+
 - Define `StrictLinearOrder α` typeclass (irrefl, trans, trichotomy, decidable `<`) in a new `Order.lean` or `StrictOrder.lean`.
 - Derive asymmetry as a lemma from irrefl + trans (not a separate axiom).
 - Instantiate for `ℕ₀`, `ℕ₁`, `ℕ₂`, `Tuple n` using existing project theorems.
@@ -175,6 +188,7 @@ Actions:
 `insert`, `ofList`, `filter` on finite sets are currently limited to `FSet ℕ₀`.
 
 Actions:
+
 - Move `sortedInsert` and its correctness proof from `FSet.lean` into `List.lean`.
 - Generalise its signature to `List α` with `[StrictLinearOrder α]`.
 - Make `FSet` operations generic: `FSet α` for any type with `StrictLinearOrder`.
@@ -200,6 +214,16 @@ inductive UnivVal {α α₁ α₂ : Type} : Type where
 Benefits: free recursion via `ofList`, structural induction collapses 36 cases to a handful, `FSet UnivVal` can host arbitrary mathematical structures.
 
 ---
+
+## Immediate priorities
+
+Now I have the full picture. Respondo a [1] y [2]:
+
+[1] Fusión FSetFSet → FSet: Sí, es factible con el mismo método. El riesgo §11 (instLEList) se resuelve igual que antes: colocarlo al final del archivo fusionado, después de toda la maquinaria FSet. Solo FSetFunction.lean importa FSetFSet.
+
+[2] Acción 2: Generalizar sortedInsert. Requiere primero añadir una instancia puente DecidableRel desde StrictLinearOrder.
+
+Orden de ejecución: primero [2] (modifica código), después [1] (fusión mecánica).
 
 ## Immediate priorities (this session)
 

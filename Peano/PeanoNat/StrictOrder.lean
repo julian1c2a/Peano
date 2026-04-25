@@ -995,6 +995,21 @@ namespace Peano
     instance : IrreflLT ℕ₀ := ⟨fun n => nlt_self n⟩
     instance : IrreflLT ℕ₁ := ⟨fun n => nlt_self n.val⟩
 
+    /-- Orden lineal estricto decidible sobre `α`.
+        Bundlea `DecidableRel (<)`, irreflexividad, transitividad y tricotomía.
+        La asimetría se deriva de irrefl + trans. -/
+    class StrictLinearOrder (α : Type) [LT α] [DecidableEq α] where
+      decLt  : ∀ a b : α, Decidable (a < b)
+      irrefl : ∀ a : α, ¬ a < a
+      trans  : ∀ {a b c : α}, a < b → b < c → a < c
+      trich  : ∀ a b : α, ¬ a < b → ¬ b < a → a = b
+
+    instance instStrictLinearOrderNat0 : StrictLinearOrder ℕ₀ where
+      decLt  := fun a b => decidableLt a b
+      irrefl := lt_irrefl
+      trans  := fun h1 h2 => lt_trans_wp h1 h2
+      trich  := fun a b h_nab h_nba => lt_nor_gt_then_eq a b ⟨h_nab, h_nba⟩
+
     instance decidableGt (n m : ℕ₀) :
       Decidable (gt₀ n m) :=
       if h_bgt_is_true : bgt₀ n m then
@@ -1439,6 +1454,8 @@ export Peano.StrictOrder (
     lt_0_1
     lt_trans_wp
     lt_asymm_wp
+    StrictLinearOrder
+    instStrictLinearOrderNat0
     lt_b_1_then_b_eq_0
     neq_0_then_lt_0
     lt_0_then_neq_0

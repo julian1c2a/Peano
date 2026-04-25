@@ -315,6 +315,53 @@ namespace Peano
         | isFalse h_neq =>
           isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
 
+  /-- Igualdad decidible para `Tuple n` con `n` implícito. -/
+  instance instDecidableEqTuple {n : ℕ₀} : DecidableEq (Tuple n) := tupleDecEq n
+
+  -- ══════════════════════════════════════════════════════════════════
+  -- § 4b. StrictLinearOrder para Tuple n
+  -- ══════════════════════════════════════════════════════════════════
+
+  /-- El orden lexicográfico estricto sobre `Tuple n` es irreflexivo. -/
+  theorem lexLt_irrefl : ∀ {n : ℕ₀} (t : Tuple n), ¬ lexLt t t
+    | .zero, () => id
+    | .succ _, (x, xs) => fun h =>
+      h.elim (fun h_lt => nlt_self x h_lt) (fun ⟨_, h_rest⟩ => lexLt_irrefl xs h_rest)
+
+  set_option linter.unusedVariables false in
+  /-- El orden lexicográfico estricto sobre `Tuple n` es transitivo. -/
+  theorem lexLt_trans : ∀ {n : ℕ₀} {a b c : Tuple n}, lexLt a b → lexLt b c → lexLt a c
+    | .zero, _, _, _ => fun h _ => False.elim h
+    | .succ _, (x, xs), (y, ys), (z, zs) => fun h_ab h_bc =>
+      h_ab.elim
+        (fun h_xy =>
+          h_bc.elim
+            (fun h_yz => Or.inl (lt_trans_wp h_xy h_yz))
+            (fun ⟨h_eq_yz, _⟩ => h_eq_yz ▸ Or.inl h_xy))
+        (fun ⟨h_eq_xy, h_xs_ys⟩ =>
+          h_bc.elim
+            (fun h_yz => h_eq_xy ▸ Or.inl h_yz)
+            (fun ⟨h_eq_yz, h_ys_zs⟩ =>
+              Or.inr ⟨h_eq_xy ▸ h_eq_yz, lexLt_trans h_xs_ys h_ys_zs⟩))
+
+  /-- El orden lexicográfico estricto sobre `Tuple n` satisface la tricotomía. -/
+  theorem lexLt_trich : ∀ {n : ℕ₀} (a b : Tuple n), ¬ lexLt a b → ¬ lexLt b a → a = b
+    | .zero, (), () => fun _ _ => rfl
+    | .succ _, (x, xs), (y, ys) => fun h_nab h_nba =>
+      have h_eq : x = y :=
+        lt_nor_gt_then_eq x y ⟨fun h => h_nab (Or.inl h), fun h => h_nba (Or.inl h)⟩
+      have h_eq_rest : xs = ys :=
+        lexLt_trich xs ys
+          (fun h => h_nab (Or.inr ⟨h_eq, h⟩))
+          (fun h => h_nba (Or.inr ⟨h_eq.symm, h⟩))
+      h_eq ▸ h_eq_rest ▸ rfl
+
+  instance instStrictLinearOrderTuple {n : ℕ₀} : StrictLinearOrder (Tuple n) where
+    decLt  := instDecidableRelLtTuple
+    irrefl := lexLt_irrefl
+    trans  := fun h1 h2 => lexLt_trans h1 h2
+    trich  := lexLt_trich
+
   -- ══════════════════════════════════════════════════════════════════
   -- § 5. Orden lexicográfico para NatsTuple
   -- ══════════════════════════════════════════════════════════════════
@@ -540,6 +587,11 @@ export Peano (
   instLETuple
   instDecidableRelLtTuple
   instDecidableRelLeTuple
+  instDecidableEqTuple
+  lexLt_irrefl
+  lexLt_trans
+  lexLt_trich
+  instStrictLinearOrderTuple
   natsVal
   natsLexLt
   natsLexLe

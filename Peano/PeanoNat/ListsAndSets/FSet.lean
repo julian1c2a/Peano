@@ -121,21 +121,6 @@ namespace Peano
     /-- Conjunto finito de naturales ≥ 2 (ℕ₂). -/
     abbrev ℕ₂FSet := FSet ℕ₂
 
-    -- ══════════════════════════════════════════════════════════════════
-    -- LT Nats para poder usar NatsFSet
-    -- ══════════════════════════════════════════════════════════════════
-
-    def natsToInt : Nats → Nat
-      | Nats.nat0 => 0
-      | Nats.nat1 => 1
-      | Nats.nat2 => 2
-
-    instance : LT Nats where
-      lt a b := natsToInt a < natsToInt b
-
-    instance : DecidableRel (@LT.lt Nats _) :=
-      fun a b => inferInstanceAs (Decidable (natsToInt a < natsToInt b))
-
     /-- Decidabilidad de `<` en `ℕ₀`, expuesta como `DecidableRel`.
         Esto permite heredar comparación decidible en `FSet ℕ₀` y, por extensión,
         en niveles anidados como `FSet (FSet ℕ₀)`. -/

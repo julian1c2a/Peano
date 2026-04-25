@@ -146,6 +146,61 @@ This would allow:
 
 ---
 
+## Refactoring: Lists and Sets — architectural plan
+
+*(Full details in `ListasYConjuntos.md`)*
+
+Goal: transition `List.lean` / `FSet.lean` / related modules from an implementation tightly coupled to `ℕ₀` toward a fully abstract, polymorphic design, culminating in a recursive universal type (`UnivVal`) capable of representing arbitrary nested hierarchies.
+
+### Phase 1 — Consolidation (`ListList.lean` → `List.lean`)
+
+`ListList.lean` only adds typeclass instances (`LE`, `LT`, `DecidableRel`, `Repr`) to types already defined in `List.lean`, fragmenting types from their core behaviour.
+
+Actions:
+- Move all sections from `ListList.lean` (§11–§15) to the end of `List.lean`.
+- Delete `ListList.lean`.
+- Update all imports that reference `ListList` (e.g. in `FSetFSet.lean`) to point to `Peano.PeanoNat.ListsAndSets.List`.
+
+### Phase 2 — Mathematical foundations: `StrictLinearOrder`
+
+`sortedInsert` in `FSet.lean` is hard-wired to `ℕ₀` because it depends on `ℕ₀`-specific trichotomy / transitivity theorems.
+
+Actions:
+- Define `StrictLinearOrder α` typeclass (irrefl, trans, trichotomy, decidable `<`) in a new `Order.lean` or `StrictOrder.lean`.
+- Derive asymmetry as a lemma from irrefl + trans (not a separate axiom).
+- Instantiate for `ℕ₀`, `ℕ₁`, `ℕ₂`, `Tuple n` using existing project theorems.
+
+### Phase 3 — Algorithm generalisation (`FSet.lean`)
+
+`insert`, `ofList`, `filter` on finite sets are currently limited to `FSet ℕ₀`.
+
+Actions:
+- Move `sortedInsert` and its correctness proof from `FSet.lean` into `List.lean`.
+- Generalise its signature to `List α` with `[StrictLinearOrder α]`.
+- Make `FSet` operations generic: `FSet α` for any type with `StrictLinearOrder`.
+
+### Phase 4 — Recursive universe (`UnivVal`)
+
+`PeanoVal` manually encodes each nesting level (`ofNat`, `ofNatList`, `ofTuple`, `ofTupleList`), causing combinatorial explosion: `DecidableEq` / `LT` currently require 36 cases. Adding `List (List α)` would multiply cases further.
+
+Proposed design:
+
+```lean4
+inductive Level where | base | sub1 | sub2
+
+def Level.toType {α α₁ α₂ : Type} : Level → Type
+  | .base => α | .sub1 => α₁ | .sub2 => α₂
+
+inductive UnivVal {α α₁ α₂ : Type} : Type where
+  | ofScalar (lvl : Level) (x : Level.toType lvl) : UnivVal
+  | ofTuple  (n : ℕ₀)      (t : Tuple n)          : UnivVal
+  | ofList   (xs : List UnivVal)                   : UnivVal
+```
+
+Benefits: free recursion via `ofList`, structural induction collapses 36 cases to a handful, `FSet UnivVal` can host arbitrary mathematical structures.
+
+---
+
 ## Immediate priorities (this session)
 
 1. ~~`prime_not_dvd_of_pos_lt` (private, `Binom.lean`)~~ ✓ DONE

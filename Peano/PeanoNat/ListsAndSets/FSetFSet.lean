@@ -6,24 +6,45 @@ License: MIT
 
 -- Peano/PeanoNat/ListsAndSets/FSetFSet.lean
 -- Conjuntos finitos de tipos "peso 3" (listas).
--- Alias y operaciones básicas para FSet de los tipos definidos en ListList.lean.
+-- Alias y operaciones básicas para FSet de los tipos compuestos.
 --
+-- § 11. LE y DecidableRel para List α
 -- § 16. FSet de listas de naturales  (Nat0ListFSet, Nat1ListFSet, Nat2ListFSet)
 -- § 17. FSet de listas de tuplas     (NatsTupleListFSet, GTupleListFSet, HTupleListFSet)
 -- § 18. FSet de PeanoVal             (PeanoValFSet)
 --
 -- Nota: `LT (List α)` viene de la stdlib Lean 4 (`List.Lex (· < ·)`).
 --       `DecidableEq (List α)` también viene de la stdlib cuando `DecidableEq α`.
---       `LT PeanoVal` y `DecidableEq PeanoVal` vienen de ListList.lean y List.lean.
+--       `LT PeanoVal`, `DecidableEq PeanoVal`, `instLTNats` vienen de List.lean.
 
 import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.ListsAndSets.ListList
 
 namespace Peano
   open Peano
 
   namespace FSet
     open Peano.StrictOrder
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 11. LE y Decidable para List α
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Lean 4 stdlib provee `LT (List α)` = `List.Lex (· < ·)`.
+        Aquí añadimos `LE`: `as ≤ bs ↔ as < bs ∨ as = bs`. -/
+    instance instLEList {α : Type} [LT α] [DecidableEq α] : LE (List α) :=
+      ⟨fun as bs => as < bs ∨ as = bs⟩
+
+    /-- Decidabilidad de `≤` sobre `List α` cuando los elementos
+        tienen igualdad y orden estricto decidibles. -/
+    instance instDecidableLeList {α : Type} [LT α] [DecidableEq α]
+        [DecidableRel (@LT.lt α _)] :
+        DecidableRel (@LE.le (List α) instLEList) :=
+      fun as bs =>
+        let hlt : Decidable (as < bs) := inferInstance
+        match hlt, (inferInstance : Decidable (as = bs)) with
+        | isTrue h,   _           => isTrue (Or.inl h)
+        | isFalse _,  isTrue heq  => isTrue (Or.inr heq)
+        | isFalse hn, isFalse hne => isFalse (fun h => h.elim hn hne)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 16. FSet de listas de naturales
@@ -40,7 +61,7 @@ namespace Peano
     abbrev Nat2ListFSet := FSet (List ℕ₂)
 
     /-- Conjunto finito de listas de `Nats`.
-        Requiere `instLTNats` de ListList.lean. -/
+        Requiere `instLTNats` de List.lean. -/
     abbrev NatsListFSet := FSet (List Nats)
 
     namespace Nat0ListFSet
@@ -289,6 +310,8 @@ namespace Peano
 end Peano
 
 export Peano.FSet (
+  instLEList
+  instDecidableLeList
   Nat0ListFSet
   Nat1ListFSet
   Nat2ListFSet

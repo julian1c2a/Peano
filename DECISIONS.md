@@ -1,6 +1,6 @@
 # Design Decisions — Peano
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-27
 **Author**: Julián Calderón Almendros
 
 Architectural Decision Records (ADR) for this project.
@@ -86,16 +86,25 @@ Each entry records *what* was decided and *why*, for future reference.
 
 ---
 
-## ADR-007: FSet as Quotient type (not sorted list)
+## ADR-007: FSet as sorted-list structure (not Quotient)
 
-**Date**: 2026-05
+**Date**: 2026-04 (revised 2026-04-27)
 **Status**: Accepted
 
-**Decision**: `FSet α` is defined as `Quotient (Perm.setoid α)` — the quotient of `List α` by permutation equivalence. Not as a structure with a sorted list + `Sorted` invariant.
+**Decision**: `FSet α` is defined as a `structure` with a sorted list and a `Sorted` invariant:
 
-**Rationale**: Avoids requiring `LT` and `DecidableRel LT` on element types. Only needs `DecidableEq α`. More mathematically elegant — two lists represent the same set iff they are permutations. Aligns with Mathlib's `Finset` philosophy.
+```lean
+structure FSet (α : Type) [LT α] [StrictLinearOrder α] where
+  elems  : List α
+  sorted : Sorted (· < ·) elems
+  nodup  : elems.Nodup
+```
 
-**Consequences**: Some operations become `noncomputable` (e.g., `DecidableEq FSet`). The original plan in THOUGHTS.md §11 and LISTS_FSETS_N_FSETFUNCTIONS.md was overridden.
+Not as `Quotient (Perm.setoid α)`.
+
+**Rationale**: The sorted-list approach keeps all operations computable (no `noncomputable` needed), gives canonical representatives for equality (`FSet.eq_of_mem_iff`), and is directly amenable to decidable equality via `DecidableEq (List α)`. It requires `LT α` with `StrictLinearOrder α` on element types — already available for all types used in this project (ℕ₀, Tuple, List, FSet itself). The Quotient approach would make `DecidableEq FSet` noncomputable and block universe-computable proofs.
+
+**Consequences**: `FSet α` requires `[StrictLinearOrder α]` on the element type. All current element types (`ℕ₀`, `Tuple ℕ₀ n`, `List α`, `FSet α`) have this instance. `sortedInsert` is the core insertion primitive. Two FSets are equal iff they have the same elements (extensionality via `FSet.eq_of_mem_iff`).
 
 ---
 
@@ -125,6 +134,39 @@ Each entry records *what* was decided and *why*, for future reference.
 
 ---
 
+## ADR-010: FinGroup polymorphic over arbitrary type with StrictLinearOrder
+
+**Date**: 2026-04-27
+**Status**: Accepted
+
+**Decision**: `FinGroup` is parameterized over an arbitrary element type `α`:
+
+```lean
+structure FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α] where
+  carrier  : FSet α
+  op       : BinOpOn carrier
+  id       : α
+  inv      : MapOn carrier carrier
+  id_in    : id ∈ carrier.elems
+  op_assoc : ...
+  op_id    : ...
+  op_inv   : ...
+
+abbrev ℕ₀FinGroup := FinGroup ℕ₀
+```
+
+Previously `FinGroup` was hardwired to `ℕ₀` (carrier was `ℕ₀FSet`, id was `ℕ₀`).
+
+**Rationale**: The hardwired-ℕ₀ approach blocked key developments: (1) `FinGroup (Subgroup G)` for the conjugation action needed by Sylow III, (2) quotient groups for future use. Making `FinGroup` polymorphic over `α` with `StrictLinearOrder α` unblocks both. The `abbrev ℕ₀FinGroup := FinGroup ℕ₀` alias preserves backward compatibility with all existing Sylow/Cosets/Action code.
+
+**Consequences**:
+- `Action.lean`, `Cosets.lean`, `Sylow.lean` use `(G : FinGroup ℕ₀)` (explicit type annotation) — mechanical change, proofs unaffected.
+- `Group.lean` theorems now quantify over `{α} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+- `FSet (Tuple ℕ₀ n)` works automatically via `instStrictLinearOrderTuple`.
+- Build: 51 jobs (ListList.lean and FSetFSet.lean eliminated, merged into List.lean and FSet.lean).
+
+---
+
 ## Template for new decisions
 
 ## ADR-NNN: [Title]
@@ -139,17 +181,3 @@ Each entry records *what* was decided and *why*, for future reference.
 **Rationale**: [Why this choice over alternatives?]
 
 **Consequences**: [What are the trade-offs?]
-
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
-
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
-
-<!-- AUTO-UPDATE-2026-04-17-END -->
-

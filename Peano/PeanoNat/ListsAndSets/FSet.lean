@@ -12,7 +12,7 @@ License: MIT
 -- § 1. Aliases  — ℕ₀FSet, ℕ₁FSet, ℕ₂FSet
 -- § 2. FactFSet — conjunto especial de factorizaciones (ℕ₂ × ℕ₁, claves únicas)
 -- § 3. Operaciones genéricas (empty, singleton, card, membership, filter)
--- § 4. Inserción ordenada sobre ℕ₀ (sortedInsert + proof de correctitud)
+-- § 4. Inserción ordenada genérica (StrictLinearOrder α)
 -- § 5. Operaciones ℕ₀FSet (insert, ofList, filter) — compatibilidad backward
 -- § 6. Operaciones básicas ℕ₁FSet y ℕ₂FSet
 -- § 7. Notación {[ ... ]} para ℕ₀FSet
@@ -281,26 +281,23 @@ namespace Peano
       FSet.ext (sorted_nodup_unique_list s₁.sorted s₂.sorted h)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 4. Inserción ordenada sobre List ℕ₀
-    --
-    -- La función `sortedInsert` es genérica en su definición, pero la
-    -- demostración de correctitud (`sorted_sortedInsert`) usa propiedades
-    -- específicas de `ℕ₀` (transitividad y tricotomía de `lt₀`).
-    -- Para generalizar el proof se necesitaría una clase `LinearOrder α`.
+    -- § 4. Inserción ordenada genérica (StrictLinearOrder α)
     -- ══════════════════════════════════════════════════════════════════
 
-    open Peano.StrictOrder in
-    /-- Inserta `x` en una lista ordenada de ℕ₀ manteniendo el orden
-        estricto y descartando duplicados. -/
-    def sortedInsert (x : ℕ₀) : List ℕ₀ → List ℕ₀
+    /-- Inserta `x` en una lista ordenada manteniendo el orden estricto
+        y descartando duplicados. Requiere `StrictLinearOrder α` para
+        decidibilidad, transitividad y tricotomía. -/
+    def sortedInsert {α : Type} [LT α] [DecidableEq α] [StrictLinearOrder α]
+        (x : α) : List α → List α
       | []      => [x]
       | y :: ys =>
-        if lt₀ x y      then x :: y :: ys
+        if x < y       then x :: y :: ys
         else if x = y  then y :: ys
         else                y :: sortedInsert x ys
 
     /-- Lema de pertenencia para `sortedInsert`. -/
-    theorem mem_sortedInsert_iff {z x : ℕ₀} {l : List ℕ₀} :
+    theorem mem_sortedInsert_iff {α : Type} [LT α] [DecidableEq α] [StrictLinearOrder α]
+        {z x : α} {l : List α} :
         z ∈ sortedInsert x l ↔ z = x ∨ z ∈ l := by
       induction l with
       | nil => simp [sortedInsert]
@@ -339,10 +336,10 @@ namespace Peano
                 · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inr hmem)))
 
     open Peano.StrictOrder in
-    /-- La inserción ordenada preserva `Sorted (· < ·)` sobre `List ℕ₀`.
-        (La prueba usa `lt_trans_wp` y `trichotomy`, específicos de ℕ₀.) -/
-    theorem sorted_sortedInsert {l : List ℕ₀}
-        (hs : Sorted (· < ·) l) (x : ℕ₀) :
+    /-- La inserción ordenada preserva `Sorted (· < ·)`.
+        Requiere `StrictLinearOrder α` para transitividad y tricotomía. -/
+    theorem sorted_sortedInsert {α : Type} [LT α] [DecidableEq α] [StrictLinearOrder α]
+        {l : List α} (hs : Sorted (· < ·) l) (x : α) :
         Sorted (· < ·) (sortedInsert x l) := by
       induction l with
       | nil => exact sorted_singleton _ x
@@ -354,22 +351,19 @@ namespace Peano
             (fun z hz =>
               match List.mem_cons.mp hz with
               | Or.inl h => h ▸ hlt
-              | Or.inr h => lt_trans_wp hlt (List.rel_of_pairwise_cons hs h))
+              | Or.inr h => StrictLinearOrder.trans hlt (List.rel_of_pairwise_cons hs h))
             hs
-        next =>
+        next h_nlt =>
           split
           next heq => exact hs
           next hneq =>
             have hys := (List.pairwise_cons.mp hs).2
-            exact List.Pairwise.cons
-              (fun z hz =>
-                match mem_sortedInsert_iff.mp hz with
-                | Or.inl h => h ▸ (match trichotomy x y with
-                    | Or.inl hlt  => absurd hlt (by assumption)
-                    | Or.inr (Or.inl heq) => absurd heq hneq
-                    | Or.inr (Or.inr hgt) => hgt)
-                | Or.inr h => List.rel_of_pairwise_cons hs h)
-              (ih hys)
+            have hyx : y < x :=
+              Classical.byContradiction (fun h => hneq (StrictLinearOrder.trich x y h_nlt h))
+            refine List.Pairwise.cons (fun z hz => ?_) (ih hys)
+            rcases mem_sortedInsert_iff.mp hz with h | h
+            · exact h ▸ hyx
+            · exact List.rel_of_pairwise_cons hs h
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 5. Operaciones ℕ₀FSet (compatibilidad backward)
@@ -434,7 +428,7 @@ namespace Peano
           have hnotin_ys : x ∉ ys := fun h => hnotin (List.mem_cons.mpr (Or.inr h))
           have hxney : x ≠ y := fun heq => hnotin (heq ▸ List.mem_cons.mpr (Or.inl rfl))
           unfold sortedInsert
-          by_cases hlt : lt₀ x y
+          by_cases hlt : x < y
           · rw [if_pos hlt]; simp [List.length_cons]
           · rw [if_neg hlt, if_neg hxney]
             simp [List.length_cons, ih hnotin_ys]

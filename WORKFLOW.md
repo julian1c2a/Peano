@@ -1,7 +1,7 @@
 # Development Workflow
 
 **Author**: Julián Calderón Almendros
-*Last updated: 2026-04-17*
+*Last updated: 2026-04-27*
 
 Complete guide for working on this Peano arithmetic formalization project.
 
@@ -184,51 +184,4 @@ bash gen-root.bash                   # regenerate root imports
 bash update-toolchain.bash vX.Y.Z    # update Lean version
 ```
 
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
-
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
-
-<!-- AUTO-UPDATE-2026-04-17-END -->
-
-<!-- AUTO-UPDATE-2026-04-23-START -->
-## Actualizacion de estado - 2026-04-23
-
-- Estado del build: 52 jobs · 0 errores · 2 sorry warnings (sylow_second, sylow_third).
-- cauchy_minimal: completamente demostrado (McKay). mckay_p_dvd_powEqId cerrado.
-- sylow_lift_from_cauchy: demostrado por induccion fuerte sobre |G| con axioma temporal sylow_center_step.
-- Nuevos helpers privados: subgroupToFinGroup, subgroupOfSubgroup, sylow_center_step.
-- Pendientes activos: sylow_second, sylow_third; axioma sylow_center_step (requiere cociente / Wielandt).
-
-<!-- AUTO-UPDATE-2026-04-23-END -->
-
-<!-- AUTO-UPDATE-2026-04-23b-START -->
-## Actualizacion de estado - 2026-04-23b
-
-- Estado del build: 52 jobs · 0 errores · 0 warnings.
-- Sylow.lean: todos los teoremas cerrados (0 sorry, 5 axiomas privados).
-- Binom.lean: nuevo import Primes.lean; tres nuevos lemas: prime_not_dvd_of_pos_lt (privado), prime_not_dvd_factorial (privado), prime_dvd_binom_prime (publico).
-- NEXT-STEPS.md: ruta de Wielandt documentada (Lucas + combinatoria para eliminar sylow_center_step).
-- Pendientes activos: C(pr,p) = r·C(pr-1,p-1), C(pr,p) ≡ r (mod p), Wielandt, 5 axiomas privados de Sylow.
-
-<!-- AUTO-UPDATE-2026-04-23b-END -->
-
-<!-- AUTO-UPDATE-2026-04-24-START -->
-## Actualizacion de estado - 2026-04-24
-
-- Estado del build: 52 jobs · 0 errores · 0 warnings.
-- Binom.lean: nuevo teorema binom_prime_row (publico) y auxiliar privado binom_prime_row_aux.
-  - Prueba: via binom_mul_factorials + mul_cancelation_right + mul_cancelation_left (sin set, sin conv_lhs).
-  - Enuncia: C(p·r, p) = r · C(p·r−1, p−1) para p ≠ 0, r ≠ 0.
-- REFERENCE.md: entrada T16.10 agregada.
-- NEXT-STEPS.md: pasos 2 y 4 marcados como completados; siguiente meta: C(p·r, p) ≡ r (mod p).
-- Pendientes activos: C(pr,p) ≡ r (mod p), Lucas, Wielandt, 5 axiomas privados de Sylow.
-
-<!-- AUTO-UPDATE-2026-04-24-END -->
 

@@ -1,3 +1,9 @@
+> **ARCHIVADO — 2026-04-27**
+> Implementado en `Peano/PeanoNat/NumberTheory/Fermat.lean` (2026-04-15). Sin sorry.
+> Este archivo se conserva como registro histórico de la estrategia de prueba.
+
+---
+
 # Demostración detallada del pequeño teorema de Fermat en Peano/Lean4
 
 > **Estado (2026-04-15):** ✅ **Implementado** en `Peano/PeanoNat/NumberTheory/Fermat.lean`.

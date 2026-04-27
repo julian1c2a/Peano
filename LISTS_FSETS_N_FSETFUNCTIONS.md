@@ -1,3 +1,12 @@
+> **ARCHIVADO — 2026-04-27**
+> Este documento contiene información incorrecta sobre el diseño de `FSet`:
+> la tabla indica "Quotient (Perm.setoid α)" pero la implementación real usa una
+> `structure` con lista ordenada + invariante `Sorted` (ver ADR-007 en DECISIONS.md).
+> Fases 1–3 completadas; Fase 4 no implementada (ver ListasYConjuntos.md §Fase 4).
+> Conservado como registro histórico. No usar como referencia.
+
+---
+
 # Plan de Implementación: `Lists`, `FSet` y `FSetFunction`
 
 **Última actualización:** 2026-04-16
@@ -193,20 +202,4 @@ El objetivo es evolucionar la librería actual hacia un sistema más genérico y
 
 ---
 
-Este plan proporciona una hoja de ruta clara y modular. Sugiero empezar por la **Fase 1**, ya que la generalización de `FSet` y la definición del orden en `Tuple` son los cimientos para todo lo demás.
-
-¡Mucho éxito con la implementación!
-
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
-
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
-
-<!-- AUTO-UPDATE-2026-04-17-END -->
-
+Este plan proporciona una hoja de ruta clara y modular. Fases 1–3 completadas en 2026-04-27.

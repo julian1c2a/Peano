@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-20
+**Última actualización:** 2026-04-27
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 52 build jobs · 2 sorry (Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-23*
+> 51 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-27*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -54,17 +54,15 @@
 | `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | `Add` | — |
 | `Peano/PeanoNat/Combinatorics/Counting.lean` | `Peano.Counting` | `FSet`, `Primes` | — |
 | **Listas y conjuntos finitos** | | | |
-| `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `ListList`, `FSet` |
-| `Peano/PeanoNat/ListsAndSets/ListList.lean` | `Peano.ListList` | `List` | — |
-| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFSet`, `FSetFunction`, `Counting`, `Group` |
-| `Peano/PeanoNat/ListsAndSets/FSetFSet.lean` | `Peano.FSetFSet` | `FSet` | — |
+| `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `FSet` |
+| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFunction`, `Counting`, `Group` |
 | `Peano/PeanoNat/ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | `FSet`, `List`, `Mul` | `Perm`, `Group` |
 | **Teoría de números** | | | |
 | `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | `Arith`, `Primes` | `Totient`, `CRT`, `Fermat` |
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
-| **Teoría de grupos finitos** *(6 sorry)* | | | |
+| **Teoría de grupos finitos** *(5 axiomas privados)* | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
@@ -104,9 +102,7 @@
 | `Peano.Fibonacci` | `Combinatorics/Fibonacci.lean` | `Peano` |
 | `Peano.Counting` | `Combinatorics/Counting.lean` | `Peano` |
 | `Peano.List` | `ListsAndSets/List.lean` | `Peano` |
-| `Peano.ListList` | `ListsAndSets/ListList.lean` | `Peano` |
 | `Peano.FSet` | `ListsAndSets/FSet.lean` | `Peano` |
-| `Peano.FSetFSet` | `ListsAndSets/FSetFSet.lean` | `Peano` |
 | `Peano.FSetFunction` | `ListsAndSets/FSetFunction.lean` | `Peano` |
 | `Peano.ModEq` | `NumberTheory/ModEq.lean` | `Peano` |
 | `Peano.Totient` | `NumberTheory/Totient.lean` | `Peano` |
@@ -2647,7 +2643,7 @@ $\varphi(p) = p - 1$ para primo $p$: todos los $k \in \{1, ..., p-1\}$ son copri
 ## 24. ListsAndSets/FSetFunction.lean — `namespace Peano.FSetFunction`
 
 **Archivo**: `Peano/PeanoNat/ListsAndSets/FSetFunction.lean`
-**Dependencias**: `ListsAndSets/List`, `ListsAndSets/FSet`, `ListsAndSets/FSetFSet`, `Mul`
+**Dependencias**: `ListsAndSets/List`, `ListsAndSets/FSet`, `Mul`
 **Dependido por**: `Combinatorics/Perm`, `Combinatorics/Group`
 **Estado**: ✅ sin `sorry` en este módulo
 
@@ -2848,92 +2844,103 @@ permanece consistente con la API pública actual del módulo.
 **Dependido por**: `Orbit`, `Action`
 **Tamaño**: ~480 líneas
 **Sorry activos**: 2 (en `cyclicSubgroup` y `cyclicSubgroup'`, bloqueados en B2.3 `order`)
+**Alias de compatibilidad**: `abbrev ℕ₀FinGroup := FinGroup ℕ₀`
+
+> **Refactor 2026-04-27**: `FinGroup` es ahora polimórfico sobre cualquier `α` con `[DecidableEq α] [LT α] [StrictLinearOrder α]`. Los módulos `Action.lean`, `Cosets.lean` y `Sylow.lean` usan `FinGroup ℕ₀` concretamente.
 
 ### 25.1. § 4 — `FinGroup`: estructura de grupo finito [D]
 
-**[D25.1]** `FinGroup` (estructura)
+**[D25.1]** `FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α]` (estructura)
 
 ```lean
-structure FinGroup where
-  carrier : ℕ₀FSet
-  op      : BinOpOn carrier
-  id      : ℕ₀
-  inv     : MapOn carrier carrier
-  id_in   : id ∈ carrier.elems
-  op_assoc : ∀ a b c, a ∈ carrier → b ∈ carrier → c ∈ carrier → op (op a b) c = op a (op b c)
-  op_id    : ∀ a, a ∈ carrier → op a id = a ∧ op id a = a
-  op_inv   : ∀ a, a ∈ carrier → op a (inv a) = id ∧ op (inv a) a = id
+structure FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α] where
+  carrier  : FSet α
+  op       : BinOpOn carrier
+  id       : α
+  inv      : MapOn carrier carrier
+  id_in    : id ∈ carrier.elems
+  op_assoc : ∀ a b c, a ∈ carrier.elems → b ∈ carrier.elems → c ∈ carrier.elems → op (op a b) c = op a (op b c)
+  op_id    : ∀ a, a ∈ carrier.elems → op a id = a ∧ op id a = a
+  op_inv   : ∀ a, a ∈ carrier.elems → op a (inv a) = id ∧ op (inv a) a = id
+
+abbrev ℕ₀FinGroup := FinGroup ℕ₀
 ```
 
-- **Matemática:** Grupo finito con soporte `ℕ₀FSet`, operación `op`, neutro `id`, inversa `inv`.
-- **Computable:** Sí (todos los campos son funciones computables o `ℕ₀FSet`).
+- **Matemática:** Grupo finito con soporte `FSet α`, operación `op`, neutro `id : α`, inversa `inv`.
+- **Computable:** Sí (todos los campos son funciones computables o `FSet α`).
+- **Nota:** Los elementos del grupo son de tipo `α` (antes `ℕ₀`). Usar `FinGroup ℕ₀` para el caso concreto (Action, Cosets, Sylow).
 
 ### 25.2. § 4b — Lemas auxiliares [T]
 
-**[T25.1]** `id_unique (G : FinGroup) (e' : ℕ₀) (h_e'_in) (h_is_id) : e' = G.id`
+> Todos los teoremas son polimórficos: el tipo `α` se infiere del contexto. Las signaturas abreviadas aquí usan `G : FinGroup α` con elementos de tipo `α`.
+
+**[T25.1]** `id_unique {α} [...] (G : FinGroup α) (e' : α) (h_e'_in) (h_is_id) : e' = G.id`
 
 - El neutro es único.
 
-**[T25.2]** `inv_mem (G : FinGroup) {a : ℕ₀} (ha) : G.inv a ∈ G.carrier.elems`
+**[T25.2]** `inv_mem {α} [...] (G : FinGroup α) {a : α} (ha) : G.inv a ∈ G.carrier.elems`
 
-**[T25.3]** `op_mem (G : FinGroup) {a b : ℕ₀} (ha) (hb) : G.op a b ∈ G.carrier.elems`
+**[T25.3]** `op_mem {α} [...] (G : FinGroup α) {a b : α} (ha) (hb) : G.op a b ∈ G.carrier.elems`
 
-**[T25.4]** `op_cancel_left (G : FinGroup) {a x y : ℕ₀} (ha) (hx) (hy) (h : G.op a x = G.op a y) : x = y`
+**[T25.4]** `op_cancel_left {α} [...] (G : FinGroup α) {a x y : α} (ha) (hx) (hy) (h : G.op a x = G.op a y) : x = y`
 
-**[T25.5]** `op_cancel_right (G : FinGroup) {a x y : ℕ₀} (ha) (hx) (hy) (h : G.op x a = G.op y a) : x = y`
+**[T25.5]** `op_cancel_right {α} [...] (G : FinGroup α) {a x y : α} (ha) (hx) (hy) (h : G.op x a = G.op y a) : x = y`
 
-**[T25.6]** `inv_inv_eq (G : FinGroup) {a : ℕ₀} (ha) : G.inv (G.inv a) = a`
+**[T25.6]** `inv_inv_eq {α} [...] (G : FinGroup α) {a : α} (ha) : G.inv (G.inv a) = a`
 
-**[T25.7]** `inv_id_eq (G : FinGroup) : G.inv G.id = G.id`
+**[T25.7]** `inv_id_eq {α} [...] (G : FinGroup α) : G.inv G.id = G.id`
 
-**[T25.8]** `inv_op_eq (G : FinGroup) {a b : ℕ₀} (ha) (hb) : G.inv (G.op a b) = G.op (G.inv b) (G.inv a)`
+**[T25.8]** `inv_op_eq {α} [...] (G : FinGroup α) {a b : α} (ha) (hb) : G.inv (G.op a b) = G.op (G.inv b) (G.inv a)`
 
 - Anti-homomorfismo del inverso.
 
-**[T25.9]** `inv_unique (G : FinGroup) {a b : ℕ₀} (ha) (hb) (h : G.op a b = G.id ∧ G.op b a = G.id) : b = G.inv a`
+**[T25.9]** `inv_unique {α} [...] (G : FinGroup α) {a b : α} (ha) (hb) (h : G.op a b = G.id ∧ G.op b a = G.id) : b = G.inv a`
 
 ### 25.3. § 4c — `gpow`: potencia iterada [D/T]
 
-**[D25.2]** `gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀`
+**[D25.2]** `gpow {α} [...] (G : FinGroup α) (g : α) : ℕ₀ → α`
 
 ```lean
-def gpow (G : FinGroup) (g : ℕ₀) : ℕ₀ → ℕ₀
+def gpow {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+    (G : FinGroup α) (g : α) : ℕ₀ → α
   | .zero   => G.id
   | .succ n => G.op (gpow G g n) g
 ```
 
 - **Matemática:** g^n = id si n=0; g^(n+1) = g^n · g
 - **Computable:** Sí
+- **Nota:** Los exponentes son siempre `ℕ₀`; los elementos del grupo son de tipo `α`.
 
-**[T25.10]** `@[simp] gpow_zero (G : FinGroup) (g : ℕ₀) : gpow G g 𝟘 = G.id`
+**[T25.10]** `@[simp] gpow_zero {α} [...] (G : FinGroup α) (g : α) : gpow G g 𝟘 = G.id`
 
-**[T25.11]** `@[simp] gpow_succ (G : FinGroup) (g : ℕ₀) (n : ℕ₀) : gpow G g (σ n) = G.op (gpow G g n) g`
+**[T25.11]** `@[simp] gpow_succ {α} [...] (G : FinGroup α) (g : α) (n : ℕ₀) : gpow G g (σ n) = G.op (gpow G g n) g`
 
-**[T25.12]** `gpow_one (G : FinGroup) (g : ℕ₀) (hg) : gpow G g 𝟙 = g`
+**[T25.12]** `gpow_one {α} [...] (G : FinGroup α) (g : α) (hg) : gpow G g 𝟙 = g`
 
-**[T25.13]** `gpow_mem (G : FinGroup) {g : ℕ₀} (hg) : ∀ n : ℕ₀, gpow G g n ∈ G.carrier.elems`
+**[T25.13]** `gpow_mem {α} [...] (G : FinGroup α) {g : α} (hg) : ∀ n : ℕ₀, gpow G g n ∈ G.carrier.elems`
 
 - Por inducción: g^0 = id ∈ G; g^(n+1) = g^n · g ∈ G.
 
-**[T25.14]** `gpow_add (G : FinGroup) {g : ℕ₀} (hg) (m n : ℕ₀) : gpow G g (add m n) = G.op (gpow G g m) (gpow G g n)`
+**[T25.14]** `gpow_add {α} [...] (G : FinGroup α) {g : α} (hg) (m n : ℕ₀) : gpow G g (add m n) = G.op (gpow G g m) (gpow G g n)`
 
 - g^(m+n) = g^m · g^n.
 
-**[T25.15]** `gpow_comm_single (G : FinGroup) {g : ℕ₀} (hg) (n : ℕ₀) : G.op g (gpow G g n) = G.op (gpow G g n) g`
+**[T25.15]** `gpow_comm_single {α} [...] (G : FinGroup α) {g : α} (hg) (n : ℕ₀) : G.op g (gpow G g n) = G.op (gpow G g n) g`
 
 - g · g^n = g^n · g (la potencia conmuta con la base). Demostrado via `gpow_add` + `add_comm`.
 
-**[T25.16]** `gpow_inv (G : FinGroup) {g : ℕ₀} (hg) : ∀ n : ℕ₀, gpow G (G.inv g) n = G.inv (gpow G g n)`
+**[T25.16]** `gpow_inv {α} [...] (G : FinGroup α) {g : α} (hg) : ∀ n : ℕ₀, gpow G (G.inv g) n = G.inv (gpow G g n)`
 
 - (g⁻¹)^n = (g^n)⁻¹. Demostrado por inducción usando `gpow_comm_single` + `inv_op_eq`.
 
 ### 25.4. § 5 — `Subgroup`: subgrupo [D/T]
 
-**[D25.3]** `Subgroup (G : FinGroup)` (estructura)
+**[D25.3]** `Subgroup {α : Type} [...] (G : FinGroup α)` (estructura)
 
 ```lean
-structure Subgroup (G : FinGroup) where
-  carrier    : ℕ₀FSet
+structure Subgroup {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+    (G : FinGroup α) where
+  carrier    : FSet α
   nonempty   : ∃ a, a ∈ carrier.elems
   subset     : ∀ a, a ∈ carrier.elems → a ∈ G.carrier.elems
   op_closed  : ∀ a b, a ∈ carrier.elems → b ∈ carrier.elems → G.op a b ∈ carrier.elems
@@ -2941,36 +2948,36 @@ structure Subgroup (G : FinGroup) where
   inv_closed : ∀ a, a ∈ carrier.elems → G.inv a ∈ carrier.elems
 ```
 
-**[T25.17]** `Subgroup.op_inv_closed (G : FinGroup) (H : Subgroup G) (a b : ℕ₀) (ha) (hb) : G.op a (G.inv b) ∈ H.carrier.elems`
+**[T25.17]** `Subgroup.op_inv_closed {α} [...] (G : FinGroup α) (H : Subgroup G) (a b : α) (ha) (hb) : G.op a (G.inv b) ∈ H.carrier.elems`
 
 - Criterio de un paso (consecuencia directa de las clausuras).
 
-**[D25.4]** `subgroup_of_op_inv_closed (G : FinGroup) (S : ℕ₀FSet) (h_sub) (h_ne) (h_cl) : Subgroup G`
+**[D25.4]** `subgroup_of_op_inv_closed {α} [...] (G : FinGroup α) (S : FSet α) (h_sub) (h_ne) (h_cl) : Subgroup G`
 
 - Recíproco: si S ⊆ G, S ≠ ∅, y a·b⁻¹ ∈ S para todo a,b ∈ S, entonces S es subgrupo.
 
 ### 25.5. § 5b — Subgrupos especiales [D]
 
-**[D25.5]** `trivialSubgroup (G : FinGroup) : Subgroup G`
+**[D25.5]** `trivialSubgroup {α} [...] (G : FinGroup α) : Subgroup G`
 
-- El subgrupo `{G.id}`. Carrier = `ℕ₀FSet.singleton G.id`.
+- El subgrupo `{G.id}`. Carrier = `FSet.singleton G.id`.
 
-**[D25.6]** `improperSubgroup (G : FinGroup) : Subgroup G`
+**[D25.6]** `improperSubgroup {α} [...] (G : FinGroup α) : Subgroup G`
 
 - El subgrupo `G`. Carrier = `G.carrier`.
 
-**[D25.7]** `Subgroup.IsTrivial {G : FinGroup} (H : Subgroup G) : Prop := H.carrier.card = 𝟙`
+**[D25.7]** `Subgroup.IsTrivial {α} [...] {G : FinGroup α} (H : Subgroup G) : Prop := H.carrier.card = 𝟙`
 
-**[D25.8]** `Subgroup.IsProper {G : FinGroup} (H : Subgroup G) : Prop := H.carrier.card ≠ G.carrier.card`
+**[D25.8]** `Subgroup.IsProper {α} [...] {G : FinGroup α} (H : Subgroup G) : Prop := H.carrier.card ≠ G.carrier.card`
 
 ### 25.6. § 5c — Subgrupo cíclico [D] ⚠ 2 sorry
 
-**[D25.9]** `cyclicSubgroup (G : FinGroup) (g : ℕ₀) (hg) : Subgroup G` ⚠ sorry
+**[D25.9]** `cyclicSubgroup {α} [...] (G : FinGroup α) (g : α) (hg) : Subgroup G` ⚠ sorry
 
 - Vía `subgroup_of_op_inv_closed` con `cyclicCarrier G g`.
 - Sorry en el cierre a·b⁻¹: necesita `gpow_mod_order` (B2.3 pendiente).
 
-**[D25.10]** `cyclicSubgroup' (G : FinGroup) (g : ℕ₀) (hg) : Subgroup G` ⚠ sorry
+**[D25.10]** `cyclicSubgroup' {α} [...] (G : FinGroup α) (g : α) (hg) : Subgroup G` ⚠ sorry
 
 - Construcción directa (Subgroup con todos los campos).
 - `op_closed`: sorry en índice `add m n` fuera del rango (necesita `order G g`).
@@ -2978,43 +2985,44 @@ structure Subgroup (G : FinGroup) where
 - **Dependencia**: ambos sorry se resolverán cuando esté `order G g hg` (B2.3).
 
 **Nota de implementación (subgrupo cíclico)**: `cyclicCarrier G g` está definido como
-`ℕ₀FSet.filter (fun x => Fin₀Set(σ|G|).elems.any (fun i => decide (gpow G g i = x))) G.carrier`.
+`FSet.filter (fun x => (ℕ₀FSet.Fin₀Set (σ |G.carrier|)).elems.any (fun i => decide (gpow G g i = x))) G.carrier`.
 Esto es correcto pero el testigo de índice `add m n` puede exceder `σ|G|`. La solución
 es usar `mod (add m n) (order G g hg)` como testigo una vez que `order` esté disponible.
 
 ### 25.7. § 5d — Normalidad [D/T]
 
-**[D25.11]** `Subgroup.IsNormal {G : FinGroup} (N : Subgroup G) : Prop`
+**[D25.11]** `Subgroup.IsNormal {α} [...] {G : FinGroup α} (N : Subgroup G) : Prop`
 
-- `∀ g n, g ∈ G.carrier → n ∈ N.carrier → G.op (G.op g n) (G.inv g) ∈ N.carrier`
+- `∀ g n, g ∈ G.carrier.elems → n ∈ N.carrier.elems → G.op (G.op g n) (G.inv g) ∈ N.carrier.elems`
 
-**[T25.18]** `trivialSubgroup_normal (G : FinGroup) : (trivialSubgroup G).IsNormal`
+**[T25.18]** `trivialSubgroup_normal {α} [...] (G : FinGroup α) : (trivialSubgroup G).IsNormal`
 
-**[T25.19]** `improperSubgroup_normal (G : FinGroup) : (improperSubgroup G).IsNormal`
+**[T25.19]** `improperSubgroup_normal {α} [...] (G : FinGroup α) : (improperSubgroup G).IsNormal`
 
 ### 25.8. § 5e — Intersección de subgrupos [D/T]
 
-**[D25.12]** `Subgroup.inter {G : FinGroup} (H₁ H₂ : Subgroup G) : Subgroup G`
+**[D25.12]** `Subgroup.inter {α} [...] {G : FinGroup α} (H₁ H₂ : Subgroup G) : Subgroup G`
 
-- Carrier = `ℕ₀FSet.filter (fun x => decide (x ∈ H₁.carrier) && decide (x ∈ H₂.carrier)) G.carrier`
+- Carrier = `FSet.filter (fun x => decide (x ∈ H₁.carrier) && decide (x ∈ H₂.carrier)) G.carrier`
 - Todos los campos demostrados sin sorry. Patrón: `rw [Bool.and_eq_true, decide_eq_true_eq, decide_eq_true_eq]`.
 
-**[T25.20]** `Subgroup.inter_subset_left {G : FinGroup} (H₁ H₂ : Subgroup G) {a : ℕ₀} (ha) : a ∈ H₁.carrier.elems`
+**[T25.20]** `Subgroup.inter_subset_left {α} [...] {G : FinGroup α} (H₁ H₂ : Subgroup G) {a : α} (ha) : a ∈ H₁.carrier.elems`
 
-**[T25.21]** `Subgroup.inter_subset_right {G : FinGroup} (H₁ H₂ : Subgroup G) {a : ℕ₀} (ha) : a ∈ H₂.carrier.elems`
+**[T25.21]** `Subgroup.inter_subset_right {α} [...] {G : FinGroup α} (H₁ H₂ : Subgroup G) {a : α} (ha) : a ∈ H₂.carrier.elems`
 
-**[T25.22]** `Subgroup.inter_normal_of_normal {G : FinGroup} {H₁ H₂ : Subgroup G} (hn₁ : H₁.IsNormal) (hn₂ : H₂.IsNormal) : (H₁.inter H₂).IsNormal`
+**[T25.22]** `Subgroup.inter_normal_of_normal {α} [...] {G : FinGroup α} {H₁ H₂ : Subgroup G} (hn₁ : H₁.IsNormal) (hn₂ : H₂.IsNormal) : (H₁.inter H₂).IsNormal`
 
 ### 25.9. § 6 — `GroupHom`: homomorfismo [D]
 
-**[D25.13]** `GroupHom (G H : FinGroup)` (estructura)
+**[D25.13]** `GroupHom {α : Type} [...] (G H : FinGroup α)` (estructura)
 
 ```lean
-structure GroupHom (G H : FinGroup) where
+structure GroupHom {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+    (G H : FinGroup α) where
   map     : MapOn G.carrier H.carrier
-  map_op  : ∀ a b, a ∈ G.carrier → b ∈ G.carrier → map (G.op a b) = H.op (map a) (map b)
+  map_op  : ∀ a b, a ∈ G.carrier.elems → b ∈ G.carrier.elems → map (G.op a b) = H.op (map a) (map b)
   map_id  : map G.id = H.id
-  map_inv : ∀ a, a ∈ G.carrier → map (G.inv a) = H.inv (map a)
+  map_inv : ∀ a, a ∈ G.carrier.elems → map (G.inv a) = H.inv (map a)
 ```
 
 - **Matemática:** Homomorfismo de grupos finitos que preserva op, id, inv.
@@ -3027,7 +3035,7 @@ structure GroupHom (G H : FinGroup) where
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** ✅ Sin sorry (5 axiomas privados). *Última actualización: 2026-04-23.*
+**Estado:** ✅ Sin sorry (5 axiomas privados). *Última actualización: 2026-04-27.*
 
 ### 44.1. Definiciones base [D]
 
@@ -3161,7 +3169,7 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 - Demostración: `⟨sylow_third_mod ..., sylow_third_dvd ...⟩`. **Cerrado en sesión 2026-04-23.**
 
 > **Secciones pendientes** (módulos sin sección en este documento):
-> §26 `List.lean`, §27 `ListList.lean`, §28 `FSet.lean`, §29 `FSetFSet.lean`,
+> §26 `List.lean`, §27 `FSet.lean`,
 > §30 `NumberSets.lean`, §31 `ModEq.lean`, §32 `NumberTheory/Fermat.lean`,
 > §33 `Combinatorics/Summation.lean`, §34 `Combinatorics/Product.lean`,
 > §35 `Combinatorics/Fibonacci.lean`, §36 `Combinatorics/Counting.lean`,
@@ -3251,3 +3259,18 @@ sylow_third (G : FinGroup) (p : ℕ₀)
   → sylow_third_mod/dvd (accion sobre lista de subgrupos).
 
 <!-- AUTO-UPDATE-2026-04-23c-END -->
+
+<!-- AUTO-UPDATE-2026-04-27-START -->
+## Actualizacion de estado - 2026-04-27
+
+- Estado del build: 51 jobs, 0 errores, 0 sorry warnings.
+- Refactor completado: `FinGroup` polimórfico sobre `(α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+  - `carrier : FSet α`, `id : α`. Alias de compatibilidad: `abbrev ℕ₀FinGroup := FinGroup ℕ₀`.
+  - `Action.lean`, `Cosets.lean`, `Sylow.lean`: usan `FinGroup ℕ₀` concretamente (sustitución mecánica).
+  - `StrictOrder.lean`: añadida instancia `instIrreflLTOfSLO` (puente `StrictLinearOrder → IrreflLT`).
+- Módulos eliminados: `ListList.lean` (fusionado en `List.lean`), `FSetFSet.lean` (fusionado en `FSet.lean`).
+- Build reducido de 52 → 51 jobs por eliminación de los dos módulos fusionados.
+- Wielandt en progreso: `prime_dvd_binom_prime` y `binom_prime_row` en `Binom.lean`. Siguiente: `binom_pr_p_mod` (C(pr,p) ≡ r mod p).
+- Axiomas privados vigentes en Sylow.lean (5): sylow_center_step, sylow_card_eq, sylow_second_incl, sylow_third_mod, sylow_third_dvd.
+
+<!-- AUTO-UPDATE-2026-04-27-END -->

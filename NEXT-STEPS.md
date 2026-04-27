@@ -1,6 +1,6 @@
 # Next Steps — Eliminating the Remaining Private Axioms
 
-*Last updated: 2026-04-23*
+*Last updated: 2026-04-27*
 *Author: Julián Calderón Almendros*
 
 ---
@@ -258,7 +258,24 @@ Dado el alcance, se presentan dos opciones:
 **Recomendación**: Opción A para un codebase más limpio a largo plazo.
 
 **Estado actual del refactoring**:
+
 - ~~Fusión FSetFSet → FSet~~ ✓ DONE
 - ~~Polimorfismo de Tuple~~ ✓ DONE
 - ~~Limpieza de aliases *ListList~~ ✓ DONE
-- **Next**: Implementar Opción A para `FinGroup`
+- ~~**Implementar Opción A para `FinGroup`**~~ ✓ DONE (2026-04-27)
+
+### Detalles del refactoring de FinGroup (completado)
+
+Archivos modificados:
+- **`StrictOrder.lean`**: añadida instancia `instIrreflLTOfSLO : IrreflLT α` desde `StrictLinearOrder α`.
+- **`Group.lean`**: `FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α]` con `carrier : FSet α`, `id : α`. Alias de compatibilidad: `abbrev ℕ₀FinGroup := FinGroup ℕ₀`.
+- **`Action.lean`**, **`Cosets.lean`**, **`Sylow.lean`**: `(G : FinGroup)` → `(G : FinGroup ℕ₀)` en todas las signaturas.
+
+Build final: **51 jobs, 0 errores**.
+
+### Siguientes fases de FinGroup (largo plazo)
+
+- **Fase 2 — `Action.lean`**: Genericizar `GroupAction` con `act : α → β → β` para tipo de acción β arbitrario.
+- **Fase 3 — `Cosets.lean`**: Propagar `α` en signaturas de cosetos.
+- **Fase 4 — `Sylow.lean`**: Solo cambios mecánicos; mantener prueba de McKay intacta.
+- **Fase 5**: `FinGroup (Subgroup G)` para la acción de conjugación (Sylow III).

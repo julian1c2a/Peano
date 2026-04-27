@@ -35,13 +35,13 @@ namespace Peano
 
     /-- El coseto izquierdo `gH = { g·h | h ∈ H }` como subconjunto de `G.carrier`.
         Se construye filtrando `G.carrier` por los `x = g·h` para algún `h ∈ H`. -/
-    def leftCoset (G : FinGroup) (H : Subgroup G) (g : ℕ₀) : ℕ₀FSet :=
+    def leftCoset (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀) : ℕ₀FSet :=
       ℕ₀FSet.filter
         (fun x => H.carrier.elems.any (fun h => decide (G.op g h = x)))
         G.carrier
 
     /-- `x ∈ gH ↔ ∃ h ∈ H, g·h = x`. -/
-    theorem mem_leftCoset_iff (G : FinGroup) (H : Subgroup G) (g x : ℕ₀)
+    theorem mem_leftCoset_iff (G : FinGroup ℕ₀) (H : Subgroup G) (g x : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
         x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x := by
       -- (leftCoset G H g).elems = G.carrier.elems.filter pred, por definición
@@ -58,7 +58,7 @@ namespace Peano
 
     /-- Todo coseto tiene la misma cardinalidad que `H`.
         La función `h ↦ g·h` es una biyección `H → gH`. -/
-    theorem coset_card_eq_subgroup_card (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
+    theorem coset_card_eq_subgroup_card (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
         (leftCoset G H g).card = H.carrier.card := by
       -- Construimos la biyección h ↦ g·h de H.carrier a gH
@@ -80,17 +80,17 @@ namespace Peano
     -/
 
     /-- `a ~ b ↔ a⁻¹·b ∈ H` (relación de equivalencia por cosetos izquierdos). -/
-    def cosetRel (G : FinGroup) (H : Subgroup G) (a b : ℕ₀) : Prop :=
+    def cosetRel (G : FinGroup ℕ₀) (H : Subgroup G) (a b : ℕ₀) : Prop :=
       G.op (G.inv a) b ∈ H.carrier.elems
 
-    theorem cosetRel_refl (G : FinGroup) (H : Subgroup G) (a : ℕ₀)
+    theorem cosetRel_refl (G : FinGroup ℕ₀) (H : Subgroup G) (a : ℕ₀)
         (ha : a ∈ G.carrier.elems) :
         cosetRel G H a a := by
       unfold cosetRel
       have : G.op (G.inv a) a = G.id := (G.op_inv a ha).2
       rw [this]; exact H.id_in
 
-    theorem cosetRel_symm (G : FinGroup) (H : Subgroup G) (a b : ℕ₀)
+    theorem cosetRel_symm (G : FinGroup ℕ₀) (H : Subgroup G) (a b : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
         (hab : cosetRel G H a b) :
         cosetRel G H b a := by
@@ -102,7 +102,7 @@ namespace Peano
       rw [inv_op_eq G (inv_mem G ha) hb, inv_inv_eq G ha] at h
       exact h
 
-    theorem cosetRel_trans (G : FinGroup) (H : Subgroup G) (a b c : ℕ₀)
+    theorem cosetRel_trans (G : FinGroup ℕ₀) (H : Subgroup G) (a b c : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems) (hc : c ∈ G.carrier.elems)
         (hab : cosetRel G H a b) (hbc : cosetRel G H b c) :
         cosetRel G H a c := by
@@ -120,7 +120,7 @@ namespace Peano
       exact H.op_closed _ _ hab hbc
 
     /-- `cosetRel` como relación de equivalencia sobre `G.carrier`. -/
-    def cosetEquivRel (G : FinGroup) (H : Subgroup G) : EquivRelOn G.carrier where
+    def cosetEquivRel (G : FinGroup ℕ₀) (H : Subgroup G) : EquivRelOn G.carrier where
       rel      := cosetRel G H
       decRel   := by
         intro a b
@@ -134,7 +134,7 @@ namespace Peano
     /-- Para `g ∈ G`, la clase de equivalencia de `g` por `cosetRel`
         coincide punto a punto con el coseto izquierdo `gH`. -/
     theorem mem_classOf_cosetEquivRel_iff_leftCoset
-        (G : FinGroup) (H : Subgroup G) (g x : ℕ₀)
+        (G : FinGroup ℕ₀) (H : Subgroup G) (g x : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
         x ∈ ((cosetEquivRel G H).classOf g).elems ↔
         x ∈ (leftCoset G H g).elems := by
@@ -168,7 +168,7 @@ namespace Peano
 
     /-- Igualdad extensional: clase de `g` por `cosetRel` = coseto `gH`. -/
     theorem classOf_cosetEquivRel_eq_leftCoset
-        (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
+        (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
         (cosetEquivRel G H).classOf g = leftCoset G H g := by
       apply FSet.eq_of_mem_iff
@@ -177,7 +177,7 @@ namespace Peano
 
     /-- Corolario de cardinal: toda clase por `cosetRel` tiene cardinal `|H|`. -/
     theorem classOf_cosetEquivRel_card_eq_subgroup_card
-        (G : FinGroup) (H : Subgroup G) (g : ℕ₀)
+        (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀)
         (hg : g ∈ G.carrier.elems) :
         ((cosetEquivRel G H).classOf g).card = H.carrier.card := by
       rw [classOf_cosetEquivRel_eq_leftCoset G H g hg]
@@ -185,26 +185,26 @@ namespace Peano
 
     /-- Familia canónica de representantes de clases para `cosetRel` en `G`.
         Se usa como soporte finito para el conteo por clases en Lagrange. -/
-    def cosetClassFamily (G : FinGroup) (H : Subgroup G) :
+    def cosetClassFamily (G : FinGroup ℕ₀) (H : Subgroup G) :
         (cosetEquivRel G H).ClassFamily :=
       (cosetEquivRel G H).canonicalClassFamily
 
     /-- Cobertura canónica: todo `x ∈ G` pertenece a la clase de algún representante
         de la familia canónica por cosetos. -/
     theorem mem_some_cosetClassFamily_class
-        (G : FinGroup) (H : Subgroup G)
+        (G : FinGroup ℕ₀) (H : Subgroup G)
         (x : ℕ₀) (hx : x ∈ G.carrier.elems) :
         ∃ r, r ∈ (cosetClassFamily G H).reps ∧
           x ∈ ((cosetEquivRel G H).classOf r).elems :=
       (cosetClassFamily G H).cover x hx
 
     /-- Lista canónica de clases de equivalencia por cosetos en `G`. -/
-    def cosetClasses (G : FinGroup) (H : Subgroup G) : List ℕ₀FSet :=
+    def cosetClasses (G : FinGroup ℕ₀) (H : Subgroup G) : List ℕ₀FSet :=
       (cosetEquivRel G H).classes
 
     /-- Uniformidad de cardinal en `cosetClasses`: cada clase tiene cardinal `|H|`. -/
     theorem card_eq_subgroup_card_of_mem_cosetClasses
-        (G : FinGroup) (H : Subgroup G) (C : ℕ₀FSet)
+        (G : FinGroup ℕ₀) (H : Subgroup G) (C : ℕ₀FSet)
         (hC : C ∈ cosetClasses G H) :
         C.card = H.carrier.card := by
       rcases ((cosetEquivRel G H).mem_classes_iff C).mp hC with ⟨g, hg, hCg⟩
@@ -214,7 +214,7 @@ namespace Peano
     /-- Cobertura por clases canónicas de cosetos: todo `x ∈ G` pertenece a
         alguna clase de `cosetClasses`. -/
     theorem mem_some_cosetClasses
-        (G : FinGroup) (H : Subgroup G)
+        (G : FinGroup ℕ₀) (H : Subgroup G)
         (x : ℕ₀) (hx : x ∈ G.carrier.elems) :
         ∃ C, C ∈ cosetClasses G H ∧ x ∈ C.elems :=
       (cosetEquivRel G H).classes_cover x hx
@@ -222,7 +222,7 @@ namespace Peano
     /-- Si `x ∈ C` y `C` es una clase canónica por cosetos, entonces
         `C` coincide con la clase de `x`. -/
     theorem cosetClass_eq_classOf_of_mem
-        (G : FinGroup) (H : Subgroup G)
+        (G : FinGroup ℕ₀) (H : Subgroup G)
         (C : ℕ₀FSet) (x : ℕ₀)
         (hC : C ∈ cosetClasses G H) (hxC : x ∈ C.elems) :
         C = (cosetEquivRel G H).classOf x := by
@@ -234,7 +234,7 @@ namespace Peano
       exact hEq.symm
 
     /-- Si `a ~ b` por `cosetRel`, entonces `aH ⊆ bH`. -/
-    theorem leftCoset_subset_of_rel (G : FinGroup) (H : Subgroup G)
+    theorem leftCoset_subset_of_rel (G : FinGroup ℕ₀) (H : Subgroup G)
         (a b : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
         (hab : cosetRel G H a b) :
@@ -279,7 +279,7 @@ namespace Peano
       exact (mem_leftCoset_iff G H b x hb).mpr ⟨hAux, hhAux, hbx⟩
 
     /-- Si `a ~ b`, entonces los cosetos izquierdos coinciden: `aH = bH`. -/
-    theorem leftCoset_eq_of_rel (G : FinGroup) (H : Subgroup G)
+    theorem leftCoset_eq_of_rel (G : FinGroup ℕ₀) (H : Subgroup G)
         (a b : ℕ₀)
         (ha : a ∈ G.carrier.elems) (hb : b ∈ G.carrier.elems)
         (hab : cosetRel G H a b) :
@@ -297,7 +297,7 @@ namespace Peano
 
     /-- **Lema de Lagrange**: el orden de `H` divide al orden de `G`.
         Más precisamente, `|G| = |H| · [G:H]` donde `[G:H]` es el índice. -/
-    theorem lagrange (G : FinGroup) (H : Subgroup G) :
+    theorem lagrange (G : FinGroup ℕ₀) (H : Subgroup G) :
         ∃ k : ℕ₀, mul H.carrier.card k = G.carrier.card := by
       let classes := cosetClasses G H
       let classesSorted := sortFSetList classes

@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Added (2026-04-27)
+
+- **FinGroup polimórfico sobre tipo arbitrario (ADR-010)**:
+  - `FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α]` — carrier es `FSet α`, id es `α`. Alias `abbrev ℕ₀FinGroup := FinGroup ℕ₀` para compatibilidad.
+  - `Action.lean`, `Cosets.lean`, `Sylow.lean`: signaturas actualizadas a `(G : FinGroup ℕ₀)` — cambio mecánico, pruebas intactas.
+  - `Group.lean`: todos los teoremas generalizados sobre `{α} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+
+- **StrictOrder.lean — instancia bridge `instIrreflLTOfSLO`**:
+  - `instIrreflLTOfSLO : IrreflLT α` derivada automáticamente de `StrictLinearOrder α`.
+  - Permite que `FSet α` resuelva `IrreflLT` sin instancia explícita para cada tipo.
+
+- **sortedInsert generalizado a `[StrictLinearOrder α]`** (List.lean y FSet.lean):
+  - `sortedInsert {α : Type} [LT α] [DecidableEq α] [StrictLinearOrder α] : α → List α → List α`
+  - `sorted_sortedInsert` y `mem_sortedInsert_iff` generalizados.
+  - `FSet (Tuple ℕ₀ n)` funciona automáticamente vía `instStrictLinearOrderTuple`.
+
+- **ListList.lean y FSetFSet.lean eliminados**:
+  - Contenido de `ListList.lean` fusionado en `List.lean` (§11–15: instancias LE, LT, DecidableRel, Repr).
+  - Contenido de `FSetFSet.lean` fusionado en `FSet.lean`.
+  - Build: 52 → 51 jobs, 0 errores, 0 warnings.
+
+- **Tuple.lean — `instStrictLinearOrderTuple`**:
+  - Instancia `StrictLinearOrder (Tuple α n)` derivada de `StrictLinearOrder α`.
+  - Torre de tipos completa verificada en `TestTorre.lean`: `FSet (Tuple ℕ₀ n)`, `List (FSet (List ℕ₀))`, `FSet (FSet ℕ₀)`.
+
 ### Added (2026-04-24)
 
 - **Binom.lean — `binom_prime_row` demostrado (T16.10)**:
@@ -429,15 +454,3 @@
 - `PeanoNatArith.lean`: Exportados `divides_sub`, `divides_mod` y `gcd_greatest` desde `Peano.NatArith`.
 - `REFERENCE.md`: Actualizada con los nuevos teoremas.
 
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
-
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
-
-<!-- AUTO-UPDATE-2026-04-17-END -->

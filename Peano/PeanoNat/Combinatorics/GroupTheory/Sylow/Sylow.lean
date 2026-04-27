@@ -61,17 +61,17 @@ namespace Peano
       ∃ m : ℕ₀, Mul.mul (p ^ k) m = H.card
 
     /-- Un `p`-subgrupo de `G` es un subgrupo cuyo orden es una potencia de `p`. -/
-    def isPSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop :=
+    def isPSubgroup (G : FinGroup ℕ₀) (H : Subgroup G) (p : ℕ₀) : Prop :=
       ∃ k : ℕ₀, H.carrier.card = p ^ k
 
     /-- `p^n` es la mayor potencia de `p` que divide `|G|`
         (es decir, `p^n | |G|` pero `p^(n+1) ∤ |G|`). -/
-    def isSylowExponent (G : FinGroup) (p n : ℕ₀) : Prop :=
+    def isSylowExponent (G : FinGroup ℕ₀) (p n : ℕ₀) : Prop :=
       pow_dvd_card p n G.carrier ∧ ¬ pow_dvd_card p (σ n) G.carrier
 
     /-- Un subgrupo de Sylow `p` de `G` es un `p`-subgrupo de orden `p^n`
         donde `p^n` es la mayor potencia de `p` que divide `|G|`. -/
-    def isSylowSubgroup (G : FinGroup) (H : Subgroup G) (p : ℕ₀) : Prop :=
+    def isSylowSubgroup (G : FinGroup ℕ₀) (H : Subgroup G) (p : ℕ₀) : Prop :=
       ∃ n, isSylowExponent G p n ∧ H.carrier.card = p ^ n
 
     /-!
@@ -95,7 +95,7 @@ namespace Peano
           exact lt_zero_succ _
 
     /-- Si g^m = e y m > 0, entonces ord(g) divide a m. -/
-    private theorem order_dvd_of_pow_eq_id (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+    private theorem order_dvd_of_pow_eq_id (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
         {m : ℕ₀} (_hm_pos : lt₀ 𝟘 m) (hm_eq : gpow G g m = G.id) :
         ∃ k, Mul.mul (order G g hg) k = m := by
       have hord_ne := order_ne_zero G g hg
@@ -117,7 +117,7 @@ namespace Peano
         exact absurd h_mod_lt (le_then_ngt _ _ (order_minimal G g hg h_mod_pos h_mod_eq))
 
     /-- Si g ≠ e, g^p = e y p es primo, entonces ord(g) = p. -/
-    private theorem order_eq_prime_of_pow (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+    private theorem order_eq_prime_of_pow (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
         (hg_ne : g ≠ G.id) {p : ℕ₀} (hp : Prime p) (hgp : gpow G g p = G.id) :
         order G g hg = p := by
       have hp_pos : lt₀ 𝟘 p := pos_of_ne_zero p hp.1
@@ -133,7 +133,7 @@ namespace Peano
         rw [hk1, mul_one] at hk; exact hk
 
     /-- g^i pertenece al subgrupo cíclico cuando i < p y p divide |G|. -/
-    private theorem gpow_lt_p_mem_cyclic (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+    private theorem gpow_lt_p_mem_cyclic (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
         {p : ℕ₀} (hdvd : ∃ t, Mul.mul p t = G.carrier.card) {i : ℕ₀} (hi : lt₀ i p) :
         gpow G g i ∈ (cyclicSubgroup G g hg).carrier.elems := by
       show gpow G g i ∈ (cyclicCarrier G g).elems
@@ -156,7 +156,7 @@ namespace Peano
     /-- La función i ↦ g^i es una biyección Fin₀Set(p) → (cyclicSubgroup G g hg).carrier,
         por lo que |(cyclicSubgroup G g hg)| = p cuando g ≠ e, g^p = e y p primo. -/
     private theorem cyclicSubgroup_card_eq_prime
-        (G : FinGroup) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
         {p : ℕ₀} (hp : Prime p) (hgp : gpow G g p = G.id) (hg_ne : g ≠ G.id)
         (hdvd : ∃ t, Mul.mul p t = G.carrier.card) :
         (cyclicSubgroup G g hg).carrier.card = p := by
@@ -228,17 +228,17 @@ namespace Peano
     -- ── Lemas McKay (argumento de conteo de órbitas para Cauchy) ─────────────────
 
     /-- Producto de una lista de elementos de G (por la izquierda). -/
-    private def listProd (G : FinGroup) : List ℕ₀ → ℕ₀
+    private def listProd (G : FinGroup ℕ₀) : List ℕ₀ → ℕ₀
       | []      => G.id
       | x :: xs => G.op x (listProd G xs)
 
-    private theorem listProd_nil (G : FinGroup) : listProd G [] = G.id := rfl
+    private theorem listProd_nil (G : FinGroup ℕ₀) : listProd G [] = G.id := rfl
 
-    private theorem listProd_cons (G : FinGroup) (x : ℕ₀) (xs : List ℕ₀) :
+    private theorem listProd_cons (G : FinGroup ℕ₀) (x : ℕ₀) (xs : List ℕ₀) :
         listProd G (x :: xs) = G.op x (listProd G xs) := rfl
 
     /-- listProd de una lista cerrada en G da un elemento de G. -/
-    private theorem listProd_mem (G : FinGroup) {l : List ℕ₀}
+    private theorem listProd_mem (G : FinGroup ℕ₀) {l : List ℕ₀}
         (hl : ∀ x ∈ l, x ∈ G.carrier.elems) : listProd G l ∈ G.carrier.elems := by
       induction l with
       | nil => exact G.id_in
@@ -247,12 +247,12 @@ namespace Peano
           (ih (fun y hy => hl y (List.mem_cons_of_mem x hy)))
 
     /-- listProd de un singleton. -/
-    private theorem listProd_singleton (G : FinGroup) {x : ℕ₀}
+    private theorem listProd_singleton (G : FinGroup ℕ₀) {x : ℕ₀}
         (hx : x ∈ G.carrier.elems) : listProd G [x] = x := by
       simp only [listProd_cons, listProd_nil, (G.op_id x hx).1]
 
     /-- listProd es compatible con la concatenación. -/
-    private theorem listProd_append (G : FinGroup) (l₁ l₂ : List ℕ₀)
+    private theorem listProd_append (G : FinGroup ℕ₀) (l₁ l₂ : List ℕ₀)
         (h₁ : ∀ x ∈ l₁, x ∈ G.carrier.elems)
         (h₂ : ∀ x ∈ l₂, x ∈ G.carrier.elems) :
         listProd G (l₁ ++ l₂) = G.op (listProd G l₁) (listProd G l₂) := by
@@ -294,7 +294,7 @@ namespace Peano
       ⟨rotateList v.val, by rw [lengthₚ_rotateList, v.property]⟩
 
     /-- Producto de los elementos de un Vector. -/
-    private def listProdVector (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : ℕ₀ :=
+    private def listProdVector (G : FinGroup ℕ₀) {n : ℕ₀} (v : Vector ℕ₀ n) : ℕ₀ :=
       listProd G v.val
 
     /-- Igualdad decidible para Vector. -/
@@ -478,7 +478,7 @@ namespace Peano
             · exact Or.inl h
 
     /-- La rotación preserva la condición listProd = id. -/
-    private theorem listProd_rotate_eq_id (G : FinGroup) {l : List ℕ₀}
+    private theorem listProd_rotate_eq_id (G : FinGroup ℕ₀) {l : List ℕ₀}
         (hl : ∀ x ∈ l, x ∈ G.carrier.elems)
         (hprod : listProd G l = G.id) :
         listProd G (rotateList l) = G.id := by
@@ -503,7 +503,7 @@ namespace Peano
         exact (G.op_inv x hx).2
 
     /-- La identidad elevada a cualquier potencia da la identidad. -/
-    private theorem gpow_id_eq_id (G : FinGroup) (n : ℕ₀) :
+    private theorem gpow_id_eq_id (G : FinGroup ℕ₀) (n : ℕ₀) :
         gpow G G.id n = G.id := by
       induction n with
       | zero     => rfl
@@ -511,12 +511,12 @@ namespace Peano
 
     /-- Operación de McKay sobre una lista.
         Dado `[x₁, ..., x_k]`, devuelve `[x₂, ..., x_k, (x₁ ... x_k)⁻¹]`. -/
-    private def mckayShiftList (G : FinGroup) : List ℕ₀ → List ℕ₀
+    private def mckayShiftList (G : FinGroup ℕ₀) : List ℕ₀ → List ℕ₀
       | [] => []
       | x :: xs => xs ++ [G.inv (listProd G (x :: xs))]
 
     /-- La operación de McKay preserva la longitud de la lista. -/
-    private theorem lengthₚ_mckayShiftList (G : FinGroup) (l : List ℕ₀) :
+    private theorem lengthₚ_mckayShiftList (G : FinGroup ℕ₀) (l : List ℕ₀) :
         lengthₚ (mckayShiftList G l) = lengthₚ l := by
       cases l with
       | nil => rfl
@@ -525,11 +525,11 @@ namespace Peano
         rw [h_shift, lengthₚ_append, lengthₚ_singleton, add_one, lengthₚ_cons]
 
     /-- Operación de McKay elevada a Vector. -/
-    private def mckayShift (G : FinGroup) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n :=
+    private def mckayShift (G : FinGroup ℕ₀) {n : ℕ₀} (v : Vector ℕ₀ n) : Vector ℕ₀ n :=
       ⟨mckayShiftList G v.val, by rw [lengthₚ_mckayShiftList, v.property]⟩
 
     /-- La operación de McKay preserva la pertenencia al grupo G. -/
-    private theorem mckayShiftList_mem (G : FinGroup) {l : List ℕ₀}
+    private theorem mckayShiftList_mem (G : FinGroup ℕ₀) {l : List ℕ₀}
         (hl : ∀ x ∈ l, x ∈ G.carrier.elems) :
         ∀ x ∈ mckayShiftList G l, x ∈ G.carrier.elems := by
       cases l with
@@ -569,7 +569,7 @@ namespace Peano
         exact ⟨rfl, hab⟩
 
     /-- La operación de McKay es inyectiva. -/
-    private theorem mckayShiftList_inj (G : FinGroup) {l₁ l₂ : List ℕ₀}
+    private theorem mckayShiftList_inj (G : FinGroup ℕ₀) {l₁ l₂ : List ℕ₀}
         (hl₁ : ∀ x ∈ l₁, x ∈ G.carrier.elems)
         (hl₂ : ∀ x ∈ l₂, x ∈ G.carrier.elems)
         (hlen : lengthₚ l₁ = lengthₚ l₂)
@@ -768,7 +768,7 @@ namespace Peano
 
 
 
-    private theorem gpow_comm_left (G : FinGroup) {g : ℕ₀} (hg : g ∈ G.carrier.elems) (n : ℕ₀) :
+    private theorem gpow_comm_left (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems) (n : ℕ₀) :
 
         G.op g (gpow G g n) = G.op (gpow G g n) g := by
 
@@ -784,7 +784,7 @@ namespace Peano
 
 
 
-    private theorem listProd_all_eq_gpow (G : FinGroup) (a : ℕ₀)
+    private theorem listProd_all_eq_gpow (G : FinGroup ℕ₀) (a : ℕ₀)
 
         (ha : a ∈ G.carrier.elems) (l : List ℕ₀) (hl : ∀ x ∈ l, x = a) :
 
@@ -1320,7 +1320,7 @@ namespace Peano
             rw [mul_succ, add_comm]
           rw [h_mul_succ, add_assoc]
 
-    private theorem listProd_append_inv_eq_id (G : FinGroup) {l : List ℕ₀}
+    private theorem listProd_append_inv_eq_id (G : FinGroup ℕ₀) {l : List ℕ₀}
         (hl : ∀ x ∈ l, x ∈ G.carrier.elems) :
         listProd G (l ++ [G.inv (listProd G l)]) = G.id := by
       have hprod_mem : listProd G l ∈ G.carrier.elems := listProd_mem G hl
@@ -1383,7 +1383,7 @@ namespace Peano
 
     open Peano.Arith in
     private theorem mckay_p_dvd_powEqId
-      (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+      (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
         p ∣ (ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier).card
           := by
       let F := ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier
@@ -1638,7 +1638,7 @@ namespace Peano
         por permutación cíclica; las órbitas tienen tamaño 1 ó p; el total
         es divisible por p → existe una órbita de tamaño 1 ≠ identidad. -/
     theorem cauchy_minimal
-      (G : FinGroup) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+      (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p) (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
         ∃ K : Subgroup G, K.carrier.card = p
           := by
       -- Existencia de g ≠ e con g^p = e (argumento de McKay)
@@ -1676,7 +1676,7 @@ namespace Peano
              cyclicSubgroup_card_eq_prime G g hg hp hgp hg_ne hdvd⟩
     /-- Convierte un subgrupo `H` de `G` en un `FinGroup` autónomo
         con las mismas operaciones heredadas. -/
-    private def subgroupToFinGroup (G : FinGroup) (H : Subgroup G) : FinGroup where
+    private def subgroupToFinGroup (G : FinGroup ℕ₀) (H : Subgroup G) : FinGroup ℕ₀ where
       carrier  := H.carrier
       op       := { toFun := G.op.toFun, map_carrier := H.op_closed }
       id       := G.id
@@ -1688,7 +1688,7 @@ namespace Peano
       op_inv   := fun a ha => G.op_inv a (H.subset a ha)
 
     /-- Convierte `K ≤ subgroupToFinGroup G M` en un subgrupo de `G`. -/
-    private def subgroupOfSubgroup (G : FinGroup) (M : Subgroup G)
+    private def subgroupOfSubgroup (G : FinGroup ℕ₀) (M : Subgroup G)
         (K : Subgroup (subgroupToFinGroup G M)) : Subgroup G where
       carrier    := K.carrier
       nonempty   := K.nonempty
@@ -1702,7 +1702,7 @@ namespace Peano
         (Este es el resultado combinatorio clave; requiere infraestructura de combinaciones.)
         TODO: demostrar usando binom_mul_factorials y biyección con combinaciones. -/
     private axiom wielandt_omega_card
-        (G : FinGroup) (N : ℕ₀) :
+        (G : FinGroup ℕ₀) (N : ℕ₀) :
         ∃ (Ω : List (List ℕ₀)),
           Ω.Nodup ∧
           (∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N) ∧
@@ -1714,7 +1714,7 @@ namespace Peano
         Para g ∈ G y S ∈ Ω, g·S = { G.op g s : s ∈ S } también está en Ω.
         TODO: demostrar usando biyectividad de la traslación izquierda en G. -/
     private axiom wielandt_translate_mem
-        (G : FinGroup) (Ω : List (List ℕ₀)) (N : ℕ₀)
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀)
         (hΩ_nd : Ω.Nodup)
         (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
         (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
@@ -1729,7 +1729,7 @@ namespace Peano
         hay órbitas de tamaño 1 (puntos fijos).
         TODO: demostrar usando mckay_orbit_count generalizado y divisibilidad. -/
     private axiom wielandt_fixed_point_exists
-        (G : FinGroup) (Ω : List (List ℕ₀)) (N : ℕ₀) (p : ℕ₀)
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (hdvd_G : ∃ r : ℕ₀, Mul.mul N r = G.carrier.card)
         (hΩ_nd : Ω.Nodup)
@@ -1750,7 +1750,7 @@ namespace Peano
           - a ∈ S → a·(a⁻¹) = e ∈ a·S = S, y e ∈ S → a⁻¹ ∈ S.
         TODO: demostrar formalmente en Lean. -/
     private axiom wielandt_fixed_is_subgroup
-        (G : FinGroup) (S : List ℕ₀) (N : ℕ₀)
+        (G : FinGroup ℕ₀) (S : List ℕ₀) (N : ℕ₀)
         (hS_ne : S ≠ [])
         (hS_nd : S.Nodup)
         (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
@@ -1764,10 +1764,10 @@ namespace Peano
         contradiciendo h_no_proper.
         TODO: demostrar usando la p-valuación y el argumento de subgrupos propios. -/
     private axiom wielandt_p_ndvd_r
-        (G : FinGroup) (p m r : ℕ₀)
+        (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
-        (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+        (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
           (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
             ∃ K : Subgroup G0, K.carrier.card = p0)
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
@@ -1782,10 +1782,10 @@ namespace Peano
         3. p ∤ |Ω| → ∃ punto fijo S de la acción.
         4. h_no_proper → stab(S) = G → S es subgrupo de G de orden p^(m+1). -/
     private theorem sylow_center_step_wielandt
-      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+      (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
-      (G : FinGroup) (p m : ℕ₀)
+      (G : FinGroup ℕ₀) (p m : ℕ₀)
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
@@ -1845,10 +1845,10 @@ namespace Peano
       exact ⟨H, hH_card⟩
 
     private theorem sylow_center_step
-      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+      (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
-      (G : FinGroup) (p m : ℕ₀)
+      (G : FinGroup ℕ₀) (p m : ℕ₀)
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
@@ -1862,18 +1862,18 @@ namespace Peano
         · Si ∃ M propio con p^(m+1) | |M|: aplicar HI a M.
         · En otro caso: `sylow_center_step` (ecuación de clases / Wielandt). -/
     theorem sylow_lift_from_cauchy
-      (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
+      (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
-      (G : FinGroup) (p m : ℕ₀)
+      (G : FinGroup ℕ₀) (p m : ℕ₀)
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier) :
         ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) := by
       -- Paso inductivo fuerte: explicitamos todos los tipos para ayudar al elaborador
       have step : ∀ (n' : ℕ₀),
-          (∀ k : ℕ₀, lt₀ k n' → ∀ G0' : FinGroup, G0'.carrier.card = k →
+          (∀ k : ℕ₀, lt₀ k n' → ∀ G0' : FinGroup ℕ₀, G0'.carrier.card = k →
             pow_dvd_card p (σ m) G0'.carrier →
               ∃ H : Subgroup G0', H.carrier.card = p ^ (σ m)) →
-          ∀ G0 : FinGroup, G0.carrier.card = n' →
+          ∀ G0 : FinGroup ℕ₀, G0.carrier.card = n' →
             pow_dvd_card p (σ m) G0.carrier →
               ∃ H : Subgroup G0, H.carrier.card = p ^ (σ m) := by
         intro n' ih G0 hn hpow0
@@ -1904,14 +1904,14 @@ namespace Peano
           · exact sylow_center_step hC G0 p m hp hpow0
               (fun M hM_ne hM_dvd => h_ex ⟨M, hM_ne, hM_dvd⟩)
       -- Inducción fuerte sobre |G|, generalizada a todos los FinGroups del mismo cardinal
-      have key : ∀ n : ℕ₀, ∀ G0 : FinGroup, G0.carrier.card = n →
+      have key : ∀ n : ℕ₀, ∀ G0 : FinGroup ℕ₀, G0.carrier.card = n →
           pow_dvd_card p (σ m) G0.carrier →
             ∃ H : Subgroup G0, H.carrier.card = p ^ (σ m) :=
         fun n => strongInductionOn n step
       exact key G.carrier.card G rfl hpow
 
     /-- **Primer Teorema de Sylow**: existencia de p-subgrupos. -/
-    theorem sylow_first (G : FinGroup) (p n : ℕ₀)
+    theorem sylow_first (G : FinGroup ℕ₀) (p n : ℕ₀)
         (hp : Prime p)
         (hdvd : pow_dvd_card p n G.carrier) :
         ∃ H : Subgroup G, H.carrier.card = p ^ n := by
@@ -1937,7 +1937,7 @@ namespace Peano
         de potencias que no está en la librería.
         TODO: reemplazar por demostración completa usando pow_dvd_pow. -/
     private axiom sylow_card_eq
-        (G : FinGroup) (p : ℕ₀)
+        (G : FinGroup ℕ₀) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p)
         (hK : isSylowSubgroup G K p) :
@@ -1952,7 +1952,7 @@ namespace Peano
         él y el conteo de órbitas para un grupo p-primario general.
         TODO: reemplazar por demostración completa. -/
     private axiom sylow_second_incl
-        (G : FinGroup) (p : ℕ₀)
+        (G : FinGroup ℕ₀) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p)
         (hK : isSylowSubgroup G K p) :
@@ -1966,7 +1966,7 @@ namespace Peano
         · `sylow_card_eq` da |H| = |K|, de modo que la inclusión r⁻¹Hr ⊆ K
           (dada por una inyección con igual cardinalidad) implica r⁻¹Hr = K.
         · El testigo es g = r⁻¹; entonces ghg⁻¹ = r⁻¹h(r⁻¹)⁻¹ = r⁻¹hr ∈ K. -/
-    theorem sylow_second (G : FinGroup) (p : ℕ₀)
+    theorem sylow_second (G : FinGroup ℕ₀) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p) (hK : isSylowSubgroup G K p) :
         ∃ g, g ∈ G.carrier.elems ∧
@@ -2020,7 +2020,7 @@ namespace Peano
         no es un ℕ₀FSet), normalizer N_G(K), y conteo de órbitas para p-grupos.
         TODO: reemplazar por demostración completa. -/
     private axiom sylow_third_mod
-        (G : FinGroup) (p : ℕ₀)
+        (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
@@ -2034,7 +2034,7 @@ namespace Peano
         y teorema órbita–estabilizador aplicado a esta acción.
         TODO: reemplazar por demostración completa. -/
     private axiom sylow_third_dvd
-        (G : FinGroup) (p : ℕ₀)
+        (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
@@ -2045,7 +2045,7 @@ namespace Peano
         Ambas conclusiones se derivan de los axiomas privados temporales
         `sylow_third_mod` (acción de H sobre los subgrupos de Sylow, conteo mod p)
         y `sylow_third_dvd` (acción de G por conjugación, órbita–estabilizador). -/
-    theorem sylow_third (G : FinGroup) (p : ℕ₀)
+    theorem sylow_third (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)

@@ -1,83 +1,67 @@
 # Refactorización de Listas y Conjuntos en Peano
 
-Este documento detalla la estrategia de refactorización arquitectónica para los módulos de listas y conjuntos (`List.lean`, `FSet.lean`, etc.) en el proyecto Peano. El objetivo es transicionar de implementaciones acopladas a los números naturales (`ℕ₀`) hacia un diseño completamente abstracto, culminando en un tipo dinámico estructurado recursivo capaz de representar jerarquías infinitas (escalares, listas, listas de listas, etc.).
+*Última actualización: 2026-04-27*
 
-## Fase 1: Consolidación y Limpieza (ListList.lean → List.lean)
+Este documento registra la estrategia de refactorización arquitectónica para los módulos de listas y conjuntos. Las Fases 1–3 están **completadas**. La Fase 4 es trabajo futuro.
 
-**Problema actual:**
-El archivo `ListList.lean` no introduce nuevos tipos, sino que añade instancias de clases de tipo (como `LE`, `LT`, `DecidableRel`, `Repr`) a los tipos ya definidos en `List.lean` (como `List α`, `Nats`, y `PeanoVal`). Esto fragmenta la definición de los tipos de sus comportamientos fundamentales.
+---
 
-**Acciones:**
-1. Mover todas las secciones de `ListList.lean` (§ 11 a § 15) al final del archivo `List.lean`.
-2. Eliminar el archivo `ListList.lean`.
-3. Actualizar todas las importaciones en el proyecto (por ejemplo, en `FSetFSet.lean`) que apunten a `ListList.lean` para que apunten únicamente a `Peano.PeanoNat.ListsAndSets.List`.
+## Estado de fases
 
-**Beneficio:** Cohesión máxima. Un único archivo define los tipos base de listas y su comportamiento estándar.
+| Fase | Descripción | Estado |
+|------|-------------|--------|
+| 1 | Consolidación: ListList.lean → List.lean | ✅ DONE (2026-04-27) |
+| 2 | StrictLinearOrder α typeclass | ✅ DONE (2026-04-27) |
+| 3 | sortedInsert y FSet genéricos | ✅ DONE (2026-04-27) |
+| 4 | UnivVal — universo recursivo | ❌ Futuro |
 
-## Fase 2: Fundamentos Matemáticos (Orden Lineal Estricto)
+---
 
-**Problema actual:**
-La lógica algorítmica de inserción ordenada (`sortedInsert` en `FSet.lean`) está fuertemente acoplada al tipo `ℕ₀` porque depende de teoremas específicos de tricotomía y transitividad de los naturales.
+## Fase 1 — Consolidación ✅
 
-**La cuestión de la Asimetría:**
-Un orden estricto requiere irreflexividad, transitividad y asimetría. Sin embargo, matemáticamente, **la asimetría se deduce de la irreflexividad y la transitividad**:
-Si tuviéramos $a < b$ y $b < a$, por transitividad tendríamos $a < a$, lo cual contradice la irreflexividad. 
-Aun así, en la formalización en Lean 4, es muy útil (y estándar) proveer la asimetría ya sea como un campo de la clase o como un teorema/instancia derivada inmediata, para facilitar las demostraciones y la integración con las typeclasses estándar de Lean (`Std.Asymm`).
+`ListList.lean` solo añadía instancias de typeclasses a tipos ya definidos en `List.lean`, fragmentando la definición de los tipos de sus comportamientos.
 
-**Acciones:**
-1. Definir una typeclass en `Order.lean` o `StrictOrder.lean` que empaquete las propiedades de un orden lineal estricto decidible:
-   ```lean4
-   class StrictLinearOrder (α : Type) extends LT α where
-     decLt : DecidableRel (· < ·)
-     irrefl : ∀ a : α, ¬ (a < a)
-     trans  : ∀ {a b c : α}, a < b → b < c → a < c
-     trichotomy : ∀ a b : α, a < b ∨ a = b ∨ b < a
-     -- La asimetría puede ser un lema derivado o incluido explícitamente:
-     -- asymm : ∀ {a b : α}, a < b → ¬ (b < a)
-   ```
-2. Demostrar el lema genérico de asimetría basado en `irrefl` y `trans` (si no se incluye como axioma).
-3. Instanciar `StrictLinearOrder` para `ℕ₀`, `ℕ₁`, `ℕ₂` y `Tuple n`, utilizando los teoremas ya existentes en el proyecto.
+**Acciones realizadas:**
+- Todas las secciones de `ListList.lean` (§11–15: instancias LE, LT, DecidableRel, Repr) movidas al final de `List.lean`.
+- `ListList.lean` eliminado.
+- Imports actualizados. Build: 52 → 51 jobs.
 
-## Fase 3: Generalización de Algoritmos (FSet.lean)
+Análogamente, `FSetFSet.lean` fusionado en `FSet.lean`.
 
-**Problema actual:**
-Debido a la falta de abstracción, operaciones como `insert`, `ofList`, y `filter` sobre conjuntos finitos están limitadas a `FSet ℕ₀`.
+---
 
-**Acciones:**
-1. Trasladar el algoritmo `sortedInsert` y su demostración de correctitud desde `FSet.lean` hacia `List.lean`.
-2. Generalizar la firma de `sortedInsert` para que opere sobre cualquier tipo `List α` donde `[StrictLinearOrder α]`.
-3. Actualizar `FSet.lean` para que las funciones `insert`, `ofList`, etc., sean genéricas para cualquier `FSet α` que cumpla con el orden lineal estricto.
+## Fase 2 — StrictLinearOrder ✅
 
-**Beneficio:** Cualquier conjunto (de primos, de tuplas, de Nats) obtiene automáticamente toda el álgebra de conjuntos finitos sin duplicar código.
+`sortedInsert` en `FSet.lean` estaba acoplado a `ℕ₀` por depender de tricotomía y transitividad específicas de naturales.
 
-## Fase 4: El Universo Recursivo (La Torre Infinita)
+**Acciones realizadas:**
+- `StrictLinearOrder α` typeclass definida en `StrictOrder.lean`: campos `decLt`, `irrefl`, `trans`, `trich`.
+- Asimetría derivada como lema (irrefl + trans → asymm).
+- `instIrreflLTOfSLO`: instancia bridge `IrreflLT α` desde `StrictLinearOrder α`.
+- Instancias para `ℕ₀`, `Tuple ℕ₀ n`: `instStrictLinearOrderTuple`.
+- Torre de tipos verificada en `TestTorre.lean`: `FSet (Tuple ℕ₀ n)`, `List (FSet (List ℕ₀))`, `FSet (FSet ℕ₀)`, etc.
 
-**Problema actual:**
-El tipo suma `PeanoVal` define manualmente cada nivel de anidamiento (`ofNat`, `ofNatList`, `ofTuple`, `ofTupleList`), lo que genera una explosión combinatoria al implementar `DecidableEq` y `LT` (actualmente con 36 casos). Si quisiéramos listas de listas, necesitaríamos añadir más constructores y los casos crecerían exponencialmente.
+---
 
-**El Diseño Propuesto (Árboles Universales):**
-Abstraer los niveles base de escalares y usar un único constructor recursivo para las colecciones.
+## Fase 3 — FSet genérico ✅
+
+**Acciones realizadas:**
+- `sortedInsert {α : Type} [LT α] [DecidableEq α] [StrictLinearOrder α] : α → List α → List α` en `List.lean`.
+- `sorted_sortedInsert` y `mem_sortedInsert_iff` generalizados.
+- `FSet α` genérico para cualquier `α` con `StrictLinearOrder α`.
+- `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]` con `carrier : FSet α` (ver ADR-010).
+
+---
+
+## Fase 4 — UnivVal (futuro) ❌
+
+`PeanoVal` codifica manualmente cada nivel de anidamiento, causando explosión combinatoria en `DecidableEq` y `LT` (36 casos). Propuesta futura:
 
 ```lean4
--- Esquema de jerarquía de subtipos
-inductive Level where
-  | base : Level  -- α   (ej. ℕ₀)
-  | sub1 : Level  -- α₁  (ej. ℕ₁)
-  | sub2 : Level  -- α₂  (ej. ℕ₂)
-
-def Level.toType {α α₁ α₂ : Type} : Level → Type
-  | .base => α
-  | .sub1 => α₁
-  | .sub2 => α₂
-
--- El valor universal recursivo
 inductive UnivVal {α α₁ α₂ : Type} : Type where
   | ofScalar (lvl : Level) (x : Level.toType lvl) : UnivVal
-  | ofTuple  (n : ℕ₀)      (t : Tuple n)          : UnivVal
-  | ofList   (xs : List UnivVal)                  : UnivVal
+  | ofTuple  (n : ℕ₀) (t : Tuple n)               : UnivVal
+  | ofList   (xs : List UnivVal)                   : UnivVal
 ```
 
-**Ventajas de la Fase 4:**
-1. **Recursión gratuita:** `ofList` permite construir `List α`, `List (List α)`, y estructuras heterogéneas profundas sin añadir constructores al tipo.
-2. **Reducción de casos:** La comprobación de igualdad y ordenamiento se hace por inducción estructural recursiva, colapsando los 36 casos a apenas un puñado de patrones básicos.
-3. **Escalabilidad:** El framework de conjuntos `FSet UnivVal` podrá albergar cualquier estructura matemática arbitraria.
+**Cuándo**: Después de completar la ruta Wielandt y cerrar los axiomas privados de Sylow. Es trabajo independiente de la combinatoria.

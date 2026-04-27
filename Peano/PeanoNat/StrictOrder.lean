@@ -1015,6 +1015,10 @@ namespace Peano
     instance (priority := 50) instDecidableRelLtOfSLO {α : Type} [LT α] [DecidableEq α]
         [slo : StrictLinearOrder α] : DecidableRel (@LT.lt α _) := slo.decLt
 
+    /-- `IrreflLT α` derivable de `StrictLinearOrder α`. -/
+    instance instIrreflLTOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] : IrreflLT α := ⟨slo.irrefl⟩
+
     instance decidableGt (n m : ℕ₀) :
       Decidable (gt₀ n m) :=
       if h_bgt_is_true : bgt₀ n m then
@@ -1461,6 +1465,8 @@ export Peano.StrictOrder (
     lt_asymm_wp
     StrictLinearOrder
     instStrictLinearOrderNat0
+    instDecidableRelLtOfSLO
+    instIrreflLTOfSLO
     lt_b_1_then_b_eq_0
     neq_0_then_lt_0
     lt_0_then_neq_0

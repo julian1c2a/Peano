@@ -1,6 +1,6 @@
 # Thoughts — Peano
 
-**Last updated:** 2026-04-17
+**Last updated:** 2026-04-27
 **Author**: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -34,8 +34,13 @@ session-based locking.
 
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
 - [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
-- [ ] How to approach the remaining 6 sorry in group theory modules (Action, Cosets, Sylow)?
 - [ ] Should FSetFunction.lean (~1550 lines, ~92 declarations) be split into smaller modules?
+- [ ] How to approach `sylow_third_mod` and `sylow_third_dvd`? (requires normalizer N_G(K) — not yet in library)
+
+**Resolved questions (no longer open):**
+- ~~How to approach the remaining sorry in group theory modules~~ → All 3 Sylow theorems closed; 5 private axioms remain (Wielandt route).
+- ~~FSet design: Quotient vs sorted list~~ → Sorted list (ADR-007).
+- ~~FinGroup polymorphism approach~~ → Opción A implemented (ADR-010, 2026-04-27).
 
 ---
 
@@ -368,7 +373,7 @@ Este punto recoge la visión global del autor sobre el orden de las expansiones:
 5. ~~**Representaciones**~~: ✅ `Digits`, `Log`, `Sqrt`, `Fibonacci`, `Pairing` — todos completados.
 6. ~~**Instancias algebraicas**~~: ✅ `HSub`, `HDiv`, `HMod`, `HPow`, Zero, One, OfNat, Ord, WellFoundedRelation, DecidableRel.
 7. ~~**Infraestructura de conjuntos finitos**~~: ✅ List, FSet, FSetFSet, FSetFunction (~90 decl.), MapOn, Im, Pigeonhole, Perm.
-8. **Completar sorry en teoría de grupos** (6 sorry: Action×2, Cosets×1, Sylow×3).
+8. **Eliminar 5 axiomas privados en Sylow.lean** — ruta Wielandt en curso (2/5 pasos completados: `prime_dvd_binom_prime`, `binom_prime_row`).
 9. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
 10. **Phase 22**: ℤ — tipo inductivo canónico, operaciones, orden, aritmética.
 11. **Phase 23**: ℚ — estructura con invariante de coprimalidad, operaciones, campo.

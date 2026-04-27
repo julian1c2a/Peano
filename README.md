@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 52 jobs · 0 errores · 0 warnings · Sylow: 0 sorry (5 axiomas privados pendientes)
+> **Build:** 51 jobs · 0 errores · 0 warnings · 0 sorry (5 axiomas privados en Sylow.lean)
 > **Licencia:** MIT
 
 ---
@@ -50,10 +50,8 @@ Peano.lean                                        ← entrada; importa toda la l
       ├─ Digits.lean                              Peano.Digits       — dígitos en base arbitraria
       ├─ Pairing.lean                             Peano.Pairing      — emparejamiento de Cantor
       ├─ ListsAndSets/
-      │  ├─ List.lean                             Peano.List         — listas de ℕ₀, operaciones
-      │  ├─ ListList.lean                         Peano.ListList     — listas de listas
-      │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos ordenados
-      │  ├─ FSetFSet.lean                         Peano.FSetFSet     — conjuntos de conjuntos finitos
+      │  ├─ List.lean                             Peano.List         — listas polimórficas, sortedInsert genérico
+      │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos genéricos (FSet α)
       └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
       ├─ NumberTheory/
       │  ├─ ModEq.lean                            Peano.ModEq        — congruencia modular
@@ -69,15 +67,15 @@ Peano.lean                                        ← entrada; importa toda la l
          ├─ Product.lean                          Peano.Product      — productorias ∏
          ├─ Fibonacci.lean                        Peano.Fibonacci    — sucesión de Fibonacci
          ├─ Counting.lean                         Peano.Counting     — conteo combinatorio
-         ├─ Perm.lean                             Peano.Perm         — permutaciones (⚠ sorry)
+         ├─ Perm.lean                             Peano.Perm         — permutaciones
          ├─ Sign.lean                             Peano.Sign         — signo de permutaciones
          ├─ Orbit.lean                            Peano.Orbit        — órbitas de permutaciones
-         ├─ Group.lean                            Peano.Group        — FinGroup, Subgroup, gpow, subgrupos especiales (⚠ sorry)
+         ├─ Group.lean                            Peano.Group        — FinGroup (α) polimórfico, Subgroup, gpow, subgrupos especiales
          └─ GroupTheory/
-            ├─ Action.lean                        Peano.Action       — acciones de grupo (⚠ sorry)
+            ├─ Action.lean                        Peano.Action       — acciones de grupo
             └─ Sylow/
-               ├─ Cosets.lean                     Peano.Cosets       — coclases (⚠ sorry)
-               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (⚠ sorry)
+               ├─ Cosets.lean                     Peano.Cosets       — coclases
+               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 5 axiomas privados)
 ```
 
 ---
@@ -150,8 +148,7 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 
 ### Conjuntos finitos y funciones
 
-- **FSet**: conjuntos finitos ordenados con invariantes `UniqueKeys` + `SortedByKey`
-- **FSetFSet**: conjuntos de conjuntos finitos
+- **FSet α**: conjuntos finitos genéricos para cualquier tipo con `StrictLinearOrder` (lista ordenada + invariante `Sorted`)
 - **FSetFunction** (~92 declaraciones):
   - `MapOn`: funciones totales entre FSet, composición (`comp`), asociatividad (`comp_assoc`)
   - `Im`: imagen, cardinalidad de la imagen
@@ -178,7 +175,7 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
   - `sylow_third` — $n_p \equiv 1 \pmod{p}$ y $n_p \mid |G|$
   - ⚠ 5 axiomas privados pendientes de prueba (ruta Wielandt en curso)
 
-> *Perm.lean: 2 sorry (descomposición en ciclos/signo). `sylow_center_step`, `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`: axiomas privados en Sylow.lean.*
+> *5 axiomas privados en Sylow.lean: `sylow_center_step`, `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba, ruta Wielandt en curso.*
 
 ### Decidabilidad completa
 
@@ -243,24 +240,24 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 
 ### Completado (Phase 24 — Conjuntos finitos y funciones) ✅
 
-- [x] **List.lean** → `ListsAndSets/List.lean` — listas y operaciones
-- [x] **FSet.lean** → `ListsAndSets/FSet.lean` — conjuntos finitos ordenados
-- [x] **FSetFSet.lean** — conjuntos de conjuntos finitos
+- [x] **List.lean** → `ListsAndSets/List.lean` — listas polimórficas, `sortedInsert` genérico con `[StrictLinearOrder α]`
+- [x] **FSet.lean** → `ListsAndSets/FSet.lean` — `FSet α` genérico para cualquier `StrictLinearOrder α`
 - [x] **FSetFunction.lean** — MapOn, Im, inyectividad/sobreyectividad/biyectividad, Pigeonhole, inversas, Perm, `card_eq_mul_of_uniform_fibers`, ~92 declaraciones
+- [x] ListList.lean y FSetFSet.lean **eliminados** (fusionados en List.lean y FSet.lean)
 
 ### En curso (Phase 25 — Teoría de grupos finitos) 🔶
 
-- [x] **Perm.lean** — tipo de permutaciones (⚠ 2 sorry: ciclos/signo)
-- [x] **Group.lean** — FinGroup, Subgroup, gpow, subgrupos especiales, orden de elemento
-- [x] **Sign.lean** — signo de permutaciones
-- [x] **Orbit.lean** — órbitas
-- [x] **Counting.lean** — conteo combinatorio
-- [x] **Action.lean** — acciones de grupo, orbit_stabilizer, orbits_partition
-- [x] **Sylow/Cosets.lean** — coclases, Lagrange
-- [x] **Sylow/Sylow.lean** — los 3 teoremas formalmente cerrados (0 sorry)
+- [x] **Perm.lean** — tipo de permutaciones ✅
+- [x] **Group.lean** — `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]` polimórfico, Subgroup, gpow, subgrupos especiales, orden de elemento ✅
+- [x] **Sign.lean** — signo de permutaciones ✅
+- [x] **Orbit.lean** — órbitas ✅
+- [x] **Counting.lean** — conteo combinatorio ✅
+- [x] **Action.lean** — acciones de grupo, orbit_stabilizer, orbits_partition ✅
+- [x] **Sylow/Cosets.lean** — coclases, Lagrange ✅
+- [x] **Sylow/Sylow.lean** — los 3 teoremas formalmente cerrados (0 sorry) ✅
+- [x] `prime_dvd_binom_prime` — p | C(p,k) para 0 < k < p (Binom.lean) ✅
+- [x] `binom_prime_row` — C(pr, p) = r · C(pr−1, p−1) (Binom.lean) ✅
 - [ ] **Eliminar 5 axiomas privados** en Sylow.lean (ruta Wielandt):
-  - [x] `p | C(p,k)` para 0 < k < p — `prime_dvd_binom_prime` (Binom.lean)
-  - [x] `C(pr, p) = r · C(pr−1, p−1)` — `binom_prime_row` (Binom.lean)
   - [ ] `C(pr, p) ≡ r (mod p)` por inducción sobre r
   - [ ] Teorema de Lucas: `C(p^n·r, p^n) ≡ r (mod p)`
   - [ ] Argumento de punto fijo de Wielandt → `sylow_center_step`
@@ -270,7 +267,7 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 
 - **Phase 22**: Extensión a enteros `ℤ` (tipo inductivo canónico)
 - **Phase 23**: Extensión a racionales `ℚ` (estructura con invariante de coprimalidad)
-- **FinGroup polimórfico**: refactorizar `FinGroup` sobre tipo arbitrario `α` (necesario para grupos cociente y acciones sobre `List (Subgroup G)`)
+- **FinGroup Fase 2–5**: `Action.lean` y `Cosets.lean` genéricos, `FinGroup (Subgroup G)` para Sylow III
 
 ---
 
@@ -308,17 +305,4 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 MIT — ver [`LICENSE`](LICENSE).
 
 Copyright (c) 2025 Julián Calderón Almendros
-
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
-
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
-
-<!-- AUTO-UPDATE-2026-04-17-END -->
 

@@ -39,7 +39,7 @@ namespace Peano
         equivalente a una función `α : G × X → X` que satisface:
         - `α(e, x) = x`  para todo `x`,
         - `α(g, α(h, x)) = α(g·h, x)`  para todo `g, h, x`. -/
-    structure GroupAction (G : FinGroup) (X : ℕ₀FSet) where
+    structure GroupAction (G : FinGroup ℕ₀) (X : ℕ₀FSet) where
       /-- La función de acción: dados `g ∈ G` y `x ∈ X`, devuelve `g·x ∈ X`. -/
       act        : ℕ₀ → ℕ₀ → ℕ₀
       act_closed : ∀ g x, g ∈ G.carrier.elems → x ∈ X.elems → act g x ∈ X.elems
@@ -55,12 +55,12 @@ namespace Peano
     /-- La órbita de `x ∈ X` bajo la acción `α`:
         `Orb(x) = { α(g, x) | g ∈ G }`.
         Se construye filtrando `X` por los `y` que tienen preimagen en `G`. -/
-    def GroupAction.orb {G : FinGroup} {X : ℕ₀FSet}
+    def GroupAction.orb {G : FinGroup ℕ₀} {X : ℕ₀FSet}
         (α : GroupAction G X) (x : ℕ₀) : ℕ₀FSet :=
       ℕ₀FSet.filter (fun y => G.carrier.elems.any (fun g => decide (α.act g x = y))) X
 
     /-- `y ∈ Orb(x)` si y solo si existe `g ∈ G` tal que `α(g, x) = y`. -/
-    theorem mem_orb_iff {G : FinGroup} {X : ℕ₀FSet}
+    theorem mem_orb_iff {G : FinGroup ℕ₀} {X : ℕ₀FSet}
         (α : GroupAction G X) (x y : ℕ₀) (hx : x ∈ X.elems) :
         y ∈ (α.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ α.act g x = y := by
       constructor
@@ -80,7 +80,7 @@ namespace Peano
 
     /-- El estabilizador de `x` en `G`:
         `Stab(x) = { g ∈ G | α(g, x) = x }`. -/
-    def GroupAction.stab {G : FinGroup} {X : ℕ₀FSet}
+    def GroupAction.stab {G : FinGroup ℕ₀} {X : ℕ₀FSet}
         (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) : Subgroup G where
       carrier := ℕ₀FSet.filter (fun g => decide (α.act g x = x)) G.carrier
       nonempty := ⟨G.id, List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (α.act_id x hx)⟩⟩
@@ -114,7 +114,7 @@ namespace Peano
     -/
 
     /-- Teorema órbita–estabilizador: `|Orb(x)| · |Stab(x)| = |G|`. -/
-    theorem orbit_stabilizer {G : FinGroup} {X : ℕ₀FSet}
+    theorem orbit_stabilizer {G : FinGroup ℕ₀} {X : ℕ₀FSet}
         (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) :
         mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card :=
       by
@@ -208,7 +208,7 @@ namespace Peano
     -/
 
     /-- Partición de X en órbitas. -/
-    theorem orbits_partition {G : FinGroup} {X : ℕ₀FSet}
+    theorem orbits_partition {G : FinGroup ℕ₀} {X : ℕ₀FSet}
         (α : GroupAction G X) :
         -- Toda x ∈ X pertenece a exactamente una órbita
         (∀ x, x ∈ X.elems → ∃ y, y ∈ X.elems ∧ x ∈ (α.orb y).elems) ∧

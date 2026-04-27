@@ -1,3 +1,10 @@
+> **ARCHIVADO — 2026-04-27**
+> Todo el contenido de este plan fue implementado y cerrado en `Sylow.lean` (sesiones 2026-04-20–23).
+> `cauchy_minimal` está demostrado sin sorry. `mckay_orbit_count`, `mckay_orbit_remove`, infraestructura McKay — todos cerrados.
+> Este archivo se conserva como registro histórico del razonamiento que llevó a la implementación.
+
+---
+
 # Plan detallado y comentado: cierre de Cauchy por McKay
 
 ## Objetivo

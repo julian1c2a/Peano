@@ -90,4 +90,26 @@ namespace Peano.TestTorre
   #check (inferInstance : Trans (fun a b : FSet (FSet ℕ₀) => a < b) (fun a b : FSet (FSet ℕ₀) => a < b) (fun a b : FSet (FSet ℕ₀) => a < b))
   #check (inferInstance : Std.Trichotomous (fun a b : FSet (FSet ℕ₀) => a < b))
 
+  -- ════════════════════════════════════════════════════════════════════
+  -- Action 3: FSet (Tuple ℕ₀ n) funciona automáticamente
+  -- ════════════════════════════════════════════════════════════════════
+
+  -- StrictLinearOrder (Tuple ℕ₀ n) se infiere automáticamente
+  #check (inferInstance : StrictLinearOrder (Tuple ℕ₀ (σ (σ (σ 𝟘)))))
+
+  -- sortedInsert sobre List (Tuple ℕ₀ n) funciona automáticamente
+  example (n : ℕ₀) (t : Tuple ℕ₀ n) (l : List (Tuple ℕ₀ n))
+      (hs : Sorted (· < ·) l) : Sorted (· < ·) (sortedInsert t l) :=
+    sorted_sortedInsert hs t
+
+  -- FSet (Tuple ℕ₀ n) se puede extender via sortedInsert
+  example (n : ℕ₀) (t : Tuple ℕ₀ n) (s : FSet (Tuple ℕ₀ n)) : FSet (Tuple ℕ₀ n) :=
+    ⟨sortedInsert t s.elems, sorted_sortedInsert s.sorted t⟩
+
+  -- FSet (Tuple ℕ₀ n) tiene todas las typeclasses requeridas
+  #check (inferInstance : DecidableEq (FSet (Tuple ℕ₀ (σ (σ 𝟘)))))
+  #check (inferInstance : LT (FSet (Tuple ℕ₀ (σ (σ 𝟘)))))
+  #check (inferInstance : DecidableRel (@LT.lt (FSet (Tuple ℕ₀ (σ (σ 𝟘)))) _))
+  #check (inferInstance : Std.Trichotomous (fun a b : FSet (Tuple ℕ₀ (σ (σ 𝟘))) => a < b))
+
 end Peano.TestTorre

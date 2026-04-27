@@ -720,15 +720,127 @@ namespace Peano
           rwa [mul_one] at this
         exact h_row ▸ h_mul
 
-      /- Lucas generalizado: C(p^n · r, p^n) ≡ r [MOD p] para p primo y r ≠ 0.
-         Caso base n=0: C(r, 1) = r.
-         Paso inductivo: usa binom_pr_p_mod + la identidad de reducción
-         C(p·M, p·K) ≡ C(M, K) [MOD p], pendiente de demostración completa.
-         TODO: eliminar este axioma cuando se formalice la reducción de Lucas
-               C(p·M, p·K) ≡ C(M, K) [MOD p] para todo M, K. -/
-      private axiom binom_pow_p_mod_aux
+      /- C(n+p, j) ≡ C(n, j) [MOD p] para j < p — lema auxiliar. -/
+      private theorem binom_add_p_lt_mod {p : ℕ₀} (hp : Prime' p) (n : ℕ₀) :
+          ∀ j : ℕ₀, lt₀ j p → C(add n p, j) ≡ C(n, j) [MOD p] := by
+        induction n with
+        | zero =>
+          intro j hj
+          rw [zero_add]
+          cases j with
+          | zero =>
+            rw [binom_n_zero, binom_n_zero]
+            exact modEq_refl p 𝟙
+          | succ j' =>
+            rw [binom_zero_succ]
+            exact modEq_zero_of_dvd hp.1
+              (prime_dvd_binom_prime hp (lt_zero_succ j') hj)
+        | succ n' ih =>
+          intro j hj
+          cases j with
+          | zero =>
+            rw [binom_n_zero, binom_n_zero]
+            exact modEq_refl p 𝟙
+          | succ j' =>
+            have hj' : lt₀ j' p := lt_trans j' (σ j') p (lt_succ_self j') hj
+            rw [succ_add n' p, binom_pascal (add n' p) j', binom_pascal n' j']
+            exact modEq_add (ih j' hj') (ih (σ j') hj)
+
+      /- C(n+p, k+p) ≡ add C(n, k+p) C(n, k) [MOD p] — lema de paso. -/
+      private theorem binom_add_p_step {p : ℕ₀} (hp : Prime' p) (n : ℕ₀) :
+          ∀ k : ℕ₀, C(add n p, add k p) ≡ add C(n, add k p) C(n, k) [MOD p] := by
+        have hp_ne : p ≠ 𝟘 := hp.1
+        have hp_succ : p = σ (sub p 𝟙) := by
+          rw [sub_one, tau_eq_rho_if_ne_zero p hp_ne]
+          exact (σ_ρ_eq_self p hp_ne).symm
+        have h_sub_lt : lt₀ (sub p 𝟙) p :=
+          sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
+        have h_rearr : ∀ (a b c d : ℕ₀),
+            add (add a b) (add c d) = add (add a c) (add b d) := by
+          intro a b c d
+          rw [← add_assoc a b (add c d), add_assoc b c d, add_comm b c,
+              ← add_assoc c b d, add_assoc a c (add b d)]
+        induction n with
+        | zero =>
+          intro k
+          rw [zero_add]
+          cases k with
+          | zero =>
+            rw [zero_add, binom_self]
+            have h_C0p : C(𝟘, p) = 𝟘 := by rw [hp_succ]; exact binom_zero_succ _
+            rw [h_C0p, binom_zero_zero, zero_add]
+            exact modEq_refl p 𝟙
+          | succ k' =>
+            have h_lt : lt₀ p (add (σ k') p) :=
+              lt_self_add_l p (σ k') (succ_neq_zero k')
+            have h_C0_kp : C(𝟘, add (σ k') p) = 𝟘 := by
+              rw [succ_add]; exact binom_zero_succ _
+            rw [binom_eq_zero_of_gt h_lt, h_C0_kp, binom_zero_succ, add_zero]
+            exact modEq_refl p 𝟘
+        | succ n' ih =>
+          intro k
+          rw [succ_add n' p]
+          cases k with
+          | zero =>
+            rw [zero_add]
+            have h_lhs : C(σ (add n' p), p) =
+                add C(add n' p, sub p 𝟙) C(add n' p, p) := by
+              have h := binom_pascal (add n' p) (sub p 𝟙)
+              rw [← hp_succ] at h; exact h
+            have h_C_sn_p : C(σ n', p) = add C(n', sub p 𝟙) C(n', p) := by
+              have h := binom_pascal n' (sub p 𝟙)
+              rw [← hp_succ] at h; exact h
+            have ih_k0 := ih 𝟘
+            rw [zero_add, binom_n_zero] at ih_k0
+            have h_lt_mod := binom_add_p_lt_mod hp n' (sub p 𝟙) h_sub_lt
+            have h_sum := modEq_add h_lt_mod ih_k0
+            rw [h_lhs, h_C_sn_p, binom_n_zero]
+            apply modEq_trans h_sum
+            rw [add_assoc]
+            exact modEq_refl p _
+          | succ k' =>
+            have h_sk'p : add (σ k') p = σ (add k' p) := succ_add k' p
+            have h_ih_k' := ih k'
+            have h_ih_sk' := ih (σ k')
+            rw [h_sk'p] at h_ih_sk' ⊢
+            rw [binom_pascal (add n' p) (add k' p),
+                binom_pascal n' (add k' p), binom_pascal n' k']
+            have h_sum := modEq_add h_ih_k' h_ih_sk'
+            apply modEq_trans h_sum
+            rw [h_rearr]
+            exact modEq_refl p _
+
+      /- C(p·M, p·K) ≡ C(M, K) [MOD p] para p primo. -/
+      private theorem binom_pow_p_mod_aux
           (p M K : ℕ₀) (hp : Prime' p) :
-          C(mul p M, mul p K) ≡ C(M, K) [MOD p]
+          C(mul p M, mul p K) ≡ C(M, K) [MOD p] := by
+        have h_p_pos : lt₀ 𝟘 p :=
+          lt_trans 𝟘 𝟙 p (lt_zero_succ 𝟘) (one_lt_prime hp)
+        induction M generalizing K with
+        | zero =>
+          rw [mul_zero]
+          cases K with
+          | zero =>
+            rw [mul_zero]
+            exact modEq_refl p 𝟙
+          | succ K' =>
+            rw [binom_zero_succ]
+            have h_pos : lt₀ 𝟘 (mul p (σ K')) :=
+              mul_pos h_p_pos (lt_zero_succ K')
+            rw [binom_eq_zero_of_gt h_pos]
+            exact modEq_refl p 𝟘
+        | succ M' ih =>
+          cases K with
+          | zero =>
+            rw [mul_zero, binom_n_zero, binom_n_zero]
+            exact modEq_refl p 𝟙
+          | succ K' =>
+            rw [mul_succ p M', mul_succ p K']
+            apply modEq_trans (binom_add_p_step hp (mul p M') (mul p K'))
+            rw [← mul_succ p K']
+            apply modEq_trans (modEq_add (ih (σ K')) (ih K'))
+            rw [add_comm, ← binom_pascal M' K']
+            exact modEq_refl p _
 
       /- C(p^n · r, p^n) ≡ r [MOD p] para p primo, n ≥ 1 y r ≠ 0.
          Prueba por inducción sobre n usando binom_pr_p_mod (base n=1)

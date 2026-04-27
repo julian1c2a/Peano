@@ -1,6 +1,5 @@
 import Peano.PeanoNat.ListsAndSets.List
 import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.ListsAndSets.FSetFSet
 import Peano.PeanoNat.Mul
 
 /-!

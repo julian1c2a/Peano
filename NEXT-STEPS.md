@@ -234,3 +234,31 @@ Orden de ejecución: primero [2] (modifica código), después [1] (fusión mecá
 5. **Next**: Prove `C(p·r, p) ≡ r (mod p)` by induction on r using `binom_prime_row` and `prime_dvd_binom_prime`.
    - Requires: modular arithmetic (Mod.lean or similar) — or inline the argument with `Divides`.
    - Key induction: C(pr, p) = r·C(pr-1,p-1), and p | C(p,k) for 0 < k < p implies the congruence holds via an inductive congruence argument on r.
+
+---
+
+## Refactoring: Polimorfismo de FinGroup
+
+Esto es un cambio masivo que afecta a todos los teoremas y estructuras dependientes (`Subgroup`, `GroupHom`, etc.).
+
+Dado el alcance, se presentan dos opciones:
+
+### Opción A — Cambio completo (más limpio, más trabajo)
+
+- Reescribir `Group.lean` completo con `FinGroup (α : Type) [DecidableEq α]`
+- Actualizar `Action.lean`, `Cosets.lean`, `Sylow.lean` consecuentemente
+- Esto rompe la API existente pero es más correcto matemáticamente
+
+### Opción B — Compatibilidad gradual (menos disruptivo)
+
+- Definir `FinGroup` polimórfico como `FinGroup (α : Type) [DecidableEq α]`
+- Mantener `FinGroupNat` como alias de `FinGroup ℕ₀` para compatibilidad
+- Actualizar los archivos dependientes gradualmente
+
+**Recomendación**: Opción A para un codebase más limpio a largo plazo.
+
+**Estado actual del refactoring**:
+- ~~Fusión FSetFSet → FSet~~ ✓ DONE
+- ~~Polimorfismo de Tuple~~ ✓ DONE
+- ~~Limpieza de aliases *ListList~~ ✓ DONE
+- **Next**: Implementar Opción A para `FinGroup`

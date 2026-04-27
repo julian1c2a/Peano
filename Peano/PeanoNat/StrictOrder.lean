@@ -1012,8 +1012,7 @@ namespace Peano
 
     /-- `DecidableRel (<)` derivable de `StrictLinearOrder`.
         Prioridad baja para no competir con instancias más específicas. -/
-    @[instance (priority := 50)]
-    instance instDecidableRelLtOfSLO {α : Type} [LT α] [DecidableEq α]
+    instance (priority := 50) instDecidableRelLtOfSLO {α : Type} [LT α] [DecidableEq α]
         [slo : StrictLinearOrder α] : DecidableRel (@LT.lt α _) := slo.decLt
 
     instance decidableGt (n m : ℕ₀) :

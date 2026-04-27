@@ -5,23 +5,29 @@ License: MIT
 -/
 
 -- Peano/PeanoNat/Tuple.lean
--- Tuplas de naturales de Peano de longitud finita.
+-- Tuplas polimórficas de longitud finita.
 --
--- § 1. Definición de `Tuple n`
+-- § 1. Definición de `Tuple α n`
 -- § 2. Constructores y proyecciones
 -- § 3. Igualdad decidible y representación
--- § 4. Orden lexicográfico (lexLt, lexLe)
+-- § 4. Orden lexicográfico (lexLt, lexLe) y propiedades
+-- § 5. Orden lexicográfico para NatsTuple
+-- § 6. Igualdad y Orden lexicográfico para HTuple
 
 import Peano.PeanoNat
-import Peano.PeanoNat.StrictOrder -- For lt₀
+import Peano.PeanoNat.StrictOrder
 
 namespace Peano
 
-  /-- Tuplas de naturales de Peano de longitud `n`.
-      `Tuple 𝟘` es `Unit`, `Tuple (σ n)` es `ℕ₀ × Tuple n`. -/
-  def Tuple : ℕ₀ → Type
+  -- ══════════════════════════════════════════════════════════════════
+  -- § 1. Definiciones de tipos tupla
+  -- ══════════════════════════════════════════════════════════════════
+
+  /-- Tupla homogénea polimórfica de longitud `n` sobre el tipo `α`.
+      `Tuple α 𝟘` es `Unit`, `Tuple α (σ n)` es `α × Tuple α n`. -/
+  def Tuple (α : Type) : ℕ₀ → Type
     | .zero => Unit
-    | .succ n => ℕ₀ × Tuple n
+    | .succ n => α × Tuple α n
 
   /-- Tupla heterogénea específica para el sistema numérico.
       El esquema es una lista de etiquetas `Nats` que Lean convierte a tipos. -/
@@ -29,41 +35,37 @@ namespace Peano
   | [] => Unit
   | (t :: ts) => t.toType × NatsTuple ts
 
-  /-- Tupla homogénea genérica. Construye `α^n`. Todos los elementos son de tipo `α`. -/
-  def GTuple (α : Type) : ℕ₀ → Type
-  | .zero => Unit
-  | .succ n => α × GTuple α n
-
   /-- Tupla heterogénea genérica (HList). El esquema es una lista explícita de tipos.
       Permite instanciar, por ejemplo: `HTuple [ℕ₀, ℕ₁, Bool]`. -/
   def HTuple : List Type → Type
   | [] => Unit
   | (α :: αs) => α × HTuple αs
+
   -- ══════════════════════════════════════════════════════════════════
   -- § 2. Constructores y proyecciones
   -- ══════════════════════════════════════════════════════════════════
 
   /-- Constructor de tupla vacía. -/
-  def emptyTuple : Tuple 𝟘 := ()
+  def emptyTuple {α : Type} : Tuple α 𝟘 := ()
 
   /-- Constructor de tupla por concatenación (cons). -/
-  def consTuple {n : ℕ₀}
-    (x : ℕ₀) (xs : Tuple n) :
-      Tuple (σ n)
+  def consTuple {α : Type} {n : ℕ₀}
+    (x : α) (xs : Tuple α n) :
+      Tuple α (σ n)
         :=
     (x, xs)
 
   /-- Proyección: obtener la cabeza de una tupla no vacía. -/
-  def headTuple {n : ℕ₀}
-    (t : Tuple (σ n)) :
-      ℕ₀
+  def headTuple {α : Type} {n : ℕ₀}
+    (t : Tuple α (σ n)) :
+      α
         :=
     t.1
 
   /-- Proyección: obtener la cola de una tupla no vacía. -/
-  def tailTuple {n : ℕ₀}
-    (t : Tuple (σ n)) :
-      Tuple n
+  def tailTuple {α : Type} {n : ℕ₀}
+    (t : Tuple α (σ n)) :
+      Tuple α n
         :=
     t.2
 
@@ -72,7 +74,7 @@ namespace Peano
   notation "⟨" x "⟩" => consTuple x emptyTuple
 
   /-- Función para construir una tupla desde una función. -/
-  def mkTuple : (n : ℕ₀) → (proj : ℕ₀ → ℕ₀) → Tuple n
+  def mkTuple {α : Type} : (n : ℕ₀) → (proj : ℕ₀ → α) → Tuple α n
     | .zero, _ => emptyTuple
     | .succ n, proj => consTuple (proj 𝟘) (mkTuple n (fun k => proj (σ k)))
 
@@ -104,35 +106,6 @@ namespace Peano
   def mkNatsTuple : (ts : List Nats) → (proj : ℕ₀ → (t : Nats) → Nats.toType t) → NatsTuple ts
     | [], _ => emptyNatsTuple
     | t :: ts, proj => consNatsTuple (proj 𝟘 t) (mkNatsTuple ts (fun k => proj (σ k)))
-
-  /-- Constructor de tupla vacía (GTuple). -/
-  def emptyGTuple {α : Type} : GTuple α 𝟘 := ()
-
-  /-- Constructor por concatenación (GTuple). -/
-  def consGTuple {α : Type} {n : ℕ₀}
-    (x : α) (xs : GTuple α n) :
-      GTuple α (σ n)
-        :=
-    (x, xs)
-
-  /-- Proyección de la cabeza (GTuple). -/
-  def headGTuple {α : Type} {n : ℕ₀}
-    (x : GTuple α (σ n)) :
-      α
-        :=
-    x.1
-
-  /-- Proyección de la cola (GTuple). -/
-  def tailGTuple {α : Type} {n : ℕ₀}
-    (x : GTuple α (σ n)) :
-      GTuple α n
-        :=
-    x.2
-
-  /-- Construir una GTuple desde una función. -/
-  def mkGTuple {α : Type} : (n : ℕ₀) → (proj : ℕ₀ → α) → GTuple α n
-    | .zero, _ => emptyGTuple
-    | .succ n, proj => consGTuple (proj 𝟘) (mkGTuple n (fun k => proj (σ k)))
 
   /-- Constructor de tupla vacía (HTuple). -/
   def emptyHTuple : HTuple [] := ()
@@ -167,21 +140,17 @@ namespace Peano
   -- § 3. Igualdad decidible y representación
   -- ══════════════════════════════════════════════════════════════════
 
-  /-- Igualdad decidible para tuplas. -/
-  instance tupleDecEq : (n : ℕ₀) → DecidableEq (Tuple n)
+  /-- Igualdad decidible para tuplas polimórficas. -/
+  instance tupleDecEq {α : Type} [DecidableEq α] : (n : ℕ₀) → DecidableEq (Tuple α n)
     | .zero => fun _ _ => isTrue rfl
     | .succ n => fun t1 t2 =>
         match decEq t1.1 t2.1, tupleDecEq n t1.2 t2.2 with
-        | isTrue h1, isTrue h2 => isTrue (by
-            have : t1.1 = t2.1 := h1
-            have : t1.2 = t2.2 := h2
-            cases t1; cases t2
-            congr)
-        | isFalse h1, _ => isFalse (fun h => h1 (by cases h; rfl))
-        | _, isFalse h2 => isFalse (fun h => h2 (by cases h; rfl))
+        | isTrue h1, isTrue h2 => isTrue (Prod.ext h1 h2)
+        | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
+        | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
 
-  /-- Representación para tuplas. -/
-  instance tupleRepr : (n : ℕ₀) → Repr (Tuple n)
+  /-- Representación para tuplas polimórficas. -/
+  instance tupleRepr {α : Type} [Repr α] : (n : ℕ₀) → Repr (Tuple α n)
     | .zero => ⟨fun _ _ => "⟨⟩"⟩
     | .succ n => ⟨fun t _ =>
         let head := repr t.1
@@ -224,29 +193,6 @@ namespace Peano
         else
           s!"⟨{head}, {tailStr.drop 1}⟩"⟩
 
-  /-- Igualdad decidible para GTuple. -/
-  instance gtupleDecEq {α : Type} [DecidableEq α] : (n : ℕ₀) → DecidableEq (GTuple α n)
-    | .zero => fun _ _ => isTrue rfl
-    | .succ n => fun t1 t2 =>
-        match decEq t1.1 t2.1, gtupleDecEq n t1.2 t2.2 with
-        | isTrue h1, isTrue h2 => isTrue (Prod.ext h1 h2)
-        | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
-        | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
-
-  /-- Representación para GTuple. -/
-  instance gtupleRepr {α : Type} [Repr α] : (n : ℕ₀) → Repr (GTuple α n)
-    | .zero => ⟨fun _ _ => "⟨⟩"⟩
-    | .succ n => ⟨fun tup _ =>
-        let head := repr tup.1
-        let tailRepr := (gtupleRepr n).reprPrec tup.2 0
-        let tailStr := toString tailRepr
-        if tailStr = "⟨⟩" then
-          s!"⟨{head}⟩"
-        else
-          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
-
-  -- Nota: HTupleDecidableEq ya está implementada en la sección § 7.
-
   class HTupleRepr (ts : List Type) where
     reprPrec : HTuple ts → Nat → Std.Format
 
@@ -267,76 +213,86 @@ namespace Peano
     ⟨HTupleRepr.reprPrec⟩
 
   -- ══════════════════════════════════════════════════════════════════
-  -- § 4. Orden lexicográfico (lexLt, lexLe)
+  -- § 4. Orden lexicográfico para Tuple α n
   -- ══════════════════════════════════════════════════════════════════
 
-  open Peano.StrictOrder
-
-  /-- Orden lexicográfico estricto para tuplas. -/
-  def lexLt : {n : ℕ₀} → Tuple n → Tuple n → Prop
+  /-- Orden lexicográfico estricto para tuplas polimórficas. -/
+  def lexLt {α : Type} [LT α] : {n : ℕ₀} → Tuple α n → Tuple α n → Prop
     | .zero, _, _ => False
-    | (.succ _), (x, xs), (y, ys) => lt₀ x y ∨ (x = y ∧ lexLt xs ys)
+    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ lexLt xs ys)
 
-  /-- Orden lexicográfico no estricto para tuplas. -/
-  def lexLe : {n : ℕ₀} → Tuple n → Tuple n → Prop
+  /-- Orden lexicográfico no estricto para tuplas polimórficas. -/
+  def lexLe {α : Type} [LT α] : {n : ℕ₀} → Tuple α n → Tuple α n → Prop
     | .zero, _, _ => True
-    | (.succ _), (x, xs), (y, ys) => lt₀ x y ∨ (x = y ∧ lexLe xs ys)
+    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ lexLe xs ys)
 
-  instance instLTTuple {n : ℕ₀} : LT (Tuple n) := ⟨lexLt⟩
-  instance instLETuple {n : ℕ₀} : LE (Tuple n) := ⟨lexLe⟩
+  instance instLTTuple {α : Type} [LT α] {n : ℕ₀} : LT (Tuple α n) := ⟨lexLt⟩
 
-  instance instDecidableRelLtTuple : {n : ℕ₀} → DecidableRel (@lexLt n)
+  abbrev TupleLE (α : Type) [LT α] (n : ℕ₀) : LE (Tuple α n) := ⟨lexLe⟩
+
+  @[default_instance 100] instance instLETuple {α : Type} [LT α] {n : ℕ₀} : LE (Tuple α n) := TupleLE α n
+
+  instance instDecidableRelLtTuple {α : Type} [LT α] [DecidableEq α]
+      [DecidableRel (@LT.lt α _)] :
+      {n : ℕ₀} → DecidableRel (@lexLt α _ n)
     | .zero, _, _ => isFalse id
     | .succ _, (x, xs), (y, ys) =>
-      match decidableLt x y with
-      | isTrue h_lt => isTrue (Or.inl h_lt)
-      | isFalse h_nlt =>
-        match decEq x y with
-        | isTrue h_eq =>
-          match instDecidableRelLtTuple xs ys with
-          | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
-          | isFalse h_rest_nlt =>
-            isFalse (fun h => (Or.resolve_left h h_nlt).right |> h_rest_nlt)
-        | isFalse h_neq =>
-          isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
+      if h_lt : x < y then isTrue (Or.inl h_lt)
+      else if h_eq : x = y then
+        match instDecidableRelLtTuple xs ys with
+        | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
+        | isFalse h_rest_nlt =>
+          isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nlt)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
 
-  instance instDecidableRelLeTuple : {n : ℕ₀} → DecidableRel (@lexLe n)
+  instance instDecidableRelLeTuple {α : Type} [LT α] [DecidableEq α]
+      [DecidableRel (@LT.lt α _)] :
+      {n : ℕ₀} → DecidableRel (@lexLe α _ n)
     | .zero, _, _ => isTrue trivial
     | .succ _, (x, xs), (y, ys) =>
-      match decidableLt x y with
-      | isTrue h_lt => isTrue (Or.inl h_lt)
-      | isFalse h_nlt =>
-        match decEq x y with
-        | isTrue h_eq =>
-          match instDecidableRelLeTuple xs ys with
-          | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
-          | isFalse h_rest_nle =>
-            isFalse (fun h => (Or.resolve_left h h_nlt).right |> h_rest_nle)
-        | isFalse h_neq =>
-          isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
+      if h_lt : x < y then isTrue (Or.inl h_lt)
+      else if h_eq : x = y then
+        match instDecidableRelLeTuple xs ys with
+        | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
+        | isFalse h_rest_nle =>
+          isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nle)
+      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
 
-  /-- Igualdad decidible para `Tuple n` con `n` implícito. -/
-  instance instDecidableEqTuple {n : ℕ₀} : DecidableEq (Tuple n) := tupleDecEq n
+  /-- Decidabilidad de `LE.le` para `Tuple α n`.
+      Esta instancia usa `inline` para que Lean vea directamente `lexLe`. -/
+  @[inline] instance instDecidableRelLeTuple' {α : Type} [LT α] [DecidableEq α]
+      [DecidableRel (@LT.lt α _)] {n : ℕ₀} :
+      DecidableRel (@LE.le (Tuple α n) (instLETuple)) :=
+    instDecidableRelLeTuple
+
+  /-- Igualdad decidible para `Tuple α n` con `n` implícito. -/
+  instance instDecidableEqTuple {α : Type} [DecidableEq α] {n : ℕ₀} :
+      DecidableEq (Tuple α n) := tupleDecEq n
 
   -- ══════════════════════════════════════════════════════════════════
-  -- § 4b. StrictLinearOrder para Tuple n
+  -- § 4b. Propiedades del orden lexicográfico y StrictLinearOrder
   -- ══════════════════════════════════════════════════════════════════
 
-  /-- El orden lexicográfico estricto sobre `Tuple n` es irreflexivo. -/
-  theorem lexLt_irrefl : ∀ {n : ℕ₀} (t : Tuple n), ¬ lexLt t t
+  /-- El orden lexicográfico estricto sobre `Tuple α n` es irreflexivo. -/
+  theorem lexLt_irrefl {α : Type} [LT α]
+      [Std.Irrefl (fun a b : α => a < b)] :
+      ∀ {n : ℕ₀} (t : Tuple α n), ¬ lexLt t t
     | .zero, () => id
     | .succ _, (x, xs) => fun h =>
-      h.elim (fun h_lt => nlt_self x h_lt) (fun ⟨_, h_rest⟩ => lexLt_irrefl xs h_rest)
+      h.elim (fun h_lt => Std.Irrefl.irrefl x h_lt)
+        (fun ⟨_, h_rest⟩ => lexLt_irrefl xs h_rest)
 
   set_option linter.unusedVariables false in
-  /-- El orden lexicográfico estricto sobre `Tuple n` es transitivo. -/
-  theorem lexLt_trans : ∀ {n : ℕ₀} {a b c : Tuple n}, lexLt a b → lexLt b c → lexLt a c
+  /-- El orden lexicográfico estricto sobre `Tuple α n` es transitivo. -/
+  theorem lexLt_trans {α : Type} [LT α] [DecidableEq α]
+      [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)] :
+      ∀ {n : ℕ₀} {a b c : Tuple α n}, lexLt a b → lexLt b c → lexLt a c
     | .zero, _, _, _ => fun h _ => False.elim h
     | .succ _, (x, xs), (y, ys), (z, zs) => fun h_ab h_bc =>
       h_ab.elim
         (fun h_xy =>
           h_bc.elim
-            (fun h_yz => Or.inl (lt_trans_wp h_xy h_yz))
+            (fun h_yz => Or.inl (Trans.trans h_xy h_yz))
             (fun ⟨h_eq_yz, _⟩ => h_eq_yz ▸ Or.inl h_xy))
         (fun ⟨h_eq_xy, h_xs_ys⟩ =>
           h_bc.elim
@@ -344,27 +300,66 @@ namespace Peano
             (fun ⟨h_eq_yz, h_ys_zs⟩ =>
               Or.inr ⟨h_eq_xy ▸ h_eq_yz, lexLt_trans h_xs_ys h_ys_zs⟩))
 
-  /-- El orden lexicográfico estricto sobre `Tuple n` satisface la tricotomía. -/
-  theorem lexLt_trich : ∀ {n : ℕ₀} (a b : Tuple n), ¬ lexLt a b → ¬ lexLt b a → a = b
+  /-- El orden lexicográfico estricto sobre `Tuple α n` satisface la tricotomía. -/
+  theorem lexLt_trich {α : Type} [LT α] [DecidableEq α]
+      [Std.Trichotomous (fun a b : α => a < b)] :
+      ∀ {n : ℕ₀} (a b : Tuple α n), ¬ lexLt a b → ¬ lexLt b a → a = b
     | .zero, (), () => fun _ _ => rfl
     | .succ _, (x, xs), (y, ys) => fun h_nab h_nba =>
       have h_eq : x = y :=
-        lt_nor_gt_then_eq x y ⟨fun h => h_nab (Or.inl h), fun h => h_nba (Or.inl h)⟩
+        Std.Trichotomous.trichotomous (r := fun a b : α => a < b) x y
+          (fun h => h_nab (Or.inl h)) (fun h => h_nba (Or.inl h))
       have h_eq_rest : xs = ys :=
         lexLt_trich xs ys
           (fun h => h_nab (Or.inr ⟨h_eq, h⟩))
           (fun h => h_nba (Or.inr ⟨h_eq.symm, h⟩))
       h_eq ▸ h_eq_rest ▸ rfl
 
-  instance instStrictLinearOrderTuple {n : ℕ₀} : StrictLinearOrder (Tuple n) where
+  instance instStrictLinearOrderTuple {α : Type} [LT α] [DecidableEq α]
+      [DecidableRel (@LT.lt α _)]
+      [Std.Irrefl (fun a b : α => a < b)]
+      [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)]
+      [Std.Trichotomous (fun a b : α => a < b)]
+      {n : ℕ₀} : StrictLinearOrder (Tuple α n) where
     decLt  := instDecidableRelLtTuple
     irrefl := lexLt_irrefl
     trans  := fun h1 h2 => lexLt_trans h1 h2
     trich  := lexLt_trich
 
+  -- § 4c. Instancias Std.* para Tuple α n
+
+  instance instIrreflTuple {α : Type} [LT α]
+      [Std.Irrefl (fun a b : α => a < b)]
+      {n : ℕ₀} : Std.Irrefl (fun a b : Tuple α n => a < b) where
+    irrefl := lexLt_irrefl
+
+  instance instAsymmTuple {α : Type} [LT α] [DecidableEq α]
+      [Std.Irrefl (fun a b : α => a < b)]
+      [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)]
+      {n : ℕ₀} : Std.Asymm (fun a b : Tuple α n => a < b) where
+    asymm := fun _ _ h1 h2 => lexLt_irrefl _ (lexLt_trans h1 h2)
+
+  instance instTransTuple {α : Type} [LT α] [DecidableEq α]
+      [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)]
+      {n : ℕ₀} : Trans (fun a b : Tuple α n => a < b) (fun a b : Tuple α n => a < b)
+        (fun a b : Tuple α n => a < b) where
+    trans := fun h1 h2 => lexLt_trans h1 h2
+
+  instance instTrichotomousTuple {α : Type} [LT α] [DecidableEq α]
+      [Std.Trichotomous (fun a b : α => a < b)]
+      {n : ℕ₀} : Std.Trichotomous (fun a b : Tuple α n => a < b) where
+    trichotomous := lexLt_trich
+
+  instance instIrreflLTTuple {α : Type} [LT α]
+      [Std.Irrefl (fun a b : α => a < b)]
+      {n : ℕ₀} : StrictOrder.IrreflLT (Tuple α n) :=
+    ⟨fun t h => lexLt_irrefl t h⟩
+
   -- ══════════════════════════════════════════════════════════════════
   -- § 5. Orden lexicográfico para NatsTuple
   -- ══════════════════════════════════════════════════════════════════
+
+  open Peano.StrictOrder
 
   /-- Extrae el valor `ℕ₀` subyacente de cualquier elemento de un `NatsTuple` de forma dinámica. -/
   def natsVal : (t : Nats) → t → ℕ₀
@@ -418,44 +413,7 @@ namespace Peano
           isFalse (fun h => Or.elim h h_nlt (fun h_and => h_neq h_and.left))
 
   -- ══════════════════════════════════════════════════════════════════
-  -- § 6. Orden lexicográfico para GTuple
-  -- ══════════════════════════════════════════════════════════════════
-
-  /-- Orden lexicográfico estricto para GTuple. -/
-  def glexLt {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
-    | .zero, _, _ => False
-    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLt xs ys)
-
-  /-- Orden lexicográfico no estricto para GTuple. -/
-  def glexLe {α : Type} [LT α] : {n : ℕ₀} → GTuple α n → GTuple α n → Prop
-    | .zero, _, _ => True
-    | (.succ _), (x, xs), (y, ys) => x < y ∨ (x = y ∧ glexLe xs ys)
-
-  instance instLTGTuple {α : Type} [LT α] {n : ℕ₀} : LT (GTuple α n) := ⟨glexLt⟩
-  instance instLEGTuple {α : Type} [LT α] {n : ℕ₀} : LE (GTuple α n) := ⟨glexLe⟩
-
-  instance instDecidableRelLtGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLt α _ n)
-    | .zero, _, _ => isFalse id
-    | .succ _, (x, xs), (y, ys) =>
-      if h_lt : x < y then isTrue (Or.inl h_lt)
-      else if h_eq : x = y then
-        match instDecidableRelLtGTuple xs ys with
-        | isTrue h_rest_lt => isTrue (Or.inr ⟨h_eq, h_rest_lt⟩)
-        | isFalse h_rest_nlt => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nlt)
-      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
-
-  instance instDecidableRelLeGTuple {α : Type} [LT α] [DecidableEq α] [DecidableRel (@LT.lt α _)] : {n : ℕ₀} → DecidableRel (@glexLe α _ n)
-    | .zero, _, _ => isTrue trivial
-    | .succ _, (x, xs), (y, ys) =>
-      if h_lt : x < y then isTrue (Or.inl h_lt)
-      else if h_eq : x = y then
-        match instDecidableRelLeGTuple xs ys with
-        | isTrue h_rest_le => isTrue (Or.inr ⟨h_eq, h_rest_le⟩)
-        | isFalse h_rest_nle => isFalse (fun h => (Or.resolve_left h h_lt).right |> h_rest_nle)
-      else isFalse (fun h => Or.elim h h_lt (fun h_and => h_eq h_and.left))
-
-  -- ══════════════════════════════════════════════════════════════════
-  -- § 7. Igualdad y Orden lexicográfico para HTuple
+  -- § 6. Igualdad y Orden lexicográfico para HTuple
   -- ══════════════════════════════════════════════════════════════════
 
   class HTupleDecidableEq (ts : List Type) where
@@ -547,7 +505,6 @@ end Peano
 export Peano (
   Tuple
   NatsTuple
-  GTuple
   HTuple
   emptyTuple
   consTuple
@@ -565,13 +522,6 @@ export Peano (
   instReprNatsType
   natsTupleDecEq
   natsTupleRepr
-  emptyGTuple
-  consGTuple
-  headGTuple
-  tailGTuple
-  mkGTuple
-  gtupleDecEq
-  gtupleRepr
   emptyHTuple
   consHTuple
   headHTuple
@@ -587,11 +537,17 @@ export Peano (
   instLETuple
   instDecidableRelLtTuple
   instDecidableRelLeTuple
+  instDecidableRelLeTuple'
   instDecidableEqTuple
   lexLt_irrefl
   lexLt_trans
   lexLt_trich
   instStrictLinearOrderTuple
+  instIrreflTuple
+  instAsymmTuple
+  instTransTuple
+  instTrichotomousTuple
+  instIrreflLTTuple
   natsVal
   natsLexLt
   natsLexLe
@@ -599,12 +555,6 @@ export Peano (
   instLENatsTuple
   instDecidableRelLtNatsTuple
   instDecidableRelLeNatsTuple
-  glexLt
-  glexLe
-  instLTGTuple
-  instLEGTuple
-  instDecidableRelLtGTuple
-  instDecidableRelLeGTuple
   HTupleDecidableEq
   instHTupleDecEqNil
   instHTupleDecEqCons

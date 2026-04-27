@@ -93,6 +93,36 @@ namespace Peano
       trich  := fun a b h_nab h_nba =>
         Subtype.ext (Subtype.ext (StrictOrder.lt_nor_gt_then_eq a.val.val b.val.val ⟨h_nab, h_nba⟩))
 
+    -- § 3c. Instancias Std.* para ℕ₁ y ℕ₂ (requeridas por FSet genérico)
+
+    instance : Std.Irrefl (fun a b : ℕ₁ => a < b) where
+      irrefl := fun a h => StrictOrder.nlt_self a.val h
+
+    instance : Std.Asymm (fun a b : ℕ₁ => a < b) where
+      asymm := fun _ _ h1 h2 => StrictOrder.lt_asymm _ _ h1 h2
+
+    instance : Trans (fun a b : ℕ₁ => a < b) (fun a b : ℕ₁ => a < b)
+        (fun a b : ℕ₁ => a < b) where
+      trans := fun h1 h2 => StrictOrder.lt_trans_wp h1 h2
+
+    instance : Std.Trichotomous (fun a b : ℕ₁ => a < b) where
+      trichotomous := fun a b h_nab h_nba =>
+        Subtype.ext (StrictOrder.lt_nor_gt_then_eq a.val b.val ⟨h_nab, h_nba⟩)
+
+    instance : Std.Irrefl (fun a b : ℕ₂ => a < b) where
+      irrefl := fun a h => StrictOrder.nlt_self a.val.val h
+
+    instance : Std.Asymm (fun a b : ℕ₂ => a < b) where
+      asymm := fun _ _ h1 h2 => StrictOrder.lt_asymm _ _ h1 h2
+
+    instance : Trans (fun a b : ℕ₂ => a < b) (fun a b : ℕ₂ => a < b)
+        (fun a b : ℕ₂ => a < b) where
+      trans := fun h1 h2 => StrictOrder.lt_trans_wp h1 h2
+
+    instance : Std.Trichotomous (fun a b : ℕ₂ => a < b) where
+      trichotomous := fun a b h_nab h_nba =>
+        Subtype.ext (Subtype.ext (StrictOrder.lt_nor_gt_then_eq a.val.val b.val.val ⟨h_nab, h_nba⟩))
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 4. Orden lexicográfico sobre ℕ₂ × ℕ₁
     -- ══════════════════════════════════════════════════════════════════
@@ -284,58 +314,31 @@ namespace Peano
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Lista de tuplas homogéneas de ℕ₀ de longitud `n`. -/
-    abbrev TupleList (n : ℕ₀) := List (Tuple n)
+    abbrev TupleList (n : ℕ₀) := List (Tuple ℕ₀ n)
 
     /-- Lista de tuplas heterogéneas sobre esquema `ts : List Nats`. -/
     abbrev NatsTupleList (ts : List Nats) := List (NatsTuple ts)
 
-    /-- Lista de tuplas homogéneas genéricas de tipo `α` y longitud `n`. -/
-    abbrev GTupleList (α : Type) (n : ℕ₀) := List (GTuple α n)
+    /-- Lista de tuplas homogéneas genéricas de tipo `α` y longitud `n`.
+        Nota: con `Tuple` polimórfico, `GTupleList` es alias de compatibilidad. -/
+    abbrev GTupleList (α : Type) (n : ℕ₀) := List (Tuple α n)
 
     /-- Lista de tuplas heterogéneas con esquema de tipos `ts : List Type`. -/
     abbrev HTupleList (ts : List Type) := List (HTuple ts)
 
     -- ══════════════════════════════════════════════════════════════════
-    -- § 9. Listas de listas
-    -- ══════════════════════════════════════════════════════════════════
-
-    /-- Lista de listas de ℕ₀. -/
-    abbrev Nat0ListList := List Nat0List
-
-    /-- Lista de listas de ℕ₁. -/
-    abbrev Nat1ListList := List Nat1List
-
-    /-- Lista de listas de ℕ₂. -/
-    abbrev Nat2ListList := List Nat2List
-
-    /-- Lista de listas de pares (primo, exponente). -/
-    abbrev FactListList := List FactList
-
-    /-- Lista de listas de tuplas homogéneas de ℕ₀ de longitud `n`. -/
-    abbrev TupleListList (n : ℕ₀) := List (TupleList n)
-
-    /-- Lista de listas de NatsTuple con esquema `ts`. -/
-    abbrev NatsTupleListList (ts : List Nats) := List (NatsTupleList ts)
-
-    /-- Lista de listas de GTuple de tipo `α` y longitud `n`. -/
-    abbrev GTupleListList (α : Type) (n : ℕ₀) := List (GTupleList α n)
-
-    /-- Lista de listas de HTuple con esquema `ts`. -/
-    abbrev HTupleListList (ts : List Type) := List (HTupleList ts)
-
-    -- ══════════════════════════════════════════════════════════════════
-    -- § 10. Tipo suma `PeanoVal` y lista heterogénea
+    -- § 9. Tipo suma `PeanoVal` y lista heterogénea
     -- ══════════════════════════════════════════════════════════════════
 
     /-- Tipo suma que unifica en un único tipo:
         · naturales ℕ₀/ℕ₁/ℕ₂  (vía el índice `Nats`),
         · listas de naturales,
-        · tuplas homogéneas `Tuple n` y heterogéneas `NatsTuple ts`,
+        · tuplas homogéneas `Tuple ℕ₀ n` y heterogéneas `NatsTuple ts`,
         · listas de tuplas `TupleList n` y `NatsTupleList ts`. -/
     inductive PeanoVal : Type where
       | ofNat           (k : Nats)       (x  : k.toType)            : PeanoVal
       | ofNatList       (k : Nats)       (xs : List k.toType)       : PeanoVal
-      | ofTuple         (n : ℕ₀)         (t  : Tuple n)             : PeanoVal
+      | ofTuple         (n : ℕ₀)         (t  : Tuple ℕ₀ n)           : PeanoVal
       | ofNatsTuple     (ts : List Nats) (t  : NatsTuple ts)        : PeanoVal
       | ofTupleList     (n : ℕ₀)         (ts : TupleList n)         : PeanoVal
       | ofNatsTupleList (ts : List Nats) (xs : NatsTupleList ts)    : PeanoVal
@@ -376,7 +379,7 @@ namespace Peano
       | .ofTupleList n1 ts1, .ofTupleList n2 ts2 =>
           by_cases hn : n1 = n2
           · subst hn
-            haveI := tupleDecEq n1
+            haveI := @tupleDecEq ℕ₀ _ n1
             cases decEq ts1 ts2 with
             | isTrue  h => exact isTrue  (congrArg (PeanoVal.ofTupleList n1) h)
             | isFalse h => exact isFalse (fun e => h (by cases e; rfl))
@@ -472,9 +475,9 @@ namespace Peano
     private def natsKindNat : Nats → Nat
       | .nat0 => 0 | .nat1 => 1 | .nat2 => 2
 
-    /-- Aplana un `Tuple n` en una lista de `Nat`
+    /-- Aplana un `Tuple ℕ₀ n` en una lista de `Nat`
         proyectando cada componente `ℕ₀` via `Ψ`. -/
-    private def tupleToNatList : {n : ℕ₀} → Tuple n → List Nat
+    private def tupleToNatList : {n : ℕ₀} → Tuple ℕ₀ n → List Nat
       | .zero,    _          => []
       | .succ _, (x, xs)    => Ψ x :: tupleToNatList xs
 
@@ -584,6 +587,67 @@ namespace Peano
               s!"ofNatsTupleList {repr ts} {reprListFmt (natsTupleRepr ts) xs}"
         s
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 16. LE, Trichotomous y Decidable para List α (antes en FSetFSet.lean § 11)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Irreflexividad del orden lexicográfico sobre `List α`. -/
+    instance instIrreflListLt {α : Type} [LT α]
+        [Std.Irrefl (fun a b : α => a < b)] :
+        Std.Irrefl (fun (l₁ l₂ : List α) => l₁ < l₂) where
+      irrefl := fun l => List.lt_irrefl l
+
+    /-- Asimetría del orden lexicográfico sobre `List α`. -/
+    instance instAsymmListLt {α : Type} [LT α]
+        [Std.Asymm (fun a b : α => a < b)] :
+        Std.Asymm (fun (l₁ l₂ : List α) => l₁ < l₂) where
+      asymm := fun _ _ h1 h2 => List.lt_asymm h1 h2
+
+    /-- Tricotomía del orden lexicográfico sobre `List α`.
+        Si `¬(as < bs)` y `¬(bs < as)` entonces `as = bs`. -/
+    instance instTrichotomousListLt {α : Type} [DecidableEq α] [LT α]
+        [DecidableRel (@LT.lt α _)]
+        [Std.Irrefl (fun a b : α => a < b)]
+        [Std.Trichotomous (fun a b : α => a < b)] :
+        Std.Trichotomous (fun l₁ l₂ : List α => l₁ < l₂) where
+      trichotomous := by
+        intro as bs h_nlt h_ngt
+        induction as generalizing bs with
+        | nil =>
+          match bs with
+          | [] => rfl
+          | _ :: _ => exact absurd (List.Lex.nil) h_nlt
+        | cons a at_ ih =>
+          match bs with
+          | [] => exact absurd (List.Lex.nil) h_ngt
+          | b :: bt =>
+            by_cases heq : a = b
+            · subst heq
+              have h1 : ¬ at_ < bt := fun h => h_nlt (List.Lex.cons h)
+              have h2 : ¬ bt < at_ := fun h => h_ngt (List.Lex.cons h)
+              exact congrArg (a :: ·) (ih bt h1 h2)
+            · have hab : ¬ a < b := fun h => h_nlt (List.Lex.rel h)
+              have hba : ¬ b < a := fun h => h_ngt (List.Lex.rel h)
+              exact absurd (Std.Trichotomous.trichotomous
+                (r := fun x y : α => x < y) a b hab hba) heq
+
+    /-- Lean 4 stdlib provee `LT (List α)` = `List.Lex (· < ·)`.
+        Aquí añadimos `LE`: `as ≤ bs ↔ as < bs ∨ as = bs`. -/
+    instance instLEList {α : Type} [LT α] [DecidableEq α] : LE (List α) :=
+      ⟨fun as bs => as < bs ∨ as = bs⟩
+
+    /-- Decidabilidad de `≤` sobre `List α` cuando los elementos
+        tienen igualdad y orden estricto decidibles. -/
+    instance instDecidableLeList {α : Type} [LT α] [DecidableEq α]
+        [DecidableRel (@LT.lt α _)] :
+        DecidableRel (@LE.le (List α) instLEList) :=
+      fun as bs =>
+        let hlt : Decidable (as < bs) := inferInstance
+        match hlt, (inferInstance : Decidable (as = bs)) with
+        | isTrue h,   _           => isTrue (Or.inl h)
+        | isFalse _,  isTrue heq  => isTrue (Or.inr heq)
+        | isFalse hn, isFalse hne => isFalse (fun h => h.elim hn hne)
+
   end List
 
 end Peano
@@ -622,14 +686,6 @@ export Peano.List (
   NatsTupleList
   GTupleList
   HTupleList
-  Nat0ListList
-  Nat1ListList
-  Nat2ListList
-  FactListList
-  TupleListList
-  NatsTupleListList
-  GTupleListList
-  HTupleListList
   PeanoVal
   instDecidableEqPeanoVal
   PeanoValList
@@ -654,4 +710,9 @@ export Peano.List (
   instDecidableRelLtPeanoVal
   instDecidableRelLePeanoVal
   instReprPeanoVal
+  instIrreflListLt
+  instAsymmListLt
+  instTrichotomousListLt
+  instLEList
+  instDecidableLeList
 )

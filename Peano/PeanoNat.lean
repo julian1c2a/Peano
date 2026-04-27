@@ -17,6 +17,21 @@ namespace Peano
     | succ : ℕ₀ -> ℕ₀
     deriving Repr, BEq, DecidableEq
 
+  private theorem ℕ₀_beq_refl : ∀ {a : ℕ₀}, (a == a) = true
+    | .zero   => rfl
+    | .succ n => ℕ₀_beq_refl (a := n)
+
+  private theorem ℕ₀_beq_of_eq : ∀ {a b : ℕ₀}, (a == b) = true → a = b
+    | .zero,   .zero,   _  => rfl
+    | .zero,   .succ _, h  => absurd h Bool.false_ne_true
+    | .succ _, .zero,   h  => absurd h Bool.false_ne_true
+    | .succ n, .succ m, h  => congrArg ℕ₀.succ (ℕ₀_beq_of_eq h)
+
+  instance instReflBEqℕ₀ : ReflBEq ℕ₀ := ⟨ℕ₀_beq_refl⟩
+
+  instance instLawfulBEqℕ₀ : LawfulBEq ℕ₀ where
+    eq_of_beq := ℕ₀_beq_of_eq
+
   def ℕ₁ : Type := {n : ℕ₀ // n ≠ ℕ₀.zero}
   deriving Repr, DecidableEq
 

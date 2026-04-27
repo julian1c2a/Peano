@@ -1711,15 +1711,25 @@ namespace Peano
 
     /-- Argumento de Wielandt, pieza 2:
         La traslación izquierda de G actúa sobre Ω y preserva |S| y la pertenencia a G.
-        Para g ∈ G y S ∈ Ω, g·S = { G.op g s : s ∈ S } también está en Ω.
-        TODO: demostrar usando biyectividad de la traslación izquierda en G. -/
-    private axiom wielandt_translate_mem
+        Para g ∈ G y S ∈ Ω, g·S = { G.op g s : s ∈ S } también está en Ω. -/
+    private theorem wielandt_translate_mem
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀)
         (hΩ_nd : Ω.Nodup)
         (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
         (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
         (g : ℕ₀) (hg : g ∈ G.carrier.elems) (S : List ℕ₀) (hS : S ∈ Ω) :
-        (S.map (G.op g)) ∈ Ω
+        (S.map (G.op g)) ∈ Ω := by
+      obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS
+      apply hΩ_full
+      · apply nodup_map_of_inj_on _ _ hS_nd
+        intro a b ha hb heq
+        exact op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq
+      · intro x hx
+        obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx
+        exact op_mem G hg (hS_memG s hs)
+      · show Λ ((S.map (G.op g)).length) = N
+        rw [List.length_map]
+        exact hS_len
 
     /-- Argumento de Wielandt, pieza 3:
         Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|,
@@ -1743,20 +1753,103 @@ namespace Peano
         Un subconjunto S ⊆ G que es punto fijo de la acción de traslación de todo G
         (es decir, g·S = S para todo g ∈ G) con S ≠ ∅ es un subgrupo de G.
         Argumento:
-          - S ≠ ∅ → ∃ x ∈ S.
-          - x·S = S → x⁻¹ ∈ S (pues x⁻¹ ∈ x⁻¹·S = S).
-          - e = x·x⁻¹ ∈ x·S = S.
-          - a, b ∈ S → a·b ∈ a·S = S.
-          - a ∈ S → a·(a⁻¹) = e ∈ a·S = S, y e ∈ S → a⁻¹ ∈ S.
-        TODO: demostrar formalmente en Lean. -/
-    private axiom wielandt_fixed_is_subgroup
+          - S ≠ ∅ → ∃ x₀ ∈ S.
+          - (G.inv x₀)·S = S y G.inv x₀ · x₀ = G.id → G.id ∈ S.
+          - b ∈ S → (G.inv b)·G.id ∈ (G.inv b)·S = S → G.inv b ∈ S.
+          - a, b ∈ S → G.op a (G.inv b) ∈ a·S = S → subgrupo por criterio de un paso. -/
+    private theorem wielandt_fixed_is_subgroup
         (G : FinGroup ℕ₀) (S : List ℕ₀) (N : ℕ₀)
         (hS_ne : S ≠ [])
         (hS_nd : S.Nodup)
         (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
         (hS_len : lengthₚ S = N)
         (hS_fixed : ∀ g ∈ G.carrier.elems, S.map (G.op g) = S) :
-        ∃ H : Subgroup G, H.carrier.elems = S ∧ H.carrier.card = N
+        ∃ H : Subgroup G, H.carrier.card = N := by
+      cases S with
+      | nil => exact absurd rfl hS_ne
+      | cons x₀ S' =>
+        have hx₀_G : x₀ ∈ G.carrier.elems := hS_mem x₀ List.mem_cons_self
+        have hx₀inv_G : G.inv x₀ ∈ G.carrier.elems := inv_mem G hx₀_G
+        -- G.id ∈ x₀ :: S': from (G.inv x₀)·S = S and G.inv x₀ · x₀ = G.id
+        have hid_in_S : G.id ∈ x₀ :: S' := by
+          have hfixed := hS_fixed (G.inv x₀) hx₀inv_G
+          have hmem : G.op (G.inv x₀) x₀ ∈ (x₀ :: S').map (G.op (G.inv x₀)) :=
+            List.mem_map.mpr ⟨x₀, List.mem_cons_self, rfl⟩
+          rw [hfixed] at hmem
+          rwa [(G.op_inv x₀ hx₀_G).2] at hmem
+        -- b ∈ S → G.inv b ∈ S: via (G.inv b)·G.id ∈ (G.inv b)·S = S
+        have hinv_in_S : ∀ b, b ∈ x₀ :: S' → G.inv b ∈ x₀ :: S' := by
+          intro b hb
+          have hb_G := hS_mem b hb
+          have hbinv_G := inv_mem G hb_G
+          have hfixed := hS_fixed (G.inv b) hbinv_G
+          have hmem : G.op (G.inv b) G.id ∈ (x₀ :: S').map (G.op (G.inv b)) :=
+            List.mem_map.mpr ⟨G.id, hid_in_S, rfl⟩
+          rw [hfixed] at hmem
+          rwa [(G.op_id (G.inv b) hbinv_G).1] at hmem
+        -- Inline nodup_sub_len for the cardinality argument
+        have nodup_sub_len : ∀ {l₁ l₂ : List ℕ₀},
+            l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
+          intro l₁ l₂
+          induction l₁ generalizing l₂ with
+          | nil => intro _ _; exact Nat.zero_le _
+          | cons a l₁' ih =>
+            intro hnd hsub
+            rw [List.nodup_cons] at hnd
+            obtain ⟨ha_nin, hnd'⟩ := hnd
+            have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+            have h_ih := ih hnd' (fun x hx => by
+              have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
+              exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
+            rw [List.length_cons]
+            have h_pos : 0 < l₂.length := by
+              cases l₂ with
+              | nil => exact absurd ha2 List.not_mem_nil
+              | cons _ _ => exact Nat.zero_lt_succ _
+            have h_erase_len := List.length_erase_of_mem ha2
+            omega
+        -- Build carrier FSet = G.carrier ∩ (x₀ :: S')
+        let S_fset : FSet ℕ₀ := G.carrier.filter (fun x => decide (x ∈ x₀ :: S'))
+        -- Membership characterisation
+        have hmem_fset : ∀ x, x ∈ S_fset.elems ↔ x ∈ G.carrier.elems ∧ x ∈ x₀ :: S' := by
+          intro x
+          show x ∈ G.carrier.elems.filter (fun y => decide (y ∈ x₀ :: S')) ↔
+              x ∈ G.carrier.elems ∧ x ∈ x₀ :: S'
+          constructor
+          · intro hx
+            exact ⟨(List.mem_filter.mp hx).1, of_decide_eq_true (List.mem_filter.mp hx).2⟩
+          · intro ⟨h1, h2⟩
+            exact List.mem_filter.mpr ⟨h1, decide_eq_true h2⟩
+        -- Construct the subgroup using the one-step criterion
+        refine ⟨subgroup_of_op_inv_closed G S_fset
+          (fun x hx => (hmem_fset x).mp hx |>.1)
+          ⟨x₀, (hmem_fset x₀).mpr ⟨hx₀_G, List.mem_cons_self⟩⟩
+          (fun a b ha hb => by
+            obtain ⟨ha_G, ha_S⟩ := (hmem_fset a).mp ha
+            obtain ⟨hb_G, hb_S⟩ := (hmem_fset b).mp hb
+            apply (hmem_fset _).mpr
+            refine ⟨op_mem G ha_G (inv_mem G hb_G), ?_⟩
+            have hbinv_S := hinv_in_S b hb_S
+            have hfixed_a := hS_fixed a ha_G
+            have hmem2 : G.op a (G.inv b) ∈ (x₀ :: S').map (G.op a) :=
+              List.mem_map.mpr ⟨G.inv b, hbinv_S, rfl⟩
+            rwa [hfixed_a] at hmem2),
+          ?_⟩
+        -- Prove carrier.card = N
+        show lengthₚ S_fset.elems = N
+        show Λ (G.carrier.elems.filter (fun x => decide (x ∈ x₀ :: S'))).length = N
+        have hlen_eq :
+            (G.carrier.elems.filter (fun x => decide (x ∈ x₀ :: S'))).length =
+            (x₀ :: S').length := by
+          apply Nat.le_antisymm
+          · apply nodup_sub_len
+            · exact List.filter_sublist.nodup (sorted_nodup G.carrier.sorted)
+            · intro x hx
+              exact of_decide_eq_true (List.mem_filter.mp hx).2
+          · apply nodup_sub_len hS_nd
+            intro x hx
+            exact List.mem_filter.mpr ⟨hS_mem x hx, decide_eq_true hx⟩
+        exact (congrArg Λ hlen_eq).trans hS_len
 
     /-- Argumento de Wielandt, pieza 5:
         Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por la hipótesis inductiva
@@ -1840,7 +1933,7 @@ namespace Peano
       have hS_ne : S ≠ [] := by
         intro h_nil; rw [h_nil, lengthₚ_nil] at hS_len; exact hN_ne hS_len.symm
       -- S es subgrupo de G de orden N = p^(m+1)
-      obtain ⟨H, _, hH_card⟩ :=
+      obtain ⟨H, hH_card⟩ :=
         wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_memG hS_len hS_fixed
       exact ⟨H, hH_card⟩
 
@@ -1930,18 +2023,45 @@ namespace Peano
     Todos los subgrupos de Sylow `p` de `G` son conjugados entre sí.
     -/
 
-    /-- Axioma: unicidad del exponente de Sylow.
-        Si H y K son ambos subgrupos de Sylow-p de G, tienen el mismo orden.
-        La prueba estándar requiere: si p^n | |G| y ¬p^(n+1) | |G|, entonces n es
-        la valuación p-ádica de |G|, que es única. Requiere pow_dvd_pow y aritmética
-        de potencias que no está en la librería.
-        TODO: reemplazar por demostración completa usando pow_dvd_pow. -/
-    private axiom sylow_card_eq
+    /-- Si `le₀ a b` y `p^b | |S|`, entonces `p^a | |S|`.
+        Consecuencia de `p^a | p^b` usando `pow_add_eq_mul_pow`. -/
+    private theorem pow_dvd_card_of_le (p a b : ℕ₀) (S : ℕ₀FSet)
+        (h : le₀ a b) (h_dvd : pow_dvd_card p b S) : pow_dvd_card p a S := by
+      obtain ⟨m, hm⟩ := h_dvd
+      obtain ⟨c, hc⟩ := (le_iff_exists_add a b).mp h
+      -- hc : b = add a c, hm : mul (p^b) m = S.card
+      -- mul (p^a) (p^c) = p^(add a c) = p^b  (en modo término: eq. definitional)
+      have h3 : mul (p ^ a) (p ^ c) = p ^ b :=
+        (pow_add_eq_mul_pow p a c).symm.trans (congrArg (Peano.Pow.pow p) hc.symm)
+      -- mul (p^a) (mul (p^c) m) = mul (mul (p^a) (p^c)) m = mul (p^b) m = S.card
+      exact ⟨mul (p ^ c) m, by rw [← mul_assoc, h3]; exact hm⟩
+
+    /-- La valuación p-ádica de |G| es única: si H y K son subgrupos de Sylow-p de G,
+        entonces |H| = |K|.
+        Prueba: si n₁ ≠ n₂, suponemos (sin pérdida de generalidad) n₁ < n₂;
+        entonces p^(n₁+1) | p^n₂ | |G|, contradiciendo ¬p^(n₁+1) | |G|. -/
+    private theorem sylow_card_eq
         (G : FinGroup ℕ₀) (p : ℕ₀)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p)
         (hK : isSylowSubgroup G K p) :
-        H.carrier.card = K.carrier.card
+        H.carrier.card = K.carrier.card := by
+      obtain ⟨n₁, hn₁_exp, hn₁_card⟩ := hH
+      obtain ⟨n₂, hn₂_exp, hn₂_card⟩ := hK
+      obtain ⟨hdvd₁, hndvd₁⟩ := hn₁_exp
+      obtain ⟨hdvd₂, hndvd₂⟩ := hn₂_exp
+      have hn_eq : n₁ = n₂ := by
+        rcases trichotomy n₁ n₂ with h | h | h
+        · exact absurd
+            (pow_dvd_card_of_le p (σ n₁) n₂ G.carrier
+              (lt_nm_then_le_nm n₁ n₂ h) hdvd₂)
+            hndvd₁
+        · exact h
+        · exact absurd
+            (pow_dvd_card_of_le p (σ n₂) n₁ G.carrier
+              (lt_nm_then_le_nm n₂ n₁ h) hdvd₁)
+            hndvd₂
+      exact hn₁_card.trans ((congrArg (p ^ ·) hn_eq).trans hn₂_card.symm)
 
     /-- Axioma: paso de punto fijo para Sylow II.
         ∃ r ∈ G tal que r⁻¹Hr ⊆ K.

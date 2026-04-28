@@ -1,6 +1,6 @@
 # Next Steps — Eliminating the Remaining Private Axioms
 
-*Last updated: 2026-04-27*
+*Last updated: 2026-04-28*
 *Author: Julián Calderón Almendros*
 
 ---
@@ -8,15 +8,17 @@
 ## Current status
 
 `Sylow.lean` compiles with 0 errors and 0 sorry warnings.
-All three Sylow theorems are formally closed, backed by 5 private axioms:
+All three Sylow theorems are formally closed, backed by **5 private axioms** (down from 7):
 
-| Axiom | Used by | Difficulty |
-|---|---|---|
-| `sylow_card_eq` | `sylow_second` | Medium |
-| `sylow_second_incl` | `sylow_second` | Hard |
-| `sylow_center_step` | `sylow_lift_from_cauchy` | Hard |
-| `sylow_third_mod` | `sylow_third` | Very hard |
-| `sylow_third_dvd` | `sylow_third` | Very hard |
+| Axiom | Line | Used by | Difficulty |
+|---|---|---|---|
+| `wielandt_fixed_point_exists` | ~2062 | `sylow_center_step_wielandt` | Hard |
+| `wielandt_p_ndvd_r` | ~2165 | `sylow_center_step_wielandt` | Medium |
+| `sylow_second_incl` | ~2374 | `sylow_second` | Hard |
+| `sylow_third_mod` | ~2442 | `sylow_third` | Very hard |
+| `sylow_third_dvd` | ~2456 | `sylow_third` | Very hard |
+
+*(Eliminated: `sylow_card_eq` 2026-04-28, `wielandt_omega_card` 2026-04-28)*
 
 ---
 
@@ -42,47 +44,29 @@ Since `G` acts and `p ∤ |Ω|`, at least one orbit has size not divisible by `p
 
 ### Step-by-step proof plan
 
-**Step 1 — `p | C(p,k)` for `0 < k < p`** *(in `Binom.lean`)*
-
-Key tool: `binom_mul_factorials : C(n,k) · k! · (n-k)! = n!`
-
-Proof sketch:
-
-- `p | p!` (p divides its own factorial)
-- `p ∤ k!` for `k < p` (no factor from 1..k is divisible by p) — requires `prime_not_dvd_of_pos_lt`
-- `p ∤ (p-k)!` similarly
-- From `C(p,k) · k! · (p-k)! = p!` and `p ∤ (k! · (p-k)!)`, conclude `p | C(p,k)` via `coprime_dvd_of_dvd_mul`
-
-Sub-lemmas needed:
-
-- `prime_not_dvd_of_pos_lt` (private): `p prime, 0 < a < p → p ∤ a`
-- `prime_not_dvd_factorial` (private): `p prime, k < p → p ∤ k!`
-- `prime_dvd_binom_prime` (public): `p prime, 0 < k < p → p | C(p,k)`
+**Step 1 — `p | C(p,k)` for `0 < k < p`** *(in `Binom.lean`)* ✓ DONE (`prime_dvd_binom_prime`)
 
 **Step 2 — `C(p·r, p) = r · C(p·r-1, p-1)`** *(algebraic identity, in `Binom.lean`)* ✓ DONE (`binom_prime_row`)
 
-From `binom_mul_factorials` applied twice:
+**Step 3 — `C(p·r, p) ≡ r (mod p)` by induction + Lucas** *(in `Binom.lean`)* ✓ DONE (`binom_pr_p_mod`, `binom_pow_p_mod`)
 
-- `C(p·r, p) · p! · (p·r-p)! = (p·r)!`
-- `C(p·r-1, p-1) · (p-1)! · (p·r-p)! = (p·r-1)!`
+**Step 4a — `wielandt_omega_card`** *(in `Sylow.lean`)* ✓ DONE (2026-04-28)
 
-Divide: `C(p·r, p) / C(p·r-1, p-1) = (p·r)! / (p · (p·r-1)!) = r`.
+- `sublistsOfLength : List ℕ₀ → ℕ₀ → List (List ℕ₀)` with 6 properties proved.
+- `|sublistsOfLength G.carrier.elems N| = C(|G|, N)` via `binom_pascal`.
 
-In ℕ₀ (no division): prove via `mul_left_cancel` applied to the factorial equation.
+**Step 4b — `wielandt_p_ndvd_r`** *(in `Sylow.lean`)* ❌ TODO
 
-**Step 3 — `C(p·r, p) ≡ r (mod p)` by induction** *(in `Binom.lean` or new `Lucas.lean`)*
+- Goal: `¬ p ∣ r` given `p^(m+1) · r = |G|`, Cauchy, and no proper subgroup has order `p^(m+1)`.
+- Key: `binom_pow_p_mod` gives `C(|G|, N) ≡ r (mod p)` → if `p∤r` then `p∤|Ω|`.
+- For m=0: Cauchy gives subgroup of order p = p^1, contradicts h_no_proper. ✓
+- For m≥1: need inductive use of Sylow I (not available in axiom signature — may require restructuring).
 
-Use Step 2 + `p | C(p,k)` (Step 1 generalized) to show `C(p·r, p) ≡ r·C(p·r-1,p-1) ≡ r (mod p)` by induction on r.
+**Step 4c — `wielandt_fixed_point_exists`** *(in `Sylow.lean`)* ❌ TODO
 
-Full Lucas' theorem: `C(p^n·r, p^n) ≡ r (mod p)`.
-
-**Step 4 — Wielandt's combinatorial argument** *(in `Sylow.lean` or new `Wielandt.lean`)*
-
-- Define `Ω` as the list of all p^n-element sublists of G.
-- `|Ω| = C(|G|, p^n)`.
-- G-action by left translation on Ω.
-- Fixed point ↔ left-translation-stable set of size p^n ↔ subgroup.
-- `C(p^n·r, p^n) ≡ r (mod p)` and `p ∤ r` → `p ∤ |Ω|` → some orbit has size not divisible by p → size 1 (p-group orbit counting) → fixed point exists.
+- Goal: `∃ H : Subgroup G, H.carrier.card = N` (corrected conclusion as of 2026-04-28).
+- G acts on Ω by left translation; p∤|Ω| → by `mckay_orbit_count` some orbit has size not divisible by p → size 1 → stabilizer Stab_G(S₀) satisfies |Stab_G(S₀)| = N via orbit-stabilizer.
+- Needs: define G-action on `List (List ℕ₀)`, adapt `mckay_orbit_count`.
 
 **Step 5 — Replace `sylow_center_step` axiom** *(in `Sylow.lean`)*
 
@@ -231,9 +215,15 @@ Orden de ejecución: primero [2] (modifica código), después [1] (fusión mecá
 2. ~~`prime_not_dvd_factorial` (private, `Binom.lean`)~~ ✓ DONE
 3. ~~`prime_dvd_binom_prime` (public, `Binom.lean`)~~ ✓ DONE
 4. ~~Prove `C(p·r, p) = r · C(p·r-1, p-1)` (`binom_prime_row`)~~ ✓ DONE
-5. **Next**: Prove `C(p·r, p) ≡ r (mod p)` by induction on r using `binom_prime_row` and `prime_dvd_binom_prime`.
-   - Requires: modular arithmetic (Mod.lean or similar) — or inline the argument with `Divides`.
-   - Key induction: C(pr, p) = r·C(pr-1,p-1), and p | C(p,k) for 0 < k < p implies the congruence holds via an inductive congruence argument on r.
+5. ~~`binom_pr_p_mod` — C(p·r, p) ≡ r (mod p) by induction on r~~ ✓ DONE
+6. ~~`binom_pow_p_mod` — C(p^n·r, p^n) ≡ r (mod p), Lucas (Binom.lean)~~ ✓ DONE
+7. ~~`sylow_card_eq` — uniqueness of Sylow exponent (Sylow.lean)~~ ✓ DONE (2026-04-28)
+8. ~~`wielandt_omega_card` — ∃ Ω of N-sublists of G with |Ω|=C(|G|,N) (Sylow.lean)~~ ✓ DONE (2026-04-28)
+9. **Next: `wielandt_p_ndvd_r`** — ¬p∣r given p^(m+1)·r = |G| and no proper subgroup of order p^(m+1).
+   - Key tool: `binom_pow_p_mod` already available. If p∤r then p∤|Ω|.
+10. **Next: `wielandt_fixed_point_exists`** — ∃ H : Subgroup G, H.carrier.card = N.
+    - G acts on Ω; p∤|Ω| → some orbit has size not divisible by p → size 1 → Stab_G(S₀) has order N (orbit-stabilizer).
+    - Needs: adapt `mckay_orbit_count` to the action on `List (List ℕ₀)`.
 
 ---
 
@@ -243,13 +233,13 @@ Esto es un cambio masivo que afecta a todos los teoremas y estructuras dependien
 
 Dado el alcance, se presentan dos opciones:
 
-### Opción A — Cambio completo (más limpio, más trabajo)
+### Opción A — Cambio completo (más limpio, más trabajo) ESTA ES LA OPCIÓN ELEGIDA
 
 - Reescribir `Group.lean` completo con `FinGroup (α : Type) [DecidableEq α]`
 - Actualizar `Action.lean`, `Cosets.lean`, `Sylow.lean` consecuentemente
 - Esto rompe la API existente pero es más correcto matemáticamente
 
-### Opción B — Compatibilidad gradual (menos disruptivo)
+### Opción B — Compatibilidad gradual (menos disruptivo) ESTA OPCIÓN ES RECHAZADA
 
 - Definir `FinGroup` polimórfico como `FinGroup (α : Type) [DecidableEq α]`
 - Mantener `FinGroupNat` como alias de `FinGroup ℕ₀` para compatibilidad

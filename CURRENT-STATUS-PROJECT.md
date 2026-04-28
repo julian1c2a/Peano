@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-27
+**Última actualización:** 2026-04-28
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (51 jobs)   [2026-04-27]
+lake build      →  Build completed successfully (51 jobs)   [2026-04-28]
 sorry count     →  0 (5 axiomas privados en Sylow.lean, pendientes de prueba)
 warnings        →  0
 errors          →  0
@@ -23,13 +23,15 @@ errors          →  0
 
 ### Desglose de axiomas privados (Sylow.lean)
 
-| Axioma | Usado por | Dificultad | Ruta |
-|---|---|---|---|
-| `sylow_center_step` | `sylow_lift_from_cauchy` | Difícil | Wielandt (2/5 pasos completos) |
-| `sylow_card_eq` | `sylow_second` | Medio | `pow_dvd_pow` en Pow.lean |
-| `sylow_second_incl` | `sylow_second` | Difícil | H-acción sobre G/K |
-| `sylow_third_mod` | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
-| `sylow_third_dvd` | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
+*(Nota: `sylow_card_eq` fue probado el 2026-04-28. Los 5 restantes son:)*
+
+| Axioma | Línea | Usado por | Dificultad | Ruta |
+|---|---|---|---|---|
+| `wielandt_fixed_point_exists` | ~2062 | `sylow_center_step_wielandt` | Difícil | Wielandt paso 7 (órbita-estabilizador) |
+| `wielandt_p_ndvd_r` | ~2165 | `sylow_center_step_wielandt` | Medio | `binom_pow_p_mod` disponible |
+| `sylow_second_incl` | ~2374 | `sylow_second` | Difícil | H-acción sobre G/K |
+| `sylow_third_mod` | ~2442 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
+| `sylow_third_dvd` | ~2456 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
 
 ---
 
@@ -141,27 +143,32 @@ errors          →  0
 - **Group.lean**: `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]` con `carrier : FSet α`, `id : α`. Alias `abbrev ℕ₀FinGroup := FinGroup ℕ₀`.
 - Build: 52 → 51 jobs (eliminados ListList.lean y FSetFSet.lean).
 
-### Wielandt — pasos completados (2026-04-23/24)
+### Wielandt — pasos completados (2026-04-23 → 2026-04-28)
 
 - `prime_dvd_binom_prime` — p primo, 0 < k < p → p | C(p,k) ✅
 - `binom_prime_row` — C(p·r, p) = r · C(p·r−1, p−1) ✅
+- `binom_pr_p_mod` — C(p·r, p) ≡ r (mod p) por inducción sobre r ✅
+- `binom_pow_p_mod_aux` — C(p·M, p·K) ≡ C(M,K) (mod p) ✅
+- `binom_pow_p_mod` — C(p^n·r, p^n) ≡ r (mod p), n≥1 (Lucas) ✅
+- `sylow_card_eq` — unicidad del exponente de Sylow ✅ (2026-04-28)
+- `wielandt_omega_card` — ∃ Ω lista de N-sublistas de G con |Ω| = C(|G|,N) ✅ (2026-04-28)
 
 ---
 
 ## Próximos objetivos
 
-### Ruta Wielandt (eliminar `sylow_center_step`)
+### Ruta Wielandt (2 pasos restantes para `sylow_center_step`)
 
-1. **`binom_pr_p_mod`** — C(p·r, p) ≡ r (mod p) por inducción sobre r, usando `binom_prime_row` + `prime_dvd_binom_prime`. Requiere: `p | C(pr,p) - r` o argumentar directamente con divisibilidad.
-2. **Lucas' theorem** — C(p^n·r, p^n) ≡ r (mod p).
-3. **Wielandt fixed-point** — argumento de punto fijo sobre conjunto Ω de p^n-subsets de G.
-4. → Reemplaza `sylow_center_step`.
+1. **`wielandt_p_ndvd_r`** — ¬p∣r dado p^(m+1)·r = |G| y no hay subgrupo propio de orden p^(m+1).
+   - Herramienta clave: `binom_pow_p_mod` ya disponible. Si p∤r entonces p∤C(|G|,N) = |Ω|.
+2. **`wielandt_fixed_point_exists`** — ∃ H : Subgroup G, H.carrier.card = N.
+   - Argumento: G actúa sobre Ω; p∤|Ω| → alguna órbita tiene tamaño no divisible por p → tamaño 1 → estabilizador Stab_G(S₀) tiene orden N por órbita-estabilizador.
+   - Requiere: adaptar `mckay_orbit_count` a la acción sobre `List (List ℕ₀)`.
 
 ### Otros axiomas privados
 
-5. **`sylow_card_eq`** — añadir `pow_dvd_pow` a Pow.lean, luego unicidad del exponente de Sylow.
-6. **`sylow_second_incl`** — H-acción sobre G/K (coclases ya en librería), fixed point = r⁻¹Hr ⊆ K.
-7. **`sylow_third_mod`** y **`sylow_third_dvd`** — requieren normalizador y acción por conjugación sobre subgrupos.
+3. **`sylow_second_incl`** — H-acción sobre G/K (coclases ya en librería), fixed point = r⁻¹Hr ⊆ K.
+4. **`sylow_third_mod`** y **`sylow_third_dvd`** — requieren normalizador y acción por conjugación sobre subgrupos.
 
 ---
 

@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added (2026-04-28)
+
+- **Sylow.lean — `wielandt_omega_card` demostrado (axioma → teorema)**:
+  - Definida `private def sublistsOfLength : List ℕ₀ → ℕ₀ → List (List ℕ₀)` con tres casos: `(_, 𝟘) => [[]]`, `([], σ _) => []`, `(x :: xs, σ n) => map (x::·) (sublistsOfLength xs n) ++ sublistsOfLength xs (σ n)`.
+  - Demostradas 6 propiedades: `_mem_len` (longitud = n), `_mem_sub` (elementos en elems), `_mem_sorted` (sublistas heredan orden), `_nodup_result` (lista de listas sin duplicados), `_complete` (todas las sublistas válidas están), `_card` (cardinalidad = `binom (lengthₚ elems) n` por inducción vía Pascal).
+  - `wielandt_omega_card` convierte Ω en `sublistsOfLength G.carrier.elems N` y prueba las cuatro propiedades requeridas.
+  - **Trampas Lean 4.29.0 documentadas**: `rcases h with rfl` sobre `a = x` (variable de inducción) puede eliminar `x` en lugar de `a`; usar `cases` + `rw` explícito. `congrArg σ` falla porque `σ` es notación; usar `rw [ih ...]` directamente. `List.mem_cons_self` tiene args implícitos. `List.nodup_singleton` no existe; usar `List.Pairwise.cons`. `lt_trans` tiene args explícitos; usar `lt_trans_wp`.
+  - Reducción: **6 axiomas privados → 5**.
+
+- **Sylow.lean — conclusión de `wielandt_fixed_point_exists` corregida**:
+  - La conclusión anterior `∃ S ∈ Ω, ∀ g ∈ G, ∀ x ∈ S, G.op g x ∈ S` era matemáticamente falsa: la multiplicación izquierda es biyección G→G, forzando S = G.
+  - Nueva conclusión correcta: `∃ H : Subgroup G, H.carrier.card = N` (estabilizador Stab_G(S₀) del argumento de Wielandt).
+  - `sylow_center_step_wielandt` simplificada a una línea.
+
 ### Added (2026-04-27)
 
 - **FinGroup polimórfico sobre tipo arbitrario (ADR-010)**:

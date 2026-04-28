@@ -1697,97 +1697,409 @@ namespace Peano
       id_in      := K.id_in
       inv_closed := fun a ha => K.inv_closed a ha
 
+    /-- Si dos listas Nodup tienen los mismos elementos, tienen el mismo cardinal. -/
+    private theorem nodup_same_card {l₁ l₂ : List ℕ₀}
+        (h1 : l₁.Nodup) (h2 : l₂.Nodup)
+        (h12 : ∀ x, x ∈ l₁ → x ∈ l₂) (h21 : ∀ x, x ∈ l₂ → x ∈ l₁) :
+        l₁.length = l₂.length := by
+      have nodup_sub : ∀ {a b : List ℕ₀}, a.Nodup → (∀ x, x ∈ a → x ∈ b) → a.length ≤ b.length := by
+        intro a b hnd hsub
+        induction a generalizing b with
+        | nil => exact Nat.zero_le _
+        | cons x a' ih =>
+          rw [List.nodup_cons] at hnd; obtain ⟨hx_nin, hnd'⟩ := hnd
+          have hx2 := hsub x List.mem_cons_self
+          have h_ih := ih hnd' (fun y hy => by
+            have hyx : y ≠ x := fun heq => hx_nin (heq ▸ hy)
+            exact (List.mem_erase_of_ne hyx).mpr (hsub y (List.mem_cons_of_mem x hy)))
+          rw [List.length_cons]
+          have h_pos : 0 < b.length := by
+            cases b with
+            | nil => exact absurd hx2 List.not_mem_nil
+            | cons _ _ => exact Nat.zero_lt_succ _
+          have h_erase_len := List.length_erase_of_mem hx2
+          omega
+      exact Nat.le_antisymm (nodup_sub h1 h12) (nodup_sub h2 h21)
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt: sublistsOfLength e infraestructura
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Genera todas las sub-listas de `elems` con longitud exactamente `n`.
+        Cuando `elems` está ordenada, cada resultado también lo está. -/
+    private def sublistsOfLength : List ℕ₀ → ℕ₀ → List (List ℕ₀)
+      | _,       𝟘   => [[]]
+      | [],      σ _ => []
+      | x :: xs, σ n =>
+          (sublistsOfLength xs n).map (x :: ·) ++ sublistsOfLength xs (σ n)
+
+    private theorem sublistsOfLength_mem_len :
+        ∀ (elems : List ℕ₀) (n : ℕ₀) (l : List ℕ₀),
+        l ∈ sublistsOfLength elems n → lengthₚ l = n := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro n l hl
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact lengthₚ_nil
+        | succ n' =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) (σ n') = [] := rfl
+          rw [h_eq] at hl
+          exact absurd hl List.not_mem_nil
+      | cons x xs ih =>
+        intro n l hl
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength (x :: xs) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact lengthₚ_nil
+        | succ n' =>
+          have h_eq : sublistsOfLength (x :: xs) (σ n') =
+              (sublistsOfLength xs n').map (x :: ·) ++ sublistsOfLength xs (σ n') := rfl
+          rw [h_eq] at hl
+          rcases List.mem_append.mp hl with h_left | h_right
+          · obtain ⟨l', hl'_in, rfl⟩ := List.mem_map.mp h_left
+            rw [lengthₚ_cons, ih n' l' hl'_in]
+          · exact ih (σ n') l h_right
+
+    private theorem sublistsOfLength_mem_sub :
+        ∀ (elems : List ℕ₀) (n : ℕ₀) (l : List ℕ₀),
+        l ∈ sublistsOfLength elems n → ∀ y ∈ l, y ∈ elems := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro n l hl y hy
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact absurd hy List.not_mem_nil
+        | succ n' =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) (σ n') = [] := rfl
+          rw [h_eq] at hl
+          exact absurd hl List.not_mem_nil
+      | cons x' xs ih =>
+        intro n l hl y hy
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength (x' :: xs) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact absurd hy List.not_mem_nil
+        | succ n' =>
+          have h_eq : sublistsOfLength (x' :: xs) (σ n') =
+              (sublistsOfLength xs n').map (x' :: ·) ++ sublistsOfLength xs (σ n') := rfl
+          rw [h_eq] at hl
+          rcases List.mem_append.mp hl with h_left | h_right
+          · obtain ⟨l', hl'_in, rfl⟩ := List.mem_map.mp h_left
+            cases List.mem_cons.mp hy with
+            | inl heq =>
+              rw [heq]
+              exact List.mem_cons_self
+            | inr hy' => exact List.mem_cons_of_mem x' (ih n' l' hl'_in y hy')
+          · exact List.mem_cons_of_mem x' (ih (σ n') l h_right y hy)
+
+    private theorem sublistsOfLength_mem_sorted :
+        ∀ (elems : List ℕ₀), Sorted (· < ·) elems →
+        ∀ (n : ℕ₀) (l : List ℕ₀),
+        l ∈ sublistsOfLength elems n → Sorted (· < ·) l := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro _h_sorted n l hl
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact List.Pairwise.nil
+        | succ n' =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) (σ n') = [] := rfl
+          rw [h_eq] at hl
+          exact absurd hl List.not_mem_nil
+      | cons x xs ih =>
+        intro h_sorted n l hl
+        obtain ⟨h_hall, h_xs_sorted⟩ := List.pairwise_cons.mp h_sorted
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength (x :: xs) 𝟘 = [[]] := rfl
+          rw [h_eq] at hl
+          rcases List.mem_singleton.mp hl with rfl
+          exact List.Pairwise.nil
+        | succ n' =>
+          have h_eq : sublistsOfLength (x :: xs) (σ n') =
+              (sublistsOfLength xs n').map (x :: ·) ++ sublistsOfLength xs (σ n') := rfl
+          rw [h_eq] at hl
+          rcases List.mem_append.mp hl with h_left | h_right
+          · obtain ⟨l', hl'_in, rfl⟩ := List.mem_map.mp h_left
+            apply List.Pairwise.cons
+            · intro y hy
+              exact h_hall y (sublistsOfLength_mem_sub xs n' l' hl'_in y hy)
+            · exact ih h_xs_sorted n' l' hl'_in
+          · exact ih h_xs_sorted (σ n') l h_right
+
+    private theorem sublistsOfLength_nodup_result :
+        ∀ (elems : List ℕ₀), Sorted (· < ·) elems →
+        ∀ (n : ℕ₀), (sublistsOfLength elems n).Nodup := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro _h_sorted n
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+          rw [h_eq]; exact List.Pairwise.cons (fun _ hb => nomatch hb) List.Pairwise.nil
+        | succ n' =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) (σ n') = [] := rfl
+          rw [h_eq]; exact List.nodup_nil
+      | cons x xs ih =>
+        intro h_sorted n
+        obtain ⟨h_hall, h_xs_sorted⟩ := List.pairwise_cons.mp h_sorted
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength (x :: xs) 𝟘 = [[]] := rfl
+          rw [h_eq]; exact List.Pairwise.cons (fun _ hb => nomatch hb) List.Pairwise.nil
+        | succ n' =>
+          have h_eq : sublistsOfLength (x :: xs) (σ n') =
+              (sublistsOfLength xs n').map (x :: ·) ++ sublistsOfLength xs (σ n') := rfl
+          rw [h_eq]
+          apply nodup_append_of
+          · apply nodup_map_of_inj_on _ _ (ih h_xs_sorted n')
+            intro a b _ _ heq
+            exact (List.cons.inj heq).2
+          · exact ih h_xs_sorted (σ n')
+          · intro l hl_map hl_right
+            obtain ⟨l', _hl'_in, rfl⟩ := List.mem_map.mp hl_map
+            have hx_in_xs : x ∈ xs :=
+              sublistsOfLength_mem_sub xs (σ n') (x :: l') hl_right x List.mem_cons_self
+            exact absurd (h_hall x hx_in_xs) (nlt_self x)
+
+    private theorem sublistsOfLength_complete :
+        ∀ (elems : List ℕ₀), Sorted (· < ·) elems →
+        ∀ (n : ℕ₀) (l : List ℕ₀),
+        Sorted (· < ·) l → (∀ y ∈ l, y ∈ elems) → lengthₚ l = n →
+        l ∈ sublistsOfLength elems n := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro _h_sorted n l _h_lsorted h_memnil h_len
+        cases l with
+        | nil =>
+          cases n with
+          | zero =>
+            have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+            rw [h_eq]; exact List.mem_singleton.mpr rfl
+          | succ n' =>
+            rw [lengthₚ_nil] at h_len
+            exact absurd h_len.symm (Peano.Axioms.succ_neq_zero n')
+        | cons a _ =>
+          exact absurd (h_memnil a List.mem_cons_self) List.not_mem_nil
+      | cons x xs ih =>
+        intro h_sorted n l h_lsorted h_mems h_len
+        obtain ⟨h_hall, h_xs_sorted⟩ := List.pairwise_cons.mp h_sorted
+        cases n with
+        | zero =>
+          cases l with
+          | nil =>
+            have h_eq : sublistsOfLength (x :: xs) 𝟘 = [[]] := rfl
+            rw [h_eq]; exact List.mem_singleton.mpr rfl
+          | cons a l' =>
+            rw [lengthₚ_cons] at h_len
+            exact absurd h_len (Peano.Axioms.succ_neq_zero _)
+        | succ n' =>
+          cases l with
+          | nil =>
+            rw [lengthₚ_nil] at h_len
+            exact absurd h_len.symm (Peano.Axioms.succ_neq_zero _)
+          | cons a l' =>
+            have h_eq : sublistsOfLength (x :: xs) (σ n') =
+                (sublistsOfLength xs n').map (x :: ·) ++ sublistsOfLength xs (σ n') := rfl
+            rw [h_eq]
+            apply List.mem_append.mpr
+            cases (List.mem_cons.mp (h_mems a List.mem_cons_self)) with
+            | inl ha_eq =>
+              -- ha_eq : a = x, so l = a :: l' with a = x
+              left
+              apply List.mem_map.mpr
+              have h_l'sorted : Sorted (· < ·) l' := (List.pairwise_cons.mp h_lsorted).2
+              have h_l'mems : ∀ y ∈ l', y ∈ xs := by
+                intro y hy
+                have hmem : y ∈ x :: xs := h_mems y (List.mem_cons_of_mem a hy)
+                have hlt : a < y := (List.pairwise_cons.mp h_lsorted).1 y hy
+                cases List.mem_cons.mp hmem with
+                | inl heq =>
+                  rw [heq, ← ha_eq] at hlt
+                  exact absurd hlt (nlt_self a)
+                | inr hys => exact hys
+              have h_l'len : lengthₚ l' = n' := by
+                have hc : lengthₚ (a :: l') = σ n' := h_len
+                rw [lengthₚ_cons] at hc
+                exact Peano.Axioms.succ_inj _ _ hc
+              have h_in : l' ∈ sublistsOfLength xs n' :=
+                ih h_xs_sorted n' l' h_l'sorted h_l'mems h_l'len
+              exact ⟨l', h_in, by rw [ha_eq]⟩
+            | inr ha_xs =>
+              -- a ∈ xs: todos los elementos están en xs, usar IH para a :: l' en xs
+              right
+              apply ih h_xs_sorted (σ n') (a :: l') h_lsorted
+              · intro y hy
+                have hmem : y ∈ x :: xs := h_mems y hy
+                cases List.mem_cons.mp hmem with
+                | inl heq =>
+                  rw [heq] at hy
+                  have hxa : x < a := h_hall a ha_xs
+                  cases List.mem_cons.mp hy with
+                  | inl hax =>
+                    rw [hax] at hxa
+                    exact absurd hxa (nlt_self a)
+                  | inr hxl' =>
+                    have h_ax : a < x := (List.pairwise_cons.mp h_lsorted).1 x hxl'
+                    exact absurd (lt_trans_wp hxa h_ax) (nlt_self x)
+                | inr hys => exact hys
+              · exact h_len
+
+    private theorem sublistsOfLength_card :
+        ∀ (elems : List ℕ₀) (n : ℕ₀),
+        lengthₚ (sublistsOfLength elems n) = binom (lengthₚ elems) n := by
+      intro elems
+      induction elems with
+      | nil =>
+        intro n
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) 𝟘 = [[]] := rfl
+          simp only [h_eq, lengthₚ_cons, lengthₚ_nil, binom_n_zero]; rfl
+        | succ n' =>
+          have h_eq : sublistsOfLength ([] : List ℕ₀) (σ n') = [] := rfl
+          simp only [h_eq, lengthₚ_nil, binom_zero_succ]
+      | cons x xs ih =>
+        intro n
+        cases n with
+        | zero =>
+          have h_eq : sublistsOfLength (x :: xs) 𝟘 = [[]] := rfl
+          simp only [h_eq, lengthₚ_cons, lengthₚ_nil, binom_n_zero]; rfl
+        | succ n' =>
+          have h_eq : sublistsOfLength (x :: xs) (σ n') =
+              (sublistsOfLength xs n').map (x :: ·) ++ sublistsOfLength xs (σ n') := rfl
+          rw [h_eq]
+          have h_len_map : lengthₚ ((sublistsOfLength xs n').map (x :: ·)) =
+              lengthₚ (sublistsOfLength xs n') := by
+            unfold lengthₚ; rw [List.length_map]
+          rw [lengthₚ_append, h_len_map, ih n', ih (σ n'), lengthₚ_cons, ← binom_pascal]
+
     /-- Argumento de Wielandt, pieza 1:
-        El número de sublistas sin repetición de G.carrier.elems de longitud N es C(|G|, N).
-        (Este es el resultado combinatorio clave; requiere infraestructura de combinaciones.)
-        TODO: demostrar usando binom_mul_factorials y biyección con combinaciones. -/
-    private axiom wielandt_omega_card
+        Ω = sublistas ordenadas de G.carrier.elems de longitud N (representantes canónicos
+        de N-subconjuntos de G). |Ω| = C(|G|, N). -/
+    private theorem wielandt_omega_card
         (G : FinGroup ℕ₀) (N : ℕ₀) :
         ∃ (Ω : List (List ℕ₀)),
           Ω.Nodup ∧
-          (∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N) ∧
-          (∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω) ∧
-          lengthₚ Ω = binom G.carrier.card N
+          (∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+            (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N) ∧
+          (∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
+            (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω) ∧
+          lengthₚ Ω = binom G.carrier.card N := by
+      refine ⟨sublistsOfLength G.carrier.elems N, ?_, ?_, ?_, ?_⟩
+      · exact sublistsOfLength_nodup_result G.carrier.elems G.carrier.sorted N
+      · intro S hS
+        exact ⟨sorted_nodup (sublistsOfLength_mem_sorted G.carrier.elems G.carrier.sorted N S hS),
+               sublistsOfLength_mem_sorted G.carrier.elems G.carrier.sorted N S hS,
+               sublistsOfLength_mem_sub G.carrier.elems N S hS,
+               sublistsOfLength_mem_len G.carrier.elems N S hS⟩
+      · intro S hS_nd hS_sorted hS_memG hS_len
+        exact sublistsOfLength_complete G.carrier.elems G.carrier.sorted N S
+          hS_sorted hS_memG hS_len
+      · show lengthₚ (sublistsOfLength G.carrier.elems N) = binom G.carrier.card N
+        exact sublistsOfLength_card G.carrier.elems N
 
     /-- Argumento de Wielandt, pieza 2:
-        La traslación izquierda de G actúa sobre Ω y preserva |S| y la pertenencia a G.
-        Para g ∈ G y S ∈ Ω, g·S = { G.op g s : s ∈ S } también está en Ω. -/
+        Para g ∈ G y S ∈ Ω, el representante ordenado del conjunto g·S
+        (= G.carrier filtrado por membresía en {G.op g s | s ∈ S}) también está en Ω. -/
     private theorem wielandt_translate_mem
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀)
         (hΩ_nd : Ω.Nodup)
-        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
-        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+          (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
+          (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
         (g : ℕ₀) (hg : g ∈ G.carrier.elems) (S : List ℕ₀) (hS : S ∈ Ω) :
-        (S.map (G.op g)) ∈ Ω := by
-      obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS
+        (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω := by
+      obtain ⟨hS_nd, _hS_sorted, hS_memG, hS_len⟩ := hΩ_mem S hS
+      let T := G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))
+      -- S.map (G.op g) es Nodup con todos sus elementos en G
+      have hmap_nd : (S.map (G.op g)).Nodup :=
+        nodup_map_of_inj_on _ _ hS_nd (fun a b ha hb heq =>
+          op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq)
+      have hmap_G : ∀ x ∈ S.map (G.op g), x ∈ G.carrier.elems := fun x hx => by
+        obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx; exact op_mem G hg (hS_memG s hs)
+      -- T.elems y S.map tienen los mismos elementos → mismo cardinal
+      have hlen : lengthₚ T.elems = N := by
+        show Λ T.elems.length = N
+        have heq : T.elems.length = (S.map (G.op g)).length :=
+          nodup_same_card
+            (sorted_nodup T.sorted) hmap_nd
+            (fun x hx => of_decide_eq_true (List.mem_filter.mp hx).2)
+            (fun x hx => List.mem_filter.mpr ⟨hmap_G x hx, decide_eq_true hx⟩)
+        rw [heq, List.length_map]; exact hS_len
       apply hΩ_full
-      · apply nodup_map_of_inj_on _ _ hS_nd
-        intro a b ha hb heq
-        exact op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq
-      · intro x hx
-        obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx
-        exact op_mem G hg (hS_memG s hs)
-      · show Λ ((S.map (G.op g)).length) = N
-        rw [List.length_map]
-        exact hS_len
+      · exact sorted_nodup T.sorted
+      · exact T.sorted
+      · exact fun x hx => (List.mem_filter.mp hx).1
+      · exact hlen
 
     /-- Argumento de Wielandt, pieza 3:
-        Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|,
-        existe S ∈ Ω tal que para todo g ∈ G, S.map (G.op g) = S
-        (punto fijo de toda la acción de G).
-        Argumento: p | |G| implica p | suma de |órbita| no-triviales. Si p ∤ |Ω|,
-        hay órbitas de tamaño 1 (puntos fijos).
-        TODO: demostrar usando mckay_orbit_count generalizado y divisibilidad. -/
+        Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|, existe un subgrupo
+        H de G de orden N = p^(m+1).
+        Prueba: ∃ S ∈ Ω con p ∤ |Orb_G(S)|; el estabilizador Stab_G(S) tiene orden N
+        por órbita-estabilizador + gcd(N, |Orb|) = 1 + inyectividad h ↦ h·s₀.
+        TODO: reemplazar por demostración completa. -/
     private axiom wielandt_fixed_point_exists
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (hdvd_G : ∃ r : ℕ₀, Mul.mul N r = G.carrier.card)
         (hΩ_nd : Ω.Nodup)
-        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
-        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
-        (htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω, (S.map (G.op g)) ∈ Ω)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+          (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
+          (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω,
+          (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω)
         (hndvd : ¬ p ∣ lengthₚ Ω) :
-        ∃ S ∈ Ω, ∀ g ∈ G.carrier.elems, S.map (G.op g) = S
+        ∃ H : Subgroup G, H.carrier.card = N
 
     /-- Argumento de Wielandt, pieza 4:
-        Un subconjunto S ⊆ G que es punto fijo de la acción de traslación de todo G
-        (es decir, g·S = S para todo g ∈ G) con S ≠ ∅ es un subgrupo de G.
-        Argumento:
-          - S ≠ ∅ → ∃ x₀ ∈ S.
-          - (G.inv x₀)·S = S y G.inv x₀ · x₀ = G.id → G.id ∈ S.
-          - b ∈ S → (G.inv b)·G.id ∈ (G.inv b)·S = S → G.inv b ∈ S.
-          - a, b ∈ S → G.op a (G.inv b) ∈ a·S = S → subgrupo por criterio de un paso. -/
+        Un subconjunto S ⊆ G que es punto fijo SET-LEVEL (g·s ∈ S para todo g ∈ G, s ∈ S)
+        es un subgrupo de G de orden N = |S|. -/
     private theorem wielandt_fixed_is_subgroup
         (G : FinGroup ℕ₀) (S : List ℕ₀) (N : ℕ₀)
         (hS_ne : S ≠ [])
         (hS_nd : S.Nodup)
         (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
         (hS_len : lengthₚ S = N)
-        (hS_fixed : ∀ g ∈ G.carrier.elems, S.map (G.op g) = S) :
+        (hS_fixed : ∀ g ∈ G.carrier.elems, ∀ x ∈ S, G.op g x ∈ S) :
         ∃ H : Subgroup G, H.carrier.card = N := by
       cases S with
       | nil => exact absurd rfl hS_ne
       | cons x₀ S' =>
         have hx₀_G : x₀ ∈ G.carrier.elems := hS_mem x₀ List.mem_cons_self
         have hx₀inv_G : G.inv x₀ ∈ G.carrier.elems := inv_mem G hx₀_G
-        -- G.id ∈ x₀ :: S': from (G.inv x₀)·S = S and G.inv x₀ · x₀ = G.id
+        -- G.id ∈ x₀ :: S': G.inv x₀ · x₀ = G.id ∈ S
         have hid_in_S : G.id ∈ x₀ :: S' := by
-          have hfixed := hS_fixed (G.inv x₀) hx₀inv_G
-          have hmem : G.op (G.inv x₀) x₀ ∈ (x₀ :: S').map (G.op (G.inv x₀)) :=
-            List.mem_map.mpr ⟨x₀, List.mem_cons_self, rfl⟩
-          rw [hfixed] at hmem
-          rwa [(G.op_inv x₀ hx₀_G).2] at hmem
-        -- b ∈ S → G.inv b ∈ S: via (G.inv b)·G.id ∈ (G.inv b)·S = S
+          have := hS_fixed (G.inv x₀) hx₀inv_G x₀ List.mem_cons_self
+          rwa [(G.op_inv x₀ hx₀_G).2] at this
+        -- b ∈ S → G.inv b ∈ S: G.inv b · G.id = G.inv b ∈ (G.inv b)·S ⊆ S
         have hinv_in_S : ∀ b, b ∈ x₀ :: S' → G.inv b ∈ x₀ :: S' := by
           intro b hb
-          have hb_G := hS_mem b hb
-          have hbinv_G := inv_mem G hb_G
-          have hfixed := hS_fixed (G.inv b) hbinv_G
-          have hmem : G.op (G.inv b) G.id ∈ (x₀ :: S').map (G.op (G.inv b)) :=
-            List.mem_map.mpr ⟨G.id, hid_in_S, rfl⟩
-          rw [hfixed] at hmem
-          rwa [(G.op_id (G.inv b) hbinv_G).1] at hmem
-        -- Inline nodup_sub_len for the cardinality argument
+          have hbinv_G := inv_mem G (hS_mem b hb)
+          have := hS_fixed (G.inv b) hbinv_G G.id hid_in_S
+          rwa [(G.op_id (G.inv b) hbinv_G).1] at this
+        -- Inline nodup_sub_len para el argumento de cardinalidad
         have nodup_sub_len : ∀ {l₁ l₂ : List ℕ₀},
             l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
           intro l₁ l₂
@@ -1808,9 +2120,8 @@ namespace Peano
               | cons _ _ => exact Nat.zero_lt_succ _
             have h_erase_len := List.length_erase_of_mem ha2
             omega
-        -- Build carrier FSet = G.carrier ∩ (x₀ :: S')
+        -- Construir carrier = G.carrier ∩ (x₀ :: S')
         let S_fset : FSet ℕ₀ := G.carrier.filter (fun x => decide (x ∈ x₀ :: S'))
-        -- Membership characterisation
         have hmem_fset : ∀ x, x ∈ S_fset.elems ↔ x ∈ G.carrier.elems ∧ x ∈ x₀ :: S' := by
           intro x
           show x ∈ G.carrier.elems.filter (fun y => decide (y ∈ x₀ :: S')) ↔
@@ -1820,7 +2131,6 @@ namespace Peano
             exact ⟨(List.mem_filter.mp hx).1, of_decide_eq_true (List.mem_filter.mp hx).2⟩
           · intro ⟨h1, h2⟩
             exact List.mem_filter.mpr ⟨h1, decide_eq_true h2⟩
-        -- Construct the subgroup using the one-step criterion
         refine ⟨subgroup_of_op_inv_closed G S_fset
           (fun x hx => (hmem_fset x).mp hx |>.1)
           ⟨x₀, (hmem_fset x₀).mpr ⟨hx₀_G, List.mem_cons_self⟩⟩
@@ -1828,14 +2138,10 @@ namespace Peano
             obtain ⟨ha_G, ha_S⟩ := (hmem_fset a).mp ha
             obtain ⟨hb_G, hb_S⟩ := (hmem_fset b).mp hb
             apply (hmem_fset _).mpr
-            refine ⟨op_mem G ha_G (inv_mem G hb_G), ?_⟩
-            have hbinv_S := hinv_in_S b hb_S
-            have hfixed_a := hS_fixed a ha_G
-            have hmem2 : G.op a (G.inv b) ∈ (x₀ :: S').map (G.op a) :=
-              List.mem_map.mpr ⟨G.inv b, hbinv_S, rfl⟩
-            rwa [hfixed_a] at hmem2),
+            exact ⟨op_mem G ha_G (inv_mem G hb_G),
+                   hS_fixed a ha_G (G.inv b) (hinv_in_S b hb_S)⟩),
           ?_⟩
-        -- Prove carrier.card = N
+        -- carrier.card = N
         show lengthₚ S_fset.elems = N
         show Λ (G.carrier.elems.filter (fun x => decide (x ∈ x₀ :: S'))).length = N
         have hlen_eq :
@@ -1894,23 +2200,27 @@ namespace Peano
       have hN_ne : N ≠ 𝟘 := pow_ne_zero hp.1 (σ m)
       -- Construir Ω = { sublistas de G de tamaño N }
       obtain ⟨Ω, hΩ_nd, hΩ_mem, hΩ_full, hΩ_card⟩ := wielandt_omega_card G N
-      -- La traslación izquierda preserva Ω
-      have htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω, (S.map (G.op g)) ∈ Ω := by
+      -- La traslación izquierda preserva Ω (representante ordenado del conjunto imagen)
+      have htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω,
+          (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω := by
         intro g hg S hS
-        obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS
+        obtain ⟨hS_nd, _hS_sorted, hS_memG, hS_len⟩ := hΩ_mem S hS
+        let T := G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))
+        have hmap_nd : (S.map (G.op g)).Nodup :=
+          nodup_map_of_inj_on _ _ hS_nd (fun a b ha hb heq =>
+            op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq)
+        have hmap_G : ∀ x ∈ S.map (G.op g), x ∈ G.carrier.elems := fun x hx => by
+          obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx; exact op_mem G hg (hS_memG s hs)
         apply hΩ_full
-        · -- inyectividad de G.op g: usa op_cancel_left
-          apply nodup_map_of_inj_on _ _ hS_nd
-          intro a b ha hb heq
-          exact op_cancel_left G hg (hS_memG a ha) (hS_memG b hb) heq
-        · -- G.op g s ∈ G.carrier.elems
-          intro x hx
-          obtain ⟨s, hs, rfl⟩ := List.mem_map.mp hx
-          exact op_mem G hg (hS_memG s hs)
-        · -- |S.map (G.op g)| = |S| = N
-          show Λ ((S.map (G.op g)).length) = N
-          rw [List.length_map]
-          exact hS_len
+        · exact sorted_nodup T.sorted
+        · exact T.sorted
+        · exact fun x hx => (List.mem_filter.mp hx).1
+        · show Λ T.elems.length = N
+          have heq : T.elems.length = (S.map (G.op g)).length :=
+            nodup_same_card (sorted_nodup T.sorted) hmap_nd
+              (fun x hx => of_decide_eq_true (List.mem_filter.mp hx).2)
+              (fun x hx => List.mem_filter.mpr ⟨hmap_G x hx, decide_eq_true hx⟩)
+          rw [heq, List.length_map]; exact hS_len
       -- p ∤ r (por h_no_proper: si p | r, p^(m+2) | |G|, habría subgrupo propio)
       have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr hC h_no_proper
       -- Congruencia de Lucas: C(N·r, N) ≡ r (mod p)
@@ -1924,18 +2234,8 @@ namespace Peano
         intro hdvd
         exact hp_ndvd_r (modEq_zero_iff_dvd hp.1 |>.mp
           (modEq_trans (modEq_symm hcong) (modEq_zero_of_dvd hp.1 hdvd)))
-      -- ∃ punto fijo S de la acción de G sobre Ω
-      obtain ⟨S, hS_in, hS_fixed⟩ :=
-        wielandt_fixed_point_exists G Ω N p hp ⟨r, hr⟩ hΩ_nd hΩ_mem hΩ_full htrans hΩ_ndvd
-      -- Extraer propiedades de S
-      obtain ⟨hS_nd, hS_memG, hS_len⟩ := hΩ_mem S hS_in
-      -- S ≠ [] pues lengthₚ S = N ≠ 0
-      have hS_ne : S ≠ [] := by
-        intro h_nil; rw [h_nil, lengthₚ_nil] at hS_len; exact hN_ne hS_len.symm
-      -- S es subgrupo de G de orden N = p^(m+1)
-      obtain ⟨H, hH_card⟩ :=
-        wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_memG hS_len hS_fixed
-      exact ⟨H, hH_card⟩
+      -- ∃ subgrupo H de G de orden N = p^(m+1)
+      exact wielandt_fixed_point_exists G Ω N p hp ⟨r, hr⟩ hΩ_nd hΩ_mem hΩ_full htrans hΩ_ndvd
 
     private theorem sylow_center_step
       (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →

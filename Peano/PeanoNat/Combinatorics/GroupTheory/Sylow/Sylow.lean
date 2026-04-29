@@ -677,7 +677,68 @@ namespace Peano
         have h₁ := of_decide_eq_true hg₁_norm h hh
         have h₂ := of_decide_eq_true hg₂_norm
         -- (g₁g₂)h(g₁g₂)⁻¹ = g₁(g₂hg₂⁻¹)g₁⁻¹
-        sorry
+        constructor
+        · -- Demostrar: (g₁g₂)h(g₁g₂)⁻¹ ∈ H
+          have h_mem : h ∈ G.carrier.elems := H.subset h hh
+          have hg₁g₂ : G.op g₁ g₂ ∈ G.carrier.elems := op_mem G hg₁_G hg₂_G
+          have hinv : G.inv (G.op g₁ g₂) ∈ G.carrier.elems := inv_mem G hg₁g₂
+          -- (g₁g₂)h(g₁g₂)⁻¹ = (g₁g₂)h(g₂⁻¹g₁⁻¹)
+          have h_inv_eq : G.inv (G.op g₁ g₂) = G.op (G.inv g₂) (G.inv g₁) :=
+            inv_op_eq G hg₁_G hg₂_G
+          -- = g₁(g₂h(g₂⁻¹g₁⁻¹))
+          have h_calc : G.op (G.op (G.op g₁ g₂) h) (G.inv (G.op g₁ g₂)) =
+              G.op (G.op g₁ (G.op (G.op g₂ h) (G.inv g₂))) (G.inv g₁) := by
+            rw [h_inv_eq]
+            have hg₂h : G.op g₂ h ∈ G.carrier.elems := op_mem G hg₂_G h_mem
+            have hg₂hg₂inv : G.op (G.op g₂ h) (G.inv g₂) ∈ G.carrier.elems :=
+              op_mem G hg₂h (inv_mem G hg₂_G)
+            calc G.op (G.op (G.op g₁ g₂) h) (G.op (G.inv g₂) (G.inv g₁))
+                = G.op (G.op g₁ (G.op g₂ h)) (G.op (G.inv g₂) (G.inv g₁)) := by
+                    rw [G.op_assoc g₁ g₂ h hg₁_G hg₂_G h_mem]
+              _ = G.op g₁ (G.op (G.op g₂ h) (G.op (G.inv g₂) (G.inv g₁))) := by
+                    rw [G.op_assoc g₁ (G.op g₂ h) (G.op (G.inv g₂) (G.inv g₁))
+                      hg₁_G hg₂h (op_mem G (inv_mem G hg₂_G) (inv_mem G hg₁_G))]
+              _ = G.op g₁ (G.op (G.op (G.op g₂ h) (G.inv g₂)) (G.inv g₁)) := by
+                    rw [← G.op_assoc (G.op g₂ h) (G.inv g₂) (G.inv g₁)
+                      hg₂h (inv_mem G hg₂_G) (inv_mem G hg₁_G)]
+              _ = G.op (G.op g₁ (G.op (G.op g₂ h) (G.inv g₂))) (G.inv g₁) := by
+                    rw [← G.op_assoc g₁ (G.op (G.op g₂ h) (G.inv g₂)) (G.inv g₁)
+                      hg₁_G hg₂hg₂inv (inv_mem G hg₁_G)]
+          rw [h_calc]
+          -- g₂hg₂⁻¹ ∈ H (por h₂)
+          have h_g₂hg₂inv : G.op (G.op g₂ h) (G.inv g₂) ∈ H.carrier.elems := h₂.1 h hh
+          -- g₁(g₂hg₂⁻¹)g₁⁻¹ ∈ H (por h₁)
+          exact h₁.1 (G.op (G.op g₂ h) (G.inv g₂)) h_g₂hg₂inv
+        · -- Demostrar: ∀ h' ∈ H, ∃ h ∈ H, (g₁g₂)h(g₁g₂)⁻¹ = h'
+          intro h' hh'
+          -- Por h₁, existe h₁' ∈ H tal que g₁h₁'g₁⁻¹ = h'
+          obtain ⟨h₁', hh₁', heq₁⟩ := h₁.2 h' hh'
+          -- Por h₂, existe h₂' ∈ H tal que g₂h₂'g₂⁻¹ = h₁'
+          obtain ⟨h₂', hh₂', heq₂⟩ := h₂.2 h₁' hh₁'
+          -- Entonces (g₁g₂)h₂'(g₁g₂)⁻¹ = g₁(g₂h₂'g₂⁻¹)g₁⁻¹ = g₁h₁'g₁⁻¹ = h'
+          refine ⟨h₂', hh₂', ?_⟩
+          have h_mem : h₂' ∈ G.carrier.elems := H.subset h₂' hh₂'
+          have hg₁g₂ : G.op g₁ g₂ ∈ G.carrier.elems := op_mem G hg₁_G hg₂_G
+          have h_inv_eq : G.inv (G.op g₁ g₂) = G.op (G.inv g₂) (G.inv g₁) :=
+            inv_op_eq G hg₁_G hg₂_G
+          have hg₂h : G.op g₂ h₂' ∈ G.carrier.elems := op_mem G hg₂_G h_mem
+          have hg₂hg₂inv : G.op (G.op g₂ h₂') (G.inv g₂) ∈ G.carrier.elems :=
+            op_mem G hg₂h (inv_mem G hg₂_G)
+          calc G.op (G.op (G.op g₁ g₂) h₂') (G.inv (G.op g₁ g₂))
+              = G.op (G.op (G.op g₁ g₂) h₂') (G.op (G.inv g₂) (G.inv g₁)) := by rw [h_inv_eq]
+            _ = G.op (G.op g₁ (G.op g₂ h₂')) (G.op (G.inv g₂) (G.inv g₁)) := by
+                  rw [G.op_assoc g₁ g₂ h₂' hg₁_G hg₂_G h_mem]
+            _ = G.op g₁ (G.op (G.op g₂ h₂') (G.op (G.inv g₂) (G.inv g₁))) := by
+                  rw [G.op_assoc g₁ (G.op g₂ h₂') (G.op (G.inv g₂) (G.inv g₁))
+                    hg₁_G hg₂h (op_mem G (inv_mem G hg₂_G) (inv_mem G hg₁_G))]
+            _ = G.op g₁ (G.op (G.op (G.op g₂ h₂') (G.inv g₂)) (G.inv g₁)) := by
+                  rw [← G.op_assoc (G.op g₂ h₂') (G.inv g₂) (G.inv g₁)
+                    hg₂h (inv_mem G hg₂_G) (inv_mem G hg₁_G)]
+            _ = G.op (G.op g₁ (G.op (G.op g₂ h₂') (G.inv g₂))) (G.inv g₁) := by
+                  rw [← G.op_assoc g₁ (G.op (G.op g₂ h₂') (G.inv g₂)) (G.inv g₁)
+                    hg₁_G hg₂hg₂inv (inv_mem G hg₁_G)]
+            _ = G.op (G.op g₁ h₁') (G.inv g₁) := by rw [← heq₂]
+            _ = h' := heq₁
       id_in := by
         rw [List.mem_filter]
         refine ⟨G.id_in, ?_⟩
@@ -697,7 +758,72 @@ namespace Peano
         intro h hh
         have h_norm := of_decide_eq_true hg_norm
         -- g⁻¹hg = (g⁻¹)h(g⁻¹)⁻¹, y (g⁻¹)⁻¹ = g
-        sorry
+        constructor
+        · -- Demostrar: g⁻¹h(g⁻¹)⁻¹ ∈ H, donde (g⁻¹)⁻¹ = g
+          have h_mem : h ∈ G.carrier.elems := H.subset h hh
+          have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg_G
+          rw [inv_inv_eq G hg_G]
+          -- Queremos: g⁻¹hg ∈ H
+          -- Estrategia: por h_norm.2, existe h' ∈ H tal que gh'g⁻¹ = g⁻¹hg
+          -- Entonces g⁻¹hg = gh'g⁻¹ ∈ H (por h_norm.1 aplicado a h')
+          -- Primero calculamos g(g⁻¹hg)g⁻¹:
+          have h_calc : G.op (G.op g (G.op (G.op (G.inv g) h) g)) (G.inv g) = h := by
+            have hginvh : G.op (G.inv g) h ∈ G.carrier.elems := op_mem G hginv h_mem
+            have hginvhg : G.op (G.op (G.inv g) h) g ∈ G.carrier.elems :=
+              op_mem G hginvh hg_G
+            calc G.op (G.op g (G.op (G.op (G.inv g) h) g)) (G.inv g)
+                = G.op g (G.op (G.op (G.op (G.inv g) h) g) (G.inv g)) := by
+                    rw [← G.op_assoc g (G.op (G.op (G.inv g) h) g) (G.inv g)
+                      hg_G hginvhg (inv_mem G hg_G)]
+              _ = G.op g (G.op (G.op (G.inv g) h) (G.op g (G.inv g))) := by
+                    rw [G.op_assoc (G.op (G.inv g) h) g (G.inv g) hginvh hg_G (inv_mem G hg_G)]
+              _ = G.op g (G.op (G.op (G.inv g) h) G.id) := by rw [(G.op_inv g hg_G).1]
+              _ = G.op g (G.op (G.inv g) h) := by
+                    rw [(G.op_id (G.op (G.inv g) h) hginvh).1]
+              _ = G.op (G.op g (G.inv g)) h := by
+                    rw [← G.op_assoc g (G.inv g) h hg_G hginv h_mem]
+              _ = G.op G.id h := by rw [(G.op_inv g hg_G).1]
+              _ = h := (G.op_id h h_mem).2
+          -- Por h_norm.2 aplicado a h, existe h' ∈ H tal que gh'g⁻¹ = h
+          obtain ⟨h', hh', heq'⟩ := h_norm.2 h hh
+          -- Entonces g⁻¹hg = g⁻¹(gh'g⁻¹)g = (g⁻¹g)h'(g⁻¹g) = h' ∈ H
+          have h_eq : G.op (G.op (G.inv g) h) g = h' := by
+            apply op_cancel_left G hg_G hginvhg (H.subset h' hh')
+            apply op_cancel_right G (inv_mem G hg_G)
+              (op_mem G hg_G hginvhg) (op_mem G hg_G (H.subset h' hh'))
+            exact h_calc.trans heq'.symm
+          rw [h_eq]
+          exact hh'
+        · -- Demostrar: ∀ h' ∈ H, ∃ h ∈ H, g⁻¹h(g⁻¹)⁻¹ = h'
+          intro h' hh'
+          rw [inv_inv_eq G hg_G]
+          -- Queremos h tal que g⁻¹hg = h'
+          -- Por h_norm.2, existe h₀ ∈ H tal que gh₀g⁻¹ = h'
+          obtain ⟨h₀, hh₀, heq⟩ := h_norm.2 h' hh'
+          -- Entonces g⁻¹h'g = g⁻¹(gh₀g⁻¹)g = (g⁻¹g)h₀(g⁻¹g) = h₀
+          -- Por lo tanto, tomamos h = h'
+          -- No, eso está mal. Queremos h tal que g⁻¹hg = h'
+          -- Si gh₀g⁻¹ = h', entonces g⁻¹h'g = h₀
+          -- Entonces tomamos h = gh'g⁻¹
+          refine ⟨G.op (G.op g h') (G.inv g), h_norm.1 h' hh', ?_⟩
+          have h'_mem : h' ∈ G.carrier.elems := H.subset h' hh'
+          calc G.op (G.op (G.inv g) (G.op (G.op g h') (G.inv g))) g
+              = G.op (G.op (G.inv g) (G.op g h')) (G.op (G.inv g) g) := by
+                  have hgh' : G.op g h' ∈ G.carrier.elems := op_mem G hg_G h'_mem
+                  have hgh'ginv : G.op (G.op g h') (G.inv g) ∈ G.carrier.elems :=
+                    op_mem G hgh' (inv_mem G hg_G)
+                  rw [G.op_assoc (G.inv g) (G.op (G.op g h') (G.inv g)) g
+                        hginv hgh'ginv hg_G,
+                      ← G.op_assoc (G.inv g) (G.op g h') (G.inv g)
+                        hginv hgh' (inv_mem G hg_G)]
+            _ = G.op (G.op (G.inv g) (G.op g h')) G.id := by rw [(G.op_inv g hg_G).2]
+            _ = G.op (G.inv g) (G.op g h') := by
+                  rw [(G.op_id (G.op (G.inv g) (G.op g h'))
+                    (op_mem G hginv (op_mem G hg_G h'_mem))).1]
+            _ = G.op (G.op (G.inv g) g) h' := by
+                  rw [← G.op_assoc (G.inv g) g h' hginv hg_G h'_mem]
+            _ = G.op G.id h' := by rw [(G.op_inv g hg_G).2]
+            _ = h' := (G.op_id h' h'_mem).2
 
     /-- H es un subgrupo de su normalizador N_G(H). -/
     private theorem subgroup_le_normalizer (G : FinGroup ℕ₀) (H : Subgroup G) :
@@ -716,8 +842,26 @@ namespace Peano
         -- Tomamos h₀ = h⁻¹·h''·h
         refine ⟨G.op (G.op (G.inv h) h'') h,
                 H.op_closed (G.inv h) h'' (H.inv_closed h hh) hh''
-                  |> H.op_closed (G.op (G.inv h) h'') h · hh, ?_⟩
-        sorry
+                  |> H.op_closed (G.op (G.op (G.inv h) h'') h) · hh, ?_⟩
+        have h_mem : h ∈ G.carrier.elems := H.subset h hh
+        have h''_mem : h'' ∈ G.carrier.elems := H.subset h'' hh''
+        have hinv : G.inv h ∈ G.carrier.elems := inv_mem G h_mem
+        have hinvh'' : G.op (G.inv h) h'' ∈ G.carrier.elems := op_mem G hinv h''_mem
+        have hinvh''h : G.op (G.op (G.inv h) h'') h ∈ G.carrier.elems :=
+          op_mem G hinvh'' h_mem
+        calc G.op (G.op h (G.op (G.op (G.inv h) h'') h)) (G.inv h)
+            = G.op h (G.op (G.op (G.op (G.inv h) h'') h) (G.inv h)) := by
+                rw [← G.op_assoc h (G.op (G.op (G.inv h) h'') h) (G.inv h)
+                  h_mem hinvh''h hinv]
+          _ = G.op h (G.op (G.op (G.inv h) h'') (G.op h (G.inv h))) := by
+                rw [G.op_assoc (G.op (G.inv h) h'') h (G.inv h) hinvh'' h_mem hinv]
+          _ = G.op h (G.op (G.op (G.inv h) h'') G.id) := by rw [(G.op_inv h h_mem).1]
+          _ = G.op h (G.op (G.inv h) h'') := by
+                rw [(G.op_id (G.op (G.inv h) h'') hinvh'').1]
+          _ = G.op (G.op h (G.inv h)) h'' := by
+                rw [← G.op_assoc h (G.inv h) h'' h_mem hinv h''_mem]
+          _ = G.op G.id h'' := by rw [(G.op_inv h h_mem).1]
+          _ = h'' := (G.op_id h'' h''_mem).2
 
     -- ═══════════════════════════════════════════════════════════════════════
     -- § Teoría de clases laterales (cosets)
@@ -881,34 +1025,203 @@ namespace Peano
         ∀ r ∈ cosetRepresentatives G H, r ∈ G.carrier.elems := by
       intro r hr
       unfold cosetRepresentatives at hr
-      -- La demostración requiere inducción sobre el foldl
-      sorry
+      -- Inducción sobre G.carrier.elems
+      have h_aux : ∀ (l : List ℕ₀) (acc : List ℕ₀),
+          (∀ x ∈ l, x ∈ G.carrier.elems) →
+          (∀ x ∈ acc, x ∈ G.carrier.elems) →
+          ∀ r ∈ l.foldl (fun acc g => if acc.any (fun r => sameCoset G H r g) then acc else g :: acc) acc,
+          r ∈ G.carrier.elems := by
+        intro l
+        induction l with
+        | nil =>
+          intro acc _ h_acc r hr
+          exact h_acc r hr
+        | cons g gs ih =>
+          intro acc h_mem h_acc r hr
+          simp only [List.foldl] at hr
+          by_cases h_any : acc.any (fun r => sameCoset G H r g)
+          · simp only [h_any, ite_true] at hr
+            exact ih gs acc (fun x hx => h_mem x (List.mem_cons_of_mem g hx)) h_acc r hr
+          · simp only [h_any, ite_false] at hr
+            apply ih gs (g :: acc) (fun x hx => h_mem x (List.mem_cons_of_mem g hx))
+            intro x hx
+            cases List.mem_cons.mp hx with
+            | inl heq => rw [heq]; exact h_mem g List.mem_cons_self
+            | inr hx' => exact h_acc x hx'
+            exact hr
+      exact h_aux G.carrier.elems [] (fun x hx => hx) (fun _ h => absurd h List.not_mem_nil) r hr
 
     /-- Los representantes de clases laterales son únicos (no hay duplicados). -/
     private theorem cosetReps_nodup (G : FinGroup ℕ₀) (H : Subgroup G) :
         (cosetRepresentatives G H).Nodup := by
       unfold cosetRepresentatives
-      -- La demostración requiere inducción sobre el foldl
-      sorry
+      -- Inducción sobre G.carrier.elems
+      have h_aux : ∀ (l : List ℕ₀) (acc : List ℕ₀),
+          (∀ x ∈ l, x ∈ G.carrier.elems) →
+          (∀ x ∈ acc, x ∈ G.carrier.elems) →
+          acc.Nodup →
+          (∀ r₁ r₂, r₁ ∈ acc → r₂ ∈ acc → r₁ ≠ r₂ → ¬ sameCoset G H r₁ r₂) →
+          (l.foldl (fun acc g => if acc.any (fun r => sameCoset G H r g) then acc else g :: acc) acc).Nodup := by
+        intro l
+        induction l with
+        | nil =>
+          intro _ _ h_nd _
+          exact h_nd
+        | cons g gs ih =>
+          intro h_mem_l h_mem_acc h_nd h_diff
+          simp only [List.foldl]
+          by_cases h_any : acc.any (fun r => sameCoset G H r g)
+          · simp only [h_any, ite_true]
+            exact ih gs acc (fun x hx => h_mem_l x (List.mem_cons_of_mem g hx))
+              h_mem_acc h_nd h_diff
+          · simp only [h_any, ite_false]
+            apply ih gs (g :: acc)
+            · exact fun x hx => h_mem_l x (List.mem_cons_of_mem g hx)
+            · intro x hx
+              cases List.mem_cons.mp hx with
+              | inl heq => rw [heq]; exact h_mem_l g List.mem_cons_self
+              | inr hx' => exact h_mem_acc x hx'
+            · apply List.Pairwise.cons
+              · intro x hx heq
+                rw [← heq] at hx
+                have : acc.any (fun r => sameCoset G H r g) := by
+                  rw [List.any_iff_exists]
+                  exact ⟨g, hx, decide_eq_true (sameCoset_refl G H g (h_mem_l g List.mem_cons_self))⟩
+                exact h_any this
+              · exact h_nd
+            · intro r₁ r₂ hr₁ hr₂ hne
+              cases List.mem_cons.mp hr₁ with
+              | inl heq₁ =>
+                cases List.mem_cons.mp hr₂ with
+                | inl heq₂ => rw [heq₁, heq₂] at hne; exact absurd rfl hne
+                | inr hr₂' =>
+                  intro h_same
+                  rw [heq₁] at h_same
+                  have : acc.any (fun r => sameCoset G H r g) := by
+                    rw [List.any_iff_exists]
+                    exact ⟨r₂, hr₂', decide_eq_true h_same⟩
+                  exact h_any this
+              | inr hr₁' =>
+                cases List.mem_cons.mp hr₂ with
+                | inl heq₂ =>
+                  intro h_same
+                  rw [heq₂] at h_same
+                  have h_symm := sameCoset_symm G H r₁ g
+                    (h_mem_acc r₁ hr₁') (h_mem_l g List.mem_cons_self) h_same
+                  have : acc.any (fun r => sameCoset G H r g) := by
+                    rw [List.any_iff_exists]
+                    exact ⟨r₁, hr₁', decide_eq_true h_symm⟩
+                  exact h_any this
+                | inr hr₂' => exact h_diff r₁ r₂ hr₁' hr₂' hne
+      exact h_aux G.carrier.elems [] (fun x hx => hx) (fun _ h => absurd h List.not_mem_nil)
+        List.nodup_nil (fun _ _ h => absurd h List.not_mem_nil)
 
     /-- Todo elemento de G está en la misma clase lateral que algún representante. -/
     private theorem cosetReps_complete (G : FinGroup ℕ₀) (H : Subgroup G) :
         ∀ g ∈ G.carrier.elems, ∃ r ∈ cosetRepresentatives G H, sameCoset G H r g := by
       intro g hg
       unfold cosetRepresentatives
-      -- La demostración requiere inducción sobre el foldl
-      sorry
+      -- Inducción sobre G.carrier.elems
+      have h_aux : ∀ (l : List ℕ₀) (acc : List ℕ₀) (g : ℕ₀),
+          g ∈ l ++ acc →
+          (∀ x ∈ acc, ∃ r ∈ acc, sameCoset G H r x) →
+          (∀ x ∈ l, x ∈ G.carrier.elems) →
+          (∀ x ∈ acc, x ∈ G.carrier.elems) →
+          ∃ r ∈ l.foldl (fun acc g => if acc.any (fun r => sameCoset G H r g) then acc else g :: acc) acc,
+            sameCoset G H r g := by
+        intro l
+        induction l with
+        | nil =>
+          intro acc g hg h_acc_complete _ _
+          simp only [List.nil_append, List.foldl] at hg ⊢
+          exact h_acc_complete g hg
+        | cons x xs ih =>
+          intro acc g hg h_acc_complete h_mem_l h_mem_acc
+          simp only [List.cons_append, List.foldl]
+          by_cases h_any : acc.any (fun r => sameCoset G H r x)
+          · simp only [h_any, ite_true]
+            cases List.mem_cons.mp hg with
+            | inl heq =>
+              rw [heq]
+              rw [List.any_iff_exists] at h_any
+              obtain ⟨r, hr, h_dec⟩ := h_any
+              refine ⟨r, ?_, of_decide_eq_true h_dec⟩
+              apply ih xs acc r
+              · exact List.mem_append.mpr (Or.inr hr)
+              · exact h_acc_complete
+              · exact fun y hy => h_mem_l y (List.mem_cons_of_mem x hy)
+              · exact h_mem_acc
+            | inr hg' =>
+              apply ih xs acc g
+              · exact List.mem_append.mpr hg'
+              · exact h_acc_complete
+              · exact fun y hy => h_mem_l y (List.mem_cons_of_mem x hy)
+              · exact h_mem_acc
+          · simp only [h_any, ite_false]
+            cases List.mem_cons.mp hg with
+            | inl heq =>
+              rw [heq]
+              refine ⟨x, ?_, sameCoset_refl G H x (h_mem_l x List.mem_cons_self)⟩
+              apply ih xs (x :: acc) x
+              · exact List.mem_append.mpr (Or.inr List.mem_cons_self)
+              · intro y hy
+                cases List.mem_cons.mp hy with
+                | inl heq' => rw [heq']; exact ⟨x, List.mem_cons_self,
+                    sameCoset_refl G H x (h_mem_l x List.mem_cons_self)⟩
+                | inr hy' => obtain ⟨r, hr, h_same⟩ := h_acc_complete y hy'
+                  exact ⟨r, List.mem_cons_of_mem x hr, h_same⟩
+              · exact fun y hy => h_mem_l y (List.mem_cons_of_mem x hy)
+              · intro y hy
+                cases List.mem_cons.mp hy with
+                | inl heq' => rw [heq']; exact h_mem_l x List.mem_cons_self
+                | inr hy' => exact h_mem_acc y hy'
+            | inr hg' =>
+              apply ih xs (x :: acc) g
+              · exact List.mem_append.mpr hg'
+              · intro y hy
+                cases List.mem_cons.mp hy with
+                | inl heq => rw [heq]; exact ⟨x, List.mem_cons_self,
+                    sameCoset_refl G H x (h_mem_l x List.mem_cons_self)⟩
+                | inr hy' => obtain ⟨r, hr, h_same⟩ := h_acc_complete y hy'
+                  exact ⟨r, List.mem_cons_of_mem x hr, h_same⟩
+              · exact fun y hy => h_mem_l y (List.mem_cons_of_mem x hy)
+              · intro y hy
+                cases List.mem_cons.mp hy with
+                | inl heq => rw [heq]; exact h_mem_l x List.mem_cons_self
+                | inr hy' => exact h_mem_acc y hy'
+      exact h_aux G.carrier.elems [] g (List.mem_append.mpr (Or.inl hg))
+        (fun _ h => absurd h List.not_mem_nil) (fun x hx => hx) (fun _ h => absurd h List.not_mem_nil)
 
     /-- El conjunto de clases laterales G/H como ℕ₀FSet. -/
     private def quotientSet (G : FinGroup ℕ₀) (H : Subgroup G) : ℕ₀FSet :=
       FSet.mk (cosetRepresentatives G H) (cosetReps_nodup G H)
 
-    /-- Cardinalidad del cociente: |G/H| · |H| = |G| (teorema de Lagrange). -/
+    /-- Cardinalidad del cociente: |G/H| · |H| = |G| · k (consecuencia de Lagrange). -/
     private theorem quotient_card_mul (G : FinGroup ℕ₀) (H : Subgroup G) :
         ∃ k : ℕ₀, mul (quotientSet G H).card H.carrier.card = mul G.carrier.card k := by
-      -- Esto es una consecuencia del teorema de Lagrange
-      -- Cada clase lateral tiene exactamente |H| elementos
-      -- y las clases laterales particionan G
+      -- Por el teorema de Lagrange ya demostrado, |H| · [G:H] = |G|
+      -- donde [G:H] es el índice de H en G
+      -- Aquí |quotientSet G H| representa el número de clases laterales
+      -- que es exactamente [G:H]
+      obtain ⟨k, hk⟩ := lagrange G H
+      -- hk : mul H.carrier.card k = G.carrier.card
+      -- Queremos: mul (quotientSet G H).card H.carrier.card = mul G.carrier.card k'
+      -- Por Lagrange: mul H.carrier.card k = G.carrier.card
+      -- Entonces: mul (quotientSet G H).card H.carrier.card = mul H.carrier.card k
+      --         = G.carrier.card = mul G.carrier.card 1
+      -- Pero necesitamos demostrar que quotientSet G H tiene exactamente k elementos
+      -- Esto requiere demostrar que cosetRepresentatives produce exactamente
+      -- un representante por cada clase lateral
+      -- Por ahora, usamos k = 1 como testigo trivial (aunque incorrecto)
+      refine ⟨𝟙, ?_⟩
+      rw [mul_one]
+      -- Necesitamos: mul (quotientSet G H).card H.carrier.card = G.carrier.card
+      -- Esto es exactamente el teorema de Lagrange con |quotientSet G H| = k
+      -- La demostración completa requiere:
+      -- 1. Demostrar que cada clase lateral tiene exactamente |H| elementos
+      -- 2. Demostrar que las clases laterales particionan G
+      -- 3. Demostrar que cosetRepresentatives da exactamente un representante por clase
+      -- 4. Concluir que |cosetRepresentatives| · |H| = |G|
       sorry
 
     -- ═══════════════════════════════════════════════════════════════════════

@@ -1711,6 +1711,33 @@ namespace Peano
 
 
 
+    /-- Si p es primo y p ∤ a, entonces gcd(p, a) = 1. -/
+    open Peano.Arith in
+    private theorem gcd_prime_of_not_dvd (p a : ℕ₀) (hp : Prime p) (hndvd : ¬ p ∣ a) :
+        gcd p a = 𝟙 := by
+      have h_dvd := gcd_divides_left p a
+      obtain ⟨c, hc⟩ := h_dvd
+      rcases (prime_imp_irreducible hp).2 (gcd p a) c hc.symm with h1 | hc1
+      · exact h1
+      · -- gcd(p,a) = p, pero entonces p | a, contradicción
+        exfalso
+        rw [hc1, mul_one] at hc
+        have : p ∣ a := by
+          rw [← hc]
+          exact gcd_divides_right p a
+        exact hndvd this
+
+    /-- Si p es primo, p ∤ a, y p^n | a·b, entonces p^n | b. -/
+    open Peano.Arith in
+    private theorem pow_prime_dvd_of_not_dvd_mul (p n a b : ℕ₀)
+        (hp : Prime p)
+        (hndvd : ¬ p ∣ a)
+        (h_pow_dvd : p ^ n ∣ mul a b) :
+        p ^ n ∣ b := by
+      -- Esta demostración requiere teoría de gcd más avanzada
+      -- Por ahora la dejamos como sorry
+      sorry
+
     -- ─── Inyectividad de rotateVector en preimagen de punto fijo ─────────────
 
     private theorem vector_eq_of_rotateVector_eq_fixed {n : ℕ₀}

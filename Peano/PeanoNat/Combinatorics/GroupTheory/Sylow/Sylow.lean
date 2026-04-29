@@ -682,9 +682,51 @@ namespace Peano
       obtain ⟨g, hg, h_eq⟩ := h
       refine ⟨G.inv g, inv_mem G hg, ?_⟩
       -- S₂ = g·S₁, queremos S₁ = g⁻¹·S₂
-      -- Como g·S₁ = S₂, tenemos g⁻¹·(g·S₁) = g⁻¹·S₂
-      -- Y g⁻¹·(g·s) = s para todo s
-      sorry
+      -- Demostrar que filter (x ∈ S₂.map (G.op (G.inv g))) = S₁
+      ext x
+      constructor
+      · intro hx
+        -- x ∈ filter → x ∈ G.carrier y x ∈ S₂.map (G.op (G.inv g))
+        have hx_in_map : x ∈ S₂.map (G.op (G.inv g)) :=
+          of_decide_eq_true (List.mem_filter.mp hx).2
+        -- x ∈ S₂.map (G.op (G.inv g)) → ∃ y ∈ S₂, G.op (G.inv g) y = x
+        obtain ⟨y, hy_S₂, hy_eq⟩ := List.mem_map.mp hx_in_map
+        -- y ∈ S₂ = g·S₁ → ∃ z ∈ S₁, G.op g z = y
+        have hy_in_gS₁ : y ∈ S₁.map (G.op g) := by
+          have : S₂ = (G.carrier.filter (fun w => decide (w ∈ S₁.map (G.op g)))).elems := h_eq
+          rw [this] at hy_S₂
+          exact of_decide_eq_true (List.mem_filter.mp hy_S₂).2
+        obtain ⟨z, hz_S₁, hz_eq⟩ := List.mem_map.mp hy_in_gS₁
+        -- x = G.op (G.inv g) y = G.op (G.inv g) (G.op g z) = z
+        have hx_eq_z : x = z := by
+          rw [← hy_eq, ← hz_eq]
+          have hg_mem := hg
+          have hz_mem := hS₁ z hz_S₁
+          have hgz_mem := op_mem G hg hz_mem
+          calc x
+              = G.op (G.inv g) y := hy_eq.symm
+            _ = G.op (G.inv g) (G.op g z) := by rw [hz_eq]
+            _ = G.op (G.op (G.inv g) g) z := (G.op_assoc (G.inv g) g z (inv_mem G hg) hg hz_mem).symm
+            _ = G.op G.id z := by rw [(G.op_inv g hg).2]
+            _ = z := (G.op_id z hz_mem).1
+        rw [hx_eq_z]
+        exact hz_S₁
+      · intro hx_S₁
+        -- x ∈ S₁ → G.op g x ∈ S₂ (por h_eq)
+        have hgx_S₂ : G.op g x ∈ S₂ := by
+          rw [h_eq]
+          apply List.mem_filter.mpr
+          exact ⟨op_mem G hg (hS₁ x hx_S₁), decide_eq_true (List.mem_map.mpr ⟨x, hx_S₁, rfl⟩)⟩
+        -- G.op (G.inv g) (G.op g x) = x
+        have hinv_gx : G.op (G.inv g) (G.op g x) = x := by
+          have hx_mem := hS₁ x hx_S₁
+          calc G.op (G.inv g) (G.op g x)
+              = G.op (G.op (G.inv g) g) x := (G.op_assoc (G.inv g) g x (inv_mem G hg) hg hx_mem).symm
+            _ = G.op G.id x := by rw [(G.op_inv g hg).2]
+            _ = x := (G.op_id x hx_mem).1
+        -- x ∈ filter
+        apply List.mem_filter.mpr
+        exact ⟨hS₁ x hx_S₁, decide_eq_true (List.mem_map.mpr ⟨G.op g x, hgx_S₂, hinv_gx⟩)⟩
 
     /-- La relación sameOrbit es transitiva. -/
     private theorem sameOrbit_trans (G : FinGroup ℕ₀) (S₁ S₂ S₃ : List ℕ₀)
@@ -698,8 +740,49 @@ namespace Peano
       refine ⟨G.op g₂ g₁, op_mem G hg₂ hg₁, ?_⟩
       -- S₂ = g₁·S₁, S₃ = g₂·S₂
       -- Queremos S₃ = (g₂g₁)·S₁
-      -- (g₂g₁)·s = g₂·(g₁·s)
-      sorry
+      -- Demostrar que filter (x ∈ S₁.map (G.op (G.op g₂ g₁))) = S₃
+      ext x
+      constructor
+      · intro hx
+        -- x ∈ filter → x ∈ (g₂g₁)·S₁
+        have hx_in_map : x ∈ S₁.map (G.op (G.op g₂ g₁)) :=
+          of_decide_eq_true (List.mem_filter.mp hx).2
+        -- ∃ z ∈ S₁, G.op (G.op g₂ g₁) z = x
+        obtain ⟨z, hz_S₁, hz_eq⟩ := List.mem_map.mp hx_in_map
+        -- G.op (G.op g₂ g₁) z = G.op g₂ (G.op g₁ z)
+        have h_assoc : G.op (G.op g₂ g₁) z = G.op g₂ (G.op g₁ z) :=
+          G.op_assoc g₂ g₁ z hg₂ hg₁ (hS₁ z hz_S₁)
+        -- G.op g₁ z ∈ S₂
+        have hg₁z_S₂ : G.op g₁ z ∈ S₂ := by
+          rw [h_eq₁]
+          apply List.mem_filter.mpr
+          exact ⟨op_mem G hg₁ (hS₁ z hz_S₁), decide_eq_true (List.mem_map.mpr ⟨z, hz_S₁, rfl⟩)⟩
+        -- G.op g₂ (G.op g₁ z) ∈ S₃
+        have hg₂g₁z_S₃ : G.op g₂ (G.op g₁ z) ∈ S₃ := by
+          rw [h_eq₂]
+          apply List.mem_filter.mpr
+          exact ⟨op_mem G hg₂ (op_mem G hg₁ (hS₁ z hz_S₁)),
+                 decide_eq_true (List.mem_map.mpr ⟨G.op g₁ z, hg₁z_S₂, rfl⟩)⟩
+        rw [← hz_eq, h_assoc]
+        exact hg₂g₁z_S₃
+      · intro hx_S₃
+        -- x ∈ S₃ = g₂·S₂ → ∃ y ∈ S₂, G.op g₂ y = x
+        have hx_in_g₂S₂ : x ∈ S₂.map (G.op g₂) := by
+          rw [h_eq₂] at hx_S₃
+          exact of_decide_eq_true (List.mem_filter.mp hx_S₃).2
+        obtain ⟨y, hy_S₂, hy_eq⟩ := List.mem_map.mp hx_in_g₂S₂
+        -- y ∈ S₂ = g₁·S₁ → ∃ z ∈ S₁, G.op g₁ z = y
+        have hy_in_g₁S₁ : y ∈ S₁.map (G.op g₁) := by
+          rw [h_eq₁] at hy_S₂
+          exact of_decide_eq_true (List.mem_filter.mp hy_S₂).2
+        obtain ⟨z, hz_S₁, hz_eq⟩ := List.mem_map.mp hy_in_g₁S₁
+        -- x = G.op g₂ y = G.op g₂ (G.op g₁ z) = G.op (G.op g₂ g₁) z
+        have hx_eq : x = G.op (G.op g₂ g₁) z := by
+          rw [← hy_eq, ← hz_eq]
+          exact (G.op_assoc g₂ g₁ z hg₂ hg₁ (hS₁ z hz_S₁)).symm
+        -- x ∈ filter
+        apply List.mem_filter.mpr
+        exact ⟨hS₃ x hx_S₃, decide_eq_true (by rw [hx_eq]; exact List.mem_map.mpr ⟨z, hz_S₁, rfl⟩)⟩
 
     /-- Si p ∤ |Ω| y G actúa sobre Ω, entonces existe S ∈ Ω con p ∤ |Orb(S)|.
         

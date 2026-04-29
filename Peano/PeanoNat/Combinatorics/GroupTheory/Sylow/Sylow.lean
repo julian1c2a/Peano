@@ -1715,19 +1715,38 @@ namespace Peano
             have h1 : a = mul a 𝟙 := (mul_one a).symm
             have h2 : lt₀ 𝟙 (σ (σ b'')) := 
               lt_trans 𝟙 (σ 𝟙) (σ (σ b'')) (lt_succ_self 𝟙)
-                (succ_lt_succ_iff 𝟙 (σ b'') |>.mpr (lt_succ_self b''))
+                (lt_trans (σ 𝟙) (σ (σ b'')) (σ (σ b''))
+                  (succ_lt_succ_iff 𝟙 (σ b'') |>.mpr (lt_succ_self b''))
+                  (lt_irrefl (σ (σ b''))))
             rw [h1]
-            exact mul_lt_of_lt_right a 𝟙 (σ (σ b'')) ha h2
+            have h_mul : lt₀ (mul a 𝟙) (mul a (σ (σ b''))) := by
+              cases a with
+              | zero => exact absurd rfl ha
+              | succ a' =>
+                rw [mul_one]
+                have : lt₀ (σ a') (mul (σ a') (σ (σ b''))) := by
+                  have h_le : le₀ (σ a') (mul (σ a') (σ (σ b''))) :=
+                    mul_le_right (σ a') (σ (σ b'')) (Peano.Axioms.succ_neq_zero (σ b''))
+                  cases h_le with
+                  | inl h_lt => exact h_lt
+                  | inr h_eq =>
+                    have h_one : σ (σ b'') = 𝟙 := mul_eq_left_of_ne_zero (σ a') (σ (σ b''))
+                      (Peano.Axioms.succ_neq_zero a') h_eq.symm
+                    have : lt₀ 𝟙 (σ (σ b'')) := h2
+                    rw [h_one] at this
+                    exact absurd this (lt_irrefl 𝟙)
+                exact this
+            exact h_mul
           rw [← h] at h_gt
-          exact absurd h_gt (nlt_self a)
+          exact absurd h_gt (lt_irrefl a)
 
     /-- p^n ≥ p cuando p > 0 y n > 0. -/
     private theorem pow_ge_self (p n : ℕ₀) (hp : p ≠ 𝟘) (hn : lt₀ 𝟘 n) : le₀ p (p ^ n) := by
       cases n with
       | zero => exact absurd rfl (ne_of_lt 𝟘 𝟘 hn).symm
       | succ n' =>
-        have h_pow : p ^ σ n' = mul p (p ^ n') := pow_succ p n'
-        rw [h_pow]
+        have h_pow : p ^ σ n' = mul (p ^ n') p := pow_succ p n'
+        rw [h_pow, mul_comm]
         exact mul_le_right p (p ^ n') (pow_ne_zero hp n')
 
     /-- p^n ≥ 1 cuando n > 0. -/
@@ -1737,14 +1756,21 @@ namespace Peano
       | succ n' =>
         cases p with
         | zero => 
-          have h_pow : 𝟘 ^ σ n' = mul 𝟘 (𝟘 ^ n') := pow_succ 𝟘 n'
-          rw [h_pow, zero_mul]; exact le_refl 𝟘
+          have h_pow : 𝟘 ^ σ n' = mul (𝟘 ^ n') 𝟘 := pow_succ 𝟘 n'
+          rw [h_pow, mul_zero]; exact le_refl 𝟘
         | succ p' =>
-          have h_pow : σ p' ^ σ n' = mul (σ p') (σ p' ^ n') := pow_succ (σ p') n'
-          rw [h_pow]
-          have h_ge1 : le₀ 𝟙 (σ p') := Or.inl (lt_succ_self p')
-          exact le_trans 𝟙 (σ p') (mul (σ p') (pow (σ p') n')) h_ge1
-            (mul_le_right (σ p') (pow (σ p') n') (pow_ne_zero (Peano.Axioms.succ_neq_zero p') n'))
+          have h_pow : σ p' ^ σ n' = mul (σ p' ^ n') (σ p') := pow_succ (σ p') n'
+          rw [h_pow, mul_comm]
+          have h_ge1 : le₀ 𝟙 (σ p') := by
+            have : lt₀ 𝟘 p' ∨ p' = 𝟘 := by
+              cases p' with
+              | zero => exact Or.inr rfl
+              | succ p'' => exact Or.inl (lt_zero_succ p'')
+            cases this with
+            | inl h_pos => exact Or.inl (lt_trans 𝟘 (σ p') (σ (σ p')) (lt_zero_succ p') (lt_succ_self (σ p')))
+            | inr h_zero => rw [h_zero]; exact Or.inl (lt_succ_self 𝟘)
+          exact le_trans 𝟙 (σ p') (mul (σ p') (σ p' ^ n')) h_ge1
+            (mul_le_right (σ p') (σ p' ^ n') (pow_ne_zero (Peano.Axioms.succ_neq_zero p') n'))
 
     /-- Si dos listas Nodup tienen los mismos elementos, tienen el mismo cardinal. -/
     private theorem nodup_same_card {l₁ l₂ : List ℕ₀}
@@ -2221,101 +2247,6 @@ namespace Peano
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
           ¬ pow_dvd_card p (σ m) M.carrier) :
         ¬ p ∣ r
-      -- Este subgrupo H es propio (pues |H| = p^(m+2) < |G| cuando k ≥ 1)
-      -- o impropio (cuando k = 0, pero entonces r = 0, contradicción)
-      by_cases hk_zero : k = 𝟘
-      · -- Si k = 0, entonces r = p · 0 = 0
-        rw [hk_zero, mul_zero] at hk
-        -- Pero |G| = p^(m+1) · 0 = 0, contradiciendo que G es no vacío
-        rw [hk, mul_zero] at hr_eq
-        have hG_pos : lt₀ 𝟘 G.carrier.card := card_pos_of_mem_aux G.id_in
-        rw [← hr_eq] at hG_pos
-        exact absurd hG_pos not_lt_zero
-      · -- Si k ≠ 0, entonces |H| = p^(m+2) < |G|
-        have hH_ne : H.carrier.card ≠ G.carrier.card := by
-          intro heq
-          rw [hH_card] at heq
-          -- |G| = p^(m+2) · k y p^(m+2) = |G| implica k = 1
-          have hk_one : k = 𝟙 := by
-            have h_mul : Mul.mul (p ^ σ (σ m)) k = p ^ σ (σ m) := by
-              rw [← heq]; exact hG_eq
-            exact mul_eq_left_of_ne_zero (p ^ σ (σ m)) k
-              (pow_ne_zero hp.1 (σ (σ m))) h_mul
-          -- Pero entonces |G| = p^(m+2), así que r = p
-          rw [hk_one] at hk
-          have hr_p : r = p := by rw [mul_one] at hk; exact hk
-          -- Y |G| = p^(m+1) · p = p^(m+2)
-          have hG_pow : G.carrier.card = p ^ σ (σ m) := by
-            calc G.carrier.card
-                = Mul.mul (p ^ σ m) r := hr_eq.symm
-              _ = Mul.mul (p ^ σ m) p := by rw [hr_p]
-              _ = p ^ σ (σ m) := (pow_succ p (σ m)).symm
-          -- Contradicción: si |G| = p^(m+2), entonces p^(m+2) ∣ |G|
-          -- pero h_no_proper dice que ningún subgrupo propio tiene orden divisible por p^(m+1)
-          -- En particular, el subgrupo trivial tiene orden 1, y 1 ≠ |G|
-          have h_triv_ne : (trivialSubgroup G).carrier.card ≠ G.carrier.card := by
-            have h_triv_one : (trivialSubgroup G).carrier.card = 𝟙 := rfl
-            rw [h_triv_one, hG_pow]
-            intro heq_bad
-            -- p^(m+2) = 1 es imposible pues p ≥ 2
-            have hp_ge2 : le₀ 𝟚 p := prime_ge_two hp
-            have h_pow_ge2 : le₀ 𝟚 (p ^ σ (σ m)) := by
-              have h1 : le₀ p (p ^ σ (σ m)) := by
-                cases m with
-                | zero =>
-                  rw [pow_succ, pow_succ, pow_zero, one_mul]
-                  exact mul_le_right p p hp.1
-                | succ m' =>
-                  have h_pos : lt₀ 𝟘 (σ (σ m')) := pos_of_ne_zero _ (succ_neq_zero (σ m'))
-                  exact pow_ge_self p (σ (σ m')) hp.1 h_pos
-              exact le_trans 𝟚 p (p ^ σ (σ m)) hp_ge2 h1
-            rw [← heq_bad] at h_pow_ge2
-            exact absurd (lt_succ_self 𝟙) (le_then_ngt 𝟚 𝟙 h_pow_ge2)
-          -- Ahora, p^(m+1) ∣ 1 (el orden del subgrupo trivial)
-          have h_dvd_triv : pow_dvd_card p (σ m) (trivialSubgroup G).carrier := by
-            have h_triv_one : (trivialSubgroup G).carrier.card = 𝟙 := rfl
-            rw [h_triv_one]
-            -- Necesitamos p^(m+1) ∣ 1, lo cual es falso
-            -- Esto es una contradicción directa
-            exfalso
-            have h_pow_ge1 : le₀ 𝟙 (p ^ σ m) := by
-              cases m with
-              | zero => rw [pow_succ, pow_zero, one_mul]; exact lt_imp_le 𝟙 p (one_lt_prime hp)
-              | succ m' =>
-                have h_pos : lt₀ 𝟘 (σ m') := pos_of_ne_zero _ (succ_neq_zero m')
-                exact pow_ge_one p (σ m') h_pos
-            have h_pow_ne1 : p ^ σ m ≠ 𝟙 := by
-              intro heq_one
-              cases m with
-              | zero =>
-                rw [pow_succ, pow_zero, one_mul] at heq_one
-                have h_p_ge2 : le₀ 𝟚 p := prime_ge_two hp
-                rw [heq_one] at h_p_ge2
-                exact absurd (lt_succ_self 𝟙) (le_then_ngt 𝟚 𝟙 h_p_ge2)
-              | succ m' =>
-                have h_p_ge2 : le₀ 𝟚 p := prime_ge_two hp
-                have h_pow_ge2 : le₀ 𝟚 (p ^ σ (σ m')) := by
-                  have h1 : le₀ p (p ^ σ (σ m')) := by
-                    have h_pos : lt₀ 𝟘 (σ (σ m')) := pos_of_ne_zero _ (succ_neq_zero (σ m'))
-                    exact pow_ge_self p (σ (σ m')) hp.1 h_pos
-                  exact le_trans 𝟚 p (p ^ σ (σ m')) h_p_ge2 h1
-                rw [heq_one] at h_pow_ge2
-                exact absurd (lt_succ_self 𝟙) (le_then_ngt 𝟚 𝟙 h_pow_ge2)
-            rcases h_pow_ge1 with h_lt | h_eq
-            · -- p^(m+1) > 1, así que p^(m+1) no divide 1
-              have : ∀ a b : ℕ₀, lt₀ 𝟙 a → a ∣ b → lt₀ 𝟙 b := by
-                intro a b ha ⟨c, hc⟩
-                cases c with
-                | zero => rw [mul_zero] at hc; rw [← hc]; exact ha
-                | succ c' =>
-                  rw [← hc]
-                  exact lt_of_lt_of_le ha (mul_le_right a (σ c') (succ_neq_zero c'))
-              exact absurd (lt_succ_self 𝟙) (le_then_ngt 𝟚 𝟙 (lt_imp_le 𝟙 𝟚 (this (p ^ σ m) 𝟙 
-                (lt_of_le_of_ne 𝟙 (p ^ σ m) h_pow_ge1 (Ne.symm h_pow_ne1)) ⟨𝟙, mul_one (p ^ σ m)⟩)))
-            · exact h_pow_ne1 h_eq
-          exact h_no_proper (trivialSubgroup G) h_triv_ne h_dvd_triv
-        -- Contradicción: H es un subgrupo propio con p^(m+1) ∣ |H|
-        exact h_no_proper H hH_ne ⟨p, by rw [hH_card, pow_succ]⟩
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
         Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo

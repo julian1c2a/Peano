@@ -606,6 +606,95 @@ namespace Peano
           have hxy : x = y := op_cancel_right G hys_mem hx_mem hy_mem h_prod_eq
           rw [hxy, hxs_ys]
 
+    -- ─── Infraestructura de órbitas para acciones de grupos ──────────────────
+
+    /-- La órbita de un elemento S bajo la acción de traslación de G.
+        Orb_G(S) = {g·S | g ∈ G} donde g·S es el representante ordenado. -/
+    private def orbit (G : FinGroup ℕ₀) (S : List ℕ₀) : List (List ℕ₀) :=
+      G.carrier.elems.map (fun g => 
+        (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems)
+
+    /-- El estabilizador de S: Stab_G(S) = {g ∈ G | g·S = S}. -/
+    private def stabilizer (G : FinGroup ℕ₀) (S : List ℕ₀) : List ℕ₀ :=
+      G.carrier.elems.filter (fun g => 
+        decide ((G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems = S))
+
+    /-- Si S ∈ Ω y g ∈ G, entonces g·S ∈ Ω (ya demostrado como wielandt_translate_mem). -/
+    private theorem orbit_mem_of_action
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀)
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+          (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
+          (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (S : List ℕ₀) (hS : S ∈ Ω) (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
+        (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω :=
+      wielandt_translate_mem G Ω N hΩ_nd hΩ_mem hΩ_full g hg S hS
+
+    /-- Teorema órbita-estabilizador (versión simplificada para listas):
+        |Orb(S)| · |Stab(S)| = |G|.
+        
+        Esta es una versión axiomática temporal. La demostración completa requiere:
+        1. Definir la biyección entre G/Stab(S) y Orb(S)
+        2. Demostrar que g₁·S = g₂·S iff g₁⁻¹g₂ ∈ Stab(S)
+        3. Aplicar el teorema de Lagrange a Stab(S) ≤ G
+        
+        TODO: reemplazar por demostración completa. -/
+    private axiom orbit_stabilizer_theorem
+        (G : FinGroup ℕ₀) (S : List ℕ₀)
+        (hS_nd : S.Nodup)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) :
+        ∃ k : ℕ₀, Mul.mul (lengthₚ (orbit G S)) (lengthₚ (stabilizer G S)) = 
+          Mul.mul G.carrier.card k
+
+    /-- Si p ∤ |Ω| y G actúa sobre Ω, entonces existe S ∈ Ω con p ∤ |Orb(S)|.
+        
+        Prueba por contradicción: si p | |Orb(S)| para todo S, entonces
+        particionando Ω en órbitas, tendríamos |Ω| = Σ |Orb(S_i)| donde cada
+        |Orb(S_i)| es divisible por p, luego p | |Ω|, contradicción.
+        
+        Esta versión simplificada asume que podemos particionar Ω en órbitas.
+        TODO: demostrar la partición explícitamente. -/
+    private theorem exists_orbit_not_dvd_p
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (p : ℕ₀)
+        (hp : Prime p)
+        (hΩ_ne : Ω ≠ [])
+        (hndvd : ¬ p ∣ lengthₚ Ω) :
+        ∃ S ∈ Ω, ¬ p ∣ lengthₚ (orbit G S) := by
+      -- Por contradicción: supongamos que p | |Orb(S)| para todo S ∈ Ω
+      by_contra h_all_dvd
+      push_neg at h_all_dvd
+      -- Entonces para todo S ∈ Ω, p | |Orb(S)|
+      have h_dvd_all : ∀ S ∈ Ω, p ∣ lengthₚ (orbit G S) := h_all_dvd
+      -- Necesitamos demostrar que esto implica p | |Ω|
+      -- Esto requiere particionar Ω en órbitas y sumar
+      -- Por ahora, usamos sorry ya que requiere infraestructura adicional
+      sorry
+
+    /-- Si S ∈ Ω y |Orb(S)| no es divisible por p, y p^n | |G|,
+        entonces |Stab(S)| es divisible por p^n.
+        
+        Prueba: Por órbita-estabilizador, |Orb(S)| · |Stab(S)| = |G| · k.
+        Como p^n | |G| y gcd(p^n, |Orb(S)|) = 1 (pues p ∤ |Orb(S)|),
+        tenemos p^n | |Stab(S)|.
+        
+        TODO: demostrar usando propiedades de gcd y divisibilidad. -/
+    private theorem stab_dvd_of_orbit_not_dvd
+        (G : FinGroup ℕ₀) (S : List ℕ₀) (p n : ℕ₀)
+        (hp : Prime p)
+        (hS_nd : S.Nodup)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (h_orbit_ndvd : ¬ p ∣ lengthₚ (orbit G S))
+        (h_pow_dvd_G : pow_dvd_card p n G.carrier) :
+        pow_dvd_card p n (FSet.mk (stabilizer G S) 
+          (List.filter_sublist.nodup (sorted_nodup G.carrier.sorted))) := by
+      -- Aplicar órbita-estabilizador
+      obtain ⟨k, hk⟩ := orbit_stabilizer_theorem G S hS_nd hS_mem
+      -- |Orb(S)| · |Stab(S)| = |G| · k
+      -- Como p^n | |G|, tenemos p^n | |G| · k
+      -- Como p ∤ |Orb(S)|, por propiedades de divisibilidad, p^n | |Stab(S)|
+      sorry
+
     -- ─── Infraestructura de rotación iterada ─────────────────────────────────
 
 
@@ -2193,15 +2282,54 @@ namespace Peano
           exact h_in_filter
         exact wielandt_fixed_is_subgroup G S₀ N hS₀_ne hS₀_nd hS₀_mem hS₀_len hS₀_closed
       
-      · -- S₀ no es punto fijo: necesitamos encontrar otro S que sí lo sea
-        -- Este es el caso difícil que requiere el argumento de conteo de órbitas
-        -- Por ahora, usamos sorry ya que requiere:
-        -- 1. Definir la órbita de cada S bajo la acción de G
-        -- 2. Particionar Ω en órbitas
-        -- 3. Contar: |Ω| = Σ |Orb(S_i)| donde S_i son representantes de órbitas
-        -- 4. Como p ∤ |Ω| y cada |Orb(S)| divide |G| (que es divisible por p),
-        --    debe existir al menos una órbita de tamaño 1 (punto fijo)
-        sorry
+      · -- S₀ no es punto fijo: usar el argumento de conteo de órbitas
+        -- Como p ∤ |Ω|, existe S ∈ Ω con p ∤ |Orb(S)|
+        obtain ⟨S, hS_in, hS_orbit_ndvd⟩ := exists_orbit_not_dvd_p G Ω p hp hΩ_ne hndvd
+        obtain ⟨hS_nd, _hS_sorted, hS_mem, hS_len⟩ := hΩ_mem S hS_in
+        
+        -- Por órbita-estabilizador y p ∤ |Orb(S)|, tenemos N | |Stab(S)|
+        -- donde N = p^(m+1) (asumiendo que hdvd_G da N | |G|)
+        obtain ⟨r, hr⟩ := hdvd_G
+        -- Necesitamos extraer m de N = p^(m+1)
+        -- Por ahora, asumimos que podemos aplicar el argumento directamente
+        
+        -- Si |Stab(S)| es divisible por N y ningún subgrupo propio de G
+        -- tiene orden divisible por N (hipótesis implícita en Wielandt),
+        -- entonces Stab(S) = G, es decir, S es punto fijo
+        
+        -- Verificar si S es punto fijo
+        by_cases hS_fixed : ∀ g ∈ G.carrier.elems,
+            (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems = S
+        · -- S es punto fijo: aplicar wielandt_fixed_is_subgroup
+          have hS_ne : S ≠ [] := by
+            intro h0
+            rw [h0, lengthₚ_nil] at hS_len
+            have hN_ne : N ≠ 𝟘 := by
+              intro hN0
+              rw [hN0, zero_mul] at hr
+              exact absurd (card_pos_of_mem_aux G.id_in) (hr ▸ lt_irrefl 𝟘)
+            exact hN_ne hS_len
+          have hS_closed : ∀ g ∈ G.carrier.elems, ∀ x ∈ S, G.op g x ∈ S := by
+            intro g hg x hx
+            have h_eq := hS_fixed g hg
+            have h_in_filter : G.op g x ∈
+                (G.carrier.filter (fun y => decide (y ∈ S.map (G.op g)))).elems := by
+              apply List.mem_filter.mpr
+              exact ⟨op_mem G hg (hS_mem x hx),
+                     decide_eq_true (List.mem_map.mpr ⟨x, hx, rfl⟩)⟩
+            rw [h_eq] at h_in_filter
+            exact h_in_filter
+          exact wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_mem hS_len hS_closed
+        
+        · -- S no es punto fijo: esto contradice el argumento de órbita-estabilizador
+          -- Si p ∤ |Orb(S)| y N | |G|, entonces N | |Stab(S)|
+          -- Pero si S no es punto fijo, |Stab(S)| < |G|
+          -- Por la hipótesis de Wielandt (ningún subgrupo propio tiene orden ≥ N),
+          -- esto es imposible
+          -- 
+          -- Este argumento requiere formalizar completamente la relación entre
+          -- el estabilizador como subgrupo y las hipótesis de Wielandt
+          sorry
 
     /-- Argumento de Wielandt, pieza 4:
         Un subconjunto S ⊆ G que es punto fijo SET-LEVEL (g·s ∈ S para todo g ∈ G, s ∈ S)

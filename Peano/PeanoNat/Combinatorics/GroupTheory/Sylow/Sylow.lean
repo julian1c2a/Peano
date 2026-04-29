@@ -647,14 +647,75 @@ namespace Peano
         ∃ k : ℕ₀, Mul.mul (lengthₚ (orbit G S)) (lengthₚ (stabilizer G S)) = 
           Mul.mul G.carrier.card k
 
+    /-- Relación de equivalencia: S₁ ~ S₂ si están en la misma órbita. -/
+    private def sameOrbit (G : FinGroup ℕ₀) (S₁ S₂ : List ℕ₀) : Prop :=
+      ∃ g ∈ G.carrier.elems,
+        (G.carrier.filter (fun x => decide (x ∈ S₁.map (G.op g)))).elems = S₂
+
+    /-- La relación sameOrbit es reflexiva. -/
+    private theorem sameOrbit_refl (G : FinGroup ℕ₀) (S : List ℕ₀) 
+        (hS : ∀ x ∈ S, x ∈ G.carrier.elems) : sameOrbit G S S := by
+      refine ⟨G.id, G.id_in, ?_⟩
+      -- Necesitamos: filter (x ∈ S.map (G.op G.id)) = S
+      -- Como G.op G.id x = x, tenemos S.map (G.op G.id) = S
+      have h_map : S.map (G.op G.id) = S := by
+        induction S with
+        | nil => rfl
+        | cons x xs ih =>
+          simp only [List.map]
+          rw [(G.op_id x (hS x List.mem_cons_self)).1]
+          exact congrArg (x :: ·) (ih (fun y hy => hS y (List.mem_cons_of_mem x hy)))
+      -- Entonces filter (x ∈ S) sobre G.carrier da exactamente S (ordenado)
+      ext
+      constructor
+      · intro hx
+        exact of_decide_eq_true (List.mem_filter.mp hx).2
+      · intro hx
+        rw [h_map] at hx
+        exact List.mem_filter.mpr ⟨hS _ hx, decide_eq_true hx⟩
+
+    /-- La relación sameOrbit es simétrica. -/
+    private theorem sameOrbit_symm (G : FinGroup ℕ₀) (S₁ S₂ : List ℕ₀)
+        (hS₁ : ∀ x ∈ S₁, x ∈ G.carrier.elems)
+        (hS₂ : ∀ x ∈ S₂, x ∈ G.carrier.elems)
+        (h : sameOrbit G S₁ S₂) : sameOrbit G S₂ S₁ := by
+      obtain ⟨g, hg, h_eq⟩ := h
+      refine ⟨G.inv g, inv_mem G hg, ?_⟩
+      -- S₂ = g·S₁, queremos S₁ = g⁻¹·S₂
+      -- Como g·S₁ = S₂, tenemos g⁻¹·(g·S₁) = g⁻¹·S₂
+      -- Y g⁻¹·(g·s) = s para todo s
+      sorry
+
+    /-- La relación sameOrbit es transitiva. -/
+    private theorem sameOrbit_trans (G : FinGroup ℕ₀) (S₁ S₂ S₃ : List ℕ₀)
+        (hS₁ : ∀ x ∈ S₁, x ∈ G.carrier.elems)
+        (hS₂ : ∀ x ∈ S₂, x ∈ G.carrier.elems)
+        (hS₃ : ∀ x ∈ S₃, x ∈ G.carrier.elems)
+        (h₁₂ : sameOrbit G S₁ S₂) (h₂₃ : sameOrbit G S₂ S₃) : 
+        sameOrbit G S₁ S₃ := by
+      obtain ⟨g₁, hg₁, h_eq₁⟩ := h₁₂
+      obtain ⟨g₂, hg₂, h_eq₂⟩ := h₂₃
+      refine ⟨G.op g₂ g₁, op_mem G hg₂ hg₁, ?_⟩
+      -- S₂ = g₁·S₁, S₃ = g₂·S₂
+      -- Queremos S₃ = (g₂g₁)·S₁
+      -- (g₂g₁)·s = g₂·(g₁·s)
+      sorry
+
     /-- Si p ∤ |Ω| y G actúa sobre Ω, entonces existe S ∈ Ω con p ∤ |Orb(S)|.
         
         Prueba por contradicción: si p | |Orb(S)| para todo S, entonces
         particionando Ω en órbitas, tendríamos |Ω| = Σ |Orb(S_i)| donde cada
         |Orb(S_i)| es divisible por p, luego p | |Ω|, contradicción.
         
-        Esta versión simplificada asume que podemos particionar Ω en órbitas.
-        TODO: demostrar la partición explícitamente. -/
+        La demostración completa requiere:
+        1. Definir la relación de equivalencia "estar en la misma órbita"
+        2. Demostrar que es reflexiva, simétrica y transitiva
+        3. Particionar Ω en clases de equivalencia
+        4. Demostrar que cada clase tiene el mismo tamaño que la órbita de su representante
+        5. Sumar sobre todas las clases para obtener |Ω|
+        
+        Por ahora, usamos los lemas auxiliares y dejamos la parte combinatoria
+        de la suma como sorry. -/
     private theorem exists_orbit_not_dvd_p
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (p : ℕ₀)
         (hp : Prime p)
@@ -666,9 +727,14 @@ namespace Peano
       push_neg at h_all_dvd
       -- Entonces para todo S ∈ Ω, p | |Orb(S)|
       have h_dvd_all : ∀ S ∈ Ω, p ∣ lengthₚ (orbit G S) := h_all_dvd
-      -- Necesitamos demostrar que esto implica p | |Ω|
-      -- Esto requiere particionar Ω en órbitas y sumar
-      -- Por ahora, usamos sorry ya que requiere infraestructura adicional
+      -- La demostración completa requiere:
+      -- 1. Particionar Ω en órbitas usando sameOrbit
+      -- 2. Para cada clase de equivalencia, su tamaño = |Orb(representante)|
+      -- 3. |Ω| = Σ |Orb(S_i)| sobre representantes
+      -- 4. Como p | |Orb(S_i)| para todo i, tenemos p | |Ω|
+      -- 
+      -- Esto requiere infraestructura adicional sobre particiones y sumas
+      -- que no está disponible en el código base actual.
       sorry
 
     /-- Si S ∈ Ω y |Orb(S)| no es divisible por p, y p^n | |G|,

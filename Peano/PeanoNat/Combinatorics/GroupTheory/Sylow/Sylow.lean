@@ -79,6 +79,28 @@ namespace Peano
 
     Si `p` es primo y `p^n | |G|`, entonces `G` tiene un subgrupo de orden `p^n`.
     En particular, `G` tiene un subgrupo de Sylow para cada primo `p | |G|`.
+    
+    ## Estado de la demostración:
+    
+    ✓ Completado:
+    - cauchy_minimal: Existencia de subgrupos de orden p (argumento de McKay)
+    - sylow_lift_from_cauchy: Inducción fuerte para p^n
+    - wielandt_omega_card: Construcción del conjunto Ω
+    - wielandt_translate_mem: Acción de G sobre Ω
+    - wielandt_fixed_is_subgroup: Puntos fijos son subgrupos
+    - Infraestructura de órbitas: sameOrbit con reflexividad, simetría, transitividad
+    
+    ⚠ Axiomas temporales (requieren más infraestructura):
+    - orbit_stabilizer_theorem: |Orb(S)| · |Stab(S)| = |G| · k
+      (Requiere: teorema de Lagrange para estabilizadores, biyección G/Stab → Orb)
+    - exists_orbit_not_dvd_p: Si p ∤ |Ω|, existe S con p ∤ |Orb(S)|
+      (Requiere: partición formal de Ω en órbitas, suma sobre particiones)
+    - stab_dvd_of_orbit_not_dvd: Si p ∤ |Orb(S)|, entonces p^n | |Stab(S)|
+      (Requiere: propiedades de gcd, divisibilidad en productos)
+    - wielandt_p_ndvd_r: Si p | r, contradicción con h_no_proper
+      (Requiere: construcción explícita de subgrupo de orden p^(m+1))
+    - wielandt_fixed_point_exists (caso no-fijo): Contradicción final
+      (Requiere: completar los axiomas anteriores + construir Stab(S) como Subgroup)
     -/
 
     -- ── Lemas auxiliares privados para cauchy_minimal ────────────────────────────
@@ -784,21 +806,27 @@ namespace Peano
         apply List.mem_filter.mpr
         exact ⟨hS₃ x hx_S₃, decide_eq_true (by rw [hx_eq]; exact List.mem_map.mpr ⟨z, hz_S₁, rfl⟩)⟩
 
+    /-- Lema auxiliar: si p divide todos los sumandos de una suma, divide la suma total. -/
+    private theorem dvd_sum_of_dvd_all (p : ℕ₀) (l : List ℕ₀) 
+        (h : ∀ x ∈ l, p ∣ x) : p ∣ List.foldl Peano.Add.add 𝟘 l := by
+      induction l with
+      | nil => exact divides_zero p
+      | cons x xs ih =>
+        have hx := h x List.mem_cons_self
+        have hxs := fun y hy => h y (List.mem_cons_of_mem x hy)
+        simp only [List.foldl]
+        obtain ⟨k₁, hk₁⟩ := hx
+        obtain ⟨k₂, hk₂⟩ := ih hxs
+        refine ⟨add k₁ k₂, ?_⟩
+        calc mul p (add k₁ k₂)
+            = add (mul p k₁) (mul p k₂) := mul_add p k₁ k₂
+          _ = add x (List.foldl Peano.Add.add 𝟘 xs) := by rw [hk₁, hk₂]
+
     /-- Si p ∤ |Ω| y G actúa sobre Ω, entonces existe S ∈ Ω con p ∤ |Orb(S)|.
         
-        Prueba por contradicción: si p | |Orb(S)| para todo S, entonces
-        particionando Ω en órbitas, tendríamos |Ω| = Σ |Orb(S_i)| donde cada
-        |Orb(S_i)| es divisible por p, luego p | |Ω|, contradicción.
-        
-        La demostración completa requiere:
-        1. Definir la relación de equivalencia "estar en la misma órbita"
-        2. Demostrar que es reflexiva, simétrica y transitiva
-        3. Particionar Ω en clases de equivalencia
-        4. Demostrar que cada clase tiene el mismo tamaño que la órbita de su representante
-        5. Sumar sobre todas las clases para obtener |Ω|
-        
-        Por ahora, usamos los lemas auxiliares y dejamos la parte combinatoria
-        de la suma como sorry. -/
+        Prueba simplificada: Por contradicción, si p | |Orb(S)| para todo S,
+        entonces considerando que Ω se puede cubrir por órbitas disjuntas,
+        tendríamos que |Ω| es suma de múltiplos de p, luego p | |Ω|. -/
     private theorem exists_orbit_not_dvd_p
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (p : ℕ₀)
         (hp : Prime p)
@@ -810,14 +838,17 @@ namespace Peano
       push_neg at h_all_dvd
       -- Entonces para todo S ∈ Ω, p | |Orb(S)|
       have h_dvd_all : ∀ S ∈ Ω, p ∣ lengthₚ (orbit G S) := h_all_dvd
-      -- La demostración completa requiere:
-      -- 1. Particionar Ω en órbitas usando sameOrbit
-      -- 2. Para cada clase de equivalencia, su tamaño = |Orb(representante)|
-      -- 3. |Ω| = Σ |Orb(S_i)| sobre representantes
-      -- 4. Como p | |Orb(S_i)| para todo i, tenemos p | |Ω|
+      -- Argumento simplificado: cada S está en su propia órbita
+      -- y las órbitas particionan Ω (aunque no lo demostremos formalmente)
+      -- Por lo tanto, |Ω| es suma de |Orb(S_i)| para representantes S_i
+      -- Como cada |Orb(S_i)| es divisible por p, |Ω| es divisible por p
       -- 
-      -- Esto requiere infraestructura adicional sobre particiones y sumas
-      -- que no está disponible en el código base actual.
+      -- Para formalizar esto completamente necesitaríamos:
+      -- - Construir la lista de representantes de órbitas
+      -- - Demostrar que Ω = ⋃ Orb(S_i) (unión disjunta)
+      -- - Aplicar dvd_sum_of_dvd_all
+      -- 
+      -- Por ahora, usamos el argumento informal como sorry
       sorry
 
     /-- Si S ∈ Ω y |Orb(S)| no es divisible por p, y p^n | |G|,
@@ -2470,14 +2501,20 @@ namespace Peano
             exact h_in_filter
           exact wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_mem hS_len hS_closed
         
-        · -- S no es punto fijo: esto contradice el argumento de órbita-estabilizador
-          -- Si p ∤ |Orb(S)| y N | |G|, entonces N | |Stab(S)|
-          -- Pero si S no es punto fijo, |Stab(S)| < |G|
-          -- Por la hipótesis de Wielandt (ningún subgrupo propio tiene orden ≥ N),
-          -- esto es imposible
+        · -- S no es punto fijo: contradicción con órbita-estabilizador
           -- 
-          -- Este argumento requiere formalizar completamente la relación entre
-          -- el estabilizador como subgrupo y las hipótesis de Wielandt
+          -- Argumento: Por órbita-estabilizador, |Orb(S)| · |Stab(S)| = |G| · k
+          -- Como p ∤ |Orb(S)| y N = p^(m+1) | |G|, tenemos N | |Stab(S)|
+          -- (por stab_dvd_of_orbit_not_dvd, que aún tiene sorry)
+          -- 
+          -- Pero Stab(S) es un subgrupo propio de G (pues S no es punto fijo),
+          -- lo que contradice h_no_proper implícito en el contexto de Wielandt.
+          -- 
+          -- Para completar esto necesitamos:
+          -- 1. Terminar stab_dvd_of_orbit_not_dvd (requiere gcd y divisibilidad)
+          -- 2. Construir Stab(S) como Subgroup G (no solo como lista)
+          -- 3. Demostrar que Stab(S) ≠ G cuando S no es punto fijo
+          -- 4. Aplicar la contradicción con h_no_proper
           sorry
 
     /-- Argumento de Wielandt, pieza 4:
@@ -2779,6 +2816,16 @@ namespace Peano
     # § 3. Segundo Teorema de Sylow (conjugación)
 
     Todos los subgrupos de Sylow `p` de `G` son conjugados entre sí.
+    
+    ## Estado de la demostración:
+    
+    ✓ Completado:
+    - sylow_card_eq: Unicidad de la valuación p-ádica
+    - sylow_second: Conjugación usando inclusión + igualdad de cardinales
+    
+    ⚠ Axiomas temporales:
+    - sylow_second_incl: Existencia de r con r⁻¹Hr ⊆ K
+      (Requiere: acción de H sobre G/K, conteo de puntos fijos)
     -/
 
     /-- Si `le₀ a b` y `p^b | |S|`, entonces `p^a | |S|`.
@@ -2886,6 +2933,17 @@ namespace Peano
     El número `n_p` de subgrupos de Sylow `p` satisface:
     - `n_p ≡ 1 (mod p)`
     - `n_p | [G : H]` donde `H` es cualquier subgrupo de Sylow `p`.
+    
+    ## Estado de la demostración:
+    
+    ✓ Completado:
+    - sylow_third: Combinación de los dos axiomas siguientes
+    
+    ⚠ Axiomas temporales:
+    - sylow_third_mod: n_p ≡ 1 (mod p)
+      (Requiere: acción de H sobre conjunto de Sylow-p, conteo de puntos fijos)
+    - sylow_third_dvd: n_p | |G|
+      (Requiere: acción de G sobre conjunto de Sylow-p, órbita-estabilizador con normalizer)
     -/
 
     /-- Axioma: n_p ≡ 1 (mod p).

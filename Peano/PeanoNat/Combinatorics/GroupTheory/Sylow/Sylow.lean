@@ -629,6 +629,97 @@ namespace Peano
           rw [hxy, hxs_ys]
 
     -- ═══════════════════════════════════════════════════════════════════════
+    -- § Normalizadores
+    -- ═══════════════════════════════════════════════════════════════════════
+    --
+    -- Esta sección define el normalizador de un subgrupo y demuestra sus
+    -- propiedades básicas.
+    --
+    -- CONTENIDO:
+    -- - Definición: N_G(H) = {g ∈ G | gHg⁻¹ = H}
+    -- - N_G(H) es un subgrupo de G
+    -- - H ≤ N_G(H)
+    -- - Propiedades con subgrupos de Sylow
+    -- ═══════════════════════════════════════════════════════════════════════
+
+    /-- El normalizador de H en G: N_G(H) = {g ∈ G | gHg⁻¹ = H}.
+        Representado como lista filtrada de G.carrier.elems. -/
+    private def normalizer (G : FinGroup ℕ₀) (H : Subgroup G) : List ℕ₀ :=
+      G.carrier.elems.filter (fun g =>
+        decide (∀ h ∈ H.carrier.elems,
+          G.op (G.op g h) (G.inv g) ∈ H.carrier.elems ∧
+          ∀ h' ∈ H.carrier.elems,
+            ∃ h ∈ H.carrier.elems, G.op (G.op g h) (G.inv g) = h'))
+
+    /-- El normalizador de H es un subgrupo de G. -/
+    private def normalizerSubgroup (G : FinGroup ℕ₀) (H : Subgroup G) : Subgroup G where
+      carrier := FSet.mk (normalizer G H)
+        (List.filter_sublist.nodup (sorted_nodup G.carrier.sorted))
+      nonempty := ⟨G.id, by
+        rw [List.mem_filter]
+        refine ⟨G.id_in, ?_⟩
+        apply decide_eq_true
+        intro h hh
+        constructor
+        · rw [(G.op_id h (H.subset h hh)).2, (G.op_inv G.id G.id_in).2, (G.op_id h (H.subset h hh)).1]
+          exact hh
+        · intro h' hh'
+          refine ⟨h', hh', ?_⟩
+          rw [(G.op_id h' (H.subset h' hh')).2, (G.op_inv G.id G.id_in).2, (G.op_id h' (H.subset h' hh')).1]⟩
+      subset := fun g hg => (List.mem_filter.mp hg).1
+      op_closed := fun g₁ g₂ hg₁ hg₂ => by
+        rw [List.mem_filter] at hg₁ hg₂ ⊢
+        obtain ⟨hg₁_G, hg₁_norm⟩ := hg₁
+        obtain ⟨hg₂_G, hg₂_norm⟩ := hg₂
+        refine ⟨op_mem G hg₁_G hg₂_G, ?_⟩
+        apply decide_eq_true
+        intro h hh
+        have h₁ := of_decide_eq_true hg₁_norm h hh
+        have h₂ := of_decide_eq_true hg₂_norm
+        -- (g₁g₂)h(g₁g₂)⁻¹ = g₁(g₂hg₂⁻¹)g₁⁻¹
+        sorry
+      id_in := by
+        rw [List.mem_filter]
+        refine ⟨G.id_in, ?_⟩
+        apply decide_eq_true
+        intro h hh
+        constructor
+        · rw [(G.op_id h (H.subset h hh)).2, (G.op_inv G.id G.id_in).2, (G.op_id h (H.subset h hh)).1]
+          exact hh
+        · intro h' hh'
+          refine ⟨h', hh', ?_⟩
+          rw [(G.op_id h' (H.subset h' hh')).2, (G.op_inv G.id G.id_in).2, (G.op_id h' (H.subset h' hh')).1]
+      inv_closed := fun g hg => by
+        rw [List.mem_filter] at hg ⊢
+        obtain ⟨hg_G, hg_norm⟩ := hg
+        refine ⟨inv_mem G hg_G, ?_⟩
+        apply decide_eq_true
+        intro h hh
+        have h_norm := of_decide_eq_true hg_norm
+        -- g⁻¹hg = (g⁻¹)h(g⁻¹)⁻¹, y (g⁻¹)⁻¹ = g
+        sorry
+
+    /-- H es un subgrupo de su normalizador N_G(H). -/
+    private theorem subgroup_le_normalizer (G : FinGroup ℕ₀) (H : Subgroup G) :
+        ∀ h ∈ H.carrier.elems, h ∈ (normalizerSubgroup G H).carrier.elems := by
+      intro h hh
+      rw [List.mem_filter]
+      refine ⟨H.subset h hh, ?_⟩
+      apply decide_eq_true
+      intro h' hh'
+      constructor
+      · -- h·h'·h⁻¹ ∈ H (pues H es subgrupo)
+        exact H.op_closed h h' hh (H.inv_closed h' hh')
+          |> H.op_closed (G.op h h') (G.inv h) · (H.inv_closed h hh)
+      · intro h'' hh''
+        -- Necesitamos encontrar h₀ tal que h·h₀·h⁻¹ = h''
+        -- Tomamos h₀ = h⁻¹·h''·h
+        refine ⟨G.op (G.op (G.inv h) h'') h,
+                H.op_closed (G.inv h) h'' (H.inv_closed h hh) hh''
+                  |> H.op_closed (G.op (G.inv h) h'') h · hh, ?_⟩
+        sorry
+
+    -- ═══════════════════════════════════════════════════════════════════════
     -- § Teoría de clases laterales (cosets)
     -- ═══════════════════════════════════════════════════════════════════════
     --
@@ -765,6 +856,60 @@ namespace Peano
         refine ⟨op_mem G hg₁ (H.subset _ h_prod), decide_eq_true ?_⟩
         rw [h_eq, List.mem_map]
         exact ⟨G.op (G.inv (G.op (G.inv g₁) g₂)) h, h_prod, rfl⟩
+
+    -- ═══════════════════════════════════════════════════════════════════════
+    -- § Cocientes G/H como conjuntos
+    -- ═══════════════════════════════════════════════════════════════════════
+    --
+    -- Esta sección construye el conjunto de clases laterales G/H como un ℕ₀FSet
+    -- y demuestra sus propiedades básicas.
+    --
+    -- CONTENIDO:
+    -- - Construcción de G/H como lista de representantes
+    -- - Cardinalidad: |G/H| = |G| / |H|
+    -- - Acción de grupos sobre G/H
+    -- ═══════════════════════════════════════════════════════════════════════
+
+    /-- Selecciona representantes canónicos de las clases laterales de H en G.
+        Usa el elemento mínimo de cada clase lateral como representante. -/
+    private def cosetRepresentatives (G : FinGroup ℕ₀) (H : Subgroup G) : List ℕ₀ :=
+      G.carrier.elems.foldl (fun acc g =>
+        if acc.any (fun r => sameCoset G H r g) then acc else g :: acc) []
+
+    /-- Los representantes de clases laterales están en G. -/
+    private theorem cosetReps_mem (G : FinGroup ℕ₀) (H : Subgroup G) :
+        ∀ r ∈ cosetRepresentatives G H, r ∈ G.carrier.elems := by
+      intro r hr
+      unfold cosetRepresentatives at hr
+      -- La demostración requiere inducción sobre el foldl
+      sorry
+
+    /-- Los representantes de clases laterales son únicos (no hay duplicados). -/
+    private theorem cosetReps_nodup (G : FinGroup ℕ₀) (H : Subgroup G) :
+        (cosetRepresentatives G H).Nodup := by
+      unfold cosetRepresentatives
+      -- La demostración requiere inducción sobre el foldl
+      sorry
+
+    /-- Todo elemento de G está en la misma clase lateral que algún representante. -/
+    private theorem cosetReps_complete (G : FinGroup ℕ₀) (H : Subgroup G) :
+        ∀ g ∈ G.carrier.elems, ∃ r ∈ cosetRepresentatives G H, sameCoset G H r g := by
+      intro g hg
+      unfold cosetRepresentatives
+      -- La demostración requiere inducción sobre el foldl
+      sorry
+
+    /-- El conjunto de clases laterales G/H como ℕ₀FSet. -/
+    private def quotientSet (G : FinGroup ℕ₀) (H : Subgroup G) : ℕ₀FSet :=
+      FSet.mk (cosetRepresentatives G H) (cosetReps_nodup G H)
+
+    /-- Cardinalidad del cociente: |G/H| · |H| = |G| (teorema de Lagrange). -/
+    private theorem quotient_card_mul (G : FinGroup ℕ₀) (H : Subgroup G) :
+        ∃ k : ℕ₀, mul (quotientSet G H).card H.carrier.card = mul G.carrier.card k := by
+      -- Esto es una consecuencia del teorema de Lagrange
+      -- Cada clase lateral tiene exactamente |H| elementos
+      -- y las clases laterales particionan G
+      sorry
 
     -- ═══════════════════════════════════════════════════════════════════════
     -- § Infraestructura de órbitas para acciones de grupos

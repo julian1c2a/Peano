@@ -820,6 +820,22 @@ namespace Peano
         (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω :=
       wielandt_translate_mem G Ω N hΩ_nd hΩ_mem hΩ_full g hg S hS
 
+    /-- Lema auxiliar: si g·S = S (como conjuntos), entonces para todo s ∈ S,
+        existe s' ∈ S tal que g·s' = s. -/
+    private theorem action_surj_of_fixed (G : FinGroup ℕ₀) (g : ℕ₀) (S : List ℕ₀)
+        (hg : g ∈ G.carrier.elems)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (h_fixed : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems = S) :
+        ∀ s ∈ S, ∃ s' ∈ S, G.op g s' = s := by
+      intro s hs
+      -- s ∈ S = filter (x ∈ S.map (G.op g))
+      have hs_filter : s ∈ (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems :=
+        h_fixed ▸ hs
+      have hs_in_map : s ∈ S.map (G.op g) :=
+        of_decide_eq_true (List.mem_filter.mp hs_filter).2
+      obtain ⟨s', hs', heq⟩ := List.mem_map.mp hs_in_map
+      exact ⟨s', hs', heq⟩
+
     /-- El estabilizador de S es un subgrupo de G. -/
     private def stabilizerSubgroup (G : FinGroup ℕ₀) (S : List ℕ₀)
         (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) : Subgroup G where
@@ -855,11 +871,50 @@ namespace Peano
           of_decide_eq_true hg₁_stab
         have h₂ : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g₂)))).elems = S :=
           of_decide_eq_true hg₂_stab
-        -- Necesitamos: filter (x ∈ S.map (G.op (G.op g₁ g₂))) = S
-        -- Estrategia: mostrar que ambos conjuntos tienen los mismos elementos
-        -- Esto requiere demostrar que la acción es compatible con la composición
-        -- Por ahora, mantenemos como sorry ya que requiere más lemas auxiliares
-        sorry
+        -- Demostrar: filter (x ∈ S.map (G.op (G.op g₁ g₂))) = S
+        ext x
+        constructor
+        · intro hx
+          -- x ∈ filter → x ∈ (g₁g₂)·S
+          have hx_in_map : x ∈ S.map (G.op (G.op g₁ g₂)) :=
+            of_decide_eq_true (List.mem_filter.mp hx).2
+          obtain ⟨s, hs, hx_eq⟩ := List.mem_map.mp hx_in_map
+          -- x = (g₁g₂)·s = g₁·(g₂·s)
+          have h_assoc : G.op (G.op g₁ g₂) s = G.op g₁ (G.op g₂ s) :=
+            G.op_assoc g₁ g₂ s hg₁_G hg₂_G (hS_mem s hs)
+          rw [h_assoc] at hx_eq
+          -- g₂·s ∈ S (por h₂)
+          have hg₂s_in_S : G.op g₂ s ∈ S := by
+            rw [← h₂]
+            apply List.mem_filter.mpr
+            exact ⟨op_mem G hg₂_G (hS_mem s hs),
+                   decide_eq_true (List.mem_map.mpr ⟨s, hs, rfl⟩)⟩
+          -- g₁·(g₂·s) ∈ S (por h₁)
+          rw [← h₁] at hx_eq
+          have : x ∈ (G.carrier.filter (fun y => decide (y ∈ S.map (G.op g₁)))).elems := by
+            rw [hx_eq]
+            apply List.mem_filter.mpr
+            exact ⟨op_mem G hg₁_G (hS_mem (G.op g₂ s) hg₂s_in_S),
+                   decide_eq_true (List.mem_map.mpr ⟨G.op g₂ s, hg₂s_in_S, rfl⟩)⟩
+          rw [h₁] at this
+          exact this
+        · intro hx_S
+          apply List.mem_filter.mpr
+          refine ⟨hS_mem x hx_S, decide_eq_true ?_⟩
+          -- Necesitamos: x ∈ (g₁g₂)·S
+          -- Como g₁·S = S, existe s₁ ∈ S con g₁·s₁ = x
+          obtain ⟨s₁, hs₁, heq₁⟩ := action_surj_of_fixed G g₁ S hg₁_G hS_mem h₁ x hx_S
+          -- Como g₂·S = S, existe s₀ ∈ S con g₂·s₀ = s₁
+          obtain ⟨s₀, hs₀, heq₀⟩ := action_surj_of_fixed G g₂ S hg₂_G hS_mem h₂ s₁ hs₁
+          -- Entonces x = g₁·s₁ = g₁·(g₂·s₀) = (g₁g₂)·s₀
+          have h_calc : x = G.op (G.op g₁ g₂) s₀ := by
+            calc x
+                = G.op g₁ s₁ := heq₁.symm
+              _ = G.op g₁ (G.op g₂ s₀) := by rw [heq₀]
+              _ = G.op (G.op g₁ g₂) s₀ :=
+                  (G.op_assoc g₁ g₂ s₀ hg₁_G hg₂_G (hS_mem s₀ hs₀)).symm
+          rw [h_calc, List.mem_map]
+          exact ⟨s₀, hs₀, rfl⟩
       id_in := by
         rw [List.mem_filter]
         refine ⟨G.id_in, ?_⟩
@@ -886,11 +941,52 @@ namespace Peano
         apply decide_eq_true
         have h : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems = S :=
           of_decide_eq_true hg_stab
-        -- Necesitamos: filter (x ∈ S.map (G.op (G.inv g))) = S
-        -- Sabemos: filter (x ∈ S.map (G.op g)) = S
-        -- Esto requiere demostrar que si g·S = S, entonces g⁻¹·S = S
-        -- Por ahora, mantenemos como sorry ya que requiere más lemas auxiliares
-        sorry
+        -- Demostrar: filter (x ∈ S.map (G.op (G.inv g))) = S
+        ext x
+        constructor
+          -- x ∈ filter → x ∈ g⁻¹·S
+          have hx_in_map : x ∈ S.map (G.op (G.inv g)) :=
+            of_decide_eq_true (List.mem_filter.mp hx).2
+          obtain ⟨s, hs, hx_eq⟩ := List.mem_map.mp hx_in_map
+          -- x = g⁻¹·s, queremos x ∈ S
+          -- Como g·S = S, tenemos g·x = g·(g⁻¹·s) = s ∈ S
+          have hgx_eq_s : G.op g x = s := by
+            calc G.op g x
+                = G.op g (G.op (G.inv g) s) := by rw [hx_eq]
+              _ = G.op (G.op g (G.inv g)) s :=
+                  (G.op_assoc g (G.inv g) s hg_G (inv_mem G hg_G) (hS_mem s hs)).symm
+              _ = G.op G.id s := by rw [(G.op_inv g hg_G).1]
+              _ = s := (G.op_id s (hS_mem s hs)).2
+          -- g·x ∈ g·S, y como g·S = S (por h), tenemos g·x ∈ S
+          have hgx_in_S : G.op g x ∈ S := hgx_eq_s ▸ hs
+          -- Por action_surj_of_fixed aplicado a g·x ∈ S
+          obtain ⟨t, ht, heq_t⟩ := action_surj_of_fixed G g S hg_G hS_mem h (G.op g x) hgx_in_S
+          -- g·t = g·x, luego t = x (por cancelación)
+          have ht_eq_x : t = x := op_cancel_left G hg_G (hS_mem t ht)
+            ((List.mem_filter.mp hx).1) heq_t
+          exact ht_eq_x ▸ ht
+        · intro hx_S
+          apply List.mem_filter.mpr
+          refine ⟨hS_mem x hx_S, decide_eq_true ?_⟩
+          -- Necesitamos: x ∈ g⁻¹·S
+          -- Como g·S = S, existe s ∈ S con g·s = x
+          obtain ⟨s, hs, heq⟩ := action_surj_of_fixed G g S hg_G hS_mem h x hx_S
+          -- Entonces g⁻¹·x = g⁻¹·(g·s) = s ∈ S
+          -- Pero queremos x = g⁻¹·s' para algún s'
+          -- Tomamos s' = g·x
+          have hgx_in_S : G.op g x ∈ S := by
+            rw [← h]
+            apply List.mem_filter.mpr
+            exact ⟨op_mem G hg_G (hS_mem x hx_S),
+                   decide_eq_true (List.mem_map.mpr ⟨x, hx_S, rfl⟩)⟩
+          have h_calc : x = G.op (G.inv g) (G.op g x) := by
+            calc x
+                = G.op G.id x := (G.op_id x (hS_mem x hx_S)).2.symm
+              _ = G.op (G.op (G.inv g) g) x := by rw [(G.op_inv g hg_G).2]
+              _ = G.op (G.inv g) (G.op g x) :=
+                  G.op_assoc (G.inv g) g x (inv_mem G hg_G) hg_G (hS_mem x hx_S)
+          rw [h_calc, List.mem_map]
+          exact ⟨G.op g x, hgx_in_S, rfl⟩
 
     /-- Teorema órbita-estabilizador (versión simplificada para listas):
         |Orb(S)| · |Stab(S)| = |G|.

@@ -628,6 +628,34 @@ namespace Peano
           have hxy : x = y := op_cancel_right G hys_mem hx_mem hy_mem h_prod_eq
           rw [hxy, hxs_ys]
 
+    -- ═══════════════════════════════════════════════════════════════════════
+    -- § Infraestructura de órbitas para acciones de grupos
+    -- ═══════════════════════════════════════════════════════════════════════
+    --
+    -- Esta sección desarrolla la teoría básica de acciones de grupos sobre
+    -- conjuntos finitos, específicamente para la acción de G sobre sublistas
+    -- de tamaño fijo por traslación izquierda.
+    --
+    -- ESTADO ACTUAL:
+    -- ✓ Definiciones básicas: orbit, stabilizer, sameOrbit
+    -- ✓ Propiedades de sameOrbit: reflexividad, simetría, transitividad
+    -- ✓ Lema auxiliar: dvd_sum_of_dvd_all
+    -- ✓ Estructura de stabilizerSubgroup (con sorry en op_closed e inv_closed)
+    --
+    -- PENDIENTE (requiere más infraestructura):
+    -- ⚠ orbit_stabilizer_theorem: Requiere completar stabilizerSubgroup y
+    --   construir la biyección G/Stab(S) → Orb(S)
+    -- ⚠ exists_orbit_not_dvd_p: Requiere teoría de particiones y sumas
+    -- ⚠ stab_dvd_of_orbit_not_dvd: Requiere gcd y divisibilidad en productos
+    --
+    -- INFRAESTRUCTURA FALTANTE:
+    -- 1. Teoría de clases laterales (cosets) como conjuntos
+    -- 2. Biyecciones entre conjuntos finitos y preservación de cardinalidad
+    -- 3. Particiones de listas y sumas sobre particiones
+    -- 4. Propiedades avanzadas de gcd: gcd(p^n, a) = 1 cuando p ∤ a
+    -- 5. Lema: si gcd(a,b) = 1 y a | bc, entonces a | c
+    -- ═══════════════════════════════════════════════════════════════════════
+
     -- ─── Infraestructura de órbitas para acciones de grupos ──────────────────
 
     /-- La órbita de un elemento S bajo la acción de traslación de G.
@@ -653,21 +681,95 @@ namespace Peano
         (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω :=
       wielandt_translate_mem G Ω N hΩ_nd hΩ_mem hΩ_full g hg S hS
 
+    /-- El estabilizador de S es un subgrupo de G. -/
+    private def stabilizerSubgroup (G : FinGroup ℕ₀) (S : List ℕ₀)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) : Subgroup G where
+      carrier := FSet.mk (stabilizer G S)
+        (List.filter_sublist.nodup (sorted_nodup G.carrier.sorted))
+      nonempty := ⟨G.id, by
+        rw [List.mem_filter]
+        refine ⟨G.id_in, ?_⟩
+        apply decide_eq_true
+        ext x
+        constructor
+        · intro hx
+          have : x ∈ S.map (G.op G.id) := of_decide_eq_true (List.mem_filter.mp hx).2
+          obtain ⟨y, hy, heq⟩ := List.mem_map.mp this
+          rw [(G.op_id y (hS_mem y hy)).1] at heq
+          rw [← heq]
+          exact hy
+        · intro hx
+          apply List.mem_filter.mpr
+          refine ⟨hS_mem x hx, ?_⟩
+          apply decide_eq_true
+          rw [List.mem_map]
+          refine ⟨x, hx, ?_⟩
+          exact (G.op_id x (hS_mem x hx)).1⟩
+      subset := fun g hg => (List.mem_filter.mp hg).1
+      op_closed := fun g₁ g₂ hg₁ hg₂ => by
+        rw [List.mem_filter] at hg₁ hg₂ ⊢
+        obtain ⟨hg₁_G, hg₁_stab⟩ := hg₁
+        obtain ⟨hg₂_G, hg₂_stab⟩ := hg₂
+        refine ⟨op_mem G hg₁_G hg₂_G, ?_⟩
+        apply decide_eq_true
+        have h₁ := of_decide_eq_true hg₁_stab
+        have h₂ := of_decide_eq_true hg₂_stab
+        -- Necesitamos: (g₁g₂)·S = S
+        -- Sabemos: g₁·S = S y g₂·S = S
+        -- (g₁g₂)·S = g₁·(g₂·S) = g₁·S = S
+        sorry
+      id_in := by
+        rw [List.mem_filter]
+        refine ⟨G.id_in, ?_⟩
+        apply decide_eq_true
+        ext x
+        constructor
+        · intro hx
+          have : x ∈ S.map (G.op G.id) := of_decide_eq_true (List.mem_filter.mp hx).2
+          obtain ⟨y, hy, heq⟩ := List.mem_map.mp this
+          rw [(G.op_id y (hS_mem y hy)).1] at heq
+          rw [← heq]
+          exact hy
+        · intro hx
+          apply List.mem_filter.mpr
+          refine ⟨hS_mem x hx, ?_⟩
+          apply decide_eq_true
+          rw [List.mem_map]
+          refine ⟨x, hx, ?_⟩
+          exact (G.op_id x (hS_mem x hx)).1
+      inv_closed := fun g hg => by
+        rw [List.mem_filter] at hg ⊢
+        obtain ⟨hg_G, hg_stab⟩ := hg
+        refine ⟨inv_mem G hg_G, ?_⟩
+        apply decide_eq_true
+        have h := of_decide_eq_true hg_stab
+        -- Necesitamos: g⁻¹·S = S
+        -- Sabemos: g·S = S
+        -- Si g·S = S, entonces g⁻¹·(g·S) = g⁻¹·S, pero g⁻¹·(g·s) = s para todo s
+        sorry
+
     /-- Teorema órbita-estabilizador (versión simplificada para listas):
         |Orb(S)| · |Stab(S)| = |G|.
         
-        Esta es una versión axiomática temporal. La demostración completa requiere:
-        1. Definir la biyección entre G/Stab(S) y Orb(S)
-        2. Demostrar que g₁·S = g₂·S iff g₁⁻¹g₂ ∈ Stab(S)
-        3. Aplicar el teorema de Lagrange a Stab(S) ≤ G
+        Demostración: La función g ↦ g·S induce una biyección entre las clases
+        laterales G/Stab(S) y Orb(S). Por el teorema de Lagrange,
+        |G/Stab(S)| · |Stab(S)| = |G|, luego |Orb(S)| · |Stab(S)| = |G|.
         
-        TODO: reemplazar por demostración completa. -/
-    private axiom orbit_stabilizer_theorem
+        Nota: Esta versión tiene k=1 en la conclusión. Los sorry restantes requieren
+        demostrar propiedades de la acción sobre listas filtradas. -/
+    private theorem orbit_stabilizer_theorem
         (G : FinGroup ℕ₀) (S : List ℕ₀)
         (hS_nd : S.Nodup)
         (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) :
         ∃ k : ℕ₀, Mul.mul (lengthₚ (orbit G S)) (lengthₚ (stabilizer G S)) = 
-          Mul.mul G.carrier.card k
+          Mul.mul G.carrier.card k := by
+      -- Por ahora, mantenemos el axioma pero con la estructura preparada
+      -- La demostración completa requiere:
+      -- 1. Demostrar que stabilizerSubgroup es realmente un subgrupo (completar los sorry)
+      -- 2. Aplicar Lagrange: |G| = |Stab(S)| · [G : Stab(S)]
+      -- 3. Construir biyección entre G/Stab(S) y Orb(S)
+      -- 4. Concluir |Orb(S)| = [G : Stab(S)|, luego |Orb(S)| · |Stab(S)| = |G|
+      sorry
 
     /-- Relación de equivalencia: S₁ ~ S₂ si están en la misma órbita. -/
     private def sameOrbit (G : FinGroup ℕ₀) (S₁ S₂ : List ℕ₀) : Prop :=
@@ -822,11 +924,25 @@ namespace Peano
             = add (mul p k₁) (mul p k₂) := mul_add p k₁ k₂
           _ = add x (List.foldl Peano.Add.add 𝟘 xs) := by rw [hk₁, hk₂]
 
+    /-- Selecciona un representante de cada clase de equivalencia en una lista. -/
+    private def selectRepresentatives {α : Type} (l : List α) (rel : α → α → Prop) : List α :=
+      l.foldl (fun acc x => if acc.any (fun y => rel x y) then acc else x :: acc) []
+
     /-- Si p ∤ |Ω| y G actúa sobre Ω, entonces existe S ∈ Ω con p ∤ |Orb(S)|.
         
-        Prueba simplificada: Por contradicción, si p | |Orb(S)| para todo S,
-        entonces considerando que Ω se puede cubrir por órbitas disjuntas,
-        tendríamos que |Ω| es suma de múltiplos de p, luego p | |Ω|. -/
+        Prueba por contradicción: Si p | |Orb(S)| para todo S ∈ Ω, entonces
+        particionando Ω en órbitas mediante la relación sameOrbit, tendríamos
+        |Ω| = Σ |Orb(S_i)| donde cada |Orb(S_i)| es divisible por p.
+        Por dvd_sum_of_dvd_all, esto implica p | |Ω|, contradicción.
+        
+        La demostración completa requiere:
+        1. Construir explícitamente la lista de representantes de órbitas
+        2. Demostrar que cada elemento de Ω está en exactamente una órbita
+        3. Demostrar que |Ω| = suma de los tamaños de las órbitas
+        4. Aplicar dvd_sum_of_dvd_all
+        
+        Estas propiedades requieren más infraestructura sobre particiones
+        y relaciones de equivalencia que no está disponible actualmente. -/
     private theorem exists_orbit_not_dvd_p
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (p : ℕ₀)
         (hp : Prime p)
@@ -838,17 +954,17 @@ namespace Peano
       push_neg at h_all_dvd
       -- Entonces para todo S ∈ Ω, p | |Orb(S)|
       have h_dvd_all : ∀ S ∈ Ω, p ∣ lengthₚ (orbit G S) := h_all_dvd
-      -- Argumento simplificado: cada S está en su propia órbita
-      -- y las órbitas particionan Ω (aunque no lo demostremos formalmente)
-      -- Por lo tanto, |Ω| es suma de |Orb(S_i)| para representantes S_i
-      -- Como cada |Orb(S_i)| es divisible por p, |Ω| es divisible por p
+      
+      -- Estrategia: construir representantes de órbitas y sumar
+      -- let reps := selectRepresentatives Ω (sameOrbit G)
+      -- Necesitaríamos demostrar:
+      -- 1. Cada S ∈ Ω está en alguna órbita Orb(r) con r ∈ reps
+      -- 2. Las órbitas son disjuntas
+      -- 3. |Ω| = Σ_{r ∈ reps} |Orb(r)|
+      -- 4. Como p | |Orb(r)| para todo r, tenemos p | |Ω|
       -- 
-      -- Para formalizar esto completamente necesitaríamos:
-      -- - Construir la lista de representantes de órbitas
-      -- - Demostrar que Ω = ⋃ Orb(S_i) (unión disjunta)
-      -- - Aplicar dvd_sum_of_dvd_all
-      -- 
-      -- Por ahora, usamos el argumento informal como sorry
+      -- Esto requiere teoría de particiones y sumas sobre listas
+      -- que excede la infraestructura actual.
       sorry
 
     /-- Si S ∈ Ω y |Orb(S)| no es divisible por p, y p^n | |G|,
@@ -858,7 +974,12 @@ namespace Peano
         Como p^n | |G| y gcd(p^n, |Orb(S)|) = 1 (pues p ∤ |Orb(S)|),
         tenemos p^n | |Stab(S)|.
         
-        TODO: demostrar usando propiedades de gcd y divisibilidad. -/
+        La demostración completa requiere:
+        1. Teorema órbita-estabilizador completo (actualmente axiomático)
+        2. Propiedades de gcd y divisibilidad en productos
+        3. Lema: si gcd(a,b) = 1 y a | bc, entonces a | c
+        
+        Por ahora mantenemos como sorry ya que depende de orbit_stabilizer_theorem. -/
     private theorem stab_dvd_of_orbit_not_dvd
         (G : FinGroup ℕ₀) (S : List ℕ₀) (p n : ℕ₀)
         (hp : Prime p)
@@ -871,8 +992,18 @@ namespace Peano
       -- Aplicar órbita-estabilizador
       obtain ⟨k, hk⟩ := orbit_stabilizer_theorem G S hS_nd hS_mem
       -- |Orb(S)| · |Stab(S)| = |G| · k
-      -- Como p^n | |G|, tenemos p^n | |G| · k
-      -- Como p ∤ |Orb(S)|, por propiedades de divisibilidad, p^n | |Stab(S)|
+      -- Tenemos: p^n | |G| (hipótesis h_pow_dvd_G)
+      -- Queremos: p^n | |Stab(S)|
+      -- 
+      -- De hk: |Orb(S)| · |Stab(S)| = |G| · k
+      -- De h_pow_dvd_G: ∃ m, p^n · m = |G|
+      -- Entonces: |Orb(S)| · |Stab(S)| = (p^n · m) · k = p^n · (m · k)
+      -- 
+      -- Como p ∤ |Orb(S)| (hipótesis h_orbit_ndvd), y p es primo,
+      -- por propiedades de divisibilidad: p^n | |Stab(S)|
+      -- 
+      -- Esto requiere el lema: si gcd(p^n, a) = 1 y p^n | a·b, entonces p^n | b
+      -- que a su vez requiere teoría de gcd no disponible actualmente.
       sorry
 
     -- ─── Infraestructura de rotación iterada ─────────────────────────────────

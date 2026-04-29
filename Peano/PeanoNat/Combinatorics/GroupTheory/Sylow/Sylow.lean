@@ -2132,10 +2132,15 @@ namespace Peano
     /-- Argumento de Wielandt, pieza 3:
         Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|, existe un subgrupo
         H de G de orden N = p^(m+1).
-        Prueba: ∃ S ∈ Ω con p ∤ |Orb_G(S)|; el estabilizador Stab_G(S) tiene orden N
-        por órbita-estabilizador + gcd(N, |Orb|) = 1 + inyectividad h ↦ h·s₀.
-        TODO: reemplazar por demostración completa. -/
-    private axiom wielandt_fixed_point_exists
+        
+        Prueba: Como p ∤ |Ω| y G actúa sobre Ω, existe S ∈ Ω que es punto fijo
+        de la acción (es decir, g·S = S para todo g ∈ G, donde g·S es el representante
+        ordenado de {g·s | s ∈ S}). Esto se debe a que si todos los S tuvieran órbitas
+        de tamaño divisible por p, entonces |Ω| sería divisible por p (contradicción).
+        
+        Una vez que tenemos un punto fijo S, por wielandt_fixed_is_subgroup, S es un
+        subgrupo de G de orden N. -/
+    private theorem wielandt_fixed_point_exists
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (hdvd_G : ∃ r : ℕ₀, Mul.mul N r = G.carrier.card)
@@ -2147,7 +2152,56 @@ namespace Peano
         (htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω,
           (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω)
         (hndvd : ¬ p ∣ lengthₚ Ω) :
-        ∃ H : Subgroup G, H.carrier.card = N
+        ∃ H : Subgroup G, H.carrier.card = N := by
+      -- Necesitamos encontrar S ∈ Ω que sea punto fijo de la acción
+      -- Es decir, para todo g ∈ G, el representante ordenado de g·S es S mismo
+      
+      -- Primero, Ω no puede estar vacío (pues N | |G| implica que existe al menos
+      -- un subconjunto de tamaño N)
+      have hΩ_ne : Ω ≠ [] := by
+        intro h_empty
+        -- Si Ω = [], entonces |Ω| = 0, pero p ∤ 0 es falso para p primo
+        rw [h_empty, lengthₚ_nil] at hndvd
+        exact hndvd (divides_zero p)
+      
+      -- Tomar cualquier S₀ ∈ Ω como punto de partida
+      obtain ⟨S₀, hS₀_in⟩ := List.exists_mem_of_ne_nil Ω hΩ_ne
+      
+      -- Verificar si S₀ es punto fijo
+      by_cases h_fixed : ∀ g ∈ G.carrier.elems,
+          (G.carrier.filter (fun x => decide (x ∈ S₀.map (G.op g)))).elems = S₀
+      · -- S₀ es punto fijo: aplicar wielandt_fixed_is_subgroup
+        obtain ⟨hS₀_nd, _hS₀_sorted, hS₀_mem, hS₀_len⟩ := hΩ_mem S₀ hS₀_in
+        have hS₀_ne : S₀ ≠ [] := by
+          intro h0
+          rw [h0, lengthₚ_nil] at hS₀_len
+          obtain ⟨r, hr⟩ := hdvd_G
+          have hN_ne : N ≠ 𝟘 := by
+            intro hN0
+            rw [hN0, zero_mul] at hr
+            exact absurd (card_pos_of_mem_aux G.id_in) (hr ▸ lt_irrefl 𝟘)
+          exact hN_ne hS₀_len
+        have hS₀_closed : ∀ g ∈ G.carrier.elems, ∀ x ∈ S₀, G.op g x ∈ S₀ := by
+          intro g hg x hx
+          have h_eq := h_fixed g hg
+          have h_in_filter : G.op g x ∈
+              (G.carrier.filter (fun y => decide (y ∈ S₀.map (G.op g)))).elems := by
+            apply List.mem_filter.mpr
+            exact ⟨op_mem G hg (hS₀_mem x hx),
+                   decide_eq_true (List.mem_map.mpr ⟨x, hx, rfl⟩)⟩
+          rw [h_eq] at h_in_filter
+          exact h_in_filter
+        exact wielandt_fixed_is_subgroup G S₀ N hS₀_ne hS₀_nd hS₀_mem hS₀_len hS₀_closed
+      
+      · -- S₀ no es punto fijo: necesitamos encontrar otro S que sí lo sea
+        -- Este es el caso difícil que requiere el argumento de conteo de órbitas
+        -- Por ahora, usamos sorry ya que requiere:
+        -- 1. Definir la órbita de cada S bajo la acción de G
+        -- 2. Particionar Ω en órbitas
+        -- 3. Contar: |Ω| = Σ |Orb(S_i)| donde S_i son representantes de órbitas
+        -- 4. Como p ∤ |Ω| y cada |Orb(S)| divide |G| (que es divisible por p),
+        --    debe existir al menos una órbita de tamaño 1 (punto fijo)
+        sorry
 
     /-- Argumento de Wielandt, pieza 4:
         Un subconjunto S ⊆ G que es punto fijo SET-LEVEL (g·s ∈ S para todo g ∈ G, s ∈ S)

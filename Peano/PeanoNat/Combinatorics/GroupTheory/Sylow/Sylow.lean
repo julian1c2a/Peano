@@ -1769,7 +1769,9 @@ namespace Peano
           have h_ge1 : le₀ 𝟙 (σ p') := by
             cases p' with
             | zero => exact Or.inl (lt_succ_self 𝟘)
-            | succ p'' => exact Or.inl (lt_trans 𝟙 (σ 𝟙) (σ (σ p'')) (lt_succ_self 𝟙) (lt_succ_self (σ p'')))
+            | succ p'' => 
+              exact Or.inl (lt_trans 𝟙 (σ 𝟙) (σ (σ p'')) (lt_succ_self 𝟙) 
+                (succ_lt_succ_iff 𝟙 (σ p'') |>.mpr (lt_succ_self p'')))
           exact le_trans 𝟙 (σ p') (mul (σ p') (σ p' ^ n')) h_ge1
             (mul_le_right (σ p') (σ p' ^ n') (pow_ne_zero (Peano.Axioms.succ_neq_zero p') n'))
 

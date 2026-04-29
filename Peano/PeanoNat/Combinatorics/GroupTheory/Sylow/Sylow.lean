@@ -1716,7 +1716,8 @@ namespace Peano
             have h2 : lt₀ 𝟙 (σ (σ b'')) := 
               lt_trans 𝟙 (σ 𝟙) (σ (σ b'')) (lt_succ_self 𝟙)
                 (succ_lt_succ_iff 𝟙 (σ b'') |>.mpr 
-                  (lt_trans 𝟙 (σ 𝟙) (σ b'') (lt_succ_self 𝟙) (lt_succ_self b'')))
+                  (lt_trans 𝟙 (σ 𝟙) (σ b'') (lt_succ_self 𝟙) 
+                    (succ_lt_succ_iff 𝟙 b'' |>.mpr (lt_succ_self 𝟙))))
             rw [h1]
             have h_mul : lt₀ (mul a 𝟙) (mul a (σ (σ b''))) := by
               cases a with
@@ -1725,24 +1726,19 @@ namespace Peano
                 rw [mul_one]
                 have : lt₀ (σ a') (mul (σ a') (σ (σ b''))) := by
                   have h_le : le₀ (σ a') (mul (σ a') (σ (σ b''))) :=
-                    mul_le_right (σ a') (σ (σ b'')) (Peano.Axioms.succ_neq_zero (σ b''))
+                    mul_le_right (σ a') (σ (σ b'')) (succ_neq_zero (σ b''))
                   cases h_le with
                   | inl h_lt => exact h_lt
                   | inr h_eq =>
                     have h_one : σ (σ b'') = 𝟙 := mul_eq_left_of_ne_zero (σ a') (σ (σ b''))
-                      (Peano.Axioms.succ_neq_zero a') h_eq.symm
+                      (succ_neq_zero a') h_eq.symm
                     have : lt₀ 𝟙 (σ (σ b'')) := h2
                     rw [h_one] at this
                     exact absurd this (lt_irrefl 𝟙)
                 exact this
             exact h_mul
           rw [← h] at h_gt
-          have h_gt' : lt₀ (mul a (σ (σ b''))) (mul (mul a (σ (σ b''))) (σ (σ b''))) := by
-            exact lt_of_lt_of_le h_gt (mul_le_right (mul a (σ (σ b''))) (σ (σ b'')) (Peano.Axioms.succ_neq_zero (σ b'')))
-          rw [← h] at h_gt'
-          have h_contra : lt₀ a (mul a (σ (σ b''))) := h_gt
-          rw [← h] at h_contra
-          exact absurd h_contra (lt_irrefl a)
+          exact absurd h_gt (lt_irrefl a)
 
     /-- p^n ≥ p cuando p > 0 y n > 0. -/
     private theorem pow_ge_self (p n : ℕ₀) (hp : p ≠ 𝟘) (hn : lt₀ 𝟘 n) : le₀ p (p ^ n) := by
@@ -1762,7 +1758,7 @@ namespace Peano
         | zero => 
           have h_pow : 𝟘 ^ σ n' = mul (𝟘 ^ n') 𝟘 := pow_succ 𝟘 n'
           rw [h_pow, mul_zero]
-          exact le_refl 𝟘
+          exact Or.inr rfl
         | succ p' =>
           have h_pow : σ p' ^ σ n' = mul (σ p' ^ n') (σ p') := pow_succ (σ p') n'
           rw [h_pow, mul_comm]
@@ -1771,9 +1767,11 @@ namespace Peano
             | zero => exact Or.inl (lt_succ_self 𝟘)
             | succ p'' => 
               exact Or.inl (lt_trans 𝟙 (σ 𝟙) (σ (σ p'')) (lt_succ_self 𝟙) 
-                (succ_lt_succ_iff 𝟙 (σ p'') |>.mpr (lt_succ_self p'')))
+                (succ_lt_succ_iff 𝟙 (σ p'') |>.mpr 
+                  (lt_trans 𝟙 (σ 𝟙) (σ p'') (lt_succ_self 𝟙) 
+                    (succ_lt_succ_iff 𝟙 p'' |>.mpr (lt_succ_self 𝟙)))))
           exact le_trans 𝟙 (σ p') (mul (σ p') (σ p' ^ n')) h_ge1
-            (mul_le_right (σ p') (σ p' ^ n') (pow_ne_zero (Peano.Axioms.succ_neq_zero p') n'))
+            (mul_le_right (σ p') (σ p' ^ n') (pow_ne_zero (succ_neq_zero p') n'))
 
     /-- Si dos listas Nodup tienen los mismos elementos, tienen el mismo cardinal. -/
     private theorem nodup_same_card {l₁ l₂ : List ℕ₀}

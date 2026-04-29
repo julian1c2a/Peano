@@ -219,8 +219,9 @@ Orden de ejecución: primero [2] (modifica código), después [1] (fusión mecá
 6. ~~`binom_pow_p_mod` — C(p^n·r, p^n) ≡ r (mod p), Lucas (Binom.lean)~~ ✓ DONE
 7. ~~`sylow_card_eq` — uniqueness of Sylow exponent (Sylow.lean)~~ ✓ DONE (2026-04-28)
 8. ~~`wielandt_omega_card` — ∃ Ω of N-sublists of G with |Ω|=C(|G|,N) (Sylow.lean)~~ ✓ DONE (2026-04-28)
-9. **Next: `wielandt_p_ndvd_r`** — ¬p∣r given p^(m+1)·r = |G| and no proper subgroup of order p^(m+1).
+9. **`wielandt_p_ndvd_r`** — ¬p∣r given p^(m+1)·r = |G| and no proper subgroup of order p^(m+1).
    - Key tool: `binom_pow_p_mod` already available. If p∤r then p∤|Ω|.
+   - Status: Reverted to axiom (circular dependency with sylow_lift_from_cauchy)
 10. **Next: `wielandt_fixed_point_exists`** — ∃ H : Subgroup G, H.carrier.card = N.
     - G acts on Ω; p∤|Ω| → some orbit has size not divisible by p → size 1 → Stab_G(S₀) has order N (orbit-stabilizer).
     - Needs: adapt `mckay_orbit_count` to the action on `List (List ℕ₀)`.

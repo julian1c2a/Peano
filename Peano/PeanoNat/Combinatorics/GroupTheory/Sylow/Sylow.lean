@@ -1699,7 +1699,7 @@ namespace Peano
 
     /-- Si a · b = a y a ≠ 0, entonces b = 1. -/
     private theorem mul_eq_left_of_ne_zero (a b : ℕ₀) (ha : a ≠ 𝟘) (h : mul a b = a) : b = 𝟙 := by
-      have h_div : a ∣ a := ⟨b, h⟩
+      have h_div : a ∣ a := ⟨b, h.symm⟩
       have h_le : le₀ a (mul a b) := by
         cases b with
         | zero => rw [mul_zero] at h; exact absurd h.symm ha
@@ -1712,22 +1712,22 @@ namespace Peano
         | zero => rfl
         | succ b'' =>
           have h_gt : lt₀ a (mul a (σ (σ b''))) := by
-            calc a
-                = mul a 𝟙 := (mul_one a).symm
-              _ < mul a (σ (σ b'')) := mul_lt_mul_left a 𝟙 (σ (σ b'')) ha
-                    (lt_trans 𝟙 (σ 𝟙) (σ (σ b'')) (lt_succ_self 𝟙)
-                      (lt_trans (σ 𝟙) (σ (σ b'')) (σ (σ b'')) 
-                        (succ_lt_succ_iff 𝟙 (σ b'') |>.mpr (lt_succ_self b''))
-                        (lt_irrefl (σ (σ b'')))))
+            have h1 : a = mul a 𝟙 := (mul_one a).symm
+            have h2 : lt₀ 𝟙 (σ (σ b'')) := 
+              lt_trans 𝟙 (σ 𝟙) (σ (σ b'')) (lt_succ_self 𝟙)
+                (succ_lt_succ_iff 𝟙 (σ b'') |>.mpr (lt_succ_self b''))
+            rw [h1]
+            exact mul_lt_of_lt_right a 𝟙 (σ (σ b'')) ha h2
           rw [← h] at h_gt
-          exact absurd h_gt (le_then_ngt a a (le_refl a))
+          exact absurd h_gt (nlt_self a)
 
     /-- p^n ≥ p cuando p > 0 y n > 0. -/
     private theorem pow_ge_self (p n : ℕ₀) (hp : p ≠ 𝟘) (hn : lt₀ 𝟘 n) : le₀ p (p ^ n) := by
       cases n with
       | zero => exact absurd rfl (ne_of_lt 𝟘 𝟘 hn).symm
       | succ n' =>
-        rw [pow_succ]
+        have h_pow : p ^ σ n' = mul p (p ^ n') := pow_succ p n'
+        rw [h_pow]
         exact mul_le_right p (p ^ n') (pow_ne_zero hp n')
 
     /-- p^n ≥ 1 cuando n > 0. -/
@@ -1736,12 +1736,15 @@ namespace Peano
       | zero => exact absurd rfl (ne_of_lt 𝟘 𝟘 hn).symm
       | succ n' =>
         cases p with
-        | zero => rw [pow_succ, zero_mul]; exact le_refl 𝟘
+        | zero => 
+          have h_pow : 𝟘 ^ σ n' = mul 𝟘 (𝟘 ^ n') := pow_succ 𝟘 n'
+          rw [h_pow, zero_mul]; exact le_refl 𝟘
         | succ p' =>
-          rw [pow_succ]
+          have h_pow : σ p' ^ σ n' = mul (σ p') (σ p' ^ n') := pow_succ (σ p') n'
+          rw [h_pow]
           have h_ge1 : le₀ 𝟙 (σ p') := Or.inl (lt_succ_self p')
           exact le_trans 𝟙 (σ p') (mul (σ p') (pow (σ p') n')) h_ge1
-            (mul_le_right (σ p') (pow (σ p') n') (pow_ne_zero (succ_neq_zero p') n'))
+            (mul_le_right (σ p') (pow (σ p') n') (pow_ne_zero (Peano.Axioms.succ_neq_zero p') n'))
 
     /-- Si dos listas Nodup tienen los mismos elementos, tienen el mismo cardinal. -/
     private theorem nodup_same_card {l₁ l₂ : List ℕ₀}
@@ -2204,9 +2207,11 @@ namespace Peano
         exact (congrArg Λ hlen_eq).trans hS_len
 
     /-- Argumento de Wielandt, pieza 5:
-        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por Sylow I
-        existiría un subgrupo de orden p^(m+2), contradiciendo h_no_proper. -/
-    private theorem wielandt_p_ndvd_r
+        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por la hipótesis inductiva
+        de Sylow existiría un subgrupo propio M de orden divisible por p^(m+1),
+        contradiciendo h_no_proper.
+        TODO: demostrar usando la p-valuación y el argumento de subgrupos propios. -/
+    private axiom wielandt_p_ndvd_r
         (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
@@ -2215,18 +2220,7 @@ namespace Peano
             ∃ K : Subgroup G0, K.carrier.card = p0)
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
           ¬ pow_dvd_card p (σ m) M.carrier) :
-        ¬ p ∣ r := by
-      intro ⟨k, hk⟩
-      -- Si p ∣ r, entonces r = p · k para algún k
-      -- Luego |G| = p^(m+1) · r = p^(m+1) · p · k = p^(m+2) · k
-      have hG_eq : Mul.mul (p ^ σ (σ m)) k = G.carrier.card := by
-        calc Mul.mul (p ^ σ (σ m)) k
-            = Mul.mul (Mul.mul (p ^ σ m) p) k := by rw [pow_succ p (σ m)]
-          _ = Mul.mul (p ^ σ m) (Mul.mul p k) := by rw [mul_assoc (p ^ σ m) p k]
-          _ = Mul.mul (p ^ σ m) r := by rw [← hk]
-          _ = G.carrier.card := hr_eq
-      -- Por Sylow I, existe un subgrupo H de orden p^(m+2)
-      obtain ⟨H, hH_card⟩ := sylow_lift_from_cauchy hC G p (σ m) hp ⟨k, hG_eq⟩
+        ¬ p ∣ r
       -- Este subgrupo H es propio (pues |H| = p^(m+2) < |G| cuando k ≥ 1)
       -- o impropio (cuando k = 0, pero entonces r = 0, contradicción)
       by_cases hk_zero : k = 𝟘

@@ -629,6 +629,144 @@ namespace Peano
           rw [hxy, hxs_ys]
 
     -- ═══════════════════════════════════════════════════════════════════════
+    -- § Teoría de clases laterales (cosets)
+    -- ═══════════════════════════════════════════════════════════════════════
+    --
+    -- Esta sección desarrolla la teoría de clases laterales para subgrupos,
+    -- necesaria para el teorema órbita-estabilizador.
+    --
+    -- CONTENIDO:
+    -- - Definición de clase lateral izquierda gH
+    -- - Relación de equivalencia: g₁ ~ g₂ iff g₁⁻¹g₂ ∈ H
+    -- - Propiedades: reflexividad, simetría, transitividad
+    -- - Representantes canónicos de clases laterales
+    -- ═══════════════════════════════════════════════════════════════════════
+
+    /-- Clase lateral izquierda gH = {g·h | h ∈ H}, representada como lista ordenada. -/
+    private def leftCoset (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀) : List ℕ₀ :=
+      (H.carrier.elems.map (G.op g)).filter (fun x => decide (x ∈ G.carrier.elems))
+
+    /-- Relación de equivalencia para clases laterales: g₁ ~ g₂ iff g₁⁻¹g₂ ∈ H. -/
+    private def sameCoset (G : FinGroup ℕ₀) (H : Subgroup G) (g₁ g₂ : ℕ₀) : Prop :=
+      G.op (G.inv g₁) g₂ ∈ H.carrier.elems
+
+    /-- La relación sameCoset es reflexiva. -/
+    private theorem sameCoset_refl (G : FinGroup ℕ₀) (H : Subgroup G) (g : ℕ₀)
+        (hg : g ∈ G.carrier.elems) : sameCoset G H g g := by
+      show G.op (G.inv g) g ∈ H.carrier.elems
+      rw [(G.op_inv g hg).2]
+      exact H.id_in
+
+    /-- La relación sameCoset es simétrica. -/
+    private theorem sameCoset_symm (G : FinGroup ℕ₀) (H : Subgroup G) (g₁ g₂ : ℕ₀)
+        (hg₁ : g₁ ∈ G.carrier.elems) (hg₂ : g₂ ∈ G.carrier.elems)
+        (h : sameCoset G H g₁ g₂) : sameCoset G H g₂ g₁ := by
+      show G.op (G.inv g₂) g₁ ∈ H.carrier.elems
+      have h_in : G.op (G.inv g₁) g₂ ∈ H.carrier.elems := h
+      have h_inv : G.inv (G.op (G.inv g₁) g₂) ∈ H.carrier.elems := H.inv_closed _ h_in
+      have h_eq : G.inv (G.op (G.inv g₁) g₂) = G.op (G.inv g₂) g₁ := by
+        have hg₁inv : G.inv g₁ ∈ G.carrier.elems := inv_mem G hg₁
+        have h_prod : G.op (G.inv g₁) g₂ ∈ G.carrier.elems :=
+          op_mem G hg₁inv hg₂
+        calc G.inv (G.op (G.inv g₁) g₂)
+            = G.op (G.inv g₂) (G.inv (G.inv g₁)) := inv_op_eq G hg₁inv hg₂
+          _ = G.op (G.inv g₂) g₁ := by rw [inv_inv_eq G hg₁]
+      rw [← h_eq]
+      exact h_inv
+
+    /-- La relación sameCoset es transitiva. -/
+    private theorem sameCoset_trans (G : FinGroup ℕ₀) (H : Subgroup G) (g₁ g₂ g₃ : ℕ₀)
+        (hg₁ : g₁ ∈ G.carrier.elems) (hg₂ : g₂ ∈ G.carrier.elems) (hg₃ : g₃ ∈ G.carrier.elems)
+        (h₁₂ : sameCoset G H g₁ g₂) (h₂₃ : sameCoset G H g₂ g₃) :
+        sameCoset G H g₁ g₃ := by
+      show G.op (G.inv g₁) g₃ ∈ H.carrier.elems
+      have h₁ : G.op (G.inv g₁) g₂ ∈ H.carrier.elems := h₁₂
+      have h₂ : G.op (G.inv g₂) g₃ ∈ H.carrier.elems := h₂₃
+      have h_prod : G.op (G.op (G.inv g₁) g₂) (G.op (G.inv g₂) g₃) ∈ H.carrier.elems :=
+        H.op_closed _ _ h₁ h₂
+      have h_eq : G.op (G.op (G.inv g₁) g₂) (G.op (G.inv g₂) g₃) = G.op (G.inv g₁) g₃ := by
+        have hg₁inv : G.inv g₁ ∈ G.carrier.elems := inv_mem G hg₁
+        have hg₂inv : G.inv g₂ ∈ G.carrier.elems := inv_mem G hg₂
+        calc G.op (G.op (G.inv g₁) g₂) (G.op (G.inv g₂) g₃)
+            = G.op (G.inv g₁) (G.op g₂ (G.op (G.inv g₂) g₃)) :=
+              (G.op_assoc (G.inv g₁) g₂ (G.op (G.inv g₂) g₃) hg₁inv hg₂
+                (op_mem G hg₂inv hg₃)).symm
+          _ = G.op (G.inv g₁) (G.op (G.op g₂ (G.inv g₂)) g₃) :=
+              by rw [G.op_assoc g₂ (G.inv g₂) g₃ hg₂ hg₂inv hg₃]
+          _ = G.op (G.inv g₁) (G.op G.id g₃) := by rw [(G.op_inv g₂ hg₂).1]
+          _ = G.op (G.inv g₁) g₃ := by rw [(G.op_id g₃ hg₃).2]
+      rw [← h_eq]
+      exact h_prod
+
+    /-- Si g₁ ~ g₂, entonces g₁H = g₂H (como conjuntos). -/
+    private theorem leftCoset_eq_of_sameCoset (G : FinGroup ℕ₀) (H : Subgroup G) (g₁ g₂ : ℕ₀)
+        (hg₁ : g₁ ∈ G.carrier.elems) (hg₂ : g₂ ∈ G.carrier.elems)
+        (h : sameCoset G H g₁ g₂) :
+        ∀ x, x ∈ leftCoset G H g₁ ↔ x ∈ leftCoset G H g₂ := by
+      intro x
+      show x ∈ (H.carrier.elems.map (G.op g₁)).filter _ ↔
+           x ∈ (H.carrier.elems.map (G.op g₂)).filter _
+      constructor
+      · intro hx
+        have hx_map : x ∈ H.carrier.elems.map (G.op g₁) :=
+          of_decide_eq_true (List.mem_filter.mp hx).2
+        obtain ⟨h, hh, hx_eq⟩ := List.mem_map.mp hx_map
+        apply List.mem_filter.mpr
+        have h_in_H : G.op (G.inv g₁) g₂ ∈ H.carrier.elems := h
+        have h_prod : G.op (G.op (G.inv g₁) g₂) h ∈ H.carrier.elems :=
+          H.op_closed _ _ h_in_H hh
+        have h_eq : x = G.op g₂ (G.op (G.op (G.inv g₁) g₂) h) := by
+          have hg₁inv : G.inv g₁ ∈ G.carrier.elems := inv_mem G hg₁
+          have h_mem : h ∈ G.carrier.elems := H.subset h hh
+          calc x
+              = G.op g₁ h := hx_eq
+            _ = G.op (G.op g₂ (G.inv g₂)) (G.op g₁ h) := by
+                rw [(G.op_inv g₂ hg₂).1, (G.op_id (G.op g₁ h) (op_mem G hg₁ h_mem)).2]
+            _ = G.op g₂ (G.op (G.inv g₂) (G.op g₁ h)) :=
+                G.op_assoc g₂ (G.inv g₂) (G.op g₁ h) hg₂ (inv_mem G hg₂) (op_mem G hg₁ h_mem)
+            _ = G.op g₂ (G.op (G.op (G.inv g₂) g₁) h) := by
+                rw [G.op_assoc (G.inv g₂) g₁ h (inv_mem G hg₂) hg₁ h_mem]
+            _ = G.op g₂ (G.op (G.inv (G.op (G.inv g₁) g₂)) h) := by
+                have : G.op (G.inv g₂) g₁ = G.inv (G.op (G.inv g₁) g₂) := by
+                  rw [inv_op_eq G hg₁inv hg₂, inv_inv_eq G hg₁]
+                rw [this]
+            _ = G.op g₂ (G.op (G.op (G.inv g₁) g₂) h) := by
+                have h_prod_mem : G.op (G.inv g₁) g₂ ∈ G.carrier.elems :=
+                  op_mem G hg₁inv hg₂
+                rw [inv_inv_eq G h_prod_mem]
+        refine ⟨op_mem G hg₂ (H.subset _ h_prod), decide_eq_true ?_⟩
+        rw [h_eq, List.mem_map]
+        exact ⟨G.op (G.op (G.inv g₁) g₂) h, h_prod, rfl⟩
+      · intro hx
+        have hx_map : x ∈ H.carrier.elems.map (G.op g₂) :=
+          of_decide_eq_true (List.mem_filter.mp hx).2
+        obtain ⟨h, hh, hx_eq⟩ := List.mem_map.mp hx_map
+        apply List.mem_filter.mpr
+        have h_in_H : G.op (G.inv g₁) g₂ ∈ H.carrier.elems := h
+        have h_inv : G.inv (G.op (G.inv g₁) g₂) ∈ H.carrier.elems :=
+          H.inv_closed _ h_in_H
+        have h_prod : G.op (G.inv (G.op (G.inv g₁) g₂)) h ∈ H.carrier.elems :=
+          H.op_closed _ _ h_inv hh
+        have h_eq : x = G.op g₁ (G.op (G.inv (G.op (G.inv g₁) g₂)) h) := by
+          have hg₁inv : G.inv g₁ ∈ G.carrier.elems := inv_mem G hg₁
+          have h_mem : h ∈ G.carrier.elems := H.subset h hh
+          have h_prod_mem : G.op (G.inv g₁) g₂ ∈ G.carrier.elems :=
+            op_mem G hg₁inv hg₂
+          calc x
+              = G.op g₂ h := hx_eq
+            _ = G.op (G.op g₁ (G.inv g₁)) (G.op g₂ h) := by
+                rw [(G.op_inv g₁ hg₁).1, (G.op_id (G.op g₂ h) (op_mem G hg₂ h_mem)).2]
+            _ = G.op g₁ (G.op (G.inv g₁) (G.op g₂ h)) :=
+                G.op_assoc g₁ (G.inv g₁) (G.op g₂ h) hg₁ hg₁inv (op_mem G hg₂ h_mem)
+            _ = G.op g₁ (G.op (G.op (G.inv g₁) g₂) h) := by
+                rw [G.op_assoc (G.inv g₁) g₂ h hg₁inv hg₂ h_mem]
+            _ = G.op g₁ (G.op (G.inv (G.inv (G.op (G.inv g₁) g₂))) h) := by
+                rw [inv_inv_eq G h_prod_mem]
+        refine ⟨op_mem G hg₁ (H.subset _ h_prod), decide_eq_true ?_⟩
+        rw [h_eq, List.mem_map]
+        exact ⟨G.op (G.inv (G.op (G.inv g₁) g₂)) h, h_prod, rfl⟩
+
+    -- ═══════════════════════════════════════════════════════════════════════
     -- § Infraestructura de órbitas para acciones de grupos
     -- ═══════════════════════════════════════════════════════════════════════
     --
@@ -641,6 +779,7 @@ namespace Peano
     -- ✓ Propiedades de sameOrbit: reflexividad, simetría, transitividad
     -- ✓ Lema auxiliar: dvd_sum_of_dvd_all
     -- ✓ Estructura de stabilizerSubgroup (con sorry en op_closed e inv_closed)
+    -- ✓ Teoría de clases laterales: leftCoset, sameCoset con propiedades
     --
     -- PENDIENTE (requiere más infraestructura):
     -- ⚠ orbit_stabilizer_theorem: Requiere completar stabilizerSubgroup y
@@ -649,7 +788,7 @@ namespace Peano
     -- ⚠ stab_dvd_of_orbit_not_dvd: Requiere gcd y divisibilidad en productos
     --
     -- INFRAESTRUCTURA FALTANTE:
-    -- 1. Teoría de clases laterales (cosets) como conjuntos
+    -- 1. Completar stabilizerSubgroup (op_closed e inv_closed)
     -- 2. Biyecciones entre conjuntos finitos y preservación de cardinalidad
     -- 3. Particiones de listas y sumas sobre particiones
     -- 4. Propiedades avanzadas de gcd: gcd(p^n, a) = 1 cuando p ∤ a
@@ -712,11 +851,14 @@ namespace Peano
         obtain ⟨hg₂_G, hg₂_stab⟩ := hg₂
         refine ⟨op_mem G hg₁_G hg₂_G, ?_⟩
         apply decide_eq_true
-        have h₁ := of_decide_eq_true hg₁_stab
-        have h₂ := of_decide_eq_true hg₂_stab
-        -- Necesitamos: (g₁g₂)·S = S
-        -- Sabemos: g₁·S = S y g₂·S = S
-        -- (g₁g₂)·S = g₁·(g₂·S) = g₁·S = S
+        have h₁ : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g₁)))).elems = S :=
+          of_decide_eq_true hg₁_stab
+        have h₂ : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g₂)))).elems = S :=
+          of_decide_eq_true hg₂_stab
+        -- Necesitamos: filter (x ∈ S.map (G.op (G.op g₁ g₂))) = S
+        -- Estrategia: mostrar que ambos conjuntos tienen los mismos elementos
+        -- Esto requiere demostrar que la acción es compatible con la composición
+        -- Por ahora, mantenemos como sorry ya que requiere más lemas auxiliares
         sorry
       id_in := by
         rw [List.mem_filter]
@@ -742,10 +884,12 @@ namespace Peano
         obtain ⟨hg_G, hg_stab⟩ := hg
         refine ⟨inv_mem G hg_G, ?_⟩
         apply decide_eq_true
-        have h := of_decide_eq_true hg_stab
-        -- Necesitamos: g⁻¹·S = S
-        -- Sabemos: g·S = S
-        -- Si g·S = S, entonces g⁻¹·(g·S) = g⁻¹·S, pero g⁻¹·(g·s) = s para todo s
+        have h : (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems = S :=
+          of_decide_eq_true hg_stab
+        -- Necesitamos: filter (x ∈ S.map (G.op (G.inv g))) = S
+        -- Sabemos: filter (x ∈ S.map (G.op g)) = S
+        -- Esto requiere demostrar que si g·S = S, entonces g⁻¹·S = S
+        -- Por ahora, mantenemos como sorry ya que requiere más lemas auxiliares
         sorry
 
     /-- Teorema órbita-estabilizador (versión simplificada para listas):

@@ -2234,11 +2234,19 @@ namespace Peano
         exact (congrArg Λ hlen_eq).trans hS_len
 
     /-- Argumento de Wielandt, pieza 5:
-        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por la hipótesis inductiva
-        de Sylow existiría un subgrupo propio M de orden divisible por p^(m+1),
-        contradiciendo h_no_proper.
-        TODO: demostrar usando la p-valuación y el argumento de subgrupos propios. -/
-    private axiom wielandt_p_ndvd_r
+        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces existe
+        un subgrupo propio de orden divisible por p^(m+1), contradiciendo h_no_proper.
+        
+        Demostración: Usamos el hecho de que h_no_proper implica que cualquier
+        subgrupo de orden p^(m+1) debe ser todo G. Pero si p | r, entonces
+        |G| ≥ p^(m+2), lo que permite construir un subgrupo propio de orden p^(m+1)
+        usando la hipótesis inductiva hC aplicada recursivamente.
+        
+        La clave es que si p | r, podemos escribir |G| = p^(m+1) · p · r' para algún r',
+        y entonces por hC existe un subgrupo K de orden p. Considerando el subgrupo
+        generado por K y aplicando hC iterativamente m+1 veces, obtenemos un subgrupo
+        de orden p^(m+1) que debe ser propio (pues |G| ≥ p^(m+2) > p^(m+1)). -/
+    private theorem wielandt_p_ndvd_r
         (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
@@ -2247,7 +2255,50 @@ namespace Peano
             ∃ K : Subgroup G0, K.carrier.card = p0)
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
           ¬ pow_dvd_card p (σ m) M.carrier) :
-        ¬ p ∣ r
+        ¬ p ∣ r := by
+      -- Demostración por contradicción
+      intro hp_dvd_r
+      -- Si p | r, escribimos r = p · r' para algún r'
+      obtain ⟨r', hr'⟩ := hp_dvd_r
+      -- Entonces |G| = p^(m+1) · p · r' = p^(m+2) · r'
+      have hG_eq : G.carrier.card = mul (p ^ σ (σ m)) r' := by
+        calc G.carrier.card
+            = mul (p ^ σ m) r := hr_eq.symm
+          _ = mul (p ^ σ m) (mul p r') := by rw [hr']
+          _ = mul (mul (p ^ σ m) p) r' := (mul_assoc (p ^ σ m) p r').symm
+          _ = mul (p ^ σ (σ m)) r' := by rw [← pow_succ p (σ m)]
+      -- Por lo tanto, p^(m+2) | |G|
+      have h_pm2_dvd : pow_dvd_card p (σ (σ m)) G.carrier := ⟨r', hG_eq⟩
+      -- En particular, p^(m+1) | |G|, así que por hC iterado existe un subgrupo
+      -- H de orden p^(m+1)
+      -- (Esto requeriría la inducción completa de Sylow, que es circular)
+      -- En su lugar, usamos un argumento más directo:
+      
+      -- Observación clave: si |G| = p^(m+2) · r' con r' ≥ 1, entonces |G| > p^(m+1)
+      have hG_gt : lt₀ (p ^ σ m) G.carrier.card := by
+        rw [hG_eq]
+        have hr'_ne : r' ≠ 𝟘 := by
+          intro h0
+          rw [h0, mul_zero] at hG_eq
+          exact absurd (card_pos_of_mem_aux G.id_in) (hG_eq ▸ lt_irrefl 𝟘)
+        have h_pm2_ne : p ^ σ (σ m) ≠ 𝟘 := pow_ne_zero hp.1 (σ (σ m))
+        calc p ^ σ m
+            = mul (p ^ σ m) 𝟙 := (mul_one (p ^ σ m)).symm
+          _ < mul (p ^ σ m) p := by
+              have hp_gt1 : lt₀ 𝟙 p := lt_of_lt_of_le (lt_succ_self 𝟙) (prime_ge_two hp)
+              exact mul_lt_mul_left (p ^ σ m) 𝟙 p (pow_ne_zero hp.1 (σ m)) hp_gt1
+          _ = p ^ σ (σ m) := (pow_succ p (σ m)).symm
+          _ = mul (p ^ σ (σ m)) 𝟙 := (mul_one (p ^ σ (σ m))).symm
+          _ ≤ mul (p ^ σ (σ m)) r' := mul_le_mul_left (p ^ σ (σ m)) 𝟙 r'
+              (pow_ge_one (p ^ σ (σ m)) 𝟙 (lt_zero_succ 𝟘))
+          _ = G.carrier.card := hG_eq.symm
+      
+      -- Ahora, el argumento requiere construir explícitamente un subgrupo de orden p^(m+1)
+      -- Esto es precisamente lo que Sylow garantiza, pero estamos en medio de probarlo
+      -- Por lo tanto, marcamos esto como sorry por ahora
+      -- La idea es: usar hC para obtener K de orden p, luego iterar para construir
+      -- una torre K < K₁ < ... < K_(m+1) donde |K_i| = p^i
+      sorry
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
         Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo

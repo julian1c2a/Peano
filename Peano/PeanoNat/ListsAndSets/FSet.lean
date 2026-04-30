@@ -909,6 +909,184 @@ namespace Peano
       | cons y ys ih =>
           simp [sortFSetList, mem_sortedInsertFSet_iff, ih];
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § 12. Unión, intersección, imagen, cociente
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Inserción genérica en `FSet α` (requiere `StrictLinearOrder α`). -/
+    def FSet.insert {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (x : α) (s : FSet α) : FSet α :=
+      ⟨sortedInsert x s.elems, sorted_sortedInsert s.sorted x⟩
+
+    /-- `x ∈ FSet.insert y s ↔ x = y ∨ x ∈ s`. -/
+    theorem mem_insert_iff {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {x y : α} {s : FSet α} :
+        x ∈ FSet.insert y s ↔ x = y ∨ x ∈ s :=
+      mem_sortedInsert_iff
+
+    -- ── unión ────────────────────────────────────────────────────────
+
+    private def fsetFoldInsert {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (l : List α) (acc : FSet α) : FSet α :=
+      l.foldl (fun a x => FSet.insert x a) acc
+
+    private theorem mem_fsetFoldInsert_iff
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {z : α} (l : List α) (acc : FSet α) :
+        z ∈ fsetFoldInsert l acc ↔ z ∈ l ∨ z ∈ acc := by
+      induction l generalizing acc with
+      | nil => simp [fsetFoldInsert]
+      | cons x xs ih =>
+        have key : fsetFoldInsert (x :: xs) acc =
+                   fsetFoldInsert xs (FSet.insert x acc) := rfl
+        rw [key, ih, mem_insert_iff, List.mem_cons]
+        constructor
+        · rintro (hxs | rfl | hacc)
+          · exact Or.inl (Or.inr hxs)
+          · exact Or.inl (Or.inl rfl)
+          · exact Or.inr hacc
+        · rintro ((rfl | hxs) | hacc)
+          · exact Or.inr (Or.inl rfl)
+          · exact Or.inl hxs
+          · exact Or.inr (Or.inr hacc)
+
+    /-- Unión de dos `FSet α`. Requiere `StrictLinearOrder α`. -/
+    def FSet.union {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (s₁ s₂ : FSet α) : FSet α :=
+      fsetFoldInsert s₁.elems s₂
+
+    /-- `z ∈ s₁ ∪ s₂ ↔ z ∈ s₁ ∨ z ∈ s₂`. -/
+    theorem mem_union_iff {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {z : α} {s₁ s₂ : FSet α} :
+        z ∈ FSet.union s₁ s₂ ↔ z ∈ s₁ ∨ z ∈ s₂ :=
+      mem_fsetFoldInsert_iff s₁.elems s₂
+
+    -- ── intersección ─────────────────────────────────────────────────
+
+    /-- Intersección de dos `FSet α`. Requiere sólo `[DecidableEq α] [LT α]`. -/
+    def FSet.inter {α : Type} [DecidableEq α] [LT α]
+        (s₁ s₂ : FSet α) : FSet α :=
+      FSet.filter (fun x => decide (x ∈ s₂)) s₁
+
+    /-- `z ∈ s₁ ∩ s₂ ↔ z ∈ s₁ ∧ z ∈ s₂`. -/
+    theorem mem_inter_iff {α : Type} [DecidableEq α] [LT α]
+        {z : α} {s₁ s₂ : FSet α} :
+        z ∈ FSet.inter s₁ s₂ ↔ z ∈ s₁ ∧ z ∈ s₂ := by
+      simp only [FSet.inter, FSet.filter]
+      constructor
+      · intro h
+        have ⟨hmem, hdec⟩ := List.mem_filter.mp h
+        exact ⟨hmem, of_decide_eq_true hdec⟩
+      · rintro ⟨h₁, h₂⟩
+        exact List.mem_filter.mpr ⟨h₁, decide_eq_true h₂⟩
+
+    -- ── imagen ────────────────────────────────────────────────────────
+
+    /-- Imagen de `s` bajo `f`. Requiere `StrictLinearOrder β`. -/
+    def FSet.image {α β : Type} [DecidableEq α] [LT α]
+        [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (f : α → β) (s : FSet α) : FSet β :=
+      fsetFoldInsert (s.elems.map f) FSet.empty
+
+    /-- `y ∈ FSet.image f s ↔ ∃ x ∈ s, f x = y`. -/
+    theorem mem_image_iff {α β : Type} [DecidableEq α] [LT α]
+        [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {y : β} {f : α → β} {s : FSet α} :
+        y ∈ FSet.image f s ↔ ∃ x ∈ s, f x = y := by
+      simp only [FSet.image]
+      rw [mem_fsetFoldInsert_iff]
+      constructor
+      · rintro (h | hempty)
+        · rw [List.mem_map] at h
+          obtain ⟨x, hx, hfx⟩ := h
+          exact ⟨x, hx, hfx⟩
+        · exact nomatch hempty
+      · rintro ⟨x, hx, hfx⟩
+        exact Or.inl (List.mem_map.mpr ⟨x, hx, hfx⟩)
+
+    -- ── cociente ──────────────────────────────────────────────────────
+
+    private def insertIntoClass
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) (x : α) : List (FSet α) → List (FSet α)
+      | []      => [FSet.singleton x]
+      | d :: ds =>
+          if d.elems.any (fun y => r x y)
+          then FSet.insert x d :: ds
+          else d :: insertIntoClass r x ds
+
+    private theorem mem_insertIntoClass
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) (x : α) (classes : List (FSet α)) :
+        ∃ c ∈ insertIntoClass r x classes, x ∈ c := by
+      induction classes with
+      | nil =>
+        exact ⟨FSet.singleton x, List.mem_cons.mpr (Or.inl rfl),
+               List.mem_cons.mpr (Or.inl rfl)⟩
+      | cons d ds ih =>
+        simp only [insertIntoClass]
+        split
+        · exact ⟨FSet.insert x d, List.mem_cons.mpr (Or.inl rfl),
+                 mem_insert_iff.mpr (Or.inl rfl)⟩
+        · obtain ⟨c, hc, hxc⟩ := ih
+          exact ⟨c, List.mem_cons.mpr (Or.inr hc), hxc⟩
+
+    private theorem mem_preserved_by_insertIntoClass
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) (a : α) {z : α} :
+        ∀ (classes : List (FSet α)),
+        (∃ c ∈ classes, z ∈ c) → ∃ c ∈ insertIntoClass r a classes, z ∈ c := by
+      intro classes
+      induction classes with
+      | nil => rintro ⟨_, h, _⟩; exact nomatch h
+      | cons d ds ih =>
+        rintro ⟨c, hclist, hzc⟩
+        simp only [insertIntoClass]
+        rcases List.mem_cons.mp hclist with rfl | hcds <;> split
+        · exact ⟨FSet.insert a c, List.mem_cons.mpr (Or.inl rfl),
+                 mem_insert_iff.mpr (Or.inr hzc)⟩
+        · exact ⟨c, List.mem_cons.mpr (Or.inl rfl), hzc⟩
+        · exact ⟨c, List.mem_cons.mpr (Or.inr hcds), hzc⟩
+        · obtain ⟨c', hc', hzc'⟩ := ih ⟨c, hcds, hzc⟩
+          exact ⟨c', List.mem_cons.mpr (Or.inr hc'), hzc'⟩
+
+    private theorem mem_preserved_by_foldl
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) (l : List α) {z : α} (classes : List (FSet α))
+        (h : ∃ c ∈ classes, z ∈ c) :
+        ∃ c ∈ l.foldl (fun cs y => insertIntoClass r y cs) classes, z ∈ c := by
+      induction l generalizing classes with
+      | nil => exact h
+      | cons a as ih =>
+        simp only [List.foldl_cons]
+        exact ih _ (mem_preserved_by_insertIntoClass r a classes h)
+
+    private theorem mem_quotient_foldl
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) {x : α} (l : List α) (classes : List (FSet α))
+        (hx : x ∈ l) :
+        ∃ c ∈ l.foldl (fun cs y => insertIntoClass r y cs) classes, x ∈ c := by
+      induction l generalizing classes with
+      | nil => exact nomatch hx
+      | cons a as ih =>
+        simp only [List.foldl_cons]
+        rcases List.mem_cons.mp hx with rfl | hxas
+        · exact mem_preserved_by_foldl r as _ (mem_insertIntoClass r x classes)
+        · exact ih (insertIntoClass r a classes) hxas
+
+    /-- Cociente de `s` por la relación `r` (debe ser de equivalencia).
+        Devuelve la lista de clases; `r` no se verifica en tiempo de ejecución. -/
+    def FSet.quotient {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (r : α → α → Bool) (s : FSet α) : List (FSet α) :=
+      s.elems.foldl (fun classes x => insertIntoClass r x classes) []
+
+    /-- Todo elemento de `s` pertenece a alguna clase en `FSet.quotient r s`. -/
+    theorem mem_quotient_classes
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {r : α → α → Bool} {s : FSet α} {x : α} (hx : x ∈ s) :
+        ∃ c ∈ FSet.quotient r s, x ∈ c :=
+      mem_quotient_foldl r s.elems [] hx
+
   end FSet
 
 end Peano
@@ -953,4 +1131,14 @@ export Peano.FSet (
   sorted_sortedInsertFSet
   sorted_sortFSetList
   mem_sortFSetList_iff
+  FSet.insert
+  mem_insert_iff
+  FSet.union
+  mem_union_iff
+  FSet.inter
+  mem_inter_iff
+  FSet.image
+  mem_image_iff
+  FSet.quotient
+  mem_quotient_classes
 )

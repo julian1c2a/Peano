@@ -24,6 +24,7 @@ import Peano.PeanoNat.Combinatorics.Pow
 import Peano.PeanoNat.Combinatorics.Binom
 import Peano.PeanoNat.Combinatorics.Group
 import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
+import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.CosetAction
 import Peano.PeanoNat.Combinatorics.GroupTheory.Action
 import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.Totient
@@ -2363,21 +2364,41 @@ namespace Peano
             hndvd₂
       exact hn₁_card.trans ((congrArg (p ^ ·) hn_eq).trans hn₂_card.symm)
 
-    /-- Axioma: paso de punto fijo para Sylow II.
-        ∃ r ∈ G tal que r⁻¹Hr ⊆ K.
-        La prueba estándar: H actúa en G/K por multiplicación izquierda; |G/K| no
-        es divisible por p; los tamaños de órbita dividen |H| = p^n; por conteo mod p
-        ∃ órbita de tamaño 1 (punto fijo rK); rK es punto fijo iff r⁻¹Hr ⊆ K.
-        Requiere construir el conjunto G/K como ℕ₀FSet, definir la acción de H sobre
-        él y el conteo de órbitas para un grupo p-primario general.
-        TODO: reemplazar por demostración completa. -/
-    private axiom sylow_second_incl
+    /-- H actúa sobre G/K por multiplicación izquierda; p∤|G/K|; el teorema de punto
+        fijo para p-grupos da un coset fijo rK, equivalente a r⁻¹Hr ⊆ K. -/
+    private theorem sylow_second_incl
         (G : FinGroup ℕ₀) (p : ℕ₀)
+        (hp : Prime p)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p)
         (hK : isSylowSubgroup G K p) :
         ∃ r, r ∈ G.carrier.elems ∧
-          ∀ h, h ∈ H.carrier.elems → G.op (G.inv r) (G.op h r) ∈ K.carrier.elems
+          ∀ h, h ∈ H.carrier.elems → G.op (G.inv r) (G.op h r) ∈ K.carrier.elems := by
+      obtain ⟨n,   hn_exp,   hn_H_card⟩ := hH
+      obtain ⟨n_K, hn_K_exp, hn_K_card⟩ := hK
+      obtain ⟨hdvd,   hndvd_pn1⟩   := hn_exp
+      obtain ⟨hdvd_K, hndvd_K_pn1⟩ := hn_K_exp
+      -- unique Sylow exponent (hdvd / hdvd_K must survive until here)
+      have hn_eq : n = n_K := by
+        rcases trichotomy n n_K with h | h | h
+        · exact absurd
+            (pow_dvd_card_of_le p (σ n) n_K G.carrier
+              (lt_nm_then_le_nm n n_K h) hdvd_K) hndvd_pn1
+        · exact h
+        · exact absurd
+            (pow_dvd_card_of_le p (σ n_K) n G.carrier
+              (lt_nm_then_le_nm n_K n h) hdvd) hndvd_K_pn1
+      have hn_K_card' : K.carrier.card = pow p n := hn_eq ▸ hn_K_card
+      obtain ⟨k, hGk⟩ := hdvd
+      -- p ∤ k  (maximality: p ∣ k → p^(n+1) ∣ |G|, contradicting hndvd_pn1)
+      have hndvd_k : ¬ p ∣ k := by
+        intro ⟨j, hj⟩
+        apply hndvd_pn1
+        refine ⟨j, ?_⟩
+        have hps : p ^ (σ n) = Mul.mul (p ^ n) p := pow_succ p n
+        rw [hps, mul_assoc, ← hj]
+        exact hGk
+      exact coset_conjugate_exists G H K p n k hp hn_H_card hn_K_card' hGk hndvd_k
 
     /-- **Segundo Teorema de Sylow**: conjugación de p-subgrupos.
         Todo par de subgrupos de Sylow-p son conjugados en G.
@@ -2387,13 +2408,14 @@ namespace Peano
           (dada por una inyección con igual cardinalidad) implica r⁻¹Hr = K.
         · El testigo es g = r⁻¹; entonces ghg⁻¹ = r⁻¹h(r⁻¹)⁻¹ = r⁻¹hr ∈ K. -/
     theorem sylow_second (G : FinGroup ℕ₀) (p : ℕ₀)
+        (hp : Prime p)
         (H K : Subgroup G)
         (hH : isSylowSubgroup G H p) (hK : isSylowSubgroup G K p) :
         ∃ g, g ∈ G.carrier.elems ∧
           ∀ x, x ∈ K.carrier.elems ↔
             ∃ h, h ∈ H.carrier.elems ∧ G.op (G.op g h) (G.inv g) = x := by
       -- Paso 1: r con r⁻¹Hr ⊆ K, e |H| = |K|
-      obtain ⟨r, hr, h_incl⟩ := sylow_second_incl G p H K hH hK
+      obtain ⟨r, hr, h_incl⟩ := sylow_second_incl G p hp H K hH hK
       have hHK : H.carrier.card = K.carrier.card := sylow_card_eq G p H K hH hK
       -- Paso 2: la conjugación h ↦ r⁻¹hr mapea H en K
       have h_conj_mem : ∀ h, h ∈ H.carrier.elems →

@@ -326,3 +326,89 @@ Si el libro de Stewart ya te dio la base de Galois y quieres algo puramente alge
 
 **Pregunta para tu implementación:**
 ¿Has considerado usar **Clases de Tipos** en Lean para que tus números naturales "sepan" que son un Monoide, y tus enteros "sepan" que son un Grupo? Es la forma más potente de reutilizar código y demostraciones en el álgebra abstracta.
+
+## ALGUNAS NOTAS SOBRE ÁLGEBRA ABSTRACTA
+
+Estructura,Propiedades Clave
+
+* Magma, conjunto, +, Clausura.
+* Semigrupo, conjunto, +, Asociatividad y Clausura.
+* Monoide, conjunto, +, Asociatividad y Elemento Neutro y Clausura.
+* Grupo, conjunto, +, Elemento Inverso y Asociatividad y Elemento Neutro y Clausura.
+* Grupo Abeliano, conjunto, +, Conmutatividad y Elemento Inverso y Asociatividad y Elemento Neutro y Clausura.
+* Anillo, conjunto, +, ⋅, (conjunto, +, 0) es grupo, (conjunto, ⋅, 1) es un monoide, y tenemos Distributividad de la multiplicación sobre la suma.
+* * Dentro de los anillos tenemos varias subcategorías:
+* * Cuerpo ⊂ Dominio Euclídeo ⊂ Dominio de Ideales Principales ⊂ Dominio de Factorización Única ⊂ Dominio de Integrad
+* Anillo de división, conjunto, +, ⋅, (conjunto, +, ⋅, 0, 1) es un anillo en el que todo elemento no cero es invertible, pero puede no ser el mismo inverso por la derecha que por la izquierda.
+* Cuerpo, conjunto, +, ⋅, (conjunto \ {0}, ⋅, 1) es un grupo conmutativo, (conjunto, +, 0) es un grupo, y tenemos Distributividad de la multiplicación sobre la suma.
+* Módulo, (R,+,⋅) es un anillo y (M, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del anillo.
+* Espacio Vectorial, (K,+,⋅) es un cuerpo y (V, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del cuerpo.
+* Álgebra, (K,+,⋅) es un cuerpo y (A, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del cuerpo, y una operación de multiplicación interna que es bilineal.
+
+## ALGUNAS NOTAS SOBRE RETÍCULOS
+
+Conjunto, Relación de Orden Parcial, Propiedades Clave
+
+Árbol de Clasificación de Retículos
+
+1. Nivel Base: El Retículo Simple
+    Retículo (Lattice): Un conjunto donde para todo a,b existen a∨b (join) y a∧b (meet).
+        Embedding: Es el ancestro común de todos los siguientes.
+
+2. Por Propiedades de Operación (Estructurales)
+    Retículo Semimodular: Si un elemento a cubre a a∧b, entonces a∨b cubre a b. (Fundamental en geometría combinatoria).
+
+    Retículo Modular: Satisface la ley modular: si a≤c, entonces a∨(b∧c)=(a∨b)∧c.
+        Embedding: Todo retículo distributivo es modular, y todo modular es semimodular.
+        Ejemplo: El retículo de subespacios de un espacio vectorial.
+
+    Retículo Distributivo: Las operaciones se distribuyen una sobre otra: a∧(b∨c)=(a∧b)∨(a∧c).
+        Embedding: Contenido dentro de los modulares. Es la base de la lógica clásica.
+
+3. Por Acotación y Completitud (Extensionales)
+
+    Retículo Acotado (Bounded): Posee un elemento mínimo (⊥) y un máximo (⊤).
+
+    Retículo Completamente Distributivo: La distributividad se extiende a conjuntos infinitos.
+
+    Retículo Completo: Todo subconjunto (incluso los infinitos) tiene supremo e ínfimo.
+
+        Ejemplo: El intervalo [0,1] en los reales.
+
+4. Por Existencia de Complementos (Lógicos)
+
+    Retículo Complementado: Es acotado y para cada a existe un a′ tal que a∨a′=⊤ y a∧a′=⊥.
+
+    Retículo Ortocomplementado: Un retículo complementado con una involución que invierte el orden. (Base de la lógica cuántica).
+
+5. El "Cénit": Álgebras de Boole y Heyting
+
+    Cuando combinamos las propiedades de distribución y complemento, llegamos a las estructuras más potentes del álgebra:
+
+    * Álgebra de Heyting: Un retículo distributivo acotado con una operación de "implicación". (Base de la Lógica Intuicionista).
+
+    * Álgebra de Boole: Un retículo que es distributivo y complementado.
+
+        Embedding: Toda Álgebra de Boole es un Álgebra de Heyting, pero no al revés (en Boole, a∨¬a=1 siempre).
+
+### Resumen de Inclusiones (Embeddings)
+
+Podemos ver la jerarquía de fuerza lógica así:
+
+Retículo⊃Modular⊃Distributivo⊃Heyting⊃Boole
+
+### Tabla Comparativa Rápida
+
+Tipo Propiedad Clave Ejemplo Típico
+
+Modular Ley modular (no contiene pentágonos N5​) Subgrupos de un grupo abeliano
+
+Distributivo Ley distributiva (no contiene diamantes M3​) Conjunto de las partes P(S)
+
+Completo Ínfimos/Supremos infinitos Topologías de un espacio
+
+Boole Distributivo + Complementado Lógica binaria / Circuitos
+
+### Establecimiento de la variedad de Álgebras de Boole no isomórficas entre sí
+
+Establecemos las álgebras atómicas y completas como las que se pueden representar como las partes de un conjunto junto con la unión y la intersección. Para cada cardinalidad de conjunto, obtenemos una álgebra de Boole no isomórfica a las demás, lo que demuestra la existencia de una variedad infinita de álgebras de Boole no isomórficas entre sí. Se trata de ver el resto de las álgebras de Boole como subálgebras de estas álgebras atómicas y completas, lo que implica que también hay una variedad infinita de álgebras de Boole no isomórficas entre sí.

@@ -167,3 +167,166 @@ Current `FinGroup` requires carrier ⊆ `ℕ₀`. Blocking:
 
 **Precondition**: complete the three tracks above first.
 After Sylow III is closed, revisit FinGroup generalization.
+
+---
+
+## Phase F — Completar Foundation: prerequisito para la cadena Peano → Aczel → ZFC
+
+*Añadido: 2026-05-02*
+
+**Objetivo**: exportar desde este proyecto `encodeList`/`decodeList`/`encode_decode` para que
+AczelSetTheory pueda importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
+`List ℕ₀ ≃ ℕ₀` sobre los axiomas de Peano, cerrando la cadena `PA → Aczel → ZFC`.
+
+Esta phase es completamente paralela a los Tracks 1–3 de eliminación de axiomas de Sylow.
+No hay dependencias cruzadas.
+
+---
+
+### F.1 — `CantorPairing.lean` (11 sorry)
+
+Necesario porque `GodelBeta.lean` usa `pair`/`fst`/`snd` para codificar el par `(c, b)` como
+un único `ℕ₀`.
+
+**Sorry pendientes y estrategia de prueba**:
+
+| # | Teorema | Estrategia |
+|---|---------|------------|
+| 1 | `triag_zero` | `simp [triag]` + `Div` sobre `0 * 1 / 2 = 0` |
+| 2 | `triag_succ` | requiere `two_dvd_mul_succ`; `T(n+1) = T(n) + (n+1)` por álgebra de `Div` |
+| 3 | `triag_strict_mono` | de `triag_succ` + `lt₀` por inducción en la cadena `m < n` |
+| 4 | `triag_le_of_le` | de `triag_strict_mono` + reflexividad de `le₀` |
+| 5 | `triag_le_pair` | `pair m n = T(m+n) + m ≥ T(m+n)` por `le_add_right` |
+| 6 | `pair_lt_triag_succ` | `T(m+n+1) = T(m+n)+(m+n+1) > T(m+n)+m` porque `m < m+n+1` |
+| 7 | `antidiag_exists` | inducción en `z`: caso succ usa `triag_strict_mono` + orden bien fundado |
+| 8 | `antidiag_unique` | tricotomía `lt₀`: si `w₁ < w₂` entonces `T(w₁+1) ≤ T(w₂) ≤ z`, contradice `z < T(w₁+1)` |
+| 9 | `pair_fst` | `fst(pair m n) = T(m+n)+m − T(m+n) = m` por `add_sub_cancel_left` |
+| 10 | `pair_snd` | `snd = (m+n) − m = n` por `add_sub_cancel_left` |
+| 11 | `pair_surj` | `pair(fst z, snd z) = T(antidiag z) + (z − T(antidiag z)) = z` por `add_sub_of_le` |
+
+**Lemas auxiliares nuevos** (dentro de `CantorPairing.lean` o importados de `Sub.lean`/`Arith.lean`):
+
+```lean
+-- 1. Divisibilidad exacta del número triangular
+private theorem two_dvd_mul_succ (n : ℕ₀) : (𝟙 + 𝟙) ∣ n * σ n
+-- Dem.: inducción; 0*1 = 0 ∣ 2; paso: (n+1)*(n+2) = n*(n+1) + 2*(n+1),
+--       y 2 ∣ n*(n+1) por HI, luego 2 ∣ suma.
+
+-- 2. Cancelación: a + b - a = b (en ℕ₀, con a ≤ a + b automáticamente)
+private theorem add_sub_cancel_left (a b : ℕ₀) : a + b - a = b
+-- Dem.: inducción en a; usa sub_succ y succ_sub_succ.
+
+-- 3. Reconstrucción: T(w) ≤ z → z < T(w+1) → z = T(w) + (z - T(w))
+private theorem sub_add_of_le {a b : ℕ₀} (h : le₀ a b) : a + (b - a) = b
+```
+
+**Orden interno de prueba**: `two_dvd_mul_succ` → `triag_zero`/`triag_succ` →
+`triag_strict_mono` → `triag_le_of_le` → `triag_le_pair`/`pair_lt_triag_succ` →
+`antidiag_exists` → `antidiag_unique` → `pair_fst` → `pair_snd` → `pair_surj`.
+
+---
+
+### F.2 — `GodelBeta.lean` (crear desde cero)
+
+**Firma pública del módulo**:
+
+```lean
+namespace Peano.Foundation
+
+-- Función β de Gödel: β(c, b, i) = c % (1 + (i+1)·b)
+def beta (c b i : ℕ₀) : ℕ₀ := c % (𝟙 + σ i * b)
+
+-- Representación de secuencias finitas por CRT
+theorem godel_beta_seq (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
+    ∃ c b : ℕ₀, ∀ i, i ≤ n → beta c b i = a i
+
+-- Codificación de listas: (c, b) = pair c_val b_val
+def encodeList (l : List ℕ₀) : ℕ₀
+def decodeList (z : ℕ₀) (n : ℕ₀) : List ℕ₀
+
+theorem encode_decode (l : List ℕ₀) :
+    decodeList (encodeList l) l.length = l
+theorem list_decode_length (z n : ℕ₀) :
+    (decodeList z n).length = n
+
+end Peano.Foundation
+```
+
+**Dependencias**:
+
+```lean
+import Peano.PeanoNat.NumberTheory.ChineseRemainder  -- chinese_remainder
+import Peano.PeanoNat.Combinatorics.Factorial         -- factorial, factorial_pos
+import Peano.PeanoNat.Arith                           -- Coprime, bezout_natform
+import Peano.PeanoNat.Foundation.CantorPairing        -- pair, fst, snd
+```
+
+**Lema central — coprimalidad de módulos de Gödel**:
+
+```lean
+private theorem godel_mod_coprime (i j b : ℕ₀)
+    (hij : lt₀ i j) (hb : (j - i) ∣ b) :
+    Coprime (𝟙 + σ i * b) (𝟙 + σ j * b)
+-- Dem.: si p | gcd, entonces p | (σ j - σ i)·b y p | 1 + σ i·b.
+--       De p | (σ j - σ i)·b y (j-i) | b → p | b.
+--       De p | 1 + σ i·b y p | σ i·b → p | 1. Contradicción.
+```
+
+**Lema de separación suficiente** (para `b = n!`):
+
+```lean
+private theorem godel_factorial_coprime (n i j : ℕ₀)
+    (hi : le₀ i n) (hj : le₀ j n) (hij : i ≠ j) :
+    Coprime (𝟙 + σ i * factorial n) (𝟙 + σ j * factorial n)
+-- Dem.: wlog i < j; entonces (j - i) ≤ n, luego (j - i) | n! = b.
+--       Aplicar godel_mod_coprime.
+```
+
+**Estrategia para `godel_beta_seq`**: inducción en `n`; en cada paso aplicar `chinese_remainder`
+al par de módulos coprime `(1 + (n+1)·b, producto anterior)`.
+
+---
+
+### F.3 — `Foundation.lean` (paraguas, trivial)
+
+```lean
+-- Peano/PeanoNat/Foundation.lean
+import Peano.PeanoNat.Foundation.PeanoSystem
+import Peano.PeanoNat.Foundation.Initiality
+import Peano.PeanoNat.Foundation.PureAxioms
+import Peano.PeanoNat.Foundation.CantorPairing
+import Peano.PeanoNat.Foundation.GodelBeta
+```
+
+Añadir en `Peano.lean` (raíz):
+
+```lean
+import Peano.PeanoNat.Foundation
+```
+
+---
+
+### Orden de ejecución de Phase F
+
+```
+F.1: CantorPairing.lean
+  └── two_dvd_mul_succ, add_sub_cancel_left
+  └── triag_zero, triag_succ
+  └── triag_strict_mono, triag_le_of_le
+  └── triag_le_pair, pair_lt_triag_succ
+  └── antidiag_exists, antidiag_unique
+  └── pair_fst, pair_snd, pair_surj
+        │
+        ▼
+F.2: GodelBeta.lean
+  └── godel_mod_coprime
+  └── godel_factorial_coprime
+  └── godel_beta_seq        (usa chinese_remainder)
+  └── encodeList / decodeList / encode_decode
+        │
+        ▼
+F.3: Foundation.lean (paraguas, trivial)
+        │
+        ▼
+  Importable por AczelSetTheory
+```

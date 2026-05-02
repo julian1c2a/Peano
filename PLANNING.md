@@ -438,3 +438,144 @@ El módulo `PureAxioms.lean` establece una distinción fundacional que el resto 
 > La aritmética de Peano (como teoría lógica de primer orden, o aquí como sistema de `axiom` de Lean) y la aritmética computable de `ℕ₀` (como tipo inductivo) son **coextensivas en contenido lógico** pero **distintas en contenido computacional**.
 
 Esto tiene relevancia directa para la conexión con ZFC: cuando en `ZfcSetTheory` se define `ω` (los naturales de von Neumann) y se demuestra que satisface los axiomas de Peano, el isomorfismo `ω ≅ ℕ₀` es exactamente una instancia de `peano_unique`. El `PurePA` de esta rama es el intermediario lógico: `ω ≅ PurePA ≅ ℕ₀`.
+
+---
+
+## 9. La cadena fundacional Peano → Aczel → ZFC
+
+### Motivación
+
+El conjunto de resultados fundacionales de este proyecto (álgebra inicial, paridad axiomática, biyección de Cantor, función β de Gödel) provee exactamente lo que se necesita para fundamentar formalmente la teoría de conjuntos hereditariamente finitos de Aczel (`HFSet`) sobre los axiomas de Peano. La cadena de embeddings es:
+
+```
+ℕ₀  (PA, este proyecto)
+  │  pair/fst/snd  [CantorPairing.lean]
+  ▼
+ℕ₀ × ℕ₀  ≃  ℕ₀
+  │  encodeList/decodeList  [GodelBeta.lean]
+  ▼
+List ℕ₀  ≃  ℕ₀
+  │  HFSet = tipo inductivo libre sobre List  [AczelSetTheory]
+  ▼
+HFSet  ≅  ℕ₀          (codificación de Ackermann)
+  │  HFSet |= ZF − Infinito
+  ▼
+axiomas de ZFC (como teoremas dentro de HFSet)  [ZfcSetTheory]
+```
+
+Esta cadena muestra que los axiomas de Peano son suficientes para construir un modelo de ZF sin el axioma de infinito. La adición del axioma de infinito en ZFC corresponde a la afirmación de que `ℕ₀` (o `HFSet`) existe como objeto — es decir, vuelve exactamente al punto de partida.
+
+---
+
+### §9.1 Arquitectura de paquetes Lean 4
+
+La dependencia de paquetes va en una sola dirección: Peano ← AczelSetTheory ← ZfcSetTheory (←: "importa a").
+
+```
+package Peano                    (este repositorio)
+    │  git: julian1c2a/Peano
+    ▼
+package AczelSetTheory
+    ├── HFSet.lean               (usa List α internamente; sin cambios)
+    ├── AczelZF.lean             (ZF − Infinito como teoremas sobre HFSet)
+    └── Foundation/
+           └── ListFromPeano.lean  ← importa Peano.PeanoNat.Foundation.GodelBeta
+                                      prueba: List ℕ₀  ≃  ℕ₀
+    ▼
+package ZfcSetTheory
+    └── (puede usar HFSet como modelo de ZF − Infinito)
+```
+
+El `lake-manifest.json` de AczelSetTheory declarará a Peano como dependencia git:
+
+```json
+{
+  "url": "https://github.com/julian1c2a/Peano",
+  "rev": "<commit con GodelBeta compilado sin sorry>",
+  "name": "Peano"
+}
+```
+
+La clave de diseño es que `List` **no se redefine** en AczelSetTheory — el tipo `List` de Lean 4 se usa directamente para construir `HFSet`. Lo que Peano provee es el teorema de que cada `List ℕ₀` tiene un código en `ℕ₀`, lo que justifica externamente la representabilidad aritmética del constructor de `HFSet`.
+
+---
+
+### §9.2 Lo que este proyecto exporta para la cadena
+
+Los módulos de `Foundation/` que AczelSetTheory necesita importar son:
+
+| Exportación | Módulo | Significado |
+|---|---|---|
+| `pair`, `fst`, `snd` | `CantorPairing` | biyección ℕ₀ × ℕ₀ ≃ ℕ₀ |
+| `pair_fst`, `pair_snd`, `pair_surj` | `CantorPairing` | corrección de la biyección |
+| `beta` | `GodelBeta` | función β de Gödel |
+| `encodeList : List ℕ₀ → ℕ₀` | `GodelBeta` | codificación de listas |
+| `decodeList : ℕ₀ → ℕ₀ → List ℕ₀` | `GodelBeta` | decodificación |
+| `encode_decode : ∀ l, decodeList (encodeList l) l.length = l` | `GodelBeta` | corrección del par |
+| `list_decode_length : ∀ z n, (decodeList z n).length = n` | `GodelBeta` | longitud preservada |
+
+El teorema `encode_decode` es el puente central: permite a AczelSetTheory afirmar que toda lista de naturales tiene una representación fiel en `ℕ₀` con inversa computable.
+
+---
+
+### §9.3 Lo que AczelSetTheory demuestra internamente
+
+Una vez importado este proyecto, AczelSetTheory debe probar en su módulo `Foundation/ListFromPeano.lean`:
+
+```lean
+-- Inyectividad de la codificación
+theorem list_encode_injective : Function.Injective encodeList
+
+-- Codificación de HFSet por inducción estructural
+-- (HFSet := inductive: mk : List HFSet → HFSet)
+noncomputable def hfset_encode : HFSet → ℕ₀
+  | .mk children => encodeList (children.map hfset_encode)
+
+-- Inyectividad de hfset_encode (por inducción estructural en HFSet)
+theorem hfset_encode_injective : Function.Injective hfset_encode
+
+-- Inclusión ℕ₀ ↪ HFSet vía sucesores del conjunto vacío ∅
+def nat_to_hfset : ℕ₀ → HFSet
+  | .zero   => .mk []
+  | .succ n => .mk [nat_to_hfset n]
+
+-- ℕ₀ ↪ HFSet ↪ ℕ₀: la composición recupera el original
+theorem encode_nat_to_hfset (n : ℕ₀) :
+    hfset_encode (nat_to_hfset n) = n
+```
+
+La última ecuación cierra el ciclo `ℕ₀ ↪ HFSet ↪ ℕ₀` y establece que los naturales de Peano están fielmente embebidos en los conjuntos hereditariamente finitos de Aczel.
+
+---
+
+### §9.4 Relación con `PureAxioms.lean` y `pa_parity`
+
+El isomorfismo `ω ≅ ℕ₀` que ZfcSetTheory demuestra — al probar que `ω` (los naturales de von Neumann) satisface los axiomas de Peano — es una instancia directa de `peano_unique`. La cadena completa de isomorfismos es:
+
+```
+ω  (von Neumann en ZFC)
+  ≅   [ZfcSetTheory: peano_unique aplicado a ω_PeanoSystem]
+ℕ₀_pa  (PureAxioms.lean: sistema PA puramente axiomático)
+  ≅   [pa_parity: peano_unique aplicado a PurePA]
+ℕ₀  (tipo inductivo, computable)
+  ≅   [encode_nat_to_hfset: AczelSetTheory]
+nat_to_hfset(ℕ₀)  ⊆  HFSet
+```
+
+Esto hace que `pa_parity` sea el **eslabón lógico** de la cadena: demuestra que el sistema axiomático puro (el que ZFC reconocería como PA de primer orden) es isomorfo al tipo inductivo computable. Sin `pa_parity`, la cadena tiene una laguna en el paso "PA lógico → PA computable".
+
+---
+
+### §9.5 Orden de implementación en este proyecto
+
+Los bloqueadores dentro de este proyecto para completar la cadena son, en orden estricto de dependencia:
+
+| Paso | Archivo | Estado | Bloquea |
+|------|---------|--------|---------|
+| F.1 | `CantorPairing.lean` | ⚠️ 11 sorry | `GodelBeta.lean` |
+| F.2 | `GodelBeta.lean` | ❌ no existe | importación por AczelSetTheory |
+| F.3 | `Foundation.lean` (paraguas) | ❌ no existe | compilación del paquete |
+
+Una vez completado F.3, este proyecto puede ser declarado como dependencia de lake en AczelSetTheory con garantía de que los módulos de Foundation compilan sin `sorry`.
+
+Los pasos F.1–F.3 son completamente independientes de los tracks de eliminación de axiomas de Sylow (Track 1–3): no hay dependencias cruzadas.

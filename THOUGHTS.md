@@ -44,6 +44,20 @@ session-based locking.
 
 ---
 
+## Nuevas cuestiones (15:30/27-04-2026)
+
+- Una vez cubierto el problema fundacional en el proyecto AczelSetTheory, que consigue fundamentar desde Peano sin axiomas adicionales las listas de Lean 4, ¿es posible que en AczelSetTheory se defina un tipo natural como `def Nat := List Unit` o similar, o incluso mejor, a partir del solo tipo HFSet?. Esto daría mucha libertad de acción en AczelSetTheory, de hecho, una vez el embedding Peano -> Aczel es lógicamente completo, debería dejar de desarrollar Peano, en el sentido que todo sería mucho más expresivo en AczelSetTheory. ¿Estoy en lo cierto?
+
+- Si la respuesta a la pregunta anterior es afirmativa, creo que además todo lo que es computable en Peano, va ser perfectamente computable en AczelSetTheory, y por lo tanto, el proyecto AczelSetTheory va a ser un proyecto de desarrollo de una biblioteca de teoría de conjuntos, con un embedding completo de Peano, pero sin necesidad de desarrollar Peano. ¿Estoy en lo cierto?
+
+- Si la respuesta a la pregunta anterior es afirmativa, en este proyecto solo quedaría terminar los coletazos que aún nos quedan abiertos, que son muy pocos, y la labor principipal pasaría a ser estar básicamente en modo mantenimiento, corrigiendo bugs y añadiendo pequeñas cosas, pero sin necesidad de desarrollar nada nuevo. La labor pasaría básicamente a AczelSetTheory, que sería tan computable como este proyecto. ¿Estoy en lo cierto?
+
+- El paso natural sería en AczelSetTheory definir la infraestructura y as importaciones desde Peano, y casi vaciar el actual proyecto Peano más que para la parte puramente fundacional.
+
+- El otro problema a abordar es la migración de REFERENCE.md monolítico actual a un sistema de REFERENCE-{Temática Matemática}.md en árbol con el mismo formato (idéntico) solo que cada nodo de documentación tiene que ofrecer enlaces a los siguientes y anteriores nodos de documentación, incluyendo README.md, y escondiendo del directorio raíz el complejo de documentación, pasandoe stea  el directorio /raíz/doc/. Esto es importante para evitar la deriva de la documentación, y para que los AIs asistentes puedan navegar por la documentación sin perder el contexto. 
+
+---
+
 ## Lessons Learned
 
 ### Inductive Type Approach

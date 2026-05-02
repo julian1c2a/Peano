@@ -31,6 +31,7 @@ import Peano.PeanoNat.Pairing
 import Peano.PeanoNat.NumberTheory.ChineseRemainder
 import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.Totient
+import Peano.PeanoNat.Foundation.Foundation
 
 /-!
 Copyright (c) 2026. All rights reserved.

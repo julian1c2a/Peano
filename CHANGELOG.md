@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### Added (2026-05-02)
+
+- **Foundation/CantorPairing.lean — biyección ℕ₀×ℕ₀ ≅ ℕ₀ completada (Phase F.1, 0 sorry)**:
+  - `triag (n : ℕ₀) : ℕ₀ := mul n (σ n) / 𝟚` — número triangular T(n) = n·(n+1)/2.
+  - `pair (m n : ℕ₀) : ℕ₀ := add (triag (add m n)) m` — función de apareamiento de Cantor.
+  - `antidiag`, `fst`, `snd` — inversa de `pair` (noncomputable, vía `choose_unique`).
+  - Demostrados 13 teoremas públicos: `triag_zero`, `triag_succ`, `triag_strict_mono`,
+    `triag_le_of_le`, `triag_le_pair`, `pair_lt_triag_succ`, `antidiag_exists`,
+    `antidiag_unique`, `antidiag_spec`, `antidiag_pair`, `pair_fst`, `pair_snd`, `pair_surj`.
+  - Lemas privados auxiliares: `two_dvd_mul_succ` (2 ∣ n·(n+1) por inducción), `mul_two_div_two` (2·m/2 = m).
+  - **Trampa documentada**: `mul_succ` está probado por `rfl` (igualdad definitional),
+    por lo que `congr 1` cierra la meta inmediatamente dejando sin goals el `rw` posterior.
+    Solución: reescribir el calc usando `mul_succ` + `succ_mul` + `add_assoc` + `two_mul`.
+  - **Trampa documentada**: operadores `*`, `+`, `-` son ambiguos (notación explícita + instancia
+    typeclass). Solución: usar siempre `mul`, `add`, `sub` como llamadas de función.
+  - `sub` requiere `open Peano.Sub` (no está en el export del namespace raíz).
+  - Build: 51 jobs · 0 errores · 0 warnings · 0 sorry.
+
 ### Added (2026-04-28)
 
 - **Sylow.lean — `wielandt_omega_card` demostrado (axioma → teorema)**:
@@ -467,4 +485,3 @@
 - `PeanoNatArith.lean`: Demostración completa de `gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b` usando inducción bien fundada con patrón `H` doblemente generalizado.
 - `PeanoNatArith.lean`: Exportados `divides_sub`, `divides_mod` y `gcd_greatest` desde `Peano.NatArith`.
 - `REFERENCE.md`: Actualizada con los nuevos teoremas.
-

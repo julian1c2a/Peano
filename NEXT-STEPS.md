@@ -309,13 +309,7 @@ import Peano.PeanoNat.Foundation
 ### Orden de ejecución de Phase F
 
 ```
-F.1: CantorPairing.lean
-  └── two_dvd_mul_succ, add_sub_cancel_left
-  └── triag_zero, triag_succ
-  └── triag_strict_mono, triag_le_of_le
-  └── triag_le_pair, pair_lt_triag_succ
-  └── antidiag_exists, antidiag_unique
-  └── pair_fst, pair_snd, pair_surj
+F.1: CantorPairing.lean ✅ COMPLETADO
         │
         ▼
 F.2: GodelBeta.lean

@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-04-27
+**Última actualización:** 2026-05-02
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 51 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-04-27*
+> 51 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-02*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -44,6 +44,8 @@
 | `Peano/PeanoNat/Log.lean` | `Peano.Log` | `Div`, `Pow` | `Digits` |
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | `Mul`, `Sub`, `Pow` | — |
 | `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | `Div`, `Sqrt` | — |
+| **Foundation** | | | |
+| `Peano/PeanoNat/Foundation/CantorPairing.lean` | `Peano.Foundation` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Prelim.Classical` | `GodelBeta` (futuro) |
 | **Combinatoria** | | | |
 | `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt`, `Digits` |
 | `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `Add`, `Mul` | `Binom`, `NewtonBinom` |
@@ -108,6 +110,7 @@
 | `Peano.Totient` | `NumberTheory/Totient.lean` | `Peano` |
 | `Peano.CRT` | `NumberTheory/ChineseRemainder.lean` | `Peano` |
 | `Peano.Fermat` | `NumberTheory/Fermat.lean` | `Peano` |
+| `Peano.Foundation` | `PeanoNat/Foundation/CantorPairing.lean` | `Peano` |
 | `Peano.Perm` | `Combinatorics/Perm.lean` | `Peano` |
 | `Peano.Group` | `Combinatorics/Group.lean` | `Peano` |
 | `Peano.Sign` | `Combinatorics/Sign.lean` | `Peano` |
@@ -3112,6 +3115,7 @@ structure GroupHom {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
 ### 44.3. Teoremas de Sylow [T]
 
 **[T44.3]**
+
 ```
 sylow_lift_from_cauchy
   (hC : ∀ (G0 : FinGroup) (p0 : ℕ₀), Prime p0 →
@@ -3128,6 +3132,7 @@ sylow_lift_from_cauchy
 - Caso 3: ningún subgrupo propio es divisible por `p^(m+1)` → `sylow_center_step` (axioma privado temporal; requiere ecuación de clases + Cauchy sobre Z(G) + cociente G/⟨z⟩, o argumento combinatorio de Wielandt). **Cerrado en sesión 2026-04-23.**
 
 **[T44.4]**
+
 ```
 sylow_first (G : FinGroup) (p n : ℕ₀)
     (hp : Prime p)
@@ -3138,6 +3143,7 @@ sylow_first (G : FinGroup) (p n : ℕ₀)
 - **Sin sorry** (depende del axioma privado `sylow_center_step` via `sylow_lift_from_cauchy`). Caso base `n=0`: `trivialSubgroup G` con `|trivialSubgroup| = 1 = p^0`. Paso inductivo: `sylow_lift_from_cauchy cauchy_minimal`. **Cerrado en sesión 2026-04-23.**
 
 **[T44.5]**
+
 ```
 sylow_second (G : FinGroup) (p : ℕ₀)
     (H K : Subgroup G)
@@ -3153,6 +3159,7 @@ sylow_second (G : FinGroup) (p : ℕ₀)
 - Demostración: `sylow_second_incl` da r con r⁻¹Hr ⊆ K; la conjugación h ↦ r⁻¹hr es inyectiva (cancelación); `|H| = |K|` + `MapOn.injective_iff_surjective_of_card_eq` da sobreyectividad → K = r⁻¹Hr; testigo g = r⁻¹ con `inv_inv_eq`. **Cerrado en sesión 2026-04-23.**
 
 **[T44.6]**
+
 ```
 sylow_third (G : FinGroup) (p : ℕ₀)
     (hp : Prime p)
@@ -3177,6 +3184,7 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 > §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
 > §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
 > §43 `GroupTheory/Sylow/Cosets.lean`.
+> §45 `Foundation/CantorPairing.lean` — documentado abajo.
 
 <!-- AUTO-UPDATE-2026-04-17-START -->
 ## Actualizacion de estado - 2026-04-17
@@ -3274,3 +3282,109 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 - Axiomas privados vigentes en Sylow.lean (5): sylow_center_step, sylow_card_eq, sylow_second_incl, sylow_third_mod, sylow_third_dvd.
 
 <!-- AUTO-UPDATE-2026-04-27-END -->
+
+<!-- AUTO-UPDATE-2026-05-02-START -->
+## Actualizacion de estado - 2026-05-02
+
+- Estado del build: 51 jobs, 0 errores, 0 sorry warnings.
+- **CantorPairing.lean completado**: todos los 11 sorry eliminados.
+  - Demostrados: `triag_zero`, `triag_succ`, `triag_strict_mono`, `triag_le_of_le`,
+    `triag_le_pair`, `pair_lt_triag_succ`, `antidiag_exists`, `antidiag_unique`,
+    `antidiag_pair`, `pair_fst`, `pair_snd`, `pair_surj`.
+  - Lemas privados: `two_dvd_mul_succ`, `mul_two_div_two`.
+  - Trampa resuelta: `mul_succ` está probado por `rfl` (igualdad definitional), por lo que
+    `congr 1` sobre `mul n (σ m) = add (mul n m) n` cierra la meta inmediatamente sin dejar
+    goals para `rw` posterior. Solución: usar `mul_succ` + `succ_mul` + `add_assoc` + `two_mul`.
+  - Trampa resuelta: operadores `*`, `+`, `-` son ambiguos en este proyecto (notación explícita
+    - instancia typeclass). Solución: usar `mul`, `add`, `sub` como llamadas de función.
+  - `sub` no exportado directamente: requiere `open Peano.Sub` en el namespace.
+- Phase F.1 completada. Siguiente: F.2 `GodelBeta.lean`.
+- Axiomas privados vigentes en Sylow.lean (5, sin cambio):
+  sylow_center_step, sylow_card_eq, sylow_second_incl, sylow_third_mod, sylow_third_dvd.
+
+## §45. Foundation/CantorPairing.lean — `namespace Peano.Foundation`
+
+*Dependencias: `PeanoNat`, `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Prelim.Classical`, `StrictOrder`, `Order`*
+
+Formalización de la biyección ℕ₀ × ℕ₀ ≅ ℕ₀ via la función de apareamiento de Cantor.
+Todos los teoremas son **noncomputable** salvo las definiciones aritméticas puras.
+
+### 45.1. Definiciones
+
+**[D45.1]** `triag`
+
+- **Lean4:** `def triag (n : ℕ₀) : ℕ₀ := mul n (σ n) / 𝟚`
+- **Matemática:** T(n) = n·(n+1)/2 (número triangular)
+- **Computable:** Sí (división entera exacta)
+
+**[D45.2]** `pair`
+
+- **Lean4:** `def pair (m n : ℕ₀) : ℕ₀ := add (triag (add m n)) m`
+- **Matemática:** pair(m, n) = T(m+n) + m
+- **Computable:** Sí
+
+**[D45.3]** `antidiag` (noncomputable)
+
+- **Lean4:** `noncomputable def antidiag (z : ℕ₀) : ℕ₀ := choose_unique (antidiag_unique z)`
+- **Matemática:** único w tal que T(w) ≤ z < T(w+1)
+- **Computable:** No (usa `Classical.indefiniteDescription`)
+
+**[D45.4]** `fst` (noncomputable)
+
+- **Lean4:** `noncomputable def fst (z : ℕ₀) : ℕ₀ := sub z (triag (antidiag z))`
+- **Matemática:** Primera proyección de la biyección inversa
+- **Computable:** No
+
+**[D45.5]** `snd` (noncomputable)
+
+- **Lean4:** `noncomputable def snd (z : ℕ₀) : ℕ₀ := sub (antidiag z) (fst z)`
+- **Matemática:** Segunda proyección de la biyección inversa
+- **Computable:** No
+
+### 45.2. Teoremas
+
+**[T45.1]** `triag_zero : triag 𝟘 = 𝟘`
+
+**[T45.2]** `triag_succ (n : ℕ₀) : triag (σ n) = add (triag n) (σ n)`
+
+- T(n+1) = T(n) + (n+1)
+
+**[T45.3]** `triag_strict_mono {m n : ℕ₀} (h : lt₀ m n) : lt₀ (triag m) (triag n)`
+
+- T estrictamente creciente
+
+**[T45.4]** `triag_le_of_le {m n : ℕ₀} (h : le₀ m n) : le₀ (triag m) (triag n)`
+
+- T monótona no decreciente
+
+**[T45.5]** `triag_le_pair (m n : ℕ₀) : le₀ (triag (add m n)) (pair m n)`
+
+- T(m+n) ≤ pair(m,n)
+
+**[T45.6]** `pair_lt_triag_succ (m n : ℕ₀) : lt₀ (pair m n) (triag (σ (add m n)))`
+
+- pair(m,n) < T(m+n+1)
+
+**[T45.7]** `antidiag_exists (z : ℕ₀) : ∃ w, le₀ (triag w) z ∧ lt₀ z (triag (σ w))`
+
+- Existencia de la anti-diagonal
+
+**[T45.8]** `antidiag_unique (z : ℕ₀) : ExistsUnique (fun w => le₀ (triag w) z ∧ lt₀ z (triag (σ w)))`
+
+- Unicidad de la anti-diagonal
+
+**[T45.9]** `antidiag_spec (z : ℕ₀) : le₀ (triag (antidiag z)) z ∧ lt₀ z (triag (σ (antidiag z)))`
+
+- La anti-diagonal satisface su especificación
+
+**[T45.10]** `antidiag_pair (m n : ℕ₀) : antidiag (pair m n) = add m n`
+
+**[T45.11]** `pair_fst (m n : ℕ₀) : fst (pair m n) = m`
+
+**[T45.12]** `pair_snd (m n : ℕ₀) : snd (pair m n) = n`
+
+**[T45.13]** `pair_surj (z : ℕ₀) : pair (fst z) (snd z) = z`
+
+- La biyección inversa es sección derecha: pair ∘ ⟨fst, snd⟩ = id
+
+<!-- AUTO-UPDATE-2026-05-02-END -->

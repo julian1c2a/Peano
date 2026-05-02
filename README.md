@@ -49,6 +49,8 @@ Peano.lean                                        ← entrada; importa toda la l
       ├─ Sqrt.lean                                Peano.Sqrt         — raíz cuadrada entera con resto
       ├─ Digits.lean                              Peano.Digits       — dígitos en base arbitraria
       ├─ Pairing.lean                             Peano.Pairing      — emparejamiento de Cantor
+      ├─ Foundation/
+      │  └─ CantorPairing.lean                    Peano.Foundation   — biyección ℕ₀×ℕ₀ ≅ ℕ₀ (pair/fst/snd)
       ├─ ListsAndSets/
       │  ├─ List.lean                             Peano.List         — listas polimórficas, sortedInsert genérico
       │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos genéricos (FSet α)
@@ -257,6 +259,7 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 - [x] **Sylow/Sylow.lean** — los 3 teoremas formalmente cerrados (0 sorry) ✅
 - [x] `prime_dvd_binom_prime` — p | C(p,k) para 0 < k < p (Binom.lean) ✅
 - [x] `binom_prime_row` — C(pr, p) = r · C(pr−1, p−1) (Binom.lean) ✅
+- [x] **Foundation/CantorPairing.lean** — biyección ℕ₀×ℕ₀ ≅ ℕ₀, `pair`/`fst`/`snd`/`pair_surj` (Phase F.1) ✅
 - [ ] **Eliminar 5 axiomas privados** en Sylow.lean (ruta Wielandt):
   - [ ] `C(pr, p) ≡ r (mod p)` por inducción sobre r
   - [ ] Teorema de Lucas: `C(p^n·r, p^n) ≡ r (mod p)`
@@ -305,4 +308,3 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 MIT — ver [`LICENSE`](LICENSE).
 
 Copyright (c) 2025 Julián Calderón Almendros
-

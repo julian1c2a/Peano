@@ -572,7 +572,7 @@ Los bloqueadores dentro de este proyecto para completar la cadena son, en orden 
 
 | Paso | Archivo | Estado | Bloquea |
 |------|---------|--------|---------|
-| F.1 | `CantorPairing.lean` | ⚠️ 11 sorry | `GodelBeta.lean` |
+| F.1 | `CantorPairing.lean` | ✅ 0 sorry (2026-05-02) | `GodelBeta.lean` |
 | F.2 | `GodelBeta.lean` | ❌ no existe | importación por AczelSetTheory |
 | F.3 | `Foundation.lean` (paraguas) | ❌ no existe | compilación del paquete |
 

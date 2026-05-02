@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-04-28
+**Última actualización:** 2026-05-02
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (51 jobs)   [2026-04-28]
+lake build      →  Build completed successfully (51 jobs)   [2026-05-02]
 sorry count     →  0 (5 axiomas privados en Sylow.lean, pendientes de prueba)
 warnings        →  0
 errors          →  0
@@ -63,6 +63,8 @@ errors          →  0
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | Raíz cuadrada entera con resto | ✅ |
 | `Peano/PeanoNat/Digits.lean` | `Peano.Digits` | Dígitos en base arbitraria | ✅ |
 | `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | Emparejamiento de Cantor y su inversa | ✅ |
+| **Foundation/** | | | |
+| `PeanoNat/Foundation/CantorPairing.lean` | `Peano.Foundation` | `triag`, `pair`, `antidiag`, `fst`, `snd`, `pair_surj` — biyección ℕ₀×ℕ₀≅ℕ₀ | ✅ |
 | **ListsAndSets/** | | | |
 | `ListsAndSets/List.lean` | `Peano.List` | Listas polimórficas `List α`, sorted, nodup, `sortedInsert` genérico | ✅ |
 | `ListsAndSets/FSet.lean` | `Peano.FSet` | `FSet α` — conjuntos finitos genéricos (lista ordenada + invariante `Sorted`) | ✅ |
@@ -152,10 +154,18 @@ errors          →  0
 - `binom_pow_p_mod` — C(p^n·r, p^n) ≡ r (mod p), n≥1 (Lucas) ✅
 - `sylow_card_eq` — unicidad del exponente de Sylow ✅ (2026-04-28)
 - `wielandt_omega_card` — ∃ Ω lista de N-sublistas de G con |Ω| = C(|G|,N) ✅ (2026-04-28)
+- **`CantorPairing.lean`** — biyección ℕ₀×ℕ₀ ≅ ℕ₀ completada (Phase F.1) ✅ (2026-05-02)
 
 ---
 
 ## Próximos objetivos
+
+### Phase F (cadena Peano → Aczel → ZFC)
+
+1. **`GodelBeta.lean`** (F.2) — función β de Gödel + `encodeList`/`decodeList`/`encode_decode`.
+   - Requiere: `ChineseRemainder`, `Factorial`, `Arith`, `CantorPairing` ✅.
+   - Lema central: `godel_mod_coprime` (coprimalidad de módulos 1+i·b y 1+j·b para i≠j).
+2. **`Foundation.lean`** (F.3) — paraguas que importa todos los módulos de Foundation/.
 
 ### Ruta Wielandt (2 pasos restantes para `sylow_center_step`)
 
@@ -167,8 +177,8 @@ errors          →  0
 
 ### Otros axiomas privados
 
-3. **`sylow_second_incl`** — H-acción sobre G/K (coclases ya en librería), fixed point = r⁻¹Hr ⊆ K.
-4. **`sylow_third_mod`** y **`sylow_third_dvd`** — requieren normalizador y acción por conjugación sobre subgrupos.
+1. **`sylow_second_incl`** — H-acción sobre G/K (coclases ya en librería), fixed point = r⁻¹Hr ⊆ K.
+2. **`sylow_third_mod`** y **`sylow_third_dvd`** — requieren normalizador y acción por conjugación sobre subgrupos.
 
 ---
 

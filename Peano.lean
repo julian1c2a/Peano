@@ -133,10 +133,10 @@ export Peano.Axioms (
 -- namespace Peano.StrictOrder  (PeanoNatStrictOrder.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano.StrictOrder (
-  Lt
-  blt
-  Gt
-  bgt
+  lt₀
+  blt₀
+  gt₀
+  bgt₀
   lt_then_lt_succ
   lt_then_lt_succ_wp
   lt_iff_lt_σ_σ
@@ -206,11 +206,11 @@ export Peano.StrictOrder (
 -- namespace Peano.Order  (PeanoNatOrder.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Order (
-  Le
-  Ge
+  le₀
+  ge₀
   le'
-  ble
-  bge
+  ble₀
+  bge₀
   zero_le
   succ_le_succ_iff
   succ_le_succ_iff_wp
@@ -652,16 +652,12 @@ export Peano.FSet (
   ℕ₁FSet.singleton
   ℕ₂FSet.singleton
   FactFSet.singleton
-  ℕ₀FSet.card
-  ℕ₁FSet.card
-  ℕ₂FSet.card
   FactFSet.card
   sortedInsert
   mem_sortedInsert_iff
   sorted_sortedInsert
   ℕ₀FSet.insert
   ℕ₀FSet.ofList
-  sorted_filter
   ℕ₀FSet.filter
   succN1
   oneN1

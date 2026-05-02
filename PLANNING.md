@@ -626,6 +626,7 @@ compile sin `sorry`.
 **Fecha objetivo de feature-freeze**: tras completar F.2 + F.3 + G.1.
 
 A partir del feature-freeze, Peano solo acepta:
+
 - Corrección de errores
 - Actualizaciones de `lean-toolchain`
 - Mejoras de rendimiento del build
@@ -676,6 +677,7 @@ doc/
 
 Cada archivo del árbol `doc/` sigue el **mismo formato** que las secciones
 actuales de `REFERENCE.md` y añade:
+
 ```markdown
 **Navegación:** [← Índice](INDEX.md) · [← Anterior](REFERENCE-X.md) · [Siguiente →](REFERENCE-Y.md)
 ```
@@ -683,6 +685,7 @@ actuales de `REFERENCE.md` y añade:
 `REFERENCE.md` en la raíz se convierte en un redirect/índice de una sola página.
 
 Ventajas:
+
 - Los asistentes de IA navegan sin perder contexto (cada archivo ≤ 400 líneas).
 - La documentación no deriva: cada sección tiene un archivo responsable único.
 - La migración puede hacerse en paralelo con F.2 (sin dependencias cruzadas).

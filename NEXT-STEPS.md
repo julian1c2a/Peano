@@ -375,6 +375,7 @@ bloqueada por F.2.
    | `REFERENCE-Foundation.md` | §45+ |
 
 4. Añadir a cada archivo el header de navegación:
+
    ```markdown
    **Navegación:** [← Índice](INDEX.md) · [← Anterior](REFERENCE-X.md) · [Siguiente →](REFERENCE-Y.md)
    ```
@@ -393,12 +394,14 @@ bloqueada por F.2.
 ### G.2 — Criterio de feature-freeze de Peano
 
 Peano se declara **feature-frozen** cuando:
+
 - [x] F.1 `CantorPairing.lean` ✅ (2026-05-02)
 - [ ] F.2 `GodelBeta.lean` sin sorry
 - [ ] F.3 `Foundation.lean` paraguas compilando
 - [ ] G.1 Documentación migrada a `/doc/`
 
 A partir del feature-freeze:
+
 - Solo se aceptan: corrección de errores, actualización de `lean-toolchain`,
   mejoras de build, lemas menores solicitados por AczelSetTheory.
 - No se desarrollan nuevos módulos matemáticos en Peano.
@@ -410,18 +413,21 @@ A partir del feature-freeze:
 Una vez feature-frozen Peano, los pasos en AczelSetTheory son:
 
 1. Añadir dependencia en `AczelSetTheory/lakefile.lean`:
+
    ```lean
    require Peano from git
      "https://github.com/julian1c2a/Peano" @ "<sha-de-Foundation-sin-sorry>"
    ```
 
 2. Crear en AczelSetTheory:
+
    ```
    AczelSetTheory/Foundation/
    └── ListFromPeano.lean   ← import + prueba List ℕ₀ ≃ ℕ₀ vía encode_decode
    ```
 
 3. Verificar:
+
    ```lean
    -- En AczelSetTheory/Foundation/VonNeumannNat.lean
    theorem encode_nat_to_hfset (n : ℕ₀) :

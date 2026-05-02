@@ -38,6 +38,7 @@ session-based locking.
 - [ ] How to approach `sylow_third_mod` and `sylow_third_dvd`? (requires normalizer N_G(K) — not yet in library)
 
 **Resolved questions (no longer open):**
+
 - ~~How to approach the remaining sorry in group theory modules~~ → All 3 Sylow theorems closed; 5 private axioms remain (Wielandt route).
 - ~~FSet design: Quotient vs sorted list~~ → Sorted list (ADR-007).
 - ~~FinGroup polymorphism approach~~ → Opción A implemented (ADR-010, 2026-04-27).
@@ -54,7 +55,7 @@ session-based locking.
 
 - El paso natural sería en AczelSetTheory definir la infraestructura y as importaciones desde Peano, y casi vaciar el actual proyecto Peano más que para la parte puramente fundacional.
 
-- El otro problema a abordar es la migración de REFERENCE.md monolítico actual a un sistema de REFERENCE-{Temática Matemática}.md en árbol con el mismo formato (idéntico) solo que cada nodo de documentación tiene que ofrecer enlaces a los siguientes y anteriores nodos de documentación, incluyendo README.md, y escondiendo del directorio raíz el complejo de documentación, pasandoe stea  el directorio /raíz/doc/. Esto es importante para evitar la deriva de la documentación, y para que los AIs asistentes puedan navegar por la documentación sin perder el contexto. 
+- El otro problema a abordar es la migración de REFERENCE.md monolítico actual a un sistema de REFERENCE-{Temática Matemática}.md en árbol con el mismo formato (idéntico) solo que cada nodo de documentación tiene que ofrecer enlaces a los siguientes y anteriores nodos de documentación, incluyendo README.md, y escondiendo del directorio raíz el complejo de documentación, pasandoe stea  el directorio /raíz/doc/. Esto es importante para evitar la deriva de la documentación, y para que los AIs asistentes puedan navegar por la documentación sin perder el contexto.
 
 ---
 
@@ -134,8 +135,7 @@ sin riesgo.
 
 ### [2] ~~Renombrar `MaxMin.lean` → `Lattice.lean`~~ (DONE) y ampliar hacia estructura de retículo
 
-**Situación actual:** Renombrado completado. `Lattice.lean` (antes `MaxMin.lean`) define `max`, `min`, `min_max` y teoremas de
-idempotencia, conmutatividad, asociatividad, distributividad, y relación con `≤`/`<`.
+**Situación actual:** Renombrado completado. `Lattice.lean` (antes `MaxMin.lean`) define `max`, `min`, `min_max` y teoremas de idempotencia, conmutatividad, asociatividad, distributividad, y relación con `≤`/`<`.
 
 **Lo que hace Mathlib:** En `Mathlib/Data/Nat/Lattice.lean` instancia `ℕ` como
 `ConditionallyCompleteLinearOrderBot` — un orden lineal con:
@@ -904,3 +904,192 @@ Para mostrar estos "momentos", podrías definir un namespace para cada uno:
 
 <!-- AUTO-UPDATE-2026-04-17-END -->
 
+---
+
+## Respuestas formales a las Nuevas cuestiones (2026-05-02)
+
+_Las preguntas del 2026-04-27 se adoptan como decisiones de diseño formales.
+AczelSetTheory ya existe como repositorio en GitHub y tiene una copia local en
+`E:\dropbox\github\lean4\AczelSetTheory\`. Lo que sigue es el análisis formal
+que determina exactamente qué resta hacer en Peano antes de la transición._
+
+---
+
+### Respuesta 1 — AczelSetTheory puede redefinir los naturales desde HFSet
+
+**Decisión: Sí, y es la arquitectura correcta.**
+
+Una vez que `GodelBeta.lean` esté completo, AczelSetTheory dispone de todo lo
+necesario para definir sus propios naturales internamente a HFSet. La estructura
+actual de AczelSetTheory ya tiene `HFSets.lean` con el tipo `HFSet`; la extensión
+natural es:
+
+```lean
+-- En AczelSetTheory/Foundation/VonNeumannNat.lean
+def nat_to_hfset : ℕ₀ → HFSet
+  | .zero   => .mk []
+  | .succ n => .mk [nat_to_hfset n]
+
+-- Predicado interno: naturales de von Neumann en HFSet
+inductive IsVNNatural : HFSet → Prop
+  | zero : IsVNNatural (.mk [])
+  | succ : ∀ n, IsVNNatural n → IsVNNatural (.mk [n])
+```
+
+El isomorfismo `{ s : HFSet // IsVNNatural s } ≅ ℕ₀` es una instancia de
+`peano_unique` (de `Peano.PeanoNat.Foundation.Initiality`) aplicada al sistema
+de Peano definido sobre `IsVNNatural`.
+
+**Implicación para el proyecto**: Una vez completada la cadena F.1→F.2→F.3,
+AczelSetTheory tiene aritmética completa internamente. Peano deja de ser
+necesario como entorno de desarrollo activo — se convierte en una **biblioteca
+de dependencia estable** que AczelSetTheory referencia en su `lake-manifest.json`.
+
+---
+
+### Respuesta 2 — Computabilidad preservada con matiz preciso
+
+**Decisión: Sí. La computabilidad se preserva íntegramente.**
+
+| Función | Computable en Peano | Computable en AczelSetTheory | Razón |
+|---------|--------------------|-----------------------------|-------|
+| `pair`, `triag` | ✅ | ✅ | Aritmética pura |
+| `encodeList`, `decodeList` | ✅ | ✅ | Aritmética pura |
+| `antidiag`, `fst`, `snd` | ❌ | ❌ | `Classical.choice` intrínseco |
+| Predicados decidables (LT, LE, Prime, Coprime…) | ✅ | ✅ vía isomorfismo | — |
+
+La no-computabilidad de `antidiag`/`fst`/`snd` no es un artefacto de Peano
+sino una propiedad de la elección clásica usada para definirlos. AczelSetTheory
+no puede evitarla — ni necesita hacerlo, pues los usa como herramientas de
+existencia, no de cómputo efectivo.
+
+**Conclusión**: AczelSetTheory es tan computable como Peano. La ganancia no es
+en computabilidad sino en **expresividad** (tipos de conjuntos, pertenencia,
+extensionalidad).
+
+---
+
+### Respuesta 3 — Peano entra en modo mantenimiento: criterio exacto
+
+**Decisión: Sí. El criterio de feature-freeze es las siguientes 4 condiciones.**
+
+**CONDICIONES NECESARIAS Y SUFICIENTES para declarar Peano feature-frozen:**
+
+| # | Ítem | Estado | Observación |
+|---|------|--------|-------------|
+| F.1 | `CantorPairing.lean` | ✅ (2026-05-02) | Biyección ℕ₀×ℕ₀≅ℕ₀ |
+| F.2 | `GodelBeta.lean` | ❌ | Codificación de listas en ℕ₀ |
+| F.3 | `Foundation.lean` paraguas | ❌ | Módulo de importación unificado |
+| G.1 | Migración de doc. a `/doc/` | ❌ | Navegación AI sin pérdida de contexto |
+
+**Condición opcional (cosmética, no bloqueante):**
+
+| Opt | 5 axiomas privados en `Sylow.lean` | ❌ | Los 3 teoremas de Sylow están lógicamente cerrados; los axiomas son deuda técnica |
+
+Una vez cumplidas las 4 condiciones necesarias, Peano entra en
+**"feature-frozen maintenance mode"**: solo acepta corrección de errores,
+actualizaciones de `lean-toolchain`, mejoras de build, y lemas menores
+solicitados por AczelSetTheory.
+
+---
+
+### Respuesta 4 — AczelSetTheory importa desde Peano: arquitectura de paquetes
+
+**Decisión: Sí. La arquitectura de dependencias es la definitiva.**
+
+```
+Peano  (dependencia git, feature-frozen tras F.3+G.1)
+  └── importado por → AczelSetTheory  (E:\dropbox\github\lean4\AczelSetTheory\)
+       └── importado por → ZfcSetTheory  (proyecto futuro)
+```
+
+El `lakefile.lean` actual de AczelSetTheory es:
+
+```lean
+import Lake
+open Lake DSL
+
+package "aczelsettheory"
+lean_lib "AczelSetTheory"
+
+@[default_target]
+lean_exe "aczelsettheory" where
+  root := `Main
+```
+
+Tras el feature-freeze de Peano, hay que añadir la dependencia:
+
+```lean
+require Peano from git
+  "https://github.com/julian1c2a/Peano" @ "<sha-de-F.3>"
+```
+
+y en `lake-manifest.json` de AczelSetTheory referenciar el commit exacto donde
+`Foundation` compila sin `sorry`.
+
+El contrato mínimo que Peano exporta a AczelSetTheory:
+
+```lean
+Peano.Foundation.pair         : ℕ₀ → ℕ₀ → ℕ₀
+Peano.Foundation.pair_fst     : fst (pair m n) = m
+Peano.Foundation.pair_snd     : snd (pair m n) = n
+Peano.Foundation.pair_surj    : pair (fst z) (snd z) = z
+Peano.Foundation.encodeList   : List ℕ₀ → ℕ₀
+Peano.Foundation.decodeList   : ℕ₀ → ℕ₀ → List ℕ₀
+Peano.Foundation.encode_decode : ∀ l, decodeList (encodeList l) l.length = l
+Peano.Foundation.peano_unique  : unicidad del sistema de Peano inicial
+```
+
+---
+
+### Respuesta 5 — Migración de documentación a `/doc/` tree (Phase G)
+
+**Decisión: Sí, necesario y planificado como Phase G.**
+
+El `REFERENCE.md` actual (~2000 líneas monolítico) es inmanejable para
+asistentes de IA que tienen ventanas de contexto limitadas. La estructura
+objetivo es:
+
+```
+Peano/
+├── doc/
+│   ├── INDEX.md                      ← índice maestro, sustituye al REFERENCE.md raíz
+│   ├── REFERENCE-Foundations.md      ← §1–§5:  Axioms, Order, StrictOrder, WellFounded, Sub
+│   ├── REFERENCE-Arithmetic.md       ← §6–§15: Add, Mul, Div, Mod, Arith, Isomorph
+│   ├── REFERENCE-NumberSets.md       ← §16:    NumberSets (ℕ₁, ℕ₂, cocientes)
+│   ├── REFERENCE-NumberTheory.md     ← §17–§25: ModEq, Totient, CRT, Fermat, Primes
+│   ├── REFERENCE-Combinatorics.md    ← §26–§38: List, FSet, Binom, Factorial, Perm…
+│   ├── REFERENCE-GroupTheory.md      ← §39–§44: Action, Cosets, Sylow
+│   └── REFERENCE-Foundation.md       ← §45+:   CantorPairing, GodelBeta, PeanoSystem
+├── REFERENCE.md                      ← queda como redirect/índice de una sola página
+└── (resto del proyecto)
+```
+
+Cada archivo tendrá un header de navegación:
+
+```markdown
+**Navegación:** [← Índice](doc/INDEX.md) · [← Anterior](REFERENCE-X.md) · [Siguiente →](REFERENCE-Y.md)
+```
+
+**Beneficios concretos**:
+
+- Los asistentes de IA navegan sin perder contexto (cada archivo ≤ 400 líneas).
+- La documentación no deriva: cada sección tiene exactamente un archivo responsable.
+- La migración puede hacerse en paralelo con F.2 (no hay dependencia).
+
+---
+
+### Largo plazo — ℤ, ℚ, ℝ (Phase H, post-AczelSetTheory)
+
+La escalera lógica del 2026-04-27 es el plan para una eventual **Phase H**,
+que puede desarrollarse en AczelSetTheory o en un tercer proyecto:
+
+| Fase | Tipo | Herramienta lógica | Ganancia | Pérdida |
+|------|------|--------------------|----------|---------|
+| H.1 | `ℤ` | Tipo inductivo `pos/neg/zero` | Resta total | — |
+| H.2 | `ℚ` | Par `(ℤ × ℕ₁)` con canonización | División exacta | — |
+| H.3 | `ℝ_approx` | Estructura `(f, g)` (sucesión Cauchy) | Computabilidad real | Igualdad exacta |
+| H.4 | `ℝ_exact` | `Quotient` | Cuerpo ordenado | Decidibilidad de `=` |
+| H.5 | `ℝ_complete` | `Classical.choice` | Axioma del supremo | Constructibilidad |
+
+Esta fase es **post-AczelSetTheory** y **no bloquea** el cierre de Peano.

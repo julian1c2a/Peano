@@ -324,3 +324,110 @@ F.3: Foundation.lean (paraguas, trivial)
         ▼
   Importable por AczelSetTheory
 ```
+
+---
+
+## Phase G — Documentación y cierre / Transición a AczelSetTheory
+
+*Decisión de diseño adoptada el 2026-05-02. Ver THOUGHTS.md §"Respuestas formales" y PLANNING.md §10.*
+
+**Contexto**: AczelSetTheory ya existe en GitHub y localmente en
+`E:\dropbox\github\lean4\AczelSetTheory\`. Su `lakefile.lean` aún no tiene
+Peano como dependencia. Esa línea se añade cuando F.3 compile sin `sorry`.
+
+---
+
+### G.0 — Estado de cierre actual (2026-05-02)
+
+| Ítem | Estado |
+|------|---------|
+| F.1 `CantorPairing.lean` | ✅ COMPLETADO (2026-05-02) |
+| F.2 `GodelBeta.lean` | ❌ Pendiente (ver Phase F arriba) |
+| F.3 `Foundation.lean` paraguas | ❌ Pendiente (trivial tras F.2) |
+| Opt: 5 axiomas privados Sylow | ❌ Opcional (ver Tracks 1–3) |
+| G.1 Migración documentación a `/doc/` | ❌ Pendiente |
+
+---
+
+### G.1 — Migración de documentación a `/doc/`
+
+Criterio de inicio: **puede hacerse en cualquier momento**, no bloquea ni es
+bloqueada por F.2.
+
+**Pasos**:
+
+1. Crear directorio `doc/` en la raíz del proyecto.
+
+2. Crear `doc/INDEX.md` con la tabla maestra de secciones (índice navegable,
+   enlace a cada archivo `REFERENCE-{tema}.md`).
+
+3. Para cada grupo temático, crear `doc/REFERENCE-{tema}.md` extrayendo las
+   secciones correspondientes del `REFERENCE.md` actual:
+
+   | Archivo destino | Secciones fuente |
+   |-----------------|------------------|
+   | `REFERENCE-Foundations.md` | §1–§5 |
+   | `REFERENCE-Arithmetic.md` | §6–§15 |
+   | `REFERENCE-NumberSets.md` | §16 |
+   | `REFERENCE-NumberTheory.md` | §17–§25 |
+   | `REFERENCE-Combinatorics.md` | §26–§38 |
+   | `REFERENCE-GroupTheory.md` | §39–§44 |
+   | `REFERENCE-Foundation.md` | §45+ |
+
+4. Añadir a cada archivo el header de navegación:
+   ```markdown
+   **Navegación:** [← Índice](INDEX.md) · [← Anterior](REFERENCE-X.md) · [Siguiente →](REFERENCE-Y.md)
+   ```
+
+5. Reemplazar `REFERENCE.md` raíz por un redirect/índice de una sola página
+   que enlaza a todos los archivos de `/doc/`.
+
+6. Actualizar todas las referencias en `README.md`, `CURRENT-STATUS-PROJECT.md`,
+   `AI-GUIDE.md`.
+
+7. Actualizar `locked_files.txt` con las rutas nuevas si algunos archivos
+   del árbol `/doc/` se bloquean.
+
+---
+
+### G.2 — Criterio de feature-freeze de Peano
+
+Peano se declara **feature-frozen** cuando:
+- [x] F.1 `CantorPairing.lean` ✅ (2026-05-02)
+- [ ] F.2 `GodelBeta.lean` sin sorry
+- [ ] F.3 `Foundation.lean` paraguas compilando
+- [ ] G.1 Documentación migrada a `/doc/`
+
+A partir del feature-freeze:
+- Solo se aceptan: corrección de errores, actualización de `lean-toolchain`,
+  mejoras de build, lemas menores solicitados por AczelSetTheory.
+- No se desarrollan nuevos módulos matemáticos en Peano.
+
+---
+
+### G.3 — Handoff a AczelSetTheory
+
+Una vez feature-frozen Peano, los pasos en AczelSetTheory son:
+
+1. Añadir dependencia en `AczelSetTheory/lakefile.lean`:
+   ```lean
+   require Peano from git
+     "https://github.com/julian1c2a/Peano" @ "<sha-de-Foundation-sin-sorry>"
+   ```
+
+2. Crear en AczelSetTheory:
+   ```
+   AczelSetTheory/Foundation/
+   └── ListFromPeano.lean   ← import + prueba List ℕ₀ ≃ ℕ₀ vía encode_decode
+   ```
+
+3. Verificar:
+   ```lean
+   -- En AczelSetTheory/Foundation/VonNeumannNat.lean
+   theorem encode_nat_to_hfset (n : ℕ₀) :
+       hfset_decode (nat_to_hfset n) = n := by ...
+   ```
+
+4. A partir de ese punto, todo el desarrollo matemático nuevo ocurre en
+   AczelSetTheory (conjuntos hereditariamente finitos, relaciones de pertenencia,
+   axiomas de Aczel, isomorfismo con ω de ZFC).

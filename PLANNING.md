@@ -579,3 +579,124 @@ Los bloqueadores dentro de este proyecto para completar la cadena son, en orden 
 Una vez completado F.3, este proyecto puede ser declarado como dependencia de lake en AczelSetTheory con garantía de que los módulos de Foundation compilan sin `sorry`.
 
 Los pasos F.1–F.3 son completamente independientes de los tracks de eliminación de axiomas de Sylow (Track 1–3): no hay dependencias cruzadas.
+
+---
+
+## 10. Cierre del proyecto Peano y transición a AczelSetTheory
+
+*Decisiones de diseño formales adoptadas el 2026-05-02. Ver THOUGHTS.md §"Respuestas formales 2026-05-02".*
+
+**Contexto**: AczelSetTheory ya existe como repositorio en GitHub y tiene una
+copia local en `E:\dropbox\github\lean4\AczelSetTheory\`. Su `lakefile.lean`
+aún no declara Peano como dependencia; esa declaración se añade cuando F.3
+compile sin `sorry`.
+
+---
+
+### 10.1 Adopción formal de la estrategia de transición
+
+1. **AczelSetTheory redefine los naturales desde HFSet**: Una vez completada la
+   cadena F.1→F.2→F.3, AczelSetTheory define sus propios naturales (von Neumann
+   finitos) internamente. El tipo inductivo `ℕ₀` de Peano sirve como puente de
+   construcción, no como definición final. La unicidad está garantizada por
+   `peano_unique` (de `Foundation.Initiality`).
+
+2. **Computabilidad preservada**: Todo lo computable en Peano es computable en
+   AczelSetTheory. La no-computabilidad de `antidiag`/`fst`/`snd` es intrínseca
+   (uso de `Classical.choice`), no un artefacto.
+
+3. **Peano entra en modo mantenimiento** cuando se completen F.2, F.3 y G.1.
+   La eliminación de los 5 axiomas privados de Sylow es opcional.
+
+4. **AczelSetTheory es el proyecto de desarrollo activo** a partir del
+   feature-freeze de Peano.
+
+---
+
+### 10.2 Checklist de cierre de Peano
+
+| # | Ítem | Estado | Bloquea |
+|---|------|---------|---------|
+| F.1 | `CantorPairing.lean` | ✅ (2026-05-02) | F.2 |
+| F.2 | `GodelBeta.lean` | ❌ | F.3, AczelSetTheory |
+| F.3 | `Foundation.lean` paraguas | ❌ | Compilación del paquete |
+| G.1 | Migración documentación a `/doc/` | ❌ | Navegación AI |
+| Opt | 5 axiomas privados Sylow | ❌ (opcional) | — |
+
+**Fecha objetivo de feature-freeze**: tras completar F.2 + F.3 + G.1.
+
+A partir del feature-freeze, Peano solo acepta:
+- Corrección de errores
+- Actualizaciones de `lean-toolchain`
+- Mejoras de rendimiento del build
+- Lemas menores solicitados por AczelSetTheory
+
+---
+
+### 10.3 Contrato de exportación: lo que AczelSetTheory toma de Peano
+
+```lean
+-- Mínimo necesario para que AczelSetTheory funcione de forma autónoma:
+Peano.Foundation.pair          : ℕ₀ → ℕ₀ → ℕ₀
+Peano.Foundation.pair_fst      : fst (pair m n) = m
+Peano.Foundation.pair_snd      : snd (pair m n) = n
+Peano.Foundation.pair_surj     : pair (fst z) (snd z) = z
+Peano.Foundation.encodeList    : List ℕ₀ → ℕ₀
+Peano.Foundation.decodeList    : ℕ₀ → ℕ₀ → List ℕ₀
+Peano.Foundation.encode_decode : ∀ l, decodeList (encodeList l) l.length = l
+Peano.Foundation.peano_unique  : unicidad del sistema de Peano inicial
+```
+
+Declaración de dependencia en `AczelSetTheory/lakefile.lean` (pendiente
+aplicar tras F.3):
+
+```lean
+require Peano from git
+  "https://github.com/julian1c2a/Peano" @ "<sha-de-Foundation-sin-sorry>"
+```
+
+---
+
+### 10.4 Migración de documentación — Phase G
+
+El `REFERENCE.md` actual (~2000 líneas monolítico) migra a una jerarquía de
+archivos bajo `/doc/`. Diseño objetivo:
+
+```
+doc/
+├── INDEX.md                      ← índice maestro con desc. de cada sección
+├── REFERENCE-Foundations.md      ← §1–§5   (Axioms, Order, StrictOrder, WellFounded, Sub)
+├── REFERENCE-Arithmetic.md       ← §6–§15  (Add, Mul, Div, Mod, Arith, Isomorph)
+├── REFERENCE-NumberSets.md       ← §16     (NumberSets: ℕ₁, ℕ₂, cocientes)
+├── REFERENCE-NumberTheory.md     ← §17–§25 (ModEq, Totient, CRT, Fermat, Primes)
+├── REFERENCE-Combinatorics.md    ← §26–§38 (List, FSet, Binom, Factorial, Perm…)
+├── REFERENCE-GroupTheory.md      ← §39–§44 (Action, Cosets, Sylow)
+└── REFERENCE-Foundation.md       ← §45+    (CantorPairing, GodelBeta, PeanoSystem)
+```
+
+Cada archivo del árbol `doc/` sigue el **mismo formato** que las secciones
+actuales de `REFERENCE.md` y añade:
+```markdown
+**Navegación:** [← Índice](INDEX.md) · [← Anterior](REFERENCE-X.md) · [Siguiente →](REFERENCE-Y.md)
+```
+
+`REFERENCE.md` en la raíz se convierte en un redirect/índice de una sola página.
+
+Ventajas:
+- Los asistentes de IA navegan sin perder contexto (cada archivo ≤ 400 líneas).
+- La documentación no deriva: cada sección tiene un archivo responsable único.
+- La migración puede hacerse en paralelo con F.2 (sin dependencias cruzadas).
+
+---
+
+### 10.5 Largo plazo — ℤ, ℚ, ℝ (Phase H)
+
+*Phase H es posterior a AczelSetTheory y no bloquea el cierre de Peano.*
+
+| Fase | Tipo | Herramienta lógica | Ganancia | Pérdida |
+|------|------|--------------------|----------|---------|
+| H.1 | `ℤ` | Tipo inductivo `pos/neg/zero` | Resta total | — |
+| H.2 | `ℚ` | Par `(ℤ × ℕ₁)` con canon | División exacta | — |
+| H.3 | `ℝ_approx` | Estructura `(f, g)` | Computabilidad real | Igualdad exacta |
+| H.4 | `ℝ_exact` | `Quotient` | Cuerpo ordenado | Decidibilidad de `=` |
+| H.5 | `ℝ_complete` | `Classical.choice` | Axioma del supremo | Constructibilidad |

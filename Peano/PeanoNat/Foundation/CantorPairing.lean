@@ -33,61 +33,61 @@ namespace Peano
 
   namespace Foundation
     open Foundation
+    open Peano.Sub
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- 1. Número triangular T(n) = n*(n+1)/2
   -- ─────────────────────────────────────────────────────────────────────────
 
   /-- T(n) = n*(n+1)/2. La división es exacta (uno de n, n+1 es par). -/
-  def triag (n : ℕ₀) : ℕ₀ := (n * (ℕ₀.succ n)) / (ℕ₀.succ (ℕ₀.succ ℕ₀.zero))
+  def triag (n : ℕ₀) : ℕ₀ := mul n (σ n) / 𝟚
 
   -- ── auxiliares privados ──────────────────────────────────────────────────
 
   /-- 2 ∣ n·(n+1) para todo n : por inducción. -/
-  private theorem two_dvd_mul_succ (n : ℕ₀) : 𝟚 ∣ n * σ n := by
+  private theorem two_dvd_mul_succ (n : ℕ₀) : 𝟚 ∣ mul n (σ n) := by
     induction n with
     | zero => exact ⟨𝟘, by rw [zero_mul, mul_zero]⟩
     | succ n' ih =>
       obtain ⟨k, hk⟩ := ih
-      refine ⟨k + σ n', ?_⟩
-      calc 𝟚 * (k + σ n')
-          = 𝟚 * k + 𝟚 * σ n'       := by rw [mul_add]
-        _ = n' * σ n' + 𝟚 * σ n'   := by rw [← hk]
-        _ = σ n' * n' + σ n' * 𝟚   := by rw [mul_comm n' (σ n'), mul_comm 𝟚 (σ n')]
-        _ = σ n' * (n' + 𝟚)        := by rw [← mul_add]
-        _ = σ n' * σ (σ n')         := by
-              congr 1
-              rw [add_succ, add_succ, add_zero]
+      refine ⟨add k (σ n'), ?_⟩
+      -- goal: mul (σ n') (σ (σ n')) = mul 𝟚 (add k (σ n'))
+      calc mul (σ n') (σ (σ n'))
+          = add (mul (σ n') (σ n')) (σ n')        := by rw [mul_succ]
+        _ = add (add (mul n' (σ n')) (σ n')) (σ n') := by rw [succ_mul]
+        _ = add (add (mul 𝟚 k) (σ n')) (σ n')      := by rw [hk]
+        _ = add (mul 𝟚 k) (add (σ n') (σ n'))      := by rw [add_assoc]
+        _ = add (mul 𝟚 k) (mul 𝟚 (σ n'))           := by rw [← two_mul]
+        _ = mul 𝟚 (add k (σ n'))                   := by rw [← mul_add]
 
   /-- (2·m)/2 = m. -/
-  private theorem mul_two_div_two (m : ℕ₀) : 𝟚 * m / 𝟚 = m := by
-    have h2ne : 𝟚 ≠ 𝟘 := succ_neq_zero _
-    have h_dvd : 𝟚 ∣ 𝟚 * m := divides_mul_right (divides_refl 𝟚)
-    have h_eq  : (𝟚 * m / 𝟚) * 𝟚 = 𝟚 * m := div_mul_cancel h2ne h_dvd
+  private theorem mul_two_div_two (m : ℕ₀) : mul 𝟚 m / 𝟚 = m := by
+    have h2ne : 𝟚 ≠ 𝟘 := (zero_ne_succ _).symm
+    have h_dvd : 𝟚 ∣ mul 𝟚 m := divides_mul_right (divides_refl 𝟚)
+    have h_eq  : mul (mul 𝟚 m / 𝟚) 𝟚 = mul 𝟚 m := div_mul_cancel h2ne h_dvd
     exact mul_cancelation_right _ m 𝟚 h2ne (h_eq.trans (mul_comm 𝟚 m))
 
   -- ── teoremas principales ─────────────────────────────────────────────────
 
   theorem triag_zero : triag 𝟘 = 𝟘 := by
-    show 𝟘 * σ 𝟘 / 𝟚 = 𝟘
+    show mul 𝟘 (σ 𝟘) / 𝟚 = 𝟘
     rw [zero_mul]
     exact div_of_lt 𝟘 𝟚 (lt_zero_succ 𝟙)
 
-  theorem triag_succ (n : ℕ₀) : triag (σ n) = triag n + σ n := by
+  theorem triag_succ (n : ℕ₀) : triag (σ n) = add (triag n) (σ n) := by
     obtain ⟨k, hk⟩ := two_dvd_mul_succ n
     have htn : triag n = k := by
-      show n * σ n / 𝟚 = k
+      show mul n (σ n) / 𝟚 = k
       rw [hk]; exact mul_two_div_two k
-    have hmain : σ n * σ (σ n) = 𝟚 * (k + σ n) := by
-      calc 𝟚 * (k + σ n)
-          = 𝟚 * k + 𝟚 * σ n       := by rw [mul_add]
-        _ = n * σ n + 𝟚 * σ n     := by rw [← hk]
-        _ = σ n * n + σ n * 𝟚     := by rw [mul_comm n (σ n), mul_comm 𝟚 (σ n)]
-        _ = σ n * (n + 𝟚)         := by rw [← mul_add]
-        _ = σ n * σ (σ n)          := by
-              congr 1
-              rw [add_succ, add_succ, add_zero]
-    show σ n * σ (σ n) / 𝟚 = triag n + σ n
+    have hmain : mul (σ n) (σ (σ n)) = mul 𝟚 (add k (σ n)) := by
+      calc mul (σ n) (σ (σ n))
+          = add (mul (σ n) (σ n)) (σ n)          := by rw [mul_succ]
+        _ = add (add (mul n (σ n)) (σ n)) (σ n)  := by rw [succ_mul]
+        _ = add (add (mul 𝟚 k) (σ n)) (σ n)      := by rw [hk]
+        _ = add (mul 𝟚 k) (add (σ n) (σ n))      := by rw [add_assoc]
+        _ = add (mul 𝟚 k) (mul 𝟚 (σ n))          := by rw [← two_mul]
+        _ = mul 𝟚 (add k (σ n))                   := by rw [← mul_add]
+    show mul (σ n) (σ (σ n)) / 𝟚 = add (triag n) (σ n)
     rw [hmain, mul_two_div_two, htn]
 
   theorem triag_strict_mono {m n : ℕ₀} (h : Peano.StrictOrder.lt₀ m n) :
@@ -115,15 +115,15 @@ namespace Peano
   -- ─────────────────────────────────────────────────────────────────────────
 
   /-- pair(m,n) = T(m+n) + m. -/
-  def pair (m n : ℕ₀) : ℕ₀ := triag (m + n) + m
+  def pair (m n : ℕ₀) : ℕ₀ := add (triag (add m n)) m
 
   theorem triag_le_pair (m n : ℕ₀) :
-      Peano.Order.le₀ (triag (m + n)) (pair m n) := by
+      Peano.Order.le₀ (triag (add m n)) (pair m n) := by
     unfold pair
     exact le_self_add _ _
 
   theorem pair_lt_triag_succ (m n : ℕ₀) :
-      Peano.StrictOrder.lt₀ (pair m n) (triag (σ (m + n))) := by
+      Peano.StrictOrder.lt₀ (pair m n) (triag (σ (add m n))) := by
     unfold pair
     rw [triag_succ]
     exact (add_lt_add_left_iff (triag (add m n)) m (σ (add m n))).mpr (lt_add_succ m n)
@@ -147,7 +147,7 @@ namespace Peano
       · exact ⟨w, le_trans _ _ _ h_le (le_n_m_then_le_n_sm z' z' (le_refl z')), h1⟩
       · exact ⟨σ w,
           by rw [← h2]; exact le_refl _,
-          by rw [h2, triag_succ]; exact lt_add_of_pos_right (lt_zero_succ _)⟩
+          by rw [h2]; exact triag_strict_mono (lt_succ_self (σ w))⟩
       · exfalso
         exact absurd
           ((lt_succ_iff_le (triag (σ w)) z').mp h3)
@@ -192,28 +192,29 @@ namespace Peano
       Peano.StrictOrder.lt₀ z (triag (σ (antidiag z))) :=
     choose_spec_unique (antidiag_unique z)
 
-  theorem antidiag_pair (m n : ℕ₀) : antidiag (pair m n) = m + n :=
-    choose_uniq (antidiag_unique (pair m n)) ⟨triag_le_pair m n, pair_lt_triag_succ m n⟩
+  theorem antidiag_pair (m n : ℕ₀) : antidiag (pair m n) = add m n :=
+    (choose_uniq (antidiag_unique (pair m n)) ⟨triag_le_pair m n, pair_lt_triag_succ m n⟩).symm
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- 4. Proyecciones y biyectividad
   -- ─────────────────────────────────────────────────────────────────────────
 
   /-- Primera proyección (columna). -/
-  noncomputable def fst (z : ℕ₀) : ℕ₀ := z - triag (antidiag z)
+  noncomputable def fst (z : ℕ₀) : ℕ₀ := sub z (triag (antidiag z))
 
   /-- Segunda proyección (fila - columna). -/
-  noncomputable def snd (z : ℕ₀) : ℕ₀ := antidiag z - fst z
+  noncomputable def snd (z : ℕ₀) : ℕ₀ := sub (antidiag z) (fst z)
 
   /-- fst(pair m n) = m. -/
   theorem pair_fst (m n : ℕ₀) : fst (pair m n) = m := by
-    unfold fst pair
+    show sub (pair m n) (triag (antidiag (pair m n))) = m
     rw [antidiag_pair]
-    exact add_k_sub_k m (triag (m + n))
+    unfold pair
+    exact add_k_sub_k m (triag (add m n))
 
   /-- snd(pair m n) = n. -/
   theorem pair_snd (m n : ℕ₀) : snd (pair m n) = n := by
-    unfold snd
+    show sub (antidiag (pair m n)) (fst (pair m n)) = n
     rw [antidiag_pair, pair_fst]
     exact add_k_sub_k n m
 
@@ -224,21 +225,24 @@ namespace Peano
     have h_lt  : lt₀ z (triag (σ (antidiag z)))          := h_spec.2
     -- fst z ≤ antidiag z
     have h_fst_le : le₀ (fst z) (antidiag z) := by
-      unfold fst
+      show le₀ (sub z (triag (antidiag z))) (antidiag z)
       apply (lt_succ_iff_le _ _).mp
       apply (sub_lt_iff_lt_add_of_le z (triag (antidiag z)) (σ (antidiag z)) h_le).mpr
-      calc z < triag (σ (antidiag z))                        := h_lt
-        _ = triag (antidiag z) + σ (antidiag z)              := triag_succ _
-        _ = σ (antidiag z) + triag (antidiag z)              := add_comm _ _
+      calc z < triag (σ (antidiag z))
+                := h_lt
+        _ = add (triag (antidiag z)) (σ (antidiag z))
+                := triag_succ _
+        _ = add (σ (antidiag z)) (triag (antidiag z))
+                := add_comm _ _
     -- fst z + snd z = antidiag z
-    have h_sum : fst z + snd z = antidiag z := by
-      unfold snd
-      rw [add_comm (fst z) (antidiag z - fst z)]
-      exact sub_k_add_k (antidiag z) (fst z) h_fst_le
+    have h_sum : add (fst z) (snd z) = antidiag z := by
+      show add (sub z (triag (antidiag z))) (sub (antidiag z) (sub z (triag (antidiag z)))) = antidiag z
+      rw [add_comm]
+      exact sub_k_add_k (antidiag z) (sub z (triag (antidiag z))) h_fst_le
     -- pair (fst z) (snd z) = z
-    unfold pair
+    show add (triag (add (fst z) (snd z))) (fst z) = z
     rw [h_sum]
-    show triag (antidiag z) + (z - triag (antidiag z)) = z
+    show add (triag (antidiag z)) (sub z (triag (antidiag z))) = z
     rw [add_comm]
     exact sub_k_add_k z (triag (antidiag z)) h_le
 

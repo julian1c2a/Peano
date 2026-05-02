@@ -172,7 +172,7 @@ After Sylow III is closed, revisit FinGroup generalization.
 
 ## Phase F — Completar Foundation: prerequisito para la cadena Peano → Aczel → ZFC
 
-*Añadido: 2026-05-02*
+*✅ PHASE F COMPLETAMENTE TERMINADA (2026-05-02)*
 
 **Objetivo**: exportar desde este proyecto `encodeList`/`decodeList`/`encode_decode` para que
 AczelSetTheory pueda importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
@@ -183,12 +183,12 @@ No hay dependencias cruzadas.
 
 ---
 
-### F.1 — `CantorPairing.lean` (11 sorry)
+### F.1 — `CantorPairing.lean` ✅ COMPLETADO (2026-05-02)
 
 Necesario porque `GodelBeta.lean` usa `pair`/`fst`/`snd` para codificar el par `(c, b)` como
 un único `ℕ₀`.
 
-**Sorry pendientes y estrategia de prueba**:
+**Sorry pendientes y estrategia de prueba** *(histórico — todos demostrados)*:
 
 | # | Teorema | Estrategia |
 |---|---------|------------|
@@ -226,9 +226,9 @@ private theorem sub_add_of_le {a b : ℕ₀} (h : le₀ a b) : a + (b - a) = b
 
 ---
 
-### F.2 — `GodelBeta.lean` (crear desde cero)
+### F.2 — `GodelBeta.lean` ✅ COMPLETADO (2026-05-02)
 
-**Firma pública del módulo**:
+**Firma pública del módulo** (implementada):
 
 ```lean
 namespace Peano.Foundation
@@ -287,7 +287,7 @@ al par de módulos coprime `(1 + (n+1)·b, producto anterior)`.
 
 ---
 
-### F.3 — `Foundation.lean` (paraguas, trivial)
+### F.3 — `Foundation.lean` paraguas ✅ COMPLETADO (2026-05-02)
 
 ```lean
 -- Peano/PeanoNat/Foundation.lean
@@ -306,20 +306,20 @@ import Peano.PeanoNat.Foundation
 
 ---
 
-### Orden de ejecución de Phase F
+### Orden de ejecución de Phase F ✅ COMPLETADO
 
 ```
-F.1: CantorPairing.lean ✅ COMPLETADO
+F.1: CantorPairing.lean ✅ COMPLETADO (2026-05-02)
         │
         ▼
-F.2: GodelBeta.lean
-  └── godel_mod_coprime
-  └── godel_factorial_coprime
-  └── godel_beta_seq        (usa chinese_remainder)
-  └── encodeList / decodeList / encode_decode
+F.2: GodelBeta.lean ✅ COMPLETADO (2026-05-02)
+  └── godel_mod_coprime ✅
+  └── godel_factorial_coprime ✅
+  └── godel_beta_seq        (usa chinese_remainder) ✅
+  └── encodeList / decodeList / encode_decode ✅
         │
         ▼
-F.3: Foundation.lean (paraguas, trivial)
+F.3: Foundation.lean (paraguas, trivial) ✅ COMPLETADO (2026-05-02)
         │
         ▼
   Importable por AczelSetTheory
@@ -342,8 +342,8 @@ Peano como dependencia. Esa línea se añade cuando F.3 compile sin `sorry`.
 | Ítem | Estado |
 |------|---------|
 | F.1 `CantorPairing.lean` | ✅ COMPLETADO (2026-05-02) |
-| F.2 `GodelBeta.lean` | ❌ Pendiente (ver Phase F arriba) |
-| F.3 `Foundation.lean` paraguas | ❌ Pendiente (trivial tras F.2) |
+| F.2 `GodelBeta.lean` | ✅ COMPLETADO (2026-05-02) |
+| F.3 `Foundation.lean` paraguas | ✅ COMPLETADO (2026-05-02) |
 | Opt: 5 axiomas privados Sylow | ❌ Opcional (ver Tracks 1–3) |
 | G.1 Migración documentación a `/doc/` | ❌ Pendiente |
 
@@ -396,8 +396,8 @@ bloqueada por F.2.
 Peano se declara **feature-frozen** cuando:
 
 - [x] F.1 `CantorPairing.lean` ✅ (2026-05-02)
-- [ ] F.2 `GodelBeta.lean` sin sorry
-- [ ] F.3 `Foundation.lean` paraguas compilando
+- [x] F.2 `GodelBeta.lean` sin sorry ✅ (2026-05-02)
+- [x] F.3 `Foundation.lean` paraguas compilando ✅ (2026-05-02)
 - [ ] G.1 Documentación migrada a `/doc/`
 
 A partir del feature-freeze:

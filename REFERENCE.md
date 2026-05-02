@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 51 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-02*
+> 52 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-02*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -45,7 +45,9 @@
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | `Mul`, `Sub`, `Pow` | — |
 | `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | `Div`, `Sqrt` | — |
 | **Foundation** | | | |
-| `Peano/PeanoNat/Foundation/CantorPairing.lean` | `Peano.Foundation` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Prelim.Classical` | `GodelBeta` (futuro) |
+| `Peano/PeanoNat/Foundation/CantorPairing.lean` | `Peano.Foundation` | `Add`, `Sub`, `Mul`, `Div`, `Arith`, `Prelim.Classical` | `GodelBeta` |
+| `Peano/PeanoNat/Foundation/GodelBeta.lean` | `Peano.Foundation` | `CantorPairing`, `ChineseRemainder`, `Factorial`, `Arith` | — |
+| `Peano/PeanoNat/Foundation/Foundation.lean` | `Peano.Foundation` | `PeanoSystem`, `Initiality`, `CantorPairing`, `GodelBeta` | `Peano.lean` |
 | **Combinatoria** | | | |
 | `Peano/PeanoNat/Combinatorics/Pow.lean` | `Peano.Pow` | `Mul`, `Div` | `NewtonBinom`, `Log`, `Sqrt`, `Digits` |
 | `Peano/PeanoNat/Combinatorics/Factorial.lean` | `Peano.Factorial` | `Add`, `Mul` | `Binom`, `NewtonBinom` |
@@ -3286,8 +3288,25 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 <!-- AUTO-UPDATE-2026-05-02-START -->
 ## Actualizacion de estado - 2026-05-02
 
-- Estado del build: 51 jobs, 0 errores, 0 sorry warnings.
-- **CantorPairing.lean completado**: todos los 11 sorry eliminados.
+- Estado del build: 52 jobs, 0 errores, 0 sorry warnings.
+- **GodelBeta.lean completado**: todos los 8 sorries eliminados.
+  - Demostrados: `nat_godel_coprime` (privado), `godel_mod_coprime`, `gmod_dvd_prod_mods`,
+    `modEq_of_dvd`, `prod_mods_coprime_next`, `simultaneous_congruences`, `godel_beta_seq`,
+    `encode_decode`.
+  - Lemas privados clave: `list_map_getD_range`, `decodeList_eq_map`, `hi_le_n`.
+  - Trampa resuelta: `List.map_congr` no existe en Lean 4 core; el nombre correcto es
+    `List.map_congr_left`.
+  - Trampa resuelta: `isomorph_Λ_le i m : le₀ (Λ i) (Λ m) ↔ i ≤ m` — la dirección `.mp`
+    va de `i ≤ m` a `le₀ (Λ i) (Λ m)`, no al revés.
+  - Trampa resuelta: `set` tactic no disponible en Lean 4 core; usar `let`/`have`.
+  - `list_map_getD_range` demostrado por inducción con `simp [List.range_succ_eq_map]`.
+- **Foundation.lean paraguas** (F.3): compilando sin errores (todos los imports de Foundation).
+- Phase F completamente terminada: F.1 ✅ F.2 ✅ F.3 ✅.
+- **Peano.lean** exports corregidos: `lt₀`/`le₀`/`blt₀`/`ble₀`/`gt₀`/`ge₀`/`bgt₀`/`bge₀`;
+  eliminados `ℕ₀FSet.card`, `ℕ₁FSet.card`, `ℕ₂FSet.card`, `sorted_filter` (no existen).
+- Axiomas privados vigentes en Sylow.lean (5, sin cambio):
+  `wielandt_fixed_point_exists`, `wielandt_p_ndvd_r`, `sylow_second_incl`,
+  `sylow_third_mod`, `sylow_third_dvd`.
   - Demostrados: `triag_zero`, `triag_succ`, `triag_strict_mono`, `triag_le_of_le`,
     `triag_le_pair`, `pair_lt_triag_succ`, `antidiag_exists`, `antidiag_unique`,
     `antidiag_pair`, `pair_fst`, `pair_snd`, `pair_surj`.
@@ -3298,7 +3317,7 @@ sylow_third (G : FinGroup) (p : ℕ₀)
   - Trampa resuelta: operadores `*`, `+`, `-` son ambiguos en este proyecto (notación explícita
     - instancia typeclass). Solución: usar `mul`, `add`, `sub` como llamadas de función.
   - `sub` no exportado directamente: requiere `open Peano.Sub` en el namespace.
-- Phase F.1 completada. Siguiente: F.2 `GodelBeta.lean`.
+- Phase F.1 completada. F.2 GodelBeta.lean completada. F.3 paraguas compilando.
 - Axiomas privados vigentes en Sylow.lean (5, sin cambio):
   sylow_center_step, sylow_card_eq, sylow_second_incl, sylow_third_mod, sylow_third_dvd.
 
@@ -3388,3 +3407,101 @@ Todos los teoremas son **noncomputable** salvo las definiciones aritméticas pur
 - La biyección inversa es sección derecha: pair ∘ ⟨fst, snd⟩ = id
 
 <!-- AUTO-UPDATE-2026-05-02-END -->
+
+## §46. Foundation/GodelBeta.lean — `namespace Peano.Foundation`
+
+*Dependencias: `CantorPairing`, `ChineseRemainder`, `Factorial`, `Arith`, `Order`, `Isomorph`*
+
+Codeificación de listas finitas de ℕ₀ en ℕ₀ mediante la función β de Gödel (Teorema Chino del Resto).
+Establece `List ℕ₀ ≃ ℕ₀` computacionalmente, completando la cadena `PA → Aczel → ZFC`.
+
+### 46.1. Definiciones y abreviaciones
+
+**[D46.1]** `gmod (b i : ℕ₀) : ℕ₀`
+
+- **Lean4:** `def gmod (b i : ℕ₀) : ℕ₀ := 𝟙 + σ i * b`
+- **Matemática:** mᵢ = 1 + (i+1)·b — el i-ésimo módulo de Gödel
+- **Computable:** Sí
+
+**[D46.2]** `beta (c b i : ℕ₀) : ℕ₀`
+
+- **Lean4:** `def beta (c b i : ℕ₀) : ℕ₀ := mod c (gmod b i)`
+- **Matemática:** β(c, b, i) = c mod (1 + (i+1)·b) — función β de Gödel
+- **Computable:** Sí
+
+**[D46.3]** `encodeList (l : List ℕ₀) : ℕ₀`
+
+- **Lean4:** `noncomputable def encodeList (l : List ℕ₀) : ℕ₀ := pair (choose …) (Factorial.factorial (Λ l.length))`
+- **Matemática:** Codifica `l` como el par de Gödel `(c, b)` tal que `β(c, b, i) = l[i]` para todo `i < |l|`
+- **Computable:** No (usa `Classical.choice`)
+
+**[D46.4]** `decodeList (z m : ℕ₀) : List ℕ₀`
+
+- **Lean4:** `def decodeList (z m : ℕ₀) : List ℕ₀ := (List.range (Ψ m)).map (fun i => beta (fst z) (snd z) (Λ i))`
+- **Matemática:** Decodifica el par `z = pair(c, b)` en una lista de longitud `Ψ m`
+- **Computable:** Sí
+
+### 46.2. Teoremas auxiliares (exportados)
+
+**[T46.1]** `beta_lt (c b i : ℕ₀) : lt₀ (beta c b i) (gmod b i)`
+
+- `β(c, b, i) < 1 + (i+1)·b` — el valor es estrictamente menor que el módulo
+
+**[T46.2]** `beta_of_lt (c b i a : ℕ₀) (h₁ : lt₀ a (gmod b i)) (h₂ : mod (add c (mul (gmod b i) (add 𝟙 (mul (σ i) b)))) (gmod b i) = a) : beta c b i = a`
+
+- Caracterización: si `a < gmod b i` y la congruencia se satisface entonces `β(c, b, i) = a`
+
+**[T46.3]** `godel_mod_coprime (i j b : ℕ₀) (hij : lt₀ i j) (hdvd : (sub (σ j) (σ i)) ∣ b) : Coprime (gmod b i) (gmod b j)`
+
+- Coprimalidad de módulos de Gödel cuando `b` es divisible por `j - i`
+
+**[T46.4]** `gmod_dvd_prod_mods (n b : ℕ₀) (i : ℕ₀) (hi : le₀ i n) : gmod b i ∣ prod_mods n b`
+
+- Cada módulo divide al producto `∏ₖ≤ₙ gmod b k`
+
+**[T46.5]** `modEq_of_dvd {a b m : ℕ₀} (hdvd : m ∣ sub a b) (hle : le₀ b a) : ≡ₘ a b`
+
+- Si `m ∣ (a - b)` y `b ≤ a` entonces `a ≡ b (mod m)`
+
+**[T46.6]** `prod_mods_coprime_next (n b i : ℕ₀) (hi : le₀ (σ i) n) : Coprime (gmod b i) (prod_mods n b)`
+
+- `gmod b i` es coprimo con el producto de todos los módulos siguientes
+
+### 46.3. Teoremas principales
+
+**[T46.7]** `simultaneous_congruences (n : ℕ₀) (a : ℕ₀ → ℕ₀) (hlt : ∀ i, le₀ i n → lt₀ (a i) (gmod (factorial n) i)) : ∃ c, ∀ i, le₀ i n → beta c (factorial n) i = a i`
+
+- Existencia de soluciones simultáneas del sistema de congruencias (TCR)
+
+**[T46.8]** `godel_beta_seq (n : ℕ₀) (a : ℕ₀ → ℕ₀) : ∃ c b : ℕ₀, ∀ i, le₀ i n → beta c b i = a i`
+
+- Existencia de par de Gödel que codifica cualquier secuencia finita
+- Construcción: `b = n!`, `c` por TCR garantizando `β(c, n!, i) = a(i)` para `i ≤ n`
+
+**[T46.9]** `list_decode_length (z m : ℕ₀) : (decodeList z m).length = Ψ m`
+
+- La lista decodificada tiene exactamente `Ψ m` elementos
+
+**[T46.10]** `encode_decode (l : List ℕ₀) : decodeList (encodeList l) (Λ l.length) = l`
+
+- Correctitud del codec: `decodeList ∘ encodeList = id` (sobre la longitud original)
+- Establece formalmente `List ℕ₀ ≃ ℕ₀` en el sentido: toda lista se codifica y recupera
+
+### 46.4. Resumen del módulo
+
+| Símbolo | Tipo | Computable |
+|---------|------|------------|
+| `gmod` | `ℕ₀ → ℕ₀ → ℕ₀` | Sí |
+| `beta` | `ℕ₀ → ℕ₀ → ℕ₀ → ℕ₀` | Sí |
+| `encodeList` | `List ℕ₀ → ℕ₀` | No (Classical.choice) |
+| `decodeList` | `ℕ₀ → ℕ₀ → List ℕ₀` | Sí |
+| `beta_lt` | teorema | — |
+| `beta_of_lt` | teorema | — |
+| `godel_mod_coprime` | teorema | — |
+| `gmod_dvd_prod_mods` | teorema | — |
+| `modEq_of_dvd` | teorema | — |
+| `prod_mods_coprime_next` | teorema | — |
+| `simultaneous_congruences` | teorema | — |
+| `godel_beta_seq` | teorema | — |
+| `list_decode_length` | teorema | — |
+| `encode_decode` | teorema | — |

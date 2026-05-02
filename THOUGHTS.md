@@ -1,6 +1,6 @@
 # Thoughts — Peano
 
-**Last updated:** 2026-04-27
+**Last updated:** 2026-05-02
 **Author**: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -42,6 +42,7 @@ session-based locking.
 - ~~How to approach the remaining sorry in group theory modules~~ → All 3 Sylow theorems closed; 5 private axioms remain (Wielandt route).
 - ~~FSet design: Quotient vs sorted list~~ → Sorted list (ADR-007).
 - ~~FinGroup polymorphism approach~~ → Opción A implemented (ADR-010, 2026-04-27).
+- ~~Phase F Foundation (CantorPairing + GodelBeta)~~ → Phase F completamente terminada (2026-05-02): F.1 CantorPairing ✅, F.2 GodelBeta ✅, F.3 paraguas Foundation.lean ✅.
 
 ---
 
@@ -92,6 +93,19 @@ session-based locking.
 - **`Nat.mod` vs `%`**: Son definicionalmente iguales pero `rw` exige coincidencia
   sintáctica. Bridge con `have : ... % ... := by rw [...]; exact this`.
 - **`omega` no resuelve div/mod no-lineales**: Hay que usar `Nat.div_eq_of_lt_le` explícitamente.
+
+### Foundation/GodelBeta.lean — Lecciones (2026-05-02)
+
+- **`List.map_congr` no existe en Lean 4 core**: el nombre correcto es `List.map_congr_left`.
+- **`isomorph_Λ_le i m : le₀ (Λ i) (Λ m) ↔ i ≤ m`**: la dirección `.mp` va de `i ≤ m` a
+  `le₀ (Λ i) (Λ m)`, no al revés. Confundir la dirección bloquea la prueba silenciosamente.
+- **`set` tactic no disponible**: en Lean 4 core sin Mathlib, usar `let`/`have` en su lugar.
+- **`List.range_succ_eq_map`**: existe en Lean 4 core; permite demostrar `list_map_getD_range`
+  por inducción con `simp [List.range_succ_eq_map]` (cierra automáticamente).
+- **`List.length_pos.mpr` no existe en este contexto**: usar `Nat.succ_pos xs.length` para
+  probar `0 < (x :: xs).length`.
+- **`noncomputable def` + `Classical.choice`**: la no-computabilidad de `encodeList` es
+  inevitable; el `decodeList` sí es computable (puro `map` sobre `List.range`).
 
 ---
 

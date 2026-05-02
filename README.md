@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 51 jobs · 0 errores · 0 warnings · 0 sorry (5 axiomas privados en Sylow.lean)
+> **Build:** 52 jobs · 0 errores · 0 warnings · 0 sorry (5 axiomas privados en Sylow.lean)
 > **Licencia:** MIT
 
 ---
@@ -50,7 +50,12 @@ Peano.lean                                        ← entrada; importa toda la l
       ├─ Digits.lean                              Peano.Digits       — dígitos en base arbitraria
       ├─ Pairing.lean                             Peano.Pairing      — emparejamiento de Cantor
       ├─ Foundation/
-      │  └─ CantorPairing.lean                    Peano.Foundation   — biyección ℕ₀×ℕ₀ ≅ ℕ₀ (pair/fst/snd)
+      │  ├─ Foundation.lean                       Peano.Foundation   — módulo paraguas Foundation
+      │  ├─ PeanoSystem.lean                      Peano.Foundation   — estructura PeanoSystem, morfismos, isomorfismos
+      │  ├─ Initiality.lean                       Peano.Foundation   — ℕ₀ como álgebra inicial; unicidad e inicialidad
+      │  ├─ PureAxioms.lean                       Peano.Foundation   — sistema PA axiomático puro + teorema de paridad
+      │  ├─ CantorPairing.lean                    Peano.Foundation   — biyección ℕ₀×ℕ₀ ≅ ℕ₀ (pair/fst/snd)
+      │  └─ GodelBeta.lean                        Peano.Foundation   — función β de Gödel; codificación List ℕ₀ ≃ ℕ₀
       ├─ ListsAndSets/
       │  ├─ List.lean                             Peano.List         — listas polimórficas, sortedInsert genérico
       │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos genéricos (FSet α)
@@ -260,6 +265,8 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 - [x] `prime_dvd_binom_prime` — p | C(p,k) para 0 < k < p (Binom.lean) ✅
 - [x] `binom_prime_row` — C(pr, p) = r · C(pr−1, p−1) (Binom.lean) ✅
 - [x] **Foundation/CantorPairing.lean** — biyección ℕ₀×ℕ₀ ≅ ℕ₀, `pair`/`fst`/`snd`/`pair_surj` (Phase F.1) ✅
+- [x] **Foundation/GodelBeta.lean** — función β de Gödel, `godel_beta_seq`, `encodeList`/`decodeList`/`encode_decode` (Phase F.2) ✅
+- [x] **Foundation/Foundation.lean** — módulo paraguas compilando (Phase F.3) ✅
 - [ ] **Eliminar 5 axiomas privados** en Sylow.lean (ruta Wielandt):
   - [ ] `C(pr, p) ≡ r (mod p)` por inducción sobre r
   - [ ] Teorema de Lucas: `C(p^n·r, p^n) ≡ r (mod p)`

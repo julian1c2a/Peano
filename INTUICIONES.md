@@ -327,88 +327,131 @@ Si el libro de Stewart ya te dio la base de Galois y quieres algo puramente alge
 **Pregunta para tu implementación:**
 ¿Has considerado usar **Clases de Tipos** en Lean para que tus números naturales "sepan" que son un Monoide, y tus enteros "sepan" que son un Grupo? Es la forma más potente de reutilizar código y demostraciones en el álgebra abstracta.
 
-## ALGUNAS NOTAS SOBRE ÁLGEBRA ABSTRACTA
+## NOTAS SOBRE ÁLGEBRA ABSTRACTA
 
-Estructura,Propiedades Clave
+### Árbol de la jerarquía (una operación)
 
-* Magma, conjunto, +, Clausura.
-* Semigrupo, conjunto, +, Asociatividad y Clausura.
-* Monoide, conjunto, +, Asociatividad y Elemento Neutro y Clausura.
-* Grupo, conjunto, +, Elemento Inverso y Asociatividad y Elemento Neutro y Clausura.
-* Grupo Abeliano, conjunto, +, Conmutatividad y Elemento Inverso y Asociatividad y Elemento Neutro y Clausura.
-* Anillo, conjunto, +, ⋅, (conjunto, +, 0) es grupo, (conjunto, ⋅, 1) es un monoide, y tenemos Distributividad de la multiplicación sobre la suma.
-* * Dentro de los anillos tenemos varias subcategorías:
-* * Cuerpo ⊂ Dominio Euclídeo ⊂ Dominio de Ideales Principales ⊂ Dominio de Factorización Única ⊂ Dominio de Integrad
-* Anillo de división, conjunto, +, ⋅, (conjunto, +, ⋅, 0, 1) es un anillo en el que todo elemento no cero es invertible, pero puede no ser el mismo inverso por la derecha que por la izquierda.
-* Cuerpo, conjunto, +, ⋅, (conjunto \ {0}, ⋅, 1) es un grupo conmutativo, (conjunto, +, 0) es un grupo, y tenemos Distributividad de la multiplicación sobre la suma.
-* Módulo, (R,+,⋅) es un anillo y (M, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del anillo.
-* Espacio Vectorial, (K,+,⋅) es un cuerpo y (V, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del cuerpo.
-* Álgebra, (K,+,⋅) es un cuerpo y (A, +) es un grupo abeliano, y tenemos Distributividad de la multiplicación sobre la suma en ambos sentidos, y la compatibilidad de la multiplicación con la multiplicación del cuerpo, y una operación de multiplicación interna que es bilineal.
+```
+Magma
+└── Semigrupo            (+ asociatividad)
+    └── Monoide          (+ elemento neutro)
+        └── Grupo        (+ inversos)
+            └── Grupo Abeliano   (+ conmutatividad)
+```
 
-## ALGUNAS NOTAS SOBRE RETÍCULOS
+### Tabla: estructuras con una operación
 
-Conjunto, Relación de Orden Parcial, Propiedades Clave
+| Estructura     | Clausura | Asoc. | Neutro | Inverso | Conmut. | Ejemplo en Peano |
+|----------------|:--------:|:-----:|:------:|:-------:|:-------:|------------------|
+| Magma          | ✓        |       |        |         |         | —                |
+| Semigrupo      | ✓        | ✓     |        |         |         | (ℕ₀, ·)          |
+| Monoide        | ✓        | ✓     | ✓      |         |         | (ℕ₀, +, 0)       |
+| Grupo          | ✓        | ✓     | ✓      | ✓       |         | (ℤ, +, 0)        |
+| Grupo Abeliano | ✓        | ✓     | ✓      | ✓       | ✓       | (ℤ, +, 0)        |
 
-Árbol de Clasificación de Retículos
+### Tabla: estructuras con dos operaciones
 
-1. Nivel Base: El Retículo Simple
-    Retículo (Lattice): Un conjunto donde para todo a,b existen a∨b (join) y a∧b (meet).
-        Embedding: Es el ancestro común de todos los siguientes.
+| Estructura         | (A, +) es…     | (A, ·) es…        | Distribuye | Conmuta · | Inv. · en A\{0} | Ejemplo        |
+|--------------------|----------------|-------------------|:----------:|:---------:|:---------------:|----------------|
+| Anillo             | Grupo abeliano | Monoide           | ✓          |           |                 | ℤ              |
+| Anillo conmutativo | Grupo abeliano | Monoide conmut.   | ✓          | ✓         |                 | ℤ[x]           |
+| Anillo de división | Grupo abeliano | Grupo             | ✓          |           | ✓               | ℍ (cuaternios) |
+| Cuerpo             | Grupo abeliano | Grupo conmutativo | ✓          | ✓         | ✓               | ℚ, ℝ, 𝔽_p     |
+| Módulo sobre R     | Grupo abeliano | Acción de R       | ✓          | —         |                 | ℝⁿ sobre ℝ    |
+| Espacio vectorial  | Grupo abeliano | Acción de cuerpo  | ✓          | —         |                 | ℝⁿ sobre ℝ    |
+| Álgebra sobre K    | Grupo abeliano | Bilineal + cuerpo | ✓          | (opc.)    |                 | ℝ[x], matrices |
 
-2. Por Propiedades de Operación (Estructurales)
-    Retículo Semimodular: Si un elemento a cubre a a∧b, entonces a∨b cubre a b. (Fundamental en geometría combinatoria).
+### Árbol de inclusiones dentro de los anillos conmutativos
 
-    Retículo Modular: Satisface la ley modular: si a≤c, entonces a∨(b∧c)=(a∨b)∧c.
-        Embedding: Todo retículo distributivo es modular, y todo modular es semimodular.
-        Ejemplo: El retículo de subespacios de un espacio vectorial.
+```
+Anillo conmutativo con 1
+└── Dominio de integridad              (sin divisores de cero)
+    └── Dominio de Factorización Única (UFD)
+        └── Dominio de Ideales Principales (PID)
+            └── Dominio Euclídeo       (tiene algoritmo de división)
+                └── Cuerpo             (todo elemento no nulo es invertible)
+```
 
-    Retículo Distributivo: Las operaciones se distribuyen una sobre otra: a∧(b∨c)=(a∧b)∨(a∧c).
-        Embedding: Contenido dentro de los modulares. Es la base de la lógica clásica.
+Inclusiones propias: **Cuerpo ⊊ Euclídeo ⊊ PID ⊊ UFD ⊊ Dom. integridad ⊊ Anillo conmutativo**
 
-3. Por Acotación y Completitud (Extensionales)
+| Estructura | Ejemplo que lo es | Ejemplo que no lo es |
+|---|---|---|
+| Dominio Euclídeo | ℤ, ℚ[x] | ℤ[x] |
+| PID | ℤ | ℤ[x] (UFD pero no PID) |
+| UFD | ℤ[x] | ℤ[√−5] |
+| Dom. integridad | ℤ[√−5] | ℤ/6ℤ |
 
-    Retículo Acotado (Bounded): Posee un elemento mínimo (⊥) y un máximo (⊤).
+> En ℤ[√−5] la factorización falla: 6 = 2·3 = (1+√−5)(1−√−5), con todos los factores irreducibles pero ninguno primo.
 
-    Retículo Completamente Distributivo: La distributividad se extiende a conjuntos infinitos.
+---
 
-    Retículo Completo: Todo subconjunto (incluso los infinitos) tiene supremo e ínfimo.
+## NOTAS SOBRE RETÍCULOS
 
-        Ejemplo: El intervalo [0,1] en los reales.
+Un **retículo** es un conjunto parcialmente ordenado en el que todo par de elementos $a, b$ tiene supremo $a \vee b$ (join) e ínfimo $a \wedge b$ (meet).
 
-4. Por Existencia de Complementos (Lógicos)
+### Árbol de clasificación
 
-    Retículo Complementado: Es acotado y para cada a existe un a′ tal que a∨a′=⊤ y a∧a′=⊥.
+```
+Retículo
+│
+├── Semimodular       (si a cubre a∧b, entonces a∨b cubre b)
+│   └── Modular       (a ≤ c ⟹ a∨(b∧c) = (a∨b)∧c)
+│       └── Distributivo  (a∧(b∨c) = (a∧b)∨(a∧c))
+│           │
+│           ├── [+ acotado (⊥,⊤) + implicación interna]
+│           │       └── Álgebra de Heyting       (lógica intuicionista)
+│           │               └── Álgebra de Boole (+ ¬a: a∨¬a=⊤, a∧¬a=⊥)
+│           │
+│           └── [+ distributividad infinita]
+│                   └── Retículo completamente distributivo
+│
+└── [+ sup e ínf para todo subconjunto]
+        └── Retículo completo
+```
 
-    Retículo Ortocomplementado: Un retículo complementado con una involución que invierte el orden. (Base de la lógica cuántica).
+### Tabla de propiedades
 
-5. El "Cénit": Álgebras de Boole y Heyting
+| Tipo                     | Modular | Distrib. | Acotado | Compl. | Impl. (→) | Sup/ínf ∞ |
+|--------------------------|:-------:|:--------:|:-------:|:------:|:---------:|:---------:|
+| Retículo                 |         |          |         |        |           |           |
+| Semimodular              | parcial |          |         |        |           |           |
+| Modular                  | ✓       |          |         |        |           |           |
+| Distributivo             | ✓       | ✓        |         |        |           |           |
+| Álgebra de Heyting       | ✓       | ✓        | ✓       | ≤1/elem| ✓         |           |
+| Álgebra de Boole         | ✓       | ✓        | ✓       | ✓      | ✓         |           |
+| Retículo completo        | —       | —        | ✓       | —      | —         | ✓         |
+| Complet. distributivo    | ✓       | ✓        | ✓       | —      | —         | ✓         |
 
-    Cuando combinamos las propiedades de distribución y complemento, llegamos a las estructuras más potentes del álgebra:
+### Cadena de inclusiones (de más general a más específico)
 
-    * Álgebra de Heyting: Un retículo distributivo acotado con una operación de "implicación". (Base de la Lógica Intuicionista).
+```
+Retículo
+  ⊃  Modular                       (excluye el pentágono N₅)
+      ⊃  Distributivo              (excluye el diamante M₃)
+          ⊃  Álgebra de Heyting   (lógica intuicionista)
+              ⊃  Álgebra de Boole (lógica clásica: a∨¬a = ⊤ siempre)
+```
 
-    * Álgebra de Boole: Un retículo que es distributivo y complementado.
+### Tabla comparativa
 
-        Embedding: Toda Álgebra de Boole es un Álgebra de Heyting, pero no al revés (en Boole, a∨¬a=1 siempre).
+| Tipo               | Propiedad clave                  | Subestructura prohibida | Ejemplo típico                  |
+|--------------------|----------------------------------|-------------------------|---------------------------------|
+| Modular            | Ley modular                      | Pentágono N₅            | Subgrupos de un grupo abeliano  |
+| Distributivo       | Ley distributiva                 | Diamante M₃             | 𝒫(S), divisores de n en ℕ       |
+| Álgebra de Heyting | Distributivo + implicación a → b | —                       | Abiertos de un espacio top.     |
+| Álgebra de Boole   | Heyting + complementos únicos    | —                       | Lógica binaria, 𝒫(S)           |
+| Retículo completo  | ∀ subconj. tiene sup e ínf       | —                       | [0,1] ⊆ ℝ, todas las topologías |
 
-### Resumen de Inclusiones (Embeddings)
+### Álgebras de Boole no isomórficas entre sí
 
-Podemos ver la jerarquía de fuerza lógica así:
+Las álgebras de Boole **atómicas y completas** son exactamente las de la forma $\mathcal{P}(S)$ (el conjunto de las partes de $S$, con unión e intersección). Para cada cardinal $|S|$ se obtiene una álgebra no isomórfica a las demás:
 
-Retículo⊃Modular⊃Distributivo⊃Heyting⊃Boole
+| $|S|$ | Álgebra                                       | Número de elementos |
+|-------|-----------------------------------------------|---------------------|
+| 0     | $\mathcal{P}(\emptyset) = \{\emptyset\}$      | $2^0 = 1$           |
+| 1     | $\mathcal{P}(\{*\})$                          | $2^1 = 2$           |
+| 2     | $\mathcal{P}(\{a,b\})$                        | $2^2 = 4$           |
+| 3     | $\mathcal{P}(\{a,b,c\})$                      | $2^3 = 8$           |
+| $n$   | $\mathcal{P}(S)$                              | $2^n$               |
 
-### Tabla Comparativa Rápida
-
-Tipo Propiedad Clave Ejemplo Típico
-
-Modular Ley modular (no contiene pentágonos N5​) Subgrupos de un grupo abeliano
-
-Distributivo Ley distributiva (no contiene diamantes M3​) Conjunto de las partes P(S)
-
-Completo Ínfimos/Supremos infinitos Topologías de un espacio
-
-Boole Distributivo + Complementado Lógica binaria / Circuitos
-
-### Establecimiento de la variedad de Álgebras de Boole no isomórficas entre sí
-
-Establecemos las álgebras atómicas y completas como las que se pueden representar como las partes de un conjunto junto con la unión y la intersección. Para cada cardinalidad de conjunto, obtenemos una álgebra de Boole no isomórfica a las demás, lo que demuestra la existencia de una variedad infinita de álgebras de Boole no isomórficas entre sí. Se trata de ver el resto de las álgebras de Boole como subálgebras de estas álgebras atómicas y completas, lo que implica que también hay una variedad infinita de álgebras de Boole no isomórficas entre sí.
+Toda álgebra de Boole se embebe como subálgebra de una de estas, lo que prueba que hay infinitas clases de isomorfismo. Las álgebras finitas de Boole tienen siempre tamaño $2^n$ para algún $n$; las de distinto $n$ son no isomórficas.

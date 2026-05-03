@@ -62,13 +62,28 @@ namespace Peano
       | zero  => exact absurd rfl h
       | succ n' => rfl   -- τ(σ n') = n'
 
+    private theorem succ_one_eq_one_plus_one  :
+        (σ 𝟙) = (add 𝟙 𝟙)
+          := by
+      calc
+        σ 𝟙 = σ (σ 𝟘) := by rfl
+          _ = add (σ 𝟘) (σ 𝟘) := by rfl
+          _ = add 𝟙 𝟙 := by rfl
+
     /-- `sub (sub p 𝟙) 𝟙 = sub p (𝟙 + 𝟙)` — i.e. `(p−1)−1 = p−2`. -/
-    private theorem sub_sub_one_one (p : ℕ₀) : sub (sub p 𝟙) 𝟙 = sub p (𝟙 + 𝟙) := by
-      rw [sub_sub]
+    private theorem sub_sub_one_one
+      (p : ℕ₀) :
+        sub (sub p 𝟙) 𝟙 = sub p (add 𝟙 𝟙)
+          := by
+      apply Ψ_inj
+      simp only [isomorph_Ψ_sub, isomorph_Ψ_add]
+      exact Nat.sub_sub (Ψ p) (Ψ 𝟙) (Ψ 𝟙)
 
     /-- For prime `p`, `σ (sub p (𝟙 + 𝟙)) = sub p 𝟙`, i.e. `(p−2)+1 = p−1`. -/
-    private theorem succ_p_sub_two_eq {p : ℕ₀} (hp : Prime p) :
-        σ (sub p (𝟙 + 𝟙)) = sub p 𝟙 := by
+    private theorem succ_p_sub_two_eq {p : ℕ₀}
+      (hp : Prime p) :
+        σ (sub p (add 𝟙 𝟙)) = sub p 𝟙
+          := by
       rw [← sub_sub_one_one]
       apply succ_sub_one
       -- Need: sub p 𝟙 ≠ 𝟘, i.e. p ≥ 2
@@ -79,14 +94,25 @@ namespace Peano
       exact absurd h_lt (le_not_lt h_le)
 
     /-- `pow a p = mul (pow a (sub p 𝟙)) a` for prime `p`. -/
-    private theorem pow_eq_pow_pred_mul {p a : ℕ₀} (hp : Prime p) :
-        pow a p = mul (pow a (sub p 𝟙)) a := by
+    private theorem pow_eq_pow_pred_mul {p a : ℕ₀}
+      (hp : Prime p) :
+        pow a p = mul (pow a (sub p 𝟙)) a
+          := by
       rw [← pow_succ, succ_sub_one (prime_ne_zero hp)]
 
-    /-- For prime `p` and `0 < a < p`, `p` does not divide `a`. -/
-    private theorem prime_ndvd_lt {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
-        (ha_lt : lt₀ a p) : ¬ p ∣ a := fun h_dvd =>
-      absurd ha_lt (le_not_lt (divides_le h_dvd (pos_ne_zero ha_pos)))
+    /-- For prime `p` and `1 < a < p`, `a` does not divide `p`. -/
+    private theorem prime_ndvd_lt {a p : ℕ₀}
+      (hp : Prime p) (ha_pos : lt₀ 𝟙 a) (ha_lt : lt₀ a p) :
+        ¬ (a ∣ p)
+          := by
+      intro h_dvd
+      obtain ⟨k, hk⟩ := h_dvd
+      rcases (prime_imp_irreducible hp).2 a k hk.symm with h_a1 | h_k1
+      · rw [h_a1] at ha_pos
+        exact absurd ha_pos (lt_irrefl 𝟙)
+      · rw [h_k1, mul_one] at hk
+        rw [← hk] at ha_lt
+        exact absurd ha_lt (lt_irrefl p)
 
     /-- For `a < p`, `mod a p = a`. -/
     private theorem mod_small {p a : ℕ₀} (ha_lt : lt₀ a p) : mod a p = a :=
@@ -99,23 +125,22 @@ namespace Peano
         (ha_lt : lt₀ a p) (hY_lt : lt₀ Y p) (hp_ne : p ≠ 𝟘)
         (h : mod (add a Y) p = a) : Y = 𝟘 := by
       -- Transfer to Nat level
-      have h_ψp : Ψ p ≠ 0 := by rwa [Ne, ← isomorph_0_Ψ, Ψ_inj_iff]
-      have h_ψ : (Ψ a + Ψ Y) % Ψ p = Ψ a := by
+      have ha_nat : Ψ a < Ψ p := (isomorph_Ψ_lt a p).mp ha_lt
+      have hY_nat : Ψ Y < Ψ p := (isomorph_Ψ_lt Y p).mp hY_lt
+      have h_ψ : (Ψ a + Ψ Y : Nat) % Ψ p = Ψ a := by
         have h1 := isomorph_Ψ_mod (add a Y) p hp_ne
         rw [isomorph_Ψ_add] at h1
-        rw [← h1, h]
-        rw [isomorph_Ψ_mod a p hp_ne, mod_small ha_lt]
-      have ha_nat : Ψ a < Ψ p := isomorph_Ψ_lt.mpr ha_lt
-      have hY_nat : Ψ Y < Ψ p := isomorph_Ψ_lt.mpr hY_lt
-      by_cases hlt : Ψ a + Ψ Y < Ψ p
+        rw [← h1]
+        exact congrArg Ψ h
+      by_cases hlt : (Ψ a + Ψ Y : Nat) < Ψ p
       · -- Case a + Y < p: mod is identity, so Y = 0
         rw [Nat.mod_eq_of_lt hlt] at h_ψ
         have hY0 : Ψ Y = 0 := by omega
         exact (Ψ_eq_zero_iff_eq_zero Y).mp hY0
       · -- Case a + Y ≥ p; since a + Y < 2p, mod = a + Y - p
-        have h_bound : Ψ a + Ψ Y < 2 * Ψ p := by omega
-        have h_eq : (Ψ a + Ψ Y) % Ψ p = Ψ a + Ψ Y - Ψ p := by
-          have hge : Ψ p ≤ Ψ a + Ψ Y := Nat.le_of_not_lt hlt
+        have h_bound : (Ψ a + Ψ Y : Nat) < 2 * Ψ p := by omega
+        have h_eq : (Ψ a + Ψ Y : Nat) % Ψ p = Ψ a + Ψ Y - Ψ p := by
+          have hge : Ψ p ≤ (Ψ a + Ψ Y : Nat) := Nat.le_of_not_lt hlt
           rw [Nat.mod_eq_sub_mod hge]
           exact Nat.mod_eq_of_lt (by omega)
         rw [h_eq] at h_ψ
@@ -204,18 +229,18 @@ namespace Peano
 
     /-- `modInv p a := a^(p−2) mod p` (the modular inverse of `a` mod `p`). -/
     private def modInv (p a : ℕ₀) : ℕ₀ :=
-      mod (pow a (sub p (𝟙 + 𝟙))) p
+      mod (pow a (sub p (add 𝟙 𝟙))) p
 
     /-- `modInv p a < p`. -/
-    private theorem modInv_lt {p a : ℕ₀} (hp : Prime p) (ha_lt : lt₀ a p) :
+    private theorem modInv_lt {p a : ℕ₀} (hp : Prime p) :
         lt₀ (modInv p a) p :=
-      mod_lt (pow a (sub p (𝟙 + 𝟙))) p (prime_ne_zero hp)
+      mod_lt (pow a (sub p (add 𝟙 𝟙))) p (prime_ne_zero hp)
 
     /-- `mul a (modInv p a) ≡ 𝟙 [MOD p]` for `0 < a < p`. -/
     private theorem modInv_mul {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
         (ha_lt : lt₀ a p) : mul a (modInv p a) ≡ 𝟙 [MOD p] := by
       -- pow a (sub p 𝟙) = mul (pow a (sub p (𝟙+𝟙))) a   [by pow_succ + succ_p_sub_two_eq]
-      have h_pow_eq : pow a (sub p 𝟙) = mul (pow a (sub p (𝟙 + 𝟙))) a := by
+      have h_pow_eq : pow a (sub p 𝟙) = mul (pow a (sub p (add 𝟙 𝟙))) a := by
         rw [← pow_succ, succ_p_sub_two_eq hp]
       -- pow a (sub p 𝟙) ≡ 𝟙 [MOD p]
       have h_pred : pow a (sub p 𝟙) ≡ 𝟙 [MOD p] := pow_pred_one hp ha_pos ha_lt

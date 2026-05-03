@@ -124,29 +124,31 @@ namespace Peano
     private theorem add_mod_cancel {p a Y : ℕ₀}
         (ha_lt : lt₀ a p) (hY_lt : lt₀ Y p) (hp_ne : p ≠ 𝟘)
         (h : mod (add a Y) p = a) : Y = 𝟘 := by
-      -- Transfer to Nat level
-      have ha_nat : Ψ a < Ψ p := (isomorph_Ψ_lt a p).mp ha_lt
-      have hY_nat : Ψ Y < Ψ p := (isomorph_Ψ_lt Y p).mp hY_lt
-      have h_ψ : (Ψ a + Ψ Y : Nat) % Ψ p = Ψ a := by
-        have h1 := isomorph_Ψ_mod (add a Y) p hp_ne
-        rw [isomorph_Ψ_add] at h1
-        rw [← h1]
-        exact congrArg Ψ h
-      by_cases hlt : (Ψ a + Ψ Y : Nat) < Ψ p
-      · -- Case a + Y < p: mod is identity, so Y = 0
-        rw [Nat.mod_eq_of_lt hlt] at h_ψ
-        have hY0 : Ψ Y = 0 := by omega
-        exact (Ψ_eq_zero_iff_eq_zero Y).mp hY0
-      · -- Case a + Y ≥ p; since a + Y < 2p, mod = a + Y - p
-        have h_bound : (Ψ a + Ψ Y : Nat) < 2 * Ψ p := by omega
-        have h_eq : (Ψ a + Ψ Y : Nat) % Ψ p = Ψ a + Ψ Y - Ψ p := by
-          have hge : Ψ p ≤ (Ψ a + Ψ Y : Nat) := Nat.le_of_not_lt hlt
-          rw [Nat.mod_eq_sub_mod hge]
-          exact Nat.mod_eq_of_lt (by omega)
-        rw [h_eq] at h_ψ
-        -- Ψa + ΨY - Ψp = Ψa → ΨY = Ψp → ΨY ≥ Ψp, contradicts hY_nat
-        have : Ψ Y = Ψ p := by omega
-        exact absurd (this ▸ hY_nat) (Nat.lt_irrefl _)
+      -- Work entirely at ℕ₀ level.  Two cases: add a Y < p  or  p ≤ add a Y.
+      rcases le_or_lt p (add a Y) with hge | hlt
+      · -- Case p ≤ add a Y.  Since a < p and Y < p we have add a Y < add p p.
+        have h_bound : lt₀ (add a Y) (add p p) :=
+          lt_le_then_lt_add_compat a p Y p ha_lt (lt_imp_le_wp hY_lt)
+        -- mod (add a Y) p = sub (add a Y) p  (first interval)
+        have h_mod_eq : mod (add a Y) p = sub (add a Y) p := by
+          have := mod_of_lt_fst_interval (add a Y) p hge h_bound
+          simp only [mod_def] at this; exact this
+        rw [h_mod_eq] at h
+        -- sub_k_add_k: add (sub (add a Y) p) p = add a Y
+        have h_restore : add (sub (add a Y) p) p = add a Y := sub_k_add_k (add a Y) p hge
+        -- h says sub (add a Y) p = a, so  add a p = add a Y
+        rw [h] at h_restore
+        -- cancel a: p = Y, contradicts Y < p
+        have hYp : p = Y := add_cancel a p Y h_restore
+        exact absurd (hYp ▸ hY_lt) (lt_irrefl Y)
+      · -- Case add a Y < p.  mod (add a Y) p = add a Y  (by mod_of_lt)
+        have h_mod_eq : mod (add a Y) p = add a Y := by
+          have := mod_of_lt (add a Y) p hlt
+          simp only [mod_def] at this; exact this
+        rw [h_mod_eq] at h
+        -- h : add a Y = a = add a 𝟘, cancel a: Y = 𝟘
+        have : add a Y = add a 𝟘 := by rw [h, add_zero]
+        exact add_cancel a Y 𝟘 this
 
     /-! ## § 3. Fermat implies `a^(p−1) ≡ 1 [MOD p]` -/
 
@@ -154,8 +156,9 @@ namespace Peano
     private theorem pow_pred_one {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
         (ha_lt : lt₀ a p) : pow a (sub p 𝟙) ≡ 𝟙 [MOD p] := by
       have hp_ne : p ≠ 𝟘 := prime_ne_zero hp
-      -- X = mod (pow a (sub p 𝟙)) p
-      set X := mod (pow a (sub p 𝟙)) p with hX_def
+      -- X = mod (pow a (sub p 𝟙)) p  (introduce without set tactic)
+      let X := mod (pow a (sub p 𝟙)) p
+      have hX_def : X = mod (pow a (sub p 𝟙)) p := rfl
       -- Fermat: mod (pow a p) p = a
       have h_fermat : mod (pow a p) p = a := by
         rw [fermat_little_theorem a p hp, mod_small ha_lt]
@@ -174,56 +177,66 @@ namespace Peano
       -- X ≥ 1
       have hX_pos : 𝟘 < X := pos_of_ne_zero X hX_ne
       -- Decompose: mul X a = add a (mul (sub X 𝟙) a)
-      have h_expand : mul X a = add a (mul (sub X 𝟙) a) := by
-        conv_lhs =>
-          rw [← succ_sub_one hX_ne, add_mul, one_mul]
-        rw [add_comm]
-      -- Let Y := mod (mul (sub X 𝟙) a) p; then mod (add a Y) p = a
-      set Y := mod (mul (sub X 𝟙) a) p with hY_def
+      have h_expand : mul X a = add a (mul (sub X 𝟙) a) :=
+        calc mul X a = mul (σ (sub X 𝟙)) a := by rw [succ_sub_one hX_ne]
+          _ = add (mul (sub X 𝟙) a) a := succ_mul (sub X 𝟙) a
+          _ = add a (mul (sub X 𝟙) a) := add_comm _ _
+      -- Y := mod (mul (sub X 𝟙) a) p; then mod (add a Y) p = a
+      let Y := mod (mul (sub X 𝟙) a) p
+      have hY_def : Y = mod (mul (sub X 𝟙) a) p := rfl
       have hY_lt : lt₀ Y p := mod_lt (mul (sub X 𝟙) a) p hp_ne
-      have ha_lt_for_cancel := ha_lt
+      -- mod (add a Y) p = a  (via add_mod + mod_mod)
       have h_add_mod : mod (add a Y) p = a := by
-        rw [add_mod, mod_small ha_lt, hY_def, ← add_mod]
-        rw [← h_expand]
+        rw [add_mod, hY_def, mod_mod, ← add_mod, ← h_expand]
         exact h_Xa
       -- By add_mod_cancel: Y = 0
       have hY0 : Y = 𝟘 := add_mod_cancel ha_lt hY_lt hp_ne h_add_mod
       -- p | mul (sub X 𝟙) a
       have hpY : p ∣ mul (sub X 𝟙) a := by
         rw [← mod_eq_zero_iff_dvd hp_ne, ← hY_def, hY0]
+      -- ¬ (p ∣ a): since 0 < a < p, any multiple of p ≥ p
+      have h_ndvd : ¬ (p ∣ a) := by
+        intro ⟨k, hk⟩
+        cases k with
+        | zero =>
+          have : a = 𝟘 := by rw [mul_zero] at hk; exact hk
+          exact absurd (this ▸ ha_pos) (lt_irrefl 𝟘)
+        | succ k' =>
+          have hle : le₀ p a := by
+            rw [hk]; exact mul_le_right p (σ k') (zero_ne_succ k').symm
+          exact absurd ha_lt (le_not_lt hle)
       -- Coprime p a
-      have hcop : gcd p a = 𝟙 :=
-        prime_not_dvd_imp_coprime hp (prime_ndvd_lt hp ha_pos ha_lt)
+      have hcop : Coprime p a := (gcd_eq_one_iff_coprime p a).mp (prime_not_dvd_imp_coprime hp h_ndvd)
       -- By Gauss: p | sub X 𝟙
       have hp_sub : p ∣ sub X 𝟙 := by
-        have hcop' : Coprime p a := (gcd_eq_one_iff_coprime p a).mp hcop
         rw [mul_comm] at hpY
-        exact coprime_dvd_of_dvd_mul hcop' hpY
-      -- sub X 𝟙 < p (since X < p and X ≥ 1 → sub X 𝟙 ≤ X - 1 < p - 1 < p)
+        exact coprime_dvd_of_dvd_mul hcop hpY
+      -- sub X 𝟙 < p  (since X < p and X ≥ 1)
       have hX_lt : lt₀ X p := mod_lt (pow a (sub p 𝟙)) p hp_ne
-      have hsub_lt : lt₀ (sub X 𝟙) p := by
-        calc lt₀ (sub X 𝟙) X := sub_lt_self_wp (lt_imp_le_wp hX_pos) hX_ne
-          _ < p := hX_lt
+      have hsub_lt : lt₀ (sub X 𝟙) p :=
+        lt_trans (sub X 𝟙) X p
+          (sub_lt_self_wp (lt_0n_then_le_1n_wp hX_pos) (zero_ne_succ 𝟘).symm)
+          hX_lt
       -- sub X 𝟙 = 0
       have hsub0 : sub X 𝟙 = 𝟘 := by
         rcases hp_sub with ⟨k, hk⟩
         cases k with
-        | zero => rw [mul_zero] at hk; exact hk.symm
+        | zero => rw [mul_zero] at hk; exact hk
         | succ k' =>
           exfalso
-          have : le₀ p (mul p (σ k')) := ⟨σ k', (mul_comm p _).symm⟩
-          have : lt₀ (sub X 𝟙) p := hsub_lt
-          rw [← hk] at this
-          exact absurd ‹le₀ p (mul p (σ k'))› (lt_not_le this)
+          have hle_p : le₀ p (mul p (σ k')) :=
+            mul_le_right p (σ k') (zero_ne_succ k').symm
+          rw [hk] at hsub_lt
+          exact absurd hsub_lt (le_not_lt hle_p)
       -- X = 1
       have hX1 : X = 𝟙 := by
         have hle : le₀ X 𝟙 := sub_eq_zero X 𝟙 hsub0
-        have hge : le₀ 𝟙 X := hX_pos
-        exact antisymm_le hle hge
-      -- Show ModEq: mod (pow a (sub p 𝟙)) p = mod 𝟙 p = 1
+        have hge : le₀ 𝟙 X := lt_0n_then_le_1n_wp hX_pos
+        exact le_antisymm X 𝟙 hle hge
+      -- Show ModEq: mod (pow a (sub p 𝟙)) p = 𝟙 = mod 𝟙 p
       unfold ModEq
-      rw [← hX_def, hX1, mod_small ha_lt |>.symm, mod_small (one_lt_prime hp)]
-      rfl
+      rw [← hX_def, hX1]
+      exact (mod_small (one_lt_prime hp)).symm
 
     /-! ## § 4. Modular inverse -/
 
@@ -245,45 +258,43 @@ namespace Peano
       -- pow a (sub p 𝟙) ≡ 𝟙 [MOD p]
       have h_pred : pow a (sub p 𝟙) ≡ 𝟙 [MOD p] := pow_pred_one hp ha_pos ha_lt
       -- mul (pow a (sub p (𝟙+𝟙))) a ≡ 𝟙 [MOD p]
-      rw [← h_pow_eq] at h_pred
+      rw [h_pow_eq] at h_pred
       -- modInv p a ≡ pow a (sub p (𝟙+𝟙)) [MOD p]
-      have h_inv_eq : modInv p a ≡ pow a (sub p (𝟙 + 𝟙)) [MOD p] :=
-        modEq_symm (modEq_mod (pow a (sub p (𝟙 + 𝟙))) p)
+      have h_inv_eq : modInv p a ≡ pow a (sub p (add 𝟙 𝟙)) [MOD p] :=
+        modEq_symm (modEq_mod (pow a (sub p (add 𝟙 𝟙))) p)
       -- mul a (modInv p a) ≡ mul a (pow a (sub p (𝟙+𝟙))) [MOD p]
-      have h1 : mul a (modInv p a) ≡ mul a (pow a (sub p (𝟙 + 𝟙))) [MOD p] :=
+      have h1 : mul a (modInv p a) ≡ mul a (pow a (sub p (add 𝟙 𝟙))) [MOD p] :=
         modEq_mul (modEq_refl p a) h_inv_eq
       -- mul a (pow a (sub p (𝟙+𝟙))) = mul (pow a (sub p (𝟙+𝟙))) a  [comm]
-      have h2 : mul a (pow a (sub p (𝟙 + 𝟙))) = mul (pow a (sub p (𝟙 + 𝟙))) a :=
+      have h2 : mul a (pow a (sub p (add 𝟙 𝟙))) = mul (pow a (sub p (add 𝟙 𝟙))) a :=
         mul_comm a _
       rw [h2] at h1
       exact modEq_trans h1 h_pred
 
     /-- `0 < modInv p a` for `0 < a < p`. -/
-    private theorem modInv_pos {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
-        (ha_lt : lt₀ a p) : 𝟘 < modInv p a := by
-      by_contra h
-      push_neg at h
-      have h0 : modInv p a = 𝟘 := antisymm_le h (zero_le _)
-      -- mul a 0 ≡ 1 [MOD p], but mul a 0 = 0 and 0 ≡ 1 [MOD p] means p | 1
-      rw [h0, mul_zero] at modInv_mul
-      have h_dvd : p ∣ 𝟙 := by
-        have := @modInv_mul p a hp ha_pos ha_lt
-        rw [h0, mul_zero] at this
-        unfold ModEq at this
-        rw [mod_zero_left, mod_small (one_lt_prime hp)] at this
-        exact (mod_eq_zero_iff_dvd (prime_ne_zero hp)).mp this.symm
-      have := divides_le h_dvd (succ_neq_zero 𝟘)
-      exact absurd (one_lt_prime hp) (le_not_lt this)
+    private theorem modInv_pos {p a : ℕ₀}
+      (hp : Prime p) (ha_pos : 𝟘 < a) (ha_lt : lt₀ a p) :
+        𝟘 < modInv p a
+          := by
+      apply pos_of_ne_zero
+      intro h0
+      have h_inv := @modInv_mul p a hp ha_pos ha_lt
+      rw [h0, mul_zero] at h_inv
+      unfold ModEq at h_inv
+      rw [mod_zero_left, mod_small (one_lt_prime hp)] at h_inv
+      exact absurd h_inv (zero_ne_succ 𝟘)
 
     /-! ## § 5. Involution of modInv -/
 
     /-- `modInv p (modInv p a) = a` for `0 < a < p`. -/
-    private theorem modInv_invol {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
-        (ha_lt : lt₀ a p) : modInv p (modInv p a) = a := by
+    private theorem modInv_invol {p a : ℕ₀}
+      (hp : Prime p) (ha_pos : 𝟘 < a) (ha_lt : lt₀ a p) :
+        modInv p (modInv p a) = a
+          := by
       have hp_ne  : p ≠ 𝟘        := prime_ne_zero hp
-      set b := modInv p a with hb_def
+      let b := modInv p a
       have hb_pos : 𝟘 < b        := modInv_pos hp ha_pos ha_lt
-      have hb_lt  : lt₀ b p      := modInv_lt hp ha_lt
+      have hb_lt  : lt₀ b p      := modInv_lt hp
       -- mul a b ≡ 1 [MOD p]
       have h_ab : mul a b ≡ 𝟙 [MOD p] := modInv_mul hp ha_pos ha_lt
       -- mul b (modInv p b) ≡ 1 [MOD p]
@@ -291,252 +302,223 @@ namespace Peano
       -- Derive: a ≡ modInv p b [MOD p]
       -- a = a*1 ≡ a*(b*(modInv p b)) = (a*b)*(modInv p b) ≡ 1*(modInv p b) = modInv p b
       have h_equiv : a ≡ modInv p b [MOD p] := by
-        calc a = mul a 𝟙                           := (mul_one a).symm
-          _ ≡ mul a (mul b (modInv p b)) [MOD p]  := modEq_mul (modEq_refl p a) (modEq_symm h_b_inv)
-          _ = mul (mul a b) (modInv p b)           := by rw [mul_assoc b a (modInv p b)]
-          _ ≡ mul 𝟙 (modInv p b) [MOD p]          := modEq_mul h_ab (modEq_refl p _)
-          _ = modInv p b                           := one_mul _
+        have s1 : a ≡ mul a 𝟙 [MOD p] := by unfold ModEq; rw [mul_one]
+        have s2 : mul a 𝟙 ≡ mul a (mul b (modInv p b)) [MOD p] :=
+          modEq_mul (modEq_refl p a) (modEq_symm h_b_inv)
+        have s3 : mul a (mul b (modInv p b)) ≡ mul (mul a b) (modInv p b) [MOD p] := by
+          unfold ModEq; rw [← mul_assoc b a (modInv p b)]
+        have s4 : mul (mul a b) (modInv p b) ≡ mul 𝟙 (modInv p b) [MOD p] :=
+          modEq_mul h_ab (modEq_refl p _)
+        have s5 : mul 𝟙 (modInv p b) ≡ modInv p b [MOD p] := by
+          unfold ModEq; rw [one_mul]
+        exact modEq_trans s1 (modEq_trans s2 (modEq_trans s3 (modEq_trans s4 s5)))
       -- a < p and modInv p b < p, so from a ≡ modInv p b [MOD p]: a = modInv p b
       have ha_mod : mod a p = a := mod_small ha_lt
-      have hb_inv_lt : lt₀ (modInv p b) p := modInv_lt hp hb_lt
+      have hb_inv_lt : lt₀ (modInv p b) p := modInv_lt hp
       have hb_inv_mod : mod (modInv p b) p = modInv p b := mod_small hb_inv_lt
       unfold ModEq at h_equiv
       rw [ha_mod, hb_inv_mod] at h_equiv
-      exact h_equiv
+      exact h_equiv.symm
 
     /-- `modInv p a = a ↔ a = 𝟙 ∨ a = sub p 𝟙` for `0 < a < p`. -/
-    private theorem modInv_self_iff {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
-        (ha_lt : lt₀ a p) : modInv p a = a ↔ a = 𝟙 ∨ a = sub p 𝟙 := by
+    private theorem modInv_self_iff {p a : ℕ₀}
+      (hp : Prime p) (ha_pos : 𝟘 < a) (ha_lt : lt₀ a p) :
+        modInv p a = a ↔ a = 𝟙 ∨ a = sub p 𝟙
+          := by
       have hp_ne  : p ≠ 𝟘 := prime_ne_zero hp
+      have h_a_eq_1 : a = 𝟙 → modInv p a = a := by
+        intro h
+        rw [h]
+        unfold modInv
+        rw [one_pow]
+        exact mod_small (one_lt_prime hp)
+      have h_a_eq_sub : a = sub p 𝟙 → modInv p a = a := by
+        intro h
+        rw [h]
+        unfold modInv
+        have hp1_pos : 𝟘 < sub p 𝟙 := by
+          apply pos_of_ne_zero; intro hz
+          exact absurd (one_lt_prime hp) (le_not_lt (sub_eq_zero p 𝟙 hz))
+        have hp1_lt : lt₀ (sub p 𝟙) p :=
+          sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
+        -- 1. Demostrar que (p-1)*(p-1) ≡ 1 [MOD p] bajando a Nat
+        have h_sq_one : mul (sub p 𝟙) (sub p 𝟙) ≡ 𝟙 [MOD p] := by
+          -- Queremos demostrar p ∣ (mul (sub p 𝟙) (sub p 𝟙) - 𝟙)
+          -- (p-1)*(p-1) - 1 = (p^2 - 2p + 1) - 1 = p^2 - 2p = p * (p-2)
+          have h_p_ge_2 : le₀ 𝟚 p := prime_ge_two hp
+          have h_p_ne_0 : p ≠ 𝟘 := prime_ne_zero hp
+          have h_p_ne_1 : p ≠ 𝟙 := prime_ne_one hp
+          have h_diff_eq : sub (mul (sub p 𝟙) (sub p 𝟙)) 𝟙 = mul p (sub p 𝟚) := by
+            let k := sub p 𝟚
+            have hp_eq : p = add (add k 𝟙) 𝟙 := by
+              calc p = add k 𝟚 := (sub_k_add_k p 𝟚 h_p_ge_2).symm
+                   _ = add (add k 𝟙) 𝟙 := rfl
+            have hp1_eq : sub p 𝟙 = add k 𝟙 := by
+              calc sub p 𝟙 = sub (add (add k 𝟙) 𝟙) 𝟙 := by rw [hp_eq]
+                   _ = sub (add 𝟙 (add k 𝟙)) 𝟙 := by rw [add_comm (add k 𝟙) 𝟙]
+                   _ = add k 𝟙 := add_k_sub_k (add k 𝟙) 𝟙
+            have h_sq : mul (sub p 𝟙) (sub p 𝟙) = add (mul p k) 𝟙 := by
+              calc mul (sub p 𝟙) (sub p 𝟙)
+                  = mul (add k 𝟙) (add k 𝟙) := by rw [hp1_eq]
+                _ = add (mul (add k 𝟙) k) (mul (add k 𝟙) 𝟙) := mul_add (add k 𝟙) k 𝟙
+                _ = add (mul (add k 𝟙) k) (add k 𝟙) := by rw [mul_one]
+                _ = add (add (mul k k) (mul 𝟙 k)) (add k 𝟙) := by rw [add_mul k 𝟙 k]
+                _ = add (add (mul k k) k) (add k 𝟙) := by rw [one_mul]
+                _ = add (mul k k) (add k (add k 𝟙)) := by rw [← add_assoc (mul k k) k (add k 𝟙)]
+                _ = add (mul k k) (add (add k k) 𝟙) := by rw [add_assoc k k 𝟙]
+                _ = add (add (mul k k) (add k k)) 𝟙 := by rw [add_assoc (mul k k) (add k k) 𝟙]
+                _ = add (add (mul k k) (mul 𝟚 k)) 𝟙 := by
+                      have h2 : mul 𝟚 k = add k k := by
+                        calc
+                          mul 𝟚 k = mul (σ 𝟙) k := by rfl
+                                _ = add (mul 𝟙 k) k := by rw [succ_mul 𝟙 k]
+                                _ = add k k := by rw [one_mul]
+                      rw [← h2]
+                _ = add (mul (add k 𝟚) k) 𝟙 := by rw [← add_mul k 𝟚 k]
+                _ = add (mul p k) 𝟙 := by
+                      have hp_k2 : add k 𝟚 = p := sub_k_add_k p 𝟚 h_p_ge_2
+                      rw [hp_k2]
+            calc sub (mul (sub p 𝟙) (sub p 𝟙)) 𝟙
+                = sub (add (mul p k) 𝟙) 𝟙 := by rw [h_sq]
+              _ = sub (add 𝟙 (mul p k)) 𝟙 := by rw [add_comm (mul p k) 𝟙]
+              _ = mul p k := add_k_sub_k (mul p k) 𝟙
+          have hA_pos : 𝟙 ≤ (mul (sub p 𝟙) (sub p 𝟙)) := by
+            exact lt_0n_then_le_1n_wp (mul_pos hp1_pos hp1_pos)
+          have heq : (mul (sub p 𝟙) (sub p 𝟙)) = (add 𝟙 (mul p (sub p 𝟚))) := by
+            calc mul (sub p 𝟙) (sub p 𝟙)
+               = add (sub (mul (sub p 𝟙) (sub p 𝟙)) 𝟙) 𝟙 := (sub_k_add_k _ 𝟙 hA_pos).symm
+             _ = add (mul p (sub p 𝟚)) 𝟙 := by rw [h_diff_eq]
+             _ = add 𝟙 (mul p (sub p 𝟚)) := add_comm _ _
+          have h_mul_zero : mul p (sub p 𝟚) ≡ 𝟘 [MOD p] := by
+            apply (modEq_zero_iff_dvd h_p_ne_0).mpr
+            exact ⟨sub p 𝟚, rfl⟩
+          have h_add_equiv : add 𝟙 (mul p (sub p 𝟚)) ≡ add 𝟙 𝟘 [MOD p] :=
+            modEq_add (modEq_refl p 𝟙) h_mul_zero
+          unfold ModEq at h_add_equiv ⊢
+          rw [heq, add_zero] at h_add_equiv
+          rw [heq]
+          exact h_add_equiv
+        -- 2. Usar que (p-1) * modInv p (p-1) ≡ 1 [MOD p]
+        have h_inv : mul (sub p 𝟙) (modInv p (sub p 𝟙)) ≡ 𝟙 [MOD p] := by
+          modInv_mul hp hp1_pos hp1_lt
+
+        -- 3. Multiplicar para concluir que modInv p (p-1) ≡ p-1 [MOD p]
+        let Z := modInv p (sub p 𝟙)
+        have hZ_lt : lt₀ Z p := modInv_lt hp
+
+        have h_equiv : Z ≡ sub p 𝟙 [MOD p] := by
+          have s1 : Z ≡ mul Z 𝟙 [MOD p] := by unfold ModEq; rw [mul_one]
+          have s2 : mul Z 𝟙 ≡ mul Z (mul (sub p 𝟙) (sub p 𝟙)) [MOD p] :=
+            modEq_mul (modEq_refl p Z) (modEq_symm h_sq_one)
+          have s3 : mul Z (mul (sub p 𝟙) (sub p 𝟙)) ≡ mul (mul Z (sub p 𝟙)) (sub p 𝟙) [MOD p] := by
+            unfold ModEq; rw [← mul_assoc (sub p 𝟙) Z (sub p 𝟙)]
+          have s4 : mul (mul Z (sub p 𝟙)) (sub p 𝟙) ≡ mul 𝟙 (sub p 𝟙) [MOD p] := by
+            have h_comm : mul Z (sub p 𝟙) = mul (sub p 𝟙) Z := mul_comm Z _
+            rw [h_comm]
+            exact modEq_mul h_inv (modEq_refl p _)
+          have s5 : mul 𝟙 (sub p 𝟙) ≡ sub p 𝟙 [MOD p] := by
+            unfold ModEq; rw [one_mul]
+          exact modEq_trans s1 (modEq_trans s2 (modEq_trans s3 (modEq_trans s4 s5)))
+
+        -- 4. Como Z < p y p-1 < p, la congruencia implica igualdad
+        unfold ModEq at h_equiv
+        rw [mod_small hZ_lt, mod_small hp1_lt] at h_equiv
+        exact h_equiv
+
       constructor
-      · intro h_self
-        -- modInv p a = a → a * a ≡ 1 [MOD p]
+      · -- Forward direction: modInv p a = a → a = 𝟙 ∨ a = sub p 𝟙
+        intro h_self
         have h_sq : mul a a ≡ 𝟙 [MOD p] := by
-          have := modInv_mul hp ha_pos ha_lt
-          rw [h_self] at this
-          exact this
-        -- p | a^2 - 1 = (a-1)*(a+1)  [using Nat transfer]
-        -- At Nat level: (Ψa)^2 % Ψp = 1
-        -- Then Ψp | (Ψa)^2 - 1 = (Ψa-1)*(Ψa+1)
-        -- By primality: Ψp | Ψa-1 or Ψp | Ψa+1
-        -- ⟹ a ≡ 1 (mod p) or a ≡ p-1 (mod p)
-        -- Since 0 < a < p: a = 1 or a = p-1
-        have h_ψp_ne : Ψ p ≠ 0 := by rwa [Ne, ← isomorph_0_Ψ, Ψ_inj_iff]
-        have h_sq_nat : Ψ a ^ 2 % Ψ p = 1 := by
-          have h1 := isomorph_Ψ_mod (mul a a) p hp_ne
-          rw [isomorph_Ψ_mul] at h1
+          have := modInv_mul hp ha_pos ha_lt; rw [h_self] at this; exact this
+        have ha_nat : 𝟘 < a := ha_pos
+        have hge2 : 𝟚 ≤ p := prime_ge_two hp
+        have h_sq_nat : mod (a * a) p = 𝟙 := by
           unfold ModEq at h_sq
-          rw [← h1, h_sq, isomorph_Ψ_mod 𝟙 p hp_ne]
-          rw [mod_small (one_lt_prime hp)]
-          simp [isomorph_0_Ψ, Nat.pow_succ, Nat.pow_zero, Nat.mul_one]
-        -- Ψp | (Ψa)^2 - 1 = (Ψa - 1) * (Ψa + 1)
-        have ha_pos_nat : 0 < Ψ a := by
-          have := isomorph_Ψ_lt.mpr ha_pos
-          simp [isomorph_0_Ψ] at this
-          exact this
-        have ha_lt_nat : Ψ a < Ψ p := isomorph_Ψ_lt.mpr ha_lt
-        have h_sq_dvd : Ψ p ∣ Ψ a ^ 2 - 1 := by
-          have : Ψ a ^ 2 % Ψ p = 1 % Ψ p := by
-            rw [h_sq_nat, Nat.mod_eq_of_lt (Nat.one_lt_iff_ne_one.mp (Nat.lt_of_lt_pred
-              (by omega)) |>.symm ▸ (by omega))]
-            omega
-          exact Nat.dvd_of_mod_eq_zero (by
-            have := Nat.sub_mod (Ψ a ^ 2) 1 (Ψ p)
-            rw [h_sq_nat] at this
-            simp at this
-            exact Nat.mod_eq_zero_of_dvd ⟨_, this.symm⟩)
-        -- (Ψa)^2 - 1 = (Ψa - 1) * (Ψa + 1)
-        have h_factor : Ψ a ^ 2 - 1 = (Ψ a - 1) * (Ψ a + 1) := by
-          have : 1 ≤ Ψ a := ha_pos_nat
-          nlinarith [Nat.sub_add_cancel this]
-        rw [h_factor] at h_sq_dvd
-        -- By primality of Ψp: Ψp | Ψa-1 or Ψp | Ψa+1
-        have h_prime_nat : Nat.Prime (Ψ p) := by
-          rwa [← isPrimeb_iff] at hp
-          done
-        rcases h_prime_nat.dvd_mul.mp h_sq_dvd with h1 | h2
-        · -- Ψp | Ψa - 1, and 0 < Ψa - 1 < Ψp (since 1 ≤ Ψa ≤ Ψp-1)
-          -- So Ψa - 1 = 0, Ψa = 1, a = 1
-          have : Ψ a - 1 < Ψ p := by omega
-          have h_zero : Ψ a - 1 = 0 := Nat.eq_zero_of_dvd_of_lt h1 this
-          have : Ψ a = 1 := by omega
-          left
-          exact Ψ_inj a 𝟙 (by rw [this, isomorph_0_Ψ]; rfl)
-        · -- Ψp | Ψa + 1, and Ψa + 1 ≤ Ψp (since Ψa ≤ Ψp - 1)
-          -- So Ψa + 1 = Ψp, a = p-1
-          have h_le : Ψ a + 1 ≤ Ψ p := by omega
-          have h_dvd_le := Nat.le_of_dvd (by omega) h2
-          have : Ψ a + 1 = Ψ p := Nat.le_antisymm h_dvd_le h_le
-          right
-          apply Ψ_inj
-          rw [isomorph_Ψ_sub, isomorph_0_Ψ]
-          · simp; omega
-          · simp [isomorph_0_Ψ]
-      · intro h
-        rcases h with rfl | rfl
-        · -- modInv p 𝟙 = 𝟙
-          simp [modInv]
-          rw [pow_one_base, mod_small (one_lt_prime hp)]
-        · -- modInv p (p-1) = p-1
-          -- (p-1)^(p-2) ≡ p-1 [MOD p]
-          -- From (p-1) ≡ -1 [MOD p] and (-1)^(p-2) = -1 (p odd or p=2)
-          -- We use: modInv p (sub p 𝟙) = sub p 𝟙 iff (p-1)*(p-1) ≡ 1 [MOD p]
-          -- (p-1)^2 = p^2 - 2p + 1 ≡ 1 [MOD p]. ✓
-          -- So modInv_mul applied to (sub p 𝟙) gives (p-1)*modInv p (p-1) ≡ 1
-          -- Also (p-1)*(p-1) ≡ 1. By uniqueness: modInv p (p-1) = p-1.
-          have hp1_pos : 𝟘 < sub p 𝟙 := by
-            apply pos_of_ne_zero
-            intro h
-            have := sub_eq_zero p 𝟙 h
-            exact absurd (one_lt_prime hp) (le_not_lt this)
-          have hp1_lt : lt₀ (sub p 𝟙) p := by
-            apply sub_lt_self_wp (lt_imp_le_wp hp1_pos)
-            exact succ_neq_zero 𝟘
-          -- (p-1)*(p-1) ≡ 1 [MOD p]
-          have h_sq_one : mul (sub p 𝟙) (sub p 𝟙) ≡ 𝟙 [MOD p] := by
-            -- Transfer to Nat: (Ψp - 1)^2 % Ψp = 1
+          rw [mod_small (one_lt_prime hp)] at h_sq
+          exact h_sq
+        have hsq_pos : 𝟘 < a * a := mul_pos ha_nat ha_nat
+        have h_dvd_N0 : p ∣ mul (a - 𝟙) (a + 𝟙) := by
+          have hfact : a * a - 𝟙 = (a - 𝟙) * (a + 𝟙) := by
+            cases h_a : a with
+            | zero => exact absurd h_a (ne_of_gt ha_nat)
+            | succ k =>
+                      have ha_eq  : a = k + 𝟙 := by rw [h_a, ← add_one k]
+                      have hk_sub : a - 𝟙 = k := by rw [ha_eq, add_comm k 𝟙]; exact add_k_sub_k k 𝟙
+                      have hk_add : a + 𝟙 = k + 𝟚 := by rw [ha_eq]; rfl
+                      rw [ha_eq, hk_sub, hk_add]
+              have eq1 : (k + 𝟙) * (k + 𝟙) = k * (k + 𝟙) + 𝟙 * (k + 𝟙) := add_mul k 𝟙 (k + 𝟙)
+              have eq2 : k * (k + 𝟙) = k * k + k * 𝟙 := mul_add k k 𝟙
+                      have eq3 : 𝟙 * (k + 𝟙) = k + 𝟙 := one_mul (k + 𝟙)
+              have eq4 : k * (k + 𝟚) = k * k + k * 𝟚 := mul_add k k 𝟚
+                      have eq5 : k * 𝟚 = k + k := by
+                        calc k * 𝟚 = k * 𝟙 + k := rfl
+                          _ = k + k := by rw [mul_one]
+                      have eq6 : k * 𝟙 = k := mul_one k
+                      calc (k + 𝟙) * (k + 𝟙) - 𝟙
+                        = (k * (k + 𝟙) + 𝟙 * (k + 𝟙)) - 𝟙 := by rw [eq1]
+                        _ = (k * k + k * 𝟙 + (k + 𝟙)) - 𝟙 := by rw [eq2, eq3]
+                        _ = (k * k + k + (k + 𝟙)) - 𝟙 := by rw [eq6]
+                        _ = (k * k + (k + (k + 𝟙))) - 𝟙 := by rw [← add_assoc (k * k) k (k + 𝟙)]
+                        _ = (k * k + (k + k + 𝟙)) - 𝟙 := by rw [add_assoc k k 𝟙]
+                        _ = (k * k + (k + k) + 𝟙) - 𝟙 := by rw [add_assoc (k * k) (k + k) 𝟙]
+                        _ = 𝟙 + (k * k + (k + k)) - 𝟙 := by rw [add_comm (k * k + (k + k)) 𝟙]
+                        _ = k * k + (k + k) := add_k_sub_k (k * k + (k + k)) 𝟙
+                        _ = k * k + k * 𝟚 := by rw [← eq5]
+                        _ = k * (k + 𝟚) := eq4.symm
+          rw [← hfact]
+          let Y := mod (sub (a * a) 𝟙) p
+          have hY_def : Y = mod (sub (a * a) 𝟙) p := rfl
+          have hY_lt : lt₀ Y p := mod_lt (sub (a * a) 𝟙) p hp_ne
+          have h1_lt : lt₀ 𝟙 p := one_lt_prime hp
+          have hdm : a * a = add (sub (a * a) 𝟙) 𝟙 := by
+            have h1 : le₀ 𝟙 (a * a) := lt_0n_then_le_1n_wp hsq_pos
+            exact (sub_k_add_k (a * a) 𝟙 h1).symm
+          have h_mod_add : mod (add 𝟙 Y) p = 𝟙 := by
+            have h_expand : add 𝟙 (sub (a * a) 𝟙) = a * a := by
+              rw [add_comm 𝟙 (sub (a * a) 𝟙)]
+              exact hdm.symm
+            rw [add_mod, hY_def, mod_mod, ← add_mod, h_expand]
+            exact h_sq_nat
+          have hY_zero : Y = 𝟘 := add_mod_cancel h1_lt hY_lt hp_ne h_mod_add
+          have h_zero_mod : sub (a * a) 𝟙 ≡ 𝟘 [MOD p] := by
             unfold ModEq
-            have hp_ne := prime_ne_zero hp
-            have h := isomorph_Ψ_mod (mul (sub p 𝟙) (sub p 𝟙)) p hp_ne
-            rw [isomorph_Ψ_mul, isomorph_Ψ_sub, isomorph_0_Ψ] at h
-            have h1 : (Ψ p - 1) * (Ψ p - 1) % Ψ p = 1 := by
-              have hge : 1 ≤ Ψ p := by
-                have := isomorph_Ψ_lt.mpr (one_lt_prime hp); simp [isomorph_0_Ψ] at this; omega
-              have : (Ψ p - 1) * (Ψ p - 1) = Ψ p * Ψ p - 2 * Ψ p + 1 := by nlinarith
-              rw [this, show Ψ p * Ψ p - 2 * Ψ p + 1 = Ψ p * (Ψ p - 2) + 1 by nlinarith]
-              rw [Nat.add_mul_mod_self_left]
-              exact Nat.mod_eq_of_lt (by
-                have := isomorph_Ψ_lt.mpr (one_lt_prime hp); simp [isomorph_0_Ψ] at this; omega)
-            rw [← h, h1]
-            rw [isomorph_Ψ_mod 𝟙 p hp_ne, mod_small (one_lt_prime hp)]
-          -- By involution: modInv p (sub p 𝟙) = modInv p (modInv p (sub p 𝟙))?
-          -- Instead: use that (p-1)*modInv p (p-1) ≡ 1 and (p-1)*(p-1) ≡ 1, so modInv = p-1
-          have h_inv := modInv_mul hp hp1_pos hp1_lt
-          -- (p-1)*(modInv p (p-1)) ≡ 1 [MOD p]
-          -- (p-1)*(p-1) ≡ 1 [MOD p]
-          -- By cancellation (modInv_invol): modInv p (p-1) = p-1
-          -- Use pow_pred_one for (p-1):
-          -- modInv p (p-1) = mod ((p-1)^(p-2)) p
-          -- = mod (modInv p (p-1)) p = modInv p (p-1) < p
-          -- Both (p-1) and modInv p (p-1) are < p and:
-          -- (p-1) * modInv p (p-1) ≡ 1 ≡ (p-1)*(p-1)
-          -- Cancel (p-1): modInv p (p-1) ≡ (p-1)
-          -- Since both < p: equal.
-          -- The cancellation argument (same as pow_pred_one derivation):
-          have h_cancel : modInv p (sub p 𝟙) ≡ sub p 𝟙 [MOD p] := by
-            -- mul (sub p 𝟙) (modInv p (sub p 𝟙)) ≡ 𝟙 [MOD p]   [h_inv]
-            -- mul (sub p 𝟙) (sub p 𝟙) ≡ 𝟙 [MOD p]              [h_sq_one]
-            -- Cancel (sub p 𝟙): modInv p (sub p 𝟙) ≡ sub p 𝟙 [MOD p]
-            -- This is the same add_mod_cancel argument but for ModEq
-            -- Let Z := modInv p (sub p 𝟙)
-            set Z := modInv p (sub p 𝟙)
-            have hZ_lt : lt₀ Z p := modInv_lt hp hp1_lt
-            -- We need: Z ≡ sub p 𝟙 [MOD p]
-            -- From h_inv: (p-1)*Z ≡ 1 and h_sq_one: (p-1)*(p-1) ≡ 1
-            -- So (p-1)*Z ≡ (p-1)*(p-1), cancel (p-1)
-            -- Use the same trick: set up add_mod_cancel
-            -- Actually use: mod ((p-1)*Z) p = mod ((p-1)*(p-1)) p = 1
-            -- Then mod (mul (sub p 𝟙) Z) p = mod (mul (sub p 𝟙) (sub p 𝟙)) p
-            -- By the same argument as pow_pred_one, cancel (sub p 𝟙)
-            suffices h : Z = sub p 𝟙 by exact h ▸ modEq_refl p Z
-            -- We know: Z < p, sub p 𝟙 < p, and (sub p 𝟙)*Z ≡ 1 [MOD p] [h_inv]
-            -- And (sub p 𝟙)*(sub p 𝟙) ≡ 1 [MOD p] [h_sq_one]
-            -- So (sub p 𝟙)*Z ≡ (sub p 𝟙)*(sub p 𝟙)
-            -- => Z ≡ sub p 𝟙 [MOD p] by the cancellation argument
-            -- Since Z < p and sub p 𝟙 < p: Z = sub p 𝟙
-            have h_modZ : mod (mul (sub p 𝟙) Z) p = mod (mul (sub p 𝟙) (sub p 𝟙)) p := by
-              unfold ModEq at h_inv h_sq_one
-              exact h_inv.trans h_sq_one.symm
-            -- Use the same add_mod_cancel: (sub p 𝟙)*Z = sub p 𝟙 + (sub p 𝟙)*(Z - sub p 𝟙 or vice versa)
-            -- Actually just replicate the pow_pred_one argument for Z vs sub p 𝟙:
-            by_cases h_le : le₀ Z (sub p 𝟙)
-            · by_cases h_eq : Z = sub p 𝟙
-              · exact h_eq
-              · -- Z < sub p 𝟙
-                have h_lt_Z : lt₀ Z (sub p 𝟙) := lt_of_le_of_ne h_le h_eq
-                -- (sub p 𝟙) * Z = (sub p 𝟙) * (sub p 𝟙) - (sub p 𝟙) * (sub (sub p 𝟙) Z)
-                -- (sub p 𝟙) * (sub (sub p 𝟙) Z) = (sub p 𝟙)^2 - (sub p 𝟙)*Z
-                -- p | (sub p 𝟙) * (sub (sub p 𝟙) Z)
-                -- Since sub (sub p 𝟙) Z ≤ sub p 𝟙 - 1 < p, and (sub p 𝟙) < p:
-                -- (sub p 𝟙) * (sub (sub p 𝟙) Z) < p^2 but not necessarily < p
-                -- This approach gets complicated. Let me use Nat transfer directly.
-                exfalso
-                have hZ_nat : Ψ Z < Ψ (sub p 𝟙) := isomorph_Ψ_lt.mpr h_lt_Z
-                have h_modZ_nat : (Ψ (sub p 𝟙) * Ψ Z) % Ψ p =
-                    (Ψ (sub p 𝟙) * Ψ (sub p 𝟙)) % Ψ p := by
-                  rw [← isomorph_Ψ_mul, ← isomorph_Ψ_mul]
-                  rw [← isomorph_Ψ_mod _ p (prime_ne_zero hp),
-                      ← isomorph_Ψ_mod _ p (prime_ne_zero hp)]
-                  exact congrArg Ψ h_modZ
-                have h_cop_nat : Nat.Coprime (Ψ p) (Ψ (sub p 𝟙)) := by
-                  unfold Nat.Coprime
-                  rw [← isomorph_Ψ_gcd]
-                  have hcop_p1 : gcd p (sub p 𝟙) = 𝟙 :=
-                    prime_not_dvd_imp_coprime hp (prime_ndvd_lt hp hp1_pos hp1_lt)
-                  rw [hcop_p1]; rfl
-                have h_dvd : Ψ p ∣ Ψ (sub p 𝟙) * Ψ Z - Ψ (sub p 𝟙) * Ψ (sub p 𝟙) := by
-                  have : Ψ (sub p 𝟙) * Ψ (sub p 𝟙) ≤ Ψ (sub p 𝟙) * Ψ Z := by
-                    apply Nat.mul_le_mul_left; omega
-                  exact Nat.dvd_of_mod_eq_zero (by
-                    rw [Nat.sub_mod, h_modZ_nat.symm, Nat.sub_self, Nat.zero_mod])
-                have h_factor : Ψ (sub p 𝟙) * Ψ Z - Ψ (sub p 𝟙) * Ψ (sub p 𝟙) =
-                    Ψ (sub p 𝟙) * (Ψ Z - Ψ (sub p 𝟙)) := by
-                  have : Ψ (sub p 𝟙) * Ψ (sub p 𝟙) ≤ Ψ (sub p 𝟙) * Ψ Z := by
-                    apply Nat.mul_le_mul_left; omega
-                  omega
-                -- Contradiction: Ψ Z < Ψ (sub p 𝟙), so Ψ Z - Ψ (sub p 𝟙) = 0 (Nat subtraction)
-                -- But h_dvd says Ψp | 0 which is fine but the direction was wrong
-                -- Actually h_le says Z ≤ sub p 𝟙 and h_lt_Z says Z < sub p 𝟙
-                -- So (sub p 𝟙)*Z < (sub p 𝟙)*(sub p 𝟙), and from mod equality we'd
-                -- need Ψp | (sub p 𝟙)^2 - (sub p 𝟙)*Z = (sub p 𝟙)*(sub p 𝟙 - Z)
-                have h_dvd2 : Ψ p ∣ Ψ (sub p 𝟙) * Ψ (sub p 𝟙) - Ψ (sub p 𝟙) * Ψ Z := by
-                  have hge : Ψ (sub p 𝟙) * Ψ Z ≤ Ψ (sub p 𝟙) * Ψ (sub p 𝟙) := by
-                    apply Nat.mul_le_mul_left; omega
-                  exact Nat.dvd_of_mod_eq_zero (by
-                    rw [Nat.sub_mod, h_modZ_nat, Nat.sub_self, Nat.zero_mod])
-                rw [← Nat.mul_sub_one] at h_dvd2
-                have h_p1_ne : Ψ (sub p 𝟙) ≠ 0 := by
-                  rw [← isomorph_0_Ψ]; exact fun h => absurd (Ψ_inj _ _ h) (pos_ne_zero hp1_pos)
-                have h_sub_ne : Ψ (sub p 𝟙) - Ψ Z ≠ 0 := by omega
-                have h_cop2 := h_cop_nat.dvd_of_dvd_mul_left h_dvd2
-                have h_sub_lt : Ψ (sub p 𝟙) - Ψ Z < Ψ p := by
-                  have := isomorph_Ψ_lt.mpr hp1_lt; omega
-                exact absurd (Nat.le_of_dvd (by omega) h_cop2) (by omega)
-            · -- Z > sub p 𝟙
-              push_neg at h_le
-              have h_lt_Z : lt₀ (sub p 𝟙) Z := h_le
-              -- Symmetric case: Ψ Z > Ψ (sub p 𝟙)
-              have hZ_gt : Ψ (sub p 𝟙) < Ψ Z := isomorph_Ψ_lt.mpr h_lt_Z
-              have h_modZ_nat : (Ψ (sub p 𝟙) * Ψ Z) % Ψ p =
-                  (Ψ (sub p 𝟙) * Ψ (sub p 𝟙)) % Ψ p := by
-                rw [← isomorph_Ψ_mul, ← isomorph_Ψ_mul]
-                rw [← isomorph_Ψ_mod _ p (prime_ne_zero hp),
-                    ← isomorph_Ψ_mod _ p (prime_ne_zero hp)]
-                exact congrArg Ψ h_modZ
-              have h_cop_nat : Nat.Coprime (Ψ p) (Ψ (sub p 𝟙)) := by
-                unfold Nat.Coprime
-                rw [← isomorph_Ψ_gcd]
-                have hcop_p1 : gcd p (sub p 𝟙) = 𝟙 :=
-                  prime_not_dvd_imp_coprime hp (prime_ndvd_lt hp hp1_pos hp1_lt)
-                rw [hcop_p1]; rfl
-              have h_dvd3 : Ψ p ∣ Ψ (sub p 𝟙) * (Ψ Z - Ψ (sub p 𝟙)) := by
-                rw [Nat.mul_sub_one]
-                exact Nat.dvd_of_mod_eq_zero (by
-                  rw [Nat.sub_mod, h_modZ_nat.symm, Nat.sub_self, Nat.zero_mod])
-              have h_cop3 := h_cop_nat.dvd_of_dvd_mul_left h_dvd3
-              have h_sub_lt2 : Ψ Z - Ψ (sub p 𝟙) < Ψ p := by
-                have := isomorph_Ψ_lt.mpr hZ_lt; omega
-              have h_sub_ne2 : Ψ Z - Ψ (sub p 𝟙) ≠ 0 := by omega
-              exact absurd (Nat.le_of_dvd (by omega) h_cop3) (by omega)
-          -- From h_cancel: modInv p (sub p 𝟙) ≡ sub p 𝟙 [MOD p]
-          -- Both < p, so equal:
-          unfold ModEq at h_cancel
-          rw [mod_small hZ_lt, mod_small hp1_lt] at h_cancel
-          exact h_cancel
-      -- h_cancel says modInv p (sub p 𝟙) = sub p 𝟙
-      unfold ModEq at h_cancel
-      rw [mod_small (modInv_lt hp hp1_lt), mod_small hp1_lt] at h_cancel
-      exact h_cancel
+            rw [mod_zero_left p]
+            exact hY_zero
+          exact (modEq_zero_iff_dvd hp_ne).mp h_zero_mod
+        rcases hp.2.2 (a - 𝟙) (a + 𝟙) h_dvd_N0
+            with ⟨j1, hj1⟩ | ⟨j2, hj2⟩
+        · have h_dvd_u : a - 𝟙 = p * j1 := by exact hj1
+          by_cases h0 : sub a 𝟙 = 𝟘
+          · left
+            have h1 : le₀ a 𝟙 := sub_eq_zero a 𝟙 h0
+            have h2 : le₀ 𝟙 a := lt_0n_then_le_1n_wp ha_pos
+            exact le_antisymm a 𝟙 h1 h2
+          · exact absurd (divides_le ⟨j1, h_dvd_u⟩ h0) (by
+              intro hle
+              have h1 : lt₀ (sub a 𝟙) a := sub_lt_self a 𝟙 (lt_0n_then_le_1n_wp ha_pos) (succ_neq_zero 𝟘)
+              have h2 : lt₀ (sub a 𝟙) p := lt_trans (sub a 𝟙) a p h1 ha_lt
+              exact absurd h2 (le_not_lt hle))
+        · have h_dvd_v : add a 𝟙 = mul p j2 := by exact hj2
+          have h_add_le : le₀ (add a 𝟙) p := by
+            have h1 : le₀ (σ a) p := lt_then_le_succ a p ha_lt
+            rw [← add_one a] at h1
+            exact h1
+          have h_add_ne_zero : add a 𝟙 ≠ 𝟘 := by
+            intro h
+            rw [add_one] at h
+            exact succ_neq_zero a h
+          have h_p_le : le₀ p (add a 𝟙) := divides_le ⟨j2, h_dvd_v⟩ h_add_ne_zero
+          have h_eq : add a 𝟙 = p := le_antisymm (add a 𝟙) p h_add_le h_p_le
+          right
+          calc a = sub (add a 𝟙) 𝟙 := (add_k_sub_k a 𝟙).symm
+            _ = sub p 𝟙 := by rw [h_eq]
+      · -- Backward direction: a = 𝟙 ∨ a = sub p 𝟙 → modInv p a = a
+        intro h
+        rcases h with rfl | rfl
+        · -- Case a = 𝟙: modInv p 𝟙 = 𝟙
+          unfold modInv; rw [one_pow, mod_small (one_lt_prime hp)]
+        · -- Case a = sub p 𝟙: modInv p (sub p 𝟙) = sub p 𝟙
+          exact h_a_eq_sub rfl
 
     /-! ## § 6. List product and the pairing argument -/
 
@@ -807,9 +789,41 @@ namespace Peano
               -- range_from_one n has head 𝟙
               obtain ⟨inner, hinner⟩ := range_from_one_head_one n (succ_neq_zero _)
               rw [hinner, listProd_cons, one_mul]
-              -- Now prove: listProd inner ≡ 1 [MOD p]
-              -- inner = [2, ..., σ(σ p'''')] = [2,...,p-2] for p = σ(σ(σ(σ p'''')))
-              -- Actually for now use prod_pairs:
+
+              have hp_eq : p = σ (σ n) := rfl
+              have hp1 : sub p 𝟙 = σ n := by
+                calc sub p 𝟙 = sub (σ (σ n)) 𝟙 := by rw [hp_eq]
+                  _ = τ (σ (σ n)) := sub_one (σ (σ n))
+                  _ = σ n := τ_σ_eq_self (σ n)
+              have h_inner_props : ∀ x ∈ inner, x ≠ 𝟙 ∧ le₀ x n := by
+                intro x hx
+                have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
+                have h_le : le₀ x n := mem_range_from_one_le hx_L
+                have h_neq_1 : x ≠ 𝟙 := by
+                  intro h1
+                  have h_nd : (range_from_one n).Nodup := range_from_one_nodup n
+                  rw [hinner] at h_nd
+                  have h_not_in : 𝟙 ∉ inner := (List.nodup_cons.mp h_nd).1
+                  rw [h1] at hx
+                  exact absurd hx h_not_in
+                exact ⟨h_neq_1, h_le⟩
+              have h_mem_range : ∀ m y, 𝟘 < y → le₀ y m → y ∈ range_from_one m := by
+                intro m
+                induction m with
+                | zero =>
+                  intro y hy_pos hy_le
+                  have hy0 : y = 𝟘 := le_zero_eq y hy_le
+                  rw [hy0] at hy_pos
+                  exact absurd hy_pos (lt_irrefl 𝟘)
+                | succ m' ih =>
+                  intro y hy_pos hy_le
+                  rcases (le_succ_iff_le_or_eq y m').mp hy_le with h_le | h_eq
+                  · have hy_in : y ∈ range_from_one m' := ih y hy_pos h_le
+                    rw [range_from_one]
+                    exact List.mem_append.mpr (Or.inl hy_in)
+                  · rw [h_eq, range_from_one]
+                    exact List.mem_append.mpr (Or.inr (List.mem_cons.mpr (Or.inl rfl)))
+
               apply prod_pairs hp
               · -- inner.Nodup: it's the tail of range_from_one n which is nodup
                 have hnd := range_from_one_nodup n
@@ -818,22 +832,61 @@ namespace Peano
               · -- range: every x in inner satisfies 0 < x < p
                 intro x hx
                 have hx_in_L : x ∈ range_from_one n := by
-                  rw [hinner]; exact List.mem_cons_of_mem 𝟙 hx
+                  rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
                 have hx_range := range_from_one_range n x hx_in_L
                 constructor
                 · exact hx_range.1
                 · -- x ≤ n = p-2 < p-1 < p
-                  exact lt_of_le_of_lt hx_range.2 (by
-                    apply lt_trans _ (one_lt_prime hp)
-                    -- n = σ(σ p'''') = p - 2 < p - 1 < p
-                    -- For σ(σ(σ(σ p''''))) prime:
-                    -- n ≤ sub (σ(σ(σ(σ p'''')))) 𝟙 ... this needs more work
-                    -- Use: x ≤ n < sub p 𝟙
-                    sorry)
-              · -- closure: ∀ x ∈ inner, modInv p x ∈ inner
-                sorry
+                have hy_lt_p : lt₀ y p := modInv_lt hp
+                have hy_pos : 𝟘 < y := modInv_pos hp hx_pos hx_lt_p
+                have hy_ne_1 : y ≠ 𝟙 := by
+                  intro hy1
+                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                  rw [hy1] at h_inv_inv
+                  have h1_pos : 𝟘 < 𝟙 := lt_zero_succ 𝟘
+                  have h1_lt_p : lt₀ 𝟙 p := one_lt_prime hp
+                  have h_inv1 : modInv p 𝟙 = 𝟙 := (modInv_self_iff hp h1_pos h1_lt_p).mpr (Or.inl rfl)
+                  rw [h_inv1] at h_inv_inv
+                  exact absurd h_inv_inv.symm h_props.1
+                have hy_ne_sub : y ≠ sub p 𝟙 := by
+                  intro hy_sub
+                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                  rw [hy_sub] at h_inv_inv
+                  have hp1_pos : 𝟘 < sub p 𝟙 := sub_pos_of_lt (one_lt_prime hp)
+                  have hp1_lt : lt₀ (sub p 𝟙) p := sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
+                  have h_invp1 : modInv p (sub p 𝟙) = sub p 𝟙 := (modInv_self_iff hp hp1_pos hp1_lt).mpr (Or.inr rfl)
+                  rw [h_invp1] at h_inv_inv
+                  have hx_eq_sn : x = σ n := (h_inv_inv.symm.trans h_invp1).trans hp1
+                  have hx_le_n : le₀ x n := h_props.2
+                  rw [hx_eq_sn] at hx_le_n
+                  exact absurd hx_le_n (nle_σn_n n)
+                have hy_le_n : le₀ y n := by
+                  have hy_le_sn : le₀ y (σ n) := (lt_succ_iff_le y (σ n)).mp (hp_eq ▸ hy_lt_p)
+                  rcases (le_succ_iff_le_or_eq y n).mp hy_le_sn with hy_le | hy_eq
+                  · exact hy_le
+                  · exact absurd (hy_eq.trans hp1.symm) hy_ne_sub
+                have hy_in_range : y ∈ range_from_one n := h_mem_range n y hy_pos hy_le_n
+                rw [hinner] at hy_in_range
+                rcases List.mem_cons.mp hy_in_range with hy1 | hy_inner
+                · exact absurd hy1 hy_ne_1
+                · exact hy_inner
               · -- no fixed points: ∀ x ∈ inner, modInv p x ≠ x
-                sorry
+                intro x hx
+                have h_props := h_inner_props x hx
+                have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
+                have hx_range := range_from_one_range n x hx_L
+                have hx_pos : 𝟘 < x := hx_range.1
+                have hn_lt_p : lt₀ n p := by
+                  rw [hp_eq]; exact lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
+                have hx_lt_p : lt₀ x p := lt_of_le_of_lt hx_range.2 hn_lt_p
+                intro h_fix
+                have h_self := (modInv_self_iff hp hx_pos hx_lt_p).mp h_fix
+                rcases h_self with h1 | hp1_eq_x
+                · exact absurd h1 h_props.1
+                · have h_le_n := h_props.2
+                  rw [hp1] at hp1_eq_x
+                  rw [hp1_eq_x] at h_le_n
+                  exact absurd h_le_n (nle_σn_n n)
 
     /-! ## § 8. Wilson's theorem -/
 

@@ -122,7 +122,7 @@ namespace Peano
 
     /-- If `mod (add a Y) p = a` with `a < p` and `Y < p` and `p ≠ 0`, then `Y = 0`. -/
     private theorem add_mod_cancel {p a Y : ℕ₀}
-        (ha_lt : lt₀ a p) (hY_lt : lt₀ Y p) (hp_ne : p ≠ 𝟘)
+        (ha_lt : lt₀ a p) (hY_lt : lt₀ Y p) (_hp_ne : p ≠ 𝟘)
         (h : mod (add a Y) p = a) : Y = 𝟘 := by
       -- Work entirely at ℕ₀ level.  Two cases: add a Y < p  or  p ≤ add a Y.
       rcases le_or_lt p (add a Y) with hge | hlt
@@ -734,12 +734,11 @@ namespace Peano
       | succ n' ih =>
         rw [range_from_one, List.nodup_append]
         refine ⟨ih, List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩, ?_⟩
-        intro x hx y hy
-        simp at hy; subst hy
-        have hx_le := mem_range_from_one_le hx
-        intro h
-        rw [h] at hx_le
-        exact absurd (lt_succ_self n') (le_not_lt hx_le)
+        intro x hx y hy h_eq
+        have hy_eq := List.mem_singleton.mp hy
+        subst hy_eq
+        subst h_eq
+        exact absurd (mem_range_from_one_le hx) (nle_σn_n n')
 
     /-- `∀ x ∈ range_from_one n, 0 < x ∧ x ≤ n`. -/
     private theorem range_from_one_range (n : ℕ₀) :
@@ -826,64 +825,83 @@ namespace Peano
                 have hnd := range_from_one_nodup n
                 rw [hinner] at hnd
                 exact (List.nodup_cons.mp hnd).2
-              · -- range: every x in inner satisfies 0 < x < p
+              · -- range: every x in inner satisfies 0 < x < σ(σ n)
                 intro x hx
                 have hx_in_L : x ∈ range_from_one n := by
                   rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
                 have hx_range := range_from_one_range n x hx_in_L
-                constructor
-                · exact hx_range.1
-                · -- x ≤ n = p-2 < p-1 < p
-                  have hy_lt_p : lt₀ y p := modInv_lt hp hx_pos hx_lt_p
-                  have hy_pos : 𝟘 < y := modInv_pos hp hx_pos hx_lt_p
-                  have hy_ne_1 : y ≠ 𝟙 := by
-                    intro hy1
-                    have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
-                    rw [hy1] at h_inv_inv
-                    have h1_pos : 𝟘 < 𝟙 := lt_zero_succ 𝟘
-                    have h1_lt_p : lt₀ 𝟙 p := one_lt_prime hp
-                    have h_inv1 : modInv p 𝟙 = 𝟙 := (modInv_self_iff hp h1_pos h1_lt_p).mpr (Or.inl rfl)
-                    rw [h_inv1] at h_inv_inv
-                    exact absurd h_inv_inv.symm h_props.1
-                  have hy_ne_sub : y ≠ sub p 𝟙 := by
-                    intro hy_sub
-                    have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
-                    rw [hy_sub] at h_inv_inv
-                    have hp1_pos : 𝟘 < sub p 𝟙 := sub_pos_of_lt (one_lt_prime hp)
-                    have hp1_lt : lt₀ (sub p 𝟙) p := sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
-                    have h_invp1 : modInv p (sub p 𝟙) = sub p 𝟙 := (modInv_self_iff hp hp1_pos hp1_lt).mpr (Or.inr rfl)
-                    rw [h_invp1] at h_inv_inv
-                    have hx_eq_sn : x = σ n := (h_inv_inv.symm.trans h_invp1).trans hp1
-                    have hx_le_n : le₀ x n := h_props.2
-                    rw [hx_eq_sn] at hx_le_n
-                    exact absurd hx_le_n (nle_σn_n n)
-                  have hy_le_n : le₀ y n := by
-                    have hy_le_sn : le₀ y (σ n) := (lt_succ_iff_le y (σ n)).mp (hp_eq ▸ hy_lt_p)
-                    rcases (le_succ_iff_le_or_eq y n).mp hy_le_sn with hy_le | hy_eq
-                    · exact hy_le
-                    · exact absurd (hy_eq.trans hp1.symm) hy_ne_sub
-                  have hy_in_range : y ∈ range_from_one n := h_mem_range n y hy_pos hy_le_n
-                  rw [hinner] at hy_in_range
-                  rcases List.mem_cons.mp hy_in_range with hy1 | hy_inner
-                  · exact absurd hy1 hy_ne_1
-                  · exact hy_inner
-                · -- no fixed points: ∀ x ∈ inner, modInv p x ≠ x
-                  intro x hx
-                  have h_props := h_inner_props x hx
-                  have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
-                  have hx_range := range_from_one_range n x hx_L
-                  have hx_pos : 𝟘 < x := hx_range.1
-                  have hn_lt_p : lt₀ n p := by
-                    rw [hp_eq]; exact lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
-                  have hx_lt_p : lt₀ x p := lt_of_le_of_lt hx_range.2 hn_lt_p
-                  intro h_fix
-                  have h_self := (modInv_self_iff hp hx_pos hx_lt_p).mp h_fix
-                  rcases h_self with h1 | hp1_eq_x
-                  · exact absurd h1 h_props.1
-                  · have h_le_n := h_props.2
-                    rw [hp1] at hp1_eq_x
-                    rw [hp1_eq_x] at h_le_n
-                    exact absurd h_le_n (nle_σn_n n)
+                exact ⟨hx_range.1, lt_trans x (σ n) (σ (σ n))
+                  (le_then_lt_succ_wp hx_range.2) (lt_succ_self (σ n))⟩
+              · -- closed: ∀ x ∈ inner, modInv (σ(σ n)) x ∈ inner
+                intro x hx
+                have h_props := h_inner_props x hx
+                have hx_in_L : x ∈ range_from_one n := by
+                  rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
+                have hx_range := range_from_one_range n x hx_in_L
+                have hx_pos : 𝟘 < x := hx_range.1
+                have hn_lt_p : lt₀ n (σ (σ n)) :=
+                  lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
+                have hx_lt_p : lt₀ x (σ (σ n)) := lt_trans x (σ n) (σ (σ n))
+                  (le_then_lt_succ_wp hx_range.2) (lt_succ_self (σ n))
+                have hy_lt_p : lt₀ (modInv (σ (σ n)) x) (σ (σ n)) :=
+                  modInv_lt hp
+                have hy_pos : 𝟘 < modInv (σ (σ n)) x := modInv_pos hp hx_pos hx_lt_p
+                have hy_ne_1 : modInv (σ (σ n)) x ≠ 𝟙 := by
+                  intro hy1
+                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                  rw [hy1] at h_inv_inv
+                  have h1_pos : 𝟘 < 𝟙 := lt_zero_succ 𝟘
+                  have h1_lt_p : lt₀ 𝟙 (σ (σ n)) := one_lt_prime hp
+                  have h_inv1 : modInv (σ (σ n)) 𝟙 = 𝟙 :=
+                    (modInv_self_iff hp h1_pos h1_lt_p).mpr (Or.inl rfl)
+                  rw [h_inv1] at h_inv_inv
+                  exact absurd h_inv_inv.symm h_props.1
+                have hy_ne_sub : modInv (σ (σ n)) x ≠ sub (σ (σ n)) 𝟙 := by
+                  intro hy_sub
+                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                  rw [hy_sub] at h_inv_inv
+                  have hp1_pos : 𝟘 < sub (σ (σ n)) 𝟙 := sub_pos_of_lt (one_lt_prime hp)
+                  have hp1_lt : lt₀ (sub (σ (σ n)) 𝟙) (σ (σ n)) :=
+                    sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
+                  have h_invp1 : modInv (σ (σ n)) (sub (σ (σ n)) 𝟙) = sub (σ (σ n)) 𝟙 :=
+                    (modInv_self_iff hp hp1_pos hp1_lt).mpr (Or.inr rfl)
+                  rw [h_invp1] at h_inv_inv
+                  have hx_eq_sn : x = σ n := h_inv_inv.symm.trans hp1
+                  have hx_le_n : le₀ x n := h_props.2
+                  rw [hx_eq_sn] at hx_le_n
+                  exact absurd hx_le_n (nle_σn_n n)
+                have hy_le_n : le₀ (modInv (σ (σ n)) x) n := by
+                  have hy_le_sn : le₀ (modInv (σ (σ n)) x) (σ n) :=
+                    (lt_succ_iff_le (modInv (σ (σ n)) x) (σ n)).mp hy_lt_p
+                  rcases (le_succ_iff_le_or_eq (modInv (σ (σ n)) x) n).mp hy_le_sn
+                    with hy_le | hy_eq
+                  · exact hy_le
+                  · exact absurd (hy_eq.trans hp1.symm) hy_ne_sub
+                have hy_in_range : modInv (σ (σ n)) x ∈ range_from_one n :=
+                  h_mem_range n (modInv (σ (σ n)) x) hy_pos hy_le_n
+                rw [hinner] at hy_in_range
+                rcases List.mem_cons.mp hy_in_range with hy1 | hy_inner
+                · exact absurd hy1 hy_ne_1
+                · exact hy_inner
+              · -- nofixed: ∀ x ∈ inner, modInv (σ(σ n)) x ≠ x
+                intro x hx
+                have h_props := h_inner_props x hx
+                have hx_L : x ∈ range_from_one n := by
+                  rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
+                have hx_range := range_from_one_range n x hx_L
+                have hx_pos : 𝟘 < x := hx_range.1
+                have hn_lt_p : lt₀ n (σ (σ n)) :=
+                  lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
+                have hx_lt_p : lt₀ x (σ (σ n)) := lt_trans x (σ n) (σ (σ n))
+                  (le_then_lt_succ_wp hx_range.2) (lt_succ_self (σ n))
+                intro h_fix
+                have h_self := (modInv_self_iff hp hx_pos hx_lt_p).mp h_fix
+                rcases h_self with h1 | hp1_eq_x
+                · exact absurd h1 h_props.1
+                · have h_le_n := h_props.2
+                  rw [hp1] at hp1_eq_x
+                  rw [hp1_eq_x] at h_le_n
+                  exact absurd h_le_n (nle_σn_n n)
 
     /-! ## § 8. Wilson's theorem -/
 
@@ -900,20 +918,20 @@ namespace Peano
       -- sub p 𝟙 ≠ 0  (p - 1 ≥ 1)
       have hp1_ne : sub p 𝟙 ≠ 𝟘 := by
         intro h
-        exact absurd (sub_eq_zero p 𝟙 h) (le_not_lt (one_lt_prime hp))
+        exact absurd (one_lt_prime hp) (le_not_lt (sub_eq_zero p 𝟙 h))
       -- σ (sub p (𝟙+𝟙)) = sub p 𝟙
       have h_succ_p2 := succ_p_sub_two_eq hp
       -- factorial (sub p 𝟙) = mul (factorial (sub p (𝟙+𝟙))) (sub p 𝟙)
       have h_fact_eq : factorial (sub p 𝟙) =
-          mul (factorial (sub p (𝟙 + 𝟙))) (sub p 𝟙) := by
+          mul (factorial (sub p (add 𝟙 𝟙))) (sub p 𝟙) := by
         rw [← h_succ_p2, factorial_succ]
       -- factorial (sub p (𝟙+𝟙)) ≡ 𝟙 [MOD p]
-      have h_pred : factorial (sub p (𝟙 + 𝟙)) ≡ 𝟙 [MOD p] :=
+      have h_pred : factorial (sub p (add 𝟙 𝟙)) ≡ 𝟙 [MOD p] :=
         factorial_pred_pred_one hp
       -- factorial (sub p 𝟙) ≡ sub p 𝟙 [MOD p]
       have h_fact_mod : factorial (sub p 𝟙) ≡ sub p 𝟙 [MOD p] := by
         rw [h_fact_eq]
-        have h1 : mul (factorial (sub p (𝟙 + 𝟙))) (sub p 𝟙) ≡
+        have h1 : mul (factorial (sub p (add 𝟙 𝟙))) (sub p 𝟙) ≡
             mul 𝟙 (sub p 𝟙) [MOD p] :=
           modEq_mul h_pred (modEq_refl p _)
         simp [one_mul] at h1
@@ -923,16 +941,11 @@ namespace Peano
         modEq_add h_fact_mod (modEq_refl p 𝟙)
       -- add (sub p 𝟙) 𝟙 = p  (since sub p 𝟙 = p - 1, adding 1 gives p)
       have h_p1_add : add (sub p 𝟙) 𝟙 = p := by
-        rw [← succ_sub_one hp_ne, add_one]
+        rw [add_one, succ_sub_one hp_ne]
       -- add (factorial (sub p 𝟙)) 𝟙 ≡ p ≡ 0 [MOD p]
       have h_zero_mod : add (factorial (sub p 𝟙)) 𝟙 ≡ 𝟘 [MOD p] := by
-        rw [← h_p1_add] at h_add_mod ⊢
-        calc add (factorial (sub p 𝟙)) 𝟙
-            ≡ add (sub p 𝟙) 𝟙 [MOD p] := h_add_mod
-          _ = add (sub p 𝟙) 𝟙 := rfl
-          _ ≡ 𝟘 [MOD p] := by
-              rw [h_p1_add]
-              exact modEq_symm (modEq_zero_of_dvd hp_ne ⟨𝟙, mul_one p⟩)
+        rw [h_p1_add] at h_add_mod
+        exact modEq_trans h_add_mod (modEq_zero_of_dvd hp_ne ⟨𝟙, (mul_one p).symm⟩)
       -- p | add (factorial (sub p 𝟙)) 𝟙
       exact (modEq_zero_iff_dvd hp_ne).mp h_zero_mod
 

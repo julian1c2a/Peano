@@ -82,14 +82,14 @@ namespace Peano
     instance instStrictLinearOrderNat1 : StrictLinearOrder ℕ₁ where
       decLt  := fun a b => decidableLtN1 a b
       irrefl := fun n => StrictOrder.nlt_self n.val
-      trans  := fun {a b c} h1 h2 => StrictOrder.lt_trans_wp h1 h2
+      trans  := fun {_ _ _} h1 h2 => StrictOrder.lt_trans_wp h1 h2
       trich  := fun a b h_nab h_nba =>
         Subtype.ext (StrictOrder.lt_nor_gt_then_eq a.val b.val ⟨h_nab, h_nba⟩)
 
     instance instStrictLinearOrderNat2 : StrictLinearOrder ℕ₂ where
       decLt  := fun a b => decidableLtN2 a b
       irrefl := fun n => StrictOrder.nlt_self n.val.val
-      trans  := fun {a b c} h1 h2 => StrictOrder.lt_trans_wp h1 h2
+      trans  := fun {_ _ _} h1 h2 => StrictOrder.lt_trans_wp h1 h2
       trich  := fun a b h_nab h_nba =>
         Subtype.ext (Subtype.ext (StrictOrder.lt_nor_gt_then_eq a.val.val b.val.val ⟨h_nab, h_nba⟩))
 

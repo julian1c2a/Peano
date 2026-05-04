@@ -395,11 +395,11 @@ namespace Peano
           have h_add_equiv : add 𝟙 (mul p (sub p 𝟚)) ≡ add 𝟙 𝟘 [MOD p] :=
             modEq_add (modEq_refl p 𝟙) h_mul_zero
           unfold ModEq at h_add_equiv ⊢
-          rw [heq, add_zero] at h_add_equiv
+          rw [add_zero] at h_add_equiv
           rw [heq]
           exact h_add_equiv
         -- 2. Usar que (p-1) * modInv p (p-1) ≡ 1 [MOD p]
-        have h_inv : mul (sub p 𝟙) (modInv p (sub p 𝟙)) ≡ 𝟙 [MOD p] := by
+        have h_inv : mul (sub p 𝟙) (modInv p (sub p 𝟙)) ≡ 𝟙 [MOD p] :=
           modInv_mul hp hp1_pos hp1_lt
 
         -- 3. Multiplicar para concluir que modInv p (p-1) ≡ p-1 [MOD p]
@@ -432,62 +432,69 @@ namespace Peano
           have := modInv_mul hp ha_pos ha_lt; rw [h_self] at this; exact this
         have ha_nat : 𝟘 < a := ha_pos
         have hge2 : 𝟚 ≤ p := prime_ge_two hp
-        have h_sq_nat : mod (a * a) p = 𝟙 := by
+        have h_sq_nat : mod (mul a a) p = 𝟙 := by
           unfold ModEq at h_sq
           rw [mod_small (one_lt_prime hp)] at h_sq
           exact h_sq
-        have hsq_pos : 𝟘 < a * a := mul_pos ha_nat ha_nat
-        have h_dvd_N0 : p ∣ mul (a - 𝟙) (a + 𝟙) := by
-          have hfact : a * a - 𝟙 = (a - 𝟙) * (a + 𝟙) := by
+        have hsq_pos : 𝟘 < mul a a := mul_pos ha_nat ha_nat
+        have h_dvd_N0 : p ∣ mul (sub a 𝟙) (add a 𝟙) := by
+          have hfact : sub (mul a a) 𝟙 = mul (sub a 𝟙) (add a 𝟙) := by
             cases h_a : a with
-            | zero => exact absurd h_a (ne_of_gt ha_nat)
+            | zero => exact absurd (h_a ▸ ha_nat) (lt_irrefl 𝟘)
             | succ k =>
-                      have ha_eq  : a = k + 𝟙 := by rw [h_a, ← add_one k]
-                      have hk_sub : a - 𝟙 = k := by rw [ha_eq, add_comm k 𝟙]; exact add_k_sub_k k 𝟙
-                      have hk_add : a + 𝟙 = k + 𝟚 := by rw [ha_eq]; rfl
-                      rw [ha_eq, hk_sub, hk_add]
-              have eq1 : (k + 𝟙) * (k + 𝟙) = k * (k + 𝟙) + 𝟙 * (k + 𝟙) := add_mul k 𝟙 (k + 𝟙)
-              have eq2 : k * (k + 𝟙) = k * k + k * 𝟙 := mul_add k k 𝟙
-                      have eq3 : 𝟙 * (k + 𝟙) = k + 𝟙 := one_mul (k + 𝟙)
-              have eq4 : k * (k + 𝟚) = k * k + k * 𝟚 := mul_add k k 𝟚
-                      have eq5 : k * 𝟚 = k + k := by
-                        calc k * 𝟚 = k * 𝟙 + k := rfl
-                          _ = k + k := by rw [mul_one]
-                      have eq6 : k * 𝟙 = k := mul_one k
-                      calc (k + 𝟙) * (k + 𝟙) - 𝟙
-                        = (k * (k + 𝟙) + 𝟙 * (k + 𝟙)) - 𝟙 := by rw [eq1]
-                        _ = (k * k + k * 𝟙 + (k + 𝟙)) - 𝟙 := by rw [eq2, eq3]
-                        _ = (k * k + k + (k + 𝟙)) - 𝟙 := by rw [eq6]
-                        _ = (k * k + (k + (k + 𝟙))) - 𝟙 := by rw [← add_assoc (k * k) k (k + 𝟙)]
-                        _ = (k * k + (k + k + 𝟙)) - 𝟙 := by rw [add_assoc k k 𝟙]
-                        _ = (k * k + (k + k) + 𝟙) - 𝟙 := by rw [add_assoc (k * k) (k + k) 𝟙]
-                        _ = 𝟙 + (k * k + (k + k)) - 𝟙 := by rw [add_comm (k * k + (k + k)) 𝟙]
-                        _ = k * k + (k + k) := add_k_sub_k (k * k + (k + k)) 𝟙
-                        _ = k * k + k * 𝟚 := by rw [← eq5]
-                        _ = k * (k + 𝟚) := eq4.symm
+              rw [← add_one k]
+              have hk_sub : sub (add k 𝟙) 𝟙 = k := by
+                rw [add_comm k 𝟙]; exact add_k_sub_k k 𝟙
+              have hk_add : add (add k 𝟙) 𝟙 = add k 𝟚 := by rfl
+              rw [hk_sub, hk_add]
+              have h2k : mul 𝟚 k = add k k := by
+                have h : mul 𝟚 k = mul (σ 𝟙) k := rfl
+                rw [h, succ_mul 𝟙 k, one_mul]
+              have h_expand : mul k (add k 𝟚) = add (mul k k) (add k k) :=
+                calc mul k (add k 𝟚)
+                    = add (mul k k) (mul k 𝟚) := mul_add k k 𝟚
+                  _ = add (mul k k) (mul 𝟚 k) := by rw [mul_comm k 𝟚]
+                  _ = add (mul k k) (add k k)  := by rw [h2k]
+              have h_sq2 : mul (add k 𝟙) (add k 𝟙) = add (mul k (add k 𝟚)) 𝟙 :=
+                calc mul (add k 𝟙) (add k 𝟙)
+                    = add (mul k (add k 𝟙)) (mul 𝟙 (add k 𝟙)) := add_mul k 𝟙 (add k 𝟙)
+                  _ = add (mul k (add k 𝟙)) (add k 𝟙) := by rw [one_mul]
+                  _ = add (add (mul k k) (mul k 𝟙)) (add k 𝟙) := by rw [mul_add k k 𝟙]
+                  _ = add (add (mul k k) k) (add k 𝟙) := by rw [mul_one]
+                  _ = add (mul k k) (add k (add k 𝟙)) := by
+                        rw [← add_assoc (mul k k) k (add k 𝟙)]
+                  _ = add (mul k k) (add (add k k) 𝟙) := by rw [add_assoc k k 𝟙]
+                  _ = add (add (mul k k) (add k k)) 𝟙 := by
+                        rw [add_assoc (mul k k) (add k k) 𝟙]
+                  _ = add (mul k (add k 𝟚)) 𝟙 := by rw [h_expand]
+              calc sub (mul (add k 𝟙) (add k 𝟙)) 𝟙
+                  = sub (add (mul k (add k 𝟚)) 𝟙) 𝟙 := by rw [h_sq2]
+                _ = sub (add 𝟙 (mul k (add k 𝟚))) 𝟙 := by
+                      rw [add_comm (mul k (add k 𝟚)) 𝟙]
+                _ = mul k (add k 𝟚) := add_k_sub_k (mul k (add k 𝟚)) 𝟙
           rw [← hfact]
-          let Y := mod (sub (a * a) 𝟙) p
-          have hY_def : Y = mod (sub (a * a) 𝟙) p := rfl
-          have hY_lt : lt₀ Y p := mod_lt (sub (a * a) 𝟙) p hp_ne
+          let Y := mod (sub (mul a a) 𝟙) p
+          have hY_def : Y = mod (sub (mul a a) 𝟙) p := rfl
+          have hY_lt : lt₀ Y p := mod_lt (sub (mul a a) 𝟙) p hp_ne
           have h1_lt : lt₀ 𝟙 p := one_lt_prime hp
-          have hdm : a * a = add (sub (a * a) 𝟙) 𝟙 := by
-            have h1 : le₀ 𝟙 (a * a) := lt_0n_then_le_1n_wp hsq_pos
-            exact (sub_k_add_k (a * a) 𝟙 h1).symm
+          have hdm : mul a a = add (sub (mul a a) 𝟙) 𝟙 := by
+            have h1 : le₀ 𝟙 (mul a a) := lt_0n_then_le_1n_wp hsq_pos
+            exact (sub_k_add_k (mul a a) 𝟙 h1).symm
           have h_mod_add : mod (add 𝟙 Y) p = 𝟙 := by
-            have h_expand : add 𝟙 (sub (a * a) 𝟙) = a * a := by
-              rw [add_comm 𝟙 (sub (a * a) 𝟙)]
+            have h_expand : add 𝟙 (sub (mul a a) 𝟙) = mul a a := by
+              rw [add_comm 𝟙 (sub (mul a a) 𝟙)]
               exact hdm.symm
             rw [add_mod, hY_def, mod_mod, ← add_mod, h_expand]
             exact h_sq_nat
           have hY_zero : Y = 𝟘 := add_mod_cancel h1_lt hY_lt hp_ne h_mod_add
-          have h_zero_mod : sub (a * a) 𝟙 ≡ 𝟘 [MOD p] := by
+          have h_zero_mod : sub (mul a a) 𝟙 ≡ 𝟘 [MOD p] := by
             unfold ModEq
             rw [mod_zero_left p]
             exact hY_zero
           exact (modEq_zero_iff_dvd hp_ne).mp h_zero_mod
-        rcases hp.2.2 (a - 𝟙) (a + 𝟙) h_dvd_N0
+        rcases hp.2.2 (sub a 𝟙) (add a 𝟙) h_dvd_N0
             with ⟨j1, hj1⟩ | ⟨j2, hj2⟩
-        · have h_dvd_u : a - 𝟙 = p * j1 := by exact hj1
+        · have h_dvd_u : sub a 𝟙 = mul p j1 := hj1
           by_cases h0 : sub a 𝟙 = 𝟘
           · left
             have h1 : le₀ a 𝟙 := sub_eq_zero a 𝟙 h0
@@ -500,7 +507,7 @@ namespace Peano
               exact absurd h2 (le_not_lt hle))
         · have h_dvd_v : add a 𝟙 = mul p j2 := by exact hj2
           have h_add_le : le₀ (add a 𝟙) p := by
-            have h1 : le₀ (σ a) p := lt_then_le_succ a p ha_lt
+            have h1 : le₀ (σ a) p := lt_then_le_succ (σ a) p ((lt_iff_lt_σ_σ a p).mp ha_lt)
             rw [← add_one a] at h1
             exact h1
           have h_add_ne_zero : add a 𝟙 ≠ 𝟘 := by
@@ -510,7 +517,7 @@ namespace Peano
           have h_p_le : le₀ p (add a 𝟙) := divides_le ⟨j2, h_dvd_v⟩ h_add_ne_zero
           have h_eq : add a 𝟙 = p := le_antisymm (add a 𝟙) p h_add_le h_p_le
           right
-          calc a = sub (add a 𝟙) 𝟙 := (add_k_sub_k a 𝟙).symm
+          calc a = sub (add a 𝟙) 𝟙 := by rw [add_comm a 𝟙]; exact (add_k_sub_k a 𝟙).symm
             _ = sub p 𝟙 := by rw [h_eq]
       · -- Backward direction: a = 𝟙 ∨ a = sub p 𝟙 → modInv p a = a
         intro h
@@ -551,13 +558,13 @@ namespace Peano
       | succ n' ih =>
         rw [factorial_succ, range_from_one, listProd_append]
         rw [← ih]
-        simp [listProd, mul_comm (factorial n') (σ n')]
+        simp [listProd, mul_comm (factorial n') (σ n'), mul_one]
 
     /-- If `b ∈ L`, then `listProd L = mul b (listProd (L.erase b))`. -/
     private theorem listProd_erase {b : ℕ₀} {L : List ℕ₀}
         (hb : b ∈ L) : listProd L = mul b (listProd (L.erase b)) := by
       induction L with
-      | nil        => exact absurd hb (List.not_mem_nil b)
+      | nil        => exact absurd hb List.not_mem_nil
       | cons a rest ih =>
         simp only [listProd_cons]
         by_cases h : a = b
@@ -569,9 +576,11 @@ namespace Peano
             rcases List.mem_cons.mp hb with h_eq | h_mem
             · exact absurd h_eq.symm h
             · exact h_mem
-          rw [List.erase_cons_tail _ h, listProd_cons, ih hb_rest]
+          have herase : (a :: rest).erase b = a :: rest.erase b := by
+            apply List.erase_cons_tail; simp [beq_iff_eq, h]
+          rw [herase, listProd_cons, ih hb_rest]
           -- mul a (mul b (listProd (rest.erase b))) = mul b (mul a (listProd (rest.erase b)))
-          rw [← mul_assoc b a _, mul_comm b a, mul_assoc a b _]
+          rw [← mul_assoc, mul_comm a b, mul_assoc]
 
     /-- **Pairing lemma**: If every element of `L` pairs with a distinct partner
         under `modInv`, then `listProd L ≡ 𝟙 [MOD p]`. -/
@@ -593,7 +602,7 @@ namespace Peano
       induction n with
       | zero =>
         intro M hlen _ _ _ _
-        have hM_empty : M = [] := List.length_eq_zero.mp (Nat.le_zero.mp hlen)
+        have hM_empty : M = [] := by cases M with | nil => rfl | cons a l => simp at hlen
         subst hM_empty
         exact modEq_refl p 𝟙
       | succ n' ih =>
@@ -601,29 +610,31 @@ namespace Peano
         match M with
         | []        => exact modEq_refl p 𝟙
         | a :: rest =>
-          have ha_in  : a ∈ (a :: rest) := List.mem_cons_self a rest
-          set b := modInv p a with hb_def
+          have ha_in  : a ∈ (a :: rest) := List.mem_cons_self
+          let b := modInv p a
+          have hb_def : b = modInv p a := rfl
           have hb_in  : b ∈ (a :: rest) := hclosed_M a ha_in
           have hb_ne  : b ≠ a := hnf_M a ha_in
           have hb_rest : b ∈ rest := by
             rcases List.mem_cons.mp hb_in with h | h
-            · exact absurd h.symm hb_ne
+            · exact absurd h hb_ne
             · exact h
           -- rest' = rest with b removed
           let rest' := rest.erase b
           have hrest_len : rest.length ≤ n' :=
             Nat.le_of_succ_le_succ hlen
           have hrest'_len : rest'.length ≤ n' := by
-            have h1 : rest'.length = rest.length - 1 :=
+            show (rest.erase b).length ≤ n'
+            have h1 : (rest.erase b).length = Nat.sub rest.length 1 :=
               List.length_erase_of_mem hb_rest
-            omega
+            exact Nat.le_trans (h1 ▸ Nat.sub_le rest.length 1) hrest_len
           -- rest'.Nodup
           have hnd_rest : rest.Nodup := (List.nodup_cons.mp hnd_M).2
           have hnd_rest' : rest'.Nodup := hnd_rest.erase b
           -- rest' ⊆ rest ⊆ a :: rest
           have hmem_rest' : ∀ x ∈ rest', x ∈ (a :: rest) := by
             intro x hx
-            exact List.mem_cons_of_mem a (List.erase_subset b rest hx)
+            exact List.mem_cons_of_mem a (List.erase_subset hx)
           -- range condition for rest'
           have hrange_rest' : ∀ x ∈ rest', 𝟘 < x ∧ lt₀ x p := fun x hx =>
             hrange_M x (hmem_rest' x hx)
@@ -638,12 +649,12 @@ namespace Peano
             have hx_ne_a  : x ≠ a := by
               intro h
               rw [h] at hx
-              exact absurd (List.erase_subset b rest hx) ha_not_rest
+              exact absurd (List.erase_subset hx) ha_not_rest
             have hmodx_in_L : modInv p x ∈ (a :: rest) := hclosed_M x hx_in_L
             -- modInv p x ≠ a (using involution: if modInv x = a then x = modInv a = b, but x ≠ b)
             have hx_ne_b : x ≠ b := fun h => by
               rw [h] at hx
-              exact absurd hx (List.not_mem_erase_of_nodup hnd_rest)
+              exact absurd hx (List.Nodup.not_mem_erase hnd_rest)
             have hmodx_ne_a : modInv p x ≠ a := by
               intro h_eq
               -- modInv x = a → x = modInv a = b (by involution)
@@ -669,11 +680,11 @@ namespace Peano
               have hinv_a := modInv_invol hp ha_pos ha_lt
               have hinv_x := modInv_invol hp hx_pos hx_lt
               -- h_eq: modInv p x = b = modInv p a
-              rw [← hb_def] at h_eq
+              have h_eq' : modInv p x = modInv p a := h_eq.trans hb_def
               -- modInv p x = modInv p a
               -- Apply involution: x = modInv p (modInv p x) = modInv p (modInv p a) = a
-              rw [h_eq] at hinv_x
-              exact hx_ne_a (hinv_x.trans hinv_a.symm).symm
+              rw [h_eq'] at hinv_x
+              exact hx_ne_a (hinv_a.symm.trans hinv_x).symm
             -- modInv p x ∈ rest (since it's in a :: rest and ≠ a)
             have hmodx_in_rest : modInv p x ∈ rest := by
               rcases List.mem_cons.mp hmodx_in_L with h | h
@@ -683,7 +694,7 @@ namespace Peano
             rwa [List.mem_erase_of_ne hmodx_ne_b]
           -- IH for rest'
           have ih_rest' : listProd rest' ≡ 𝟙 [MOD p] :=
-            ih hrest'_len rest' hnd_rest' hrange_rest' hclosed_rest' hnf_rest'
+            ih rest' hrest'_len hnd_rest' hrange_rest' hclosed_rest' hnf_rest'
           -- Expand listProd using erase
           have h_prod_rest : listProd rest = mul b (listProd rest') :=
             listProd_erase hb_rest
@@ -694,11 +705,9 @@ namespace Peano
             rw [hb_def]; exact modInv_mul hp (hrange_M a ha_in).1 (hrange_M a ha_in).2
           -- Conclude
           rw [h_prod_L]
-          calc mul a (mul b (listProd rest'))
-              ≡ mul a (mul b 𝟙) [MOD p] :=
-                modEq_mul (modEq_refl p a) (modEq_mul (modEq_refl p b) ih_rest')
-            _ = mul a b := by rw [mul_one]
-            _ ≡ 𝟙 [MOD p] := h_ab
+          exact modEq_trans
+            (modEq_mul (modEq_refl p a) (modEq_mul (modEq_refl p b) ih_rest'))
+            (by rw [mul_one]; exact h_ab)
 
     /-! ## § 7. The inner range {2, …, p−2} -/
 
@@ -712,10 +721,10 @@ namespace Peano
       | succ n' ih =>
         intro _
         cases n' with
-        | zero => exact ⟨[], by simp [range_from_one]⟩
+        | zero => exact ⟨[], rfl⟩
         | succ n'' =>
           obtain ⟨t, ht⟩ := ih (succ_neq_zero n'')
-          exact ⟨t ++ [σ (σ n'')], by rw [range_from_one, ht]; simp⟩
+          exact ⟨t ++ [σ (σ n'')], by rw [range_from_one, ht]; rfl⟩
 
     /-- `range_from_one n` is nodup. -/
     private theorem range_from_one_nodup : ∀ n : ℕ₀, (range_from_one n).Nodup := by
@@ -723,13 +732,14 @@ namespace Peano
       induction n with
       | zero => simp [range_from_one]
       | succ n' ih =>
-        rw [range_from_one]
-        apply List.Nodup.append ih
-        · exact List.nodup_singleton _
-        · intro x hx hy
-          simp at hy; subst hy
-          have hx_le := mem_range_from_one_le hx
-          exact absurd (lt_succ_self n') (le_not_lt hx_le)
+        rw [range_from_one, List.nodup_append]
+        refine ⟨ih, List.nodup_cons.mpr ⟨List.not_mem_nil, List.nodup_nil⟩, ?_⟩
+        intro x hx y hy
+        simp at hy; subst hy
+        have hx_le := mem_range_from_one_le hx
+        intro h
+        rw [h] at hx_le
+        exact absurd (lt_succ_self n') (le_not_lt hx_le)
 
     /-- `∀ x ∈ range_from_one n, 0 < x ∧ x ≤ n`. -/
     private theorem range_from_one_range (n : ℕ₀) :
@@ -737,18 +747,9 @@ namespace Peano
       intro x hx
       exact ⟨pos_of_ne_zero x (mem_range_from_one_pos hx), mem_range_from_one_le hx⟩
 
-    /-- For prime `p ≥ 5`, every `x ∈ {2,…,p−2}` satisfies `modInv p x ∈ {2,…,p−2}`
-        and `modInv p x ≠ x`. -/
-    private theorem inner_range_closed {p : ℕ₀} (hp : Prime p)
-        (hp5 : le₀ (𝟙 + 𝟙 + 𝟙 + 𝟙 + 𝟙) p) :
-        ∀ x, 𝟙 < x → lt₀ x (sub p 𝟙) →
-          modInv p x ∈ (range_from_one n) → -- placeholder; see below
-          𝟙 < modInv p x ∧ lt₀ (modInv p x) (sub p 𝟙) ∧ modInv p x ≠ x := by
-      sorry -- placeholder; will be superseded
-
     /-- `factorial (sub p (𝟙 + 𝟙)) ≡ 𝟙 [MOD p]` for prime `p`. -/
     private theorem factorial_pred_pred_one {p : ℕ₀} (hp : Prime p) :
-        factorial (sub p (𝟙 + 𝟙)) ≡ 𝟙 [MOD p] := by
+        factorial (sub p (add 𝟙 𝟙)) ≡ 𝟙 [MOD p] := by
       -- p = 2: factorial 0 = 1 ≡ 1 [MOD 2]
       -- p = 3: factorial 1 = 1 ≡ 1 [MOD 3]
       -- p ≥ 5: pairing argument
@@ -761,8 +762,8 @@ namespace Peano
         | succ p'' =>
           -- p = σ(σ p'') ≥ 2
           -- sub p (𝟙+𝟙) = p''
-          have h_sub : sub (σ (σ p'')) (𝟙 + 𝟙) = p'' := by
-            simp [sub_succ_succ_eq]
+          have h_sub : sub (σ (σ p'')) (add 𝟙 𝟙) = p'' := by
+            rw [show add 𝟙 𝟙 = σ (σ 𝟘) from rfl, ← sub_succ_succ_eq, ← sub_succ_succ_eq, sub_zero]
           rw [h_sub]
           -- factorial p'' = listProd (range_from_one p'')
           rw [factorial_eq_listProd]
@@ -785,11 +786,10 @@ namespace Peano
               -- listProd (𝟙 :: inner_range) = mul 𝟙 (listProd inner_range) = listProd inner_range
               -- We need: listProd inner_range ≡ 1 [MOD p]
               -- Apply prod_pairs to inner_range = [2,...,p-2]
-              set n := σ (σ p'''') with hn_def
+              let n := σ (σ p'''')
               -- range_from_one n has head 𝟙
               obtain ⟨inner, hinner⟩ := range_from_one_head_one n (succ_neq_zero _)
               rw [hinner, listProd_cons, one_mul]
-
               have hp_eq : p = σ (σ n) := rfl
               have hp1 : sub p 𝟙 = σ n := by
                 calc sub p 𝟙 = sub (σ (σ n)) 𝟙 := by rw [hp_eq]
@@ -837,7 +837,7 @@ namespace Peano
                 constructor
                 · exact hx_range.1
                 · -- x ≤ n = p-2 < p-1 < p
-                have hy_lt_p : lt₀ y p := modInv_lt hp
+                have hy_lt_p : lt₀ y p := modInv_lt hp hx_pos hx_lt_p
                 have hy_pos : 𝟘 < y := modInv_pos hp hx_pos hx_lt_p
                 have hy_ne_1 : y ≠ 𝟙 := by
                   intro hy1

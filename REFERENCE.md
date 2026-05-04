@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-05-02
+**Última actualización:** 2026-05-05
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 52 build jobs · 0 sorry (5 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-02*
+> 59 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-05*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -66,14 +66,16 @@
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
-| **Teoría de grupos finitos** *(5 axiomas privados)* | | | |
+| `Peano/PeanoNat/NumberTheory/Wilson.lean` | `Peano.Wilson` | `ModEq`, `Fermat`, `Factorial`, `Pow`, `Primes` | — |
+| **Teoría de grupos finitos** *(4 axiomas privados)* | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
 | `Peano/PeanoNat/Combinatorics/Orbit.lean` | `Peano.Orbit` | `Group`, `FSet` | `Action` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean` | `Peano.Action` | `Group`, `Orbit` | `Cosets`, `Sylow` |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `Sylow` |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `Action` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `CosetAction`, `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | `Cosets`, `Action`, `Group` | `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `CosetAction`, `Action` | — |
 | **Verificación** | | | |
 | `Peano/ConstructiveCheck.lean` | — | `Prelim` | — |
 
@@ -112,6 +114,7 @@
 | `Peano.Totient` | `NumberTheory/Totient.lean` | `Peano` |
 | `Peano.CRT` | `NumberTheory/ChineseRemainder.lean` | `Peano` |
 | `Peano.Fermat` | `NumberTheory/Fermat.lean` | `Peano` |
+| `Peano.Wilson` | `NumberTheory/Wilson.lean` | `Peano` |
 | `Peano.Foundation` | `PeanoNat/Foundation/CantorPairing.lean` | `Peano` |
 | `Peano.Perm` | `Combinatorics/Perm.lean` | `Peano` |
 | `Peano.Group` | `Combinatorics/Group.lean` | `Peano` |
@@ -119,6 +122,7 @@
 | `Peano.Orbit` | `Combinatorics/Orbit.lean` | `Peano` |
 | `Peano.Action` | `GroupTheory/Action.lean` | `Peano` |
 | `Peano.Cosets` | `GroupTheory/Sylow/Cosets.lean` | `Peano` |
+| `Peano.CosetAction` | `GroupTheory/Sylow/CosetAction.lean` | `Peano` |
 | `Peano.Sylow` | `GroupTheory/Sylow/Sylow.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
@@ -3505,3 +3509,38 @@ Establece `List ℕ₀ ≃ ℕ₀` computacionalmente, completando la cadena `PA
 | `godel_beta_seq` | teorema | — |
 | `list_decode_length` | teorema | — |
 | `encode_decode` | teorema | — |
+
+---
+
+## §47. NumberTheory/Wilson.lean — `namespace Peano.Wilson`
+
+*Dependencias: `ModEq`, `Fermat`, `Factorial`, `Pow`, `Primes`*
+*Actualizado: 2026-05-05 — 0 errores, 0 sorry, 0 axiomas privados*
+
+Teorema de Wilson: para todo primo `p`, `p ∣ (p−1)! + 1`.
+
+**Estrategia** (pairing argument):
+1. `modInv p a = aᵖ⁻² mod p` — inverso modular vía pequeño Fermat.
+2. `a · modInv p a ≡ 1 [MOD p]` para `0 < a < p`.
+3. `modInv` es involución: `modInv p (modInv p a) = a`.
+4. Puntos fijos de `modInv`: solo `a = 1` y `a = p − 1`.
+5. El producto de `{2, …, p−2}` (emparejado por `modInv`) es `≡ 1 [MOD p]`.
+6. `(p−1)! ≡ 1 · (p−1) ≡ p−1 [MOD p]`, luego `p ∣ (p−1)! + 1`.
+
+Todos los lemas auxiliares son `private`. El único símbolo exportado es `wilson`.
+
+### 47.1. Teorema principal
+
+**[T47.1]** `wilson`
+
+- **Lean4:** `theorem wilson {p : ℕ₀} (hp : Prime p) : p ∣ add (factorial (sub p 𝟙)) 𝟙`
+- **Matemática:** ∀ p primo, p | (p−1)! + 1
+- **Computable:** No (Prop)
+- **Dependencias:** `modInv` (privado), `factorial_pred_pred_one` (privado), `modEq_zero_of_dvd`, `modEq_zero_iff_dvd`
+- **Exportado vía:** `export Peano.Wilson (wilson)`
+
+### 47.2. Resumen del módulo
+
+| Símbolo | Tipo | Computable | Visibilidad |
+|---------|------|------------|-------------|
+| `wilson` | `{p : ℕ₀} → Prime p → p ∣ add (factorial (sub p 𝟙)) 𝟙` | No | público |

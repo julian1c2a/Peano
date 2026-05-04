@@ -6,14 +6,14 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 52 jobs · 0 errores · 0 warnings · 0 sorry (5 axiomas privados en Sylow.lean)
+> **Build:** 59 jobs · 0 errores · 0 warnings · 0 sorry (4 axiomas privados en Sylow.lean)
 > **Licencia:** MIT
 
 ---
 
 ## Descripción
 
-Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética: orden estricto y no estricto, estructura de retícula, bien-fundación e inducción fuerte, suma, resta truncada, multiplicación, división entera con módulo, logaritmo y raíz cuadrada enteros, divisibilidad (MCD, MCM, Bézout), números primos con factorización única (TFA), potenciación, factorial, coeficientes binomiales, **Binomio de Newton**, sumatorias, productorias, sucesión de Fibonacci, conjuntos finitos, funciones entre conjuntos finitos (inyectividad, sobreyectividad, biyectividad, **principio del palomar**), paridad, decidabilidad completa, congruencia modular, función φ de Euler, **Teorema Chino del Resto**, **Pequeño Teorema de Fermat**, permutaciones, grupos finitos, signo de permutaciones, órbitas y acciones de grupo, y coclases con primeros pasos hacia los **teoremas de Sylow**.
+Este proyecto define el tipo inductivo `ℕ₀` (números naturales de Peano) y demuestra desde cero toda la aritmética: orden estricto y no estricto, estructura de retícula, bien-fundación e inducción fuerte, suma, resta truncada, multiplicación, división entera con módulo, logaritmo y raíz cuadrada enteros, divisibilidad (MCD, MCM, Bézout), números primos con factorización única (TFA), potenciación, factorial, coeficientes binomiales, **Binomio de Newton**, sumatorias, productorias, sucesión de Fibonacci, conjuntos finitos, funciones entre conjuntos finitos (inyectividad, sobreyectividad, biyectividad, **principio del palomar**), paridad, decidabilidad completa, congruencia modular, función φ de Euler, **Teorema Chino del Resto**, **Pequeño Teorema de Fermat**, **Teorema de Wilson**, permutaciones, grupos finitos, signo de permutaciones, órbitas y acciones de grupo, y coclases con los **teoremas de Sylow** formalmente cerrados.
 
 Toda la biblioteca está **computacionalmente realizada**: las operaciones producen términos de `ℕ₀` evaluables por el kernel de Lean. El proyecto registra todas las instancias estándar de Init (`Zero`, `One`, `OfNat`, `Add`, `Mul`, `Sub`, `Div`, `Mod`, `Pow`, `LT`, `LE`, `Ord`, `BEq`, `DecidableEq`, `SizeOf`, `Repr`, `WellFoundedRelation`, `DecidableRel`) para `ℕ₀`, haciendo que las operaciones trabajen con la notación natural de Lean 4.
 
@@ -59,12 +59,13 @@ Peano.lean                                        ← entrada; importa toda la l
       ├─ ListsAndSets/
       │  ├─ List.lean                             Peano.List         — listas polimórficas, sortedInsert genérico
       │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos genéricos (FSet α)
-      └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
+      │  └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
       ├─ NumberTheory/
       │  ├─ ModEq.lean                            Peano.ModEq        — congruencia modular
       │  ├─ Totient.lean                          Peano.Totient      — función φ de Euler
       │  ├─ ChineseRemainder.lean                 Peano.CRT          — Teorema Chino del Resto
-      │  └─ Fermat.lean                           Peano.Fermat       — Pequeño Teorema de Fermat
+      │  ├─ Fermat.lean                           Peano.Fermat       — Pequeño Teorema de Fermat
+      │  └─ Wilson.lean                           Peano.Wilson       — Teorema de Wilson (0 sorry)
       └─ Combinatorics/
          ├─ Pow.lean                              Peano.Pow          — potenciación
          ├─ Factorial.lean                        Peano.Factorial    — factorial
@@ -82,7 +83,8 @@ Peano.lean                                        ← entrada; importa toda la l
             ├─ Action.lean                        Peano.Action       — acciones de grupo
             └─ Sylow/
                ├─ Cosets.lean                     Peano.Cosets       — coclases
-               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 5 axiomas privados)
+               ├─ CosetAction.lean                Peano.CosetAction  — acción de coclases (coset_conjugate_exists)
+               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 4 axiomas privados)
 ```
 
 ---
@@ -142,6 +144,7 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - **Función de Euler**: `totient`, `totient_prime`, `totient_pos`
 - **Teorema Chino del Resto**: `chinese_remainder` (existencia)
 - **Pequeño Teorema de Fermat**: `fermat_little` — $a^{p-1} \equiv 1 \pmod{p}$
+- **Teorema de Wilson**: `wilson` — $p \mid (p-1)! + 1$ (demostrado por pairing argument sobre $\{2,\ldots,p-2\}$)
 
 ### Combinatoria
 
@@ -175,14 +178,15 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - **Orbit.lean**: órbitas de elementos bajo permutaciones
 - **Action.lean**: acciones de grupo, órbitas y estabilizadores, `orbit_stabilizer`, `orbits_partition`
 - **Cosets.lean**: coclases, Lagrange ($|H| \cdot k = |G|$), conteo por fibras
+- **CosetAction.lean**: acción de $G$ sobre coclases, `coset_conjugate_exists` (cierra Sylow II)
 - **Sylow.lean**: los tres teoremas de Sylow **formalmente cerrados** (0 sorry):
   - `cauchy_minimal` — argumento de órbitas de McKay
   - `sylow_first` — existencia de p-subgrupo de Sylow
   - `sylow_second` — conjugación de subgrupos de Sylow
   - `sylow_third` — $n_p \equiv 1 \pmod{p}$ y $n_p \mid |G|$
-  - ⚠ 5 axiomas privados pendientes de prueba (ruta Wielandt en curso)
+  - ⚠ 4 axiomas privados pendientes de prueba (rutas Wielandt y Conjugation en curso)
 
-> *5 axiomas privados en Sylow.lean: `sylow_center_step`, `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba, ruta Wielandt en curso.*
+> *4 axiomas privados en Sylow.lean: `wielandt_fixed_point_exists`, `wielandt_p_ndvd_r`, `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba.*
 
 ### Decidabilidad completa
 
@@ -226,6 +230,7 @@ import Peano.PeanoNat.Arith               -- hasta divisibilidad, MCD/MCM, parid
 import Peano.PeanoNat.Primes              -- incluye primos y TFA
 import Peano.PeanoNat.ListsAndSets.FSetFunction  -- funciones entre conjuntos finitos
 import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
+import Peano.PeanoNat.NumberTheory.Wilson  -- Teorema de Wilson
 ```
 
 ---
@@ -244,6 +249,7 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 - [x] **Totient.lean** — función φ de Euler
 - [x] **ChineseRemainder.lean** — Teorema del Resto Chino
 - [x] **Fermat.lean** — Pequeño Teorema de Fermat
+- [x] **Wilson.lean** — Teorema de Wilson (pairing argument)
 
 ### Completado (Phase 24 — Conjuntos finitos y funciones) ✅
 
@@ -261,17 +267,16 @@ import Peano.PeanoNat.NumberTheory.Fermat  -- Pequeño Teorema de Fermat
 - [x] **Counting.lean** — conteo combinatorio ✅
 - [x] **Action.lean** — acciones de grupo, orbit_stabilizer, orbits_partition ✅
 - [x] **Sylow/Cosets.lean** — coclases, Lagrange ✅
+- [x] **Sylow/CosetAction.lean** — `coset_conjugate_exists`, cierra Sylow II sin axioma privado ✅
 - [x] **Sylow/Sylow.lean** — los 3 teoremas formalmente cerrados (0 sorry) ✅
 - [x] `prime_dvd_binom_prime` — p | C(p,k) para 0 < k < p (Binom.lean) ✅
 - [x] `binom_prime_row` — C(pr, p) = r · C(pr−1, p−1) (Binom.lean) ✅
 - [x] **Foundation/CantorPairing.lean** — biyección ℕ₀×ℕ₀ ≅ ℕ₀, `pair`/`fst`/`snd`/`pair_surj` (Phase F.1) ✅
 - [x] **Foundation/GodelBeta.lean** — función β de Gödel, `godel_beta_seq`, `encodeList`/`decodeList`/`encode_decode` (Phase F.2) ✅
 - [x] **Foundation/Foundation.lean** — módulo paraguas compilando (Phase F.3) ✅
-- [ ] **Eliminar 5 axiomas privados** en Sylow.lean (ruta Wielandt):
-  - [ ] `C(pr, p) ≡ r (mod p)` por inducción sobre r
-  - [ ] Teorema de Lucas: `C(p^n·r, p^n) ≡ r (mod p)`
-  - [ ] Argumento de punto fijo de Wielandt → `sylow_center_step`
-  - [ ] `sylow_card_eq`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`
+- [ ] **Eliminar 4 axiomas privados** en Sylow.lean:
+  - [ ] `wielandt_fixed_point_exists` y `wielandt_p_ndvd_r` — argumento de punto fijo de Wielandt (Track 1)
+  - [ ] `sylow_third_mod` y `sylow_third_dvd` — acción de conjugación sobre subgrupos de Sylow (Track 3)
 
 ### Futuro
 

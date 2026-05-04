@@ -790,11 +790,8 @@ namespace Peano
               -- range_from_one n has head 𝟙
               obtain ⟨inner, hinner⟩ := range_from_one_head_one n (succ_neq_zero _)
               rw [hinner, listProd_cons, one_mul]
-              have hp_eq : p = σ (σ n) := rfl
-              have hp1 : sub p 𝟙 = σ n := by
-                calc sub p 𝟙 = sub (σ (σ n)) 𝟙 := by rw [hp_eq]
-                  _ = τ (σ (σ n)) := sub_one (σ (σ n))
-                  _ = σ n := τ_σ_eq_self (σ n)
+              have hp1 : sub (σ (σ n)) 𝟙 = σ n :=
+                (sub_one (σ (σ n))).trans (τ_σ_eq_self (σ n))
               have h_inner_props : ∀ x ∈ inner, x ≠ 𝟙 ∧ le₀ x n := by
                 intro x hx
                 have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)

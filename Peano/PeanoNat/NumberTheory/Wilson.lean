@@ -834,56 +834,56 @@ namespace Peano
                 constructor
                 · exact hx_range.1
                 · -- x ≤ n = p-2 < p-1 < p
-                have hy_lt_p : lt₀ y p := modInv_lt hp hx_pos hx_lt_p
-                have hy_pos : 𝟘 < y := modInv_pos hp hx_pos hx_lt_p
-                have hy_ne_1 : y ≠ 𝟙 := by
-                  intro hy1
-                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
-                  rw [hy1] at h_inv_inv
-                  have h1_pos : 𝟘 < 𝟙 := lt_zero_succ 𝟘
-                  have h1_lt_p : lt₀ 𝟙 p := one_lt_prime hp
-                  have h_inv1 : modInv p 𝟙 = 𝟙 := (modInv_self_iff hp h1_pos h1_lt_p).mpr (Or.inl rfl)
-                  rw [h_inv1] at h_inv_inv
-                  exact absurd h_inv_inv.symm h_props.1
-                have hy_ne_sub : y ≠ sub p 𝟙 := by
-                  intro hy_sub
-                  have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
-                  rw [hy_sub] at h_inv_inv
-                  have hp1_pos : 𝟘 < sub p 𝟙 := sub_pos_of_lt (one_lt_prime hp)
-                  have hp1_lt : lt₀ (sub p 𝟙) p := sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
-                  have h_invp1 : modInv p (sub p 𝟙) = sub p 𝟙 := (modInv_self_iff hp hp1_pos hp1_lt).mpr (Or.inr rfl)
-                  rw [h_invp1] at h_inv_inv
-                  have hx_eq_sn : x = σ n := (h_inv_inv.symm.trans h_invp1).trans hp1
-                  have hx_le_n : le₀ x n := h_props.2
-                  rw [hx_eq_sn] at hx_le_n
-                  exact absurd hx_le_n (nle_σn_n n)
-                have hy_le_n : le₀ y n := by
-                  have hy_le_sn : le₀ y (σ n) := (lt_succ_iff_le y (σ n)).mp (hp_eq ▸ hy_lt_p)
-                  rcases (le_succ_iff_le_or_eq y n).mp hy_le_sn with hy_le | hy_eq
-                  · exact hy_le
-                  · exact absurd (hy_eq.trans hp1.symm) hy_ne_sub
-                have hy_in_range : y ∈ range_from_one n := h_mem_range n y hy_pos hy_le_n
-                rw [hinner] at hy_in_range
-                rcases List.mem_cons.mp hy_in_range with hy1 | hy_inner
-                · exact absurd hy1 hy_ne_1
-                · exact hy_inner
-              · -- no fixed points: ∀ x ∈ inner, modInv p x ≠ x
-                intro x hx
-                have h_props := h_inner_props x hx
-                have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
-                have hx_range := range_from_one_range n x hx_L
-                have hx_pos : 𝟘 < x := hx_range.1
-                have hn_lt_p : lt₀ n p := by
-                  rw [hp_eq]; exact lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
-                have hx_lt_p : lt₀ x p := lt_of_le_of_lt hx_range.2 hn_lt_p
-                intro h_fix
-                have h_self := (modInv_self_iff hp hx_pos hx_lt_p).mp h_fix
-                rcases h_self with h1 | hp1_eq_x
-                · exact absurd h1 h_props.1
-                · have h_le_n := h_props.2
-                  rw [hp1] at hp1_eq_x
-                  rw [hp1_eq_x] at h_le_n
-                  exact absurd h_le_n (nle_σn_n n)
+                  have hy_lt_p : lt₀ y p := modInv_lt hp hx_pos hx_lt_p
+                  have hy_pos : 𝟘 < y := modInv_pos hp hx_pos hx_lt_p
+                  have hy_ne_1 : y ≠ 𝟙 := by
+                    intro hy1
+                    have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                    rw [hy1] at h_inv_inv
+                    have h1_pos : 𝟘 < 𝟙 := lt_zero_succ 𝟘
+                    have h1_lt_p : lt₀ 𝟙 p := one_lt_prime hp
+                    have h_inv1 : modInv p 𝟙 = 𝟙 := (modInv_self_iff hp h1_pos h1_lt_p).mpr (Or.inl rfl)
+                    rw [h_inv1] at h_inv_inv
+                    exact absurd h_inv_inv.symm h_props.1
+                  have hy_ne_sub : y ≠ sub p 𝟙 := by
+                    intro hy_sub
+                    have h_inv_inv := modInv_invol hp hx_pos hx_lt_p
+                    rw [hy_sub] at h_inv_inv
+                    have hp1_pos : 𝟘 < sub p 𝟙 := sub_pos_of_lt (one_lt_prime hp)
+                    have hp1_lt : lt₀ (sub p 𝟙) p := sub_lt_self_wp (lt_imp_le_wp (one_lt_prime hp)) (succ_neq_zero 𝟘)
+                    have h_invp1 : modInv p (sub p 𝟙) = sub p 𝟙 := (modInv_self_iff hp hp1_pos hp1_lt).mpr (Or.inr rfl)
+                    rw [h_invp1] at h_inv_inv
+                    have hx_eq_sn : x = σ n := (h_inv_inv.symm.trans h_invp1).trans hp1
+                    have hx_le_n : le₀ x n := h_props.2
+                    rw [hx_eq_sn] at hx_le_n
+                    exact absurd hx_le_n (nle_σn_n n)
+                  have hy_le_n : le₀ y n := by
+                    have hy_le_sn : le₀ y (σ n) := (lt_succ_iff_le y (σ n)).mp (hp_eq ▸ hy_lt_p)
+                    rcases (le_succ_iff_le_or_eq y n).mp hy_le_sn with hy_le | hy_eq
+                    · exact hy_le
+                    · exact absurd (hy_eq.trans hp1.symm) hy_ne_sub
+                  have hy_in_range : y ∈ range_from_one n := h_mem_range n y hy_pos hy_le_n
+                  rw [hinner] at hy_in_range
+                  rcases List.mem_cons.mp hy_in_range with hy1 | hy_inner
+                  · exact absurd hy1 hy_ne_1
+                  · exact hy_inner
+                · -- no fixed points: ∀ x ∈ inner, modInv p x ≠ x
+                  intro x hx
+                  have h_props := h_inner_props x hx
+                  have hx_L : x ∈ range_from_one n := by rw [hinner]; exact List.mem_cons.mpr (Or.inr hx)
+                  have hx_range := range_from_one_range n x hx_L
+                  have hx_pos : 𝟘 < x := hx_range.1
+                  have hn_lt_p : lt₀ n p := by
+                    rw [hp_eq]; exact lt_trans n (σ n) (σ (σ n)) (lt_succ_self n) (lt_succ_self (σ n))
+                  have hx_lt_p : lt₀ x p := lt_of_le_of_lt hx_range.2 hn_lt_p
+                  intro h_fix
+                  have h_self := (modInv_self_iff hp hx_pos hx_lt_p).mp h_fix
+                  rcases h_self with h1 | hp1_eq_x
+                  · exact absurd h1 h_props.1
+                  · have h_le_n := h_props.2
+                    rw [hp1] at hp1_eq_x
+                    rw [hp1_eq_x] at h_le_n
+                    exact absurd h_le_n (nle_σn_n n)
 
     /-! ## § 8. Wilson's theorem -/
 

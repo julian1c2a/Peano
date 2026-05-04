@@ -25,7 +25,7 @@ namespace Peano
     | .zero,   .zero,   _  => rfl
     | .zero,   .succ _, h  => absurd h Bool.false_ne_true
     | .succ _, .zero,   h  => absurd h Bool.false_ne_true
-    | .succ n, .succ m, h  => congrArg ℕ₀.succ (ℕ₀_beq_of_eq h)
+    | .succ _, .succ _, h  => congrArg ℕ₀.succ (ℕ₀_beq_of_eq h)
 
   instance instReflBEqℕ₀ : ReflBEq ℕ₀ := ⟨ℕ₀_beq_refl⟩
 

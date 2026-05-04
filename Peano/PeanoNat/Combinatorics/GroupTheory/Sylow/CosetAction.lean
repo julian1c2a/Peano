@@ -289,9 +289,9 @@ namespace Peano
     private noncomputable def cosetAction (G : FinGroup ℕ₀) (H K : Subgroup G) :
         GroupAction (subgroupFinGroup H) (cosetHeadsSet G K) where
       act        := fun h r => cosetActFun G K h r
-      act_closed := fun h r hh hr => cosetActFun_closed hh hr
-      act_id     := fun r hr => cosetActFun_id hr
-      act_compat := fun h₁ h₂ r hh₁ hh₂ hr => cosetActFun_compat hh₁ hh₂ hr
+      act_closed := fun _ _ hh hr => cosetActFun_closed hh hr
+      act_id     := fun _ hr => cosetActFun_id hr
+      act_compat := fun _ _ _ hh₁ hh₂ hr => cosetActFun_compat hh₁ hh₂ hr
 
     /-! # § 7. Cardinality of cosetHeadsSet -/
 

@@ -2024,7 +2024,7 @@ namespace Peano
         (= G.carrier filtrado por membresía en {G.op g s | s ∈ S}) también está en Ω. -/
     private theorem wielandt_translate_mem
         (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (N : ℕ₀)
-        (hΩ_nd : Ω.Nodup)
+        (_hΩ_nd : Ω.Nodup)
         (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
           (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
         (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →

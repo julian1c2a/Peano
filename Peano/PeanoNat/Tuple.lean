@@ -282,13 +282,12 @@ namespace Peano
       h.elim (fun h_lt => Std.Irrefl.irrefl x h_lt)
         (fun ⟨_, h_rest⟩ => lexLt_irrefl xs h_rest)
 
-  set_option linter.unusedVariables false in
   /-- El orden lexicográfico estricto sobre `Tuple α n` es transitivo. -/
   theorem lexLt_trans {α : Type} [LT α] [DecidableEq α]
       [Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b)] :
       ∀ {n : ℕ₀} {a b c : Tuple α n}, lexLt a b → lexLt b c → lexLt a c
     | .zero, _, _, _ => fun h _ => False.elim h
-    | .succ _, (x, xs), (y, ys), (z, zs) => fun h_ab h_bc =>
+    | .succ _, (_, _xs), (_, _ys), (_, _zs) => fun h_ab h_bc =>
       h_ab.elim
         (fun h_xy =>
           h_bc.elim

@@ -83,26 +83,142 @@ Peano/PeanoNat/
 
 Sea `|G| = p^(m+1) · r`. Define `Ω = { S ⊆ G.carrier.elems : |S| = p^(m+1) }`.
 
-- `|Ω| = C(|G|, p^(m+1)) ≡ r (mod p)` por `binom_pow_p_mod`.
-- `wielandt_p_ndvd_r`: p ∤ r (por contradicción usando Cauchy en base m=0; ver nota).
-- `wielandt_fixed_point_exists`: G actúa sobre Ω por traslación izquierda; p∤|Ω| → `mckay_orbit_count` da una órbita fija → el estabilizador tiene orden `p^(m+1)`.
+- `|Ω| = C(|G|, p^(m+1)) ≡ r (mod p)` por `binom_pow_p_mod` ✅
+- `wielandt_p_ndvd_r`: p ∤ r — vía inducción fuerte sobre `|G|` (ver Paso 5 y 6).
+- `wielandt_fixed_point_exists`: G actúa sobre Ω por traslación; p∤|Ω| →
+  `mckay_orbit_count` da punto fijo → el estabilizador tiene orden `p^(m+1)`.
 
-### Infraestructura necesaria
+### Infraestructura ya disponible
 
-1. `def sublistsOfLength : List ℕ₀ → ℕ₀ → List (List ℕ₀)` con 6 propiedades:
-   `_mem_len`, `_mem_sub`, `_mem_sorted`, `_nodup_result`, `_complete`, `_card`.
-2. `def wieldandtOmega (G : FinGroup ℕ₀) (N : ℕ₀) : List (List ℕ₀)`.
-3. `wielandt_omega_card` — `|Ω| = C(|G|, N)`.
-4. Acción de G sobre `List (List ℕ₀)` por traslación: `g • S = S.map (G.op g)`.
-5. `wielandt_fixed_point_exists` — `∃ H : Subgroup G, H.carrier.card = N`.
+- `sublistsOfLength` con propiedades `_mem_len`, `_mem_sub`, `_mem_sorted`,
+  `_nodup_result`, `_complete`, `_card` ✅
+- `wieldandtOmega (G : FinGroup ℕ₀) (N : ℕ₀) : List (List ℕ₀)` ✅
+- `wielandt_omega_card` — `|Ω| = C(|G|, N)` ✅ (demostrado 2026-04-28)
+- `binom_pow_p_mod` — `C(p^n·r, p^n) ≡ r (mod p)` ✅
+- `mckay_orbit_count` ✅
+- `cauchy_minimal` — `∃ K ≤ G, |K| = p` cuando `p ∣ |G|` ✅ (Sylow.lean:1641, 0 sorry)
 
-### Nota sobre `wielandt_p_ndvd_r`
+### Plan de acción en 6 pasos (orden de implementación)
 
-Para m=0: Cauchy da un subgrupo de orden p, contradiciendo `h_no_proper`. Directo.
-Para m≥1: el argumento estándar usa Sylow I inductivamente (circular). **Estrategia**:
-reestructurar `sylow_lift_from_cauchy` para aceptar la hipótesis inductiva como parámetro
-explícito, rompiendo la circularidad. Requiere modificar la firma de
-`sylow_center_step_wielandt` en `Sylow.lean` — hacer después de `wielandt_fixed_point_exists`.
+#### Paso 1 — Acción de G sobre Ω por traslación izquierda
+
+Definir en `Sylow.lean` (junto a `wieldandtOmega`):
+
+```lean
+def wieldandtAct (G : FinGroup ℕ₀) (g : ℕ₀) (S : List ℕ₀) : List ℕ₀ :=
+  (S.map (fun x => G.op g x)).mergeSort (· ≤ ·)
+```
+
+Demostrar:
+
+- `wieldandtAct_mem_omega`: `S ∈ wieldandtOmega G N → wieldandtAct G g S ∈ wieldandtOmega G N`
+  (preserva cardinalidad `N`, membresía en `G`, y orden — porque `G.op g` es biyección sobre `G.carrier`).
+- `wieldandtAct_id`: `wieldandtAct G G.id S = S`
+- `wieldandtAct_comp`: `wieldandtAct G g (wieldandtAct G h S) = wieldandtAct G (G.op g h) S`
+
+#### Paso 2 — La acción es por permutaciones de Ω
+
+Construir `wieldandtActPerm : FinGroup ℕ₀ → ℕ₀ → ℕ₀FSet → ℕ₀FSet` sobre el
+`ℕ₀FSet` de índices de `wieldandtOmega` (índice `i : ℕ₀ < lengthₚ (wieldandtOmega G N)`).
+
+Alternativamente, trabajar directamente sobre `List (List ℕ₀)` con la maquinaria
+de `Action.lean` instanciada para `α = List ℕ₀` (elementos de `wieldandtOmega`).
+
+Demostrar que la función `g ↦ wieldandtAct G g` es una acción de grupo en el sentido
+de `Action.lean` (satisface `act_id` y `act_comp`).
+
+#### Paso 3 — Puntos fijos
+
+Un `S ∈ wieldandtOmega G N` es punto fijo si `∀ g ∈ G.carrier.elems, wieldandtAct G g S = S`.
+
+Demostrar:
+
+- `wieldandt_fixedPoint_is_subgroup`: si `S` es punto fijo entonces
+  `S` es la carrier de un subgrupo de `G` de orden `N = p^(m+1)`.
+  (Clave: S fijo ⟹ S cerrado bajo `G.op` y `G.inv` ⟹ subgrupo; `|S| = N` por definición de Ω.)
+- `wieldandt_fixedPoint_exists_of_fix_nonempty`: si `fix ≠ ∅` entonces `∃ H : Subgroup G, H.carrier.card = N`.
+
+#### Paso 4 — `wielandt_fixed_point_exists`
+
+Con los pasos anteriores y `mckay_orbit_count`:
+
+```lean
+-- p ∤ |Ω| (por wielandt_p_ndvd_r, paso 6) ⟹ ∃ punto fijo ⟹ ∃ subgrupo de orden p^(m+1)
+theorem wielandt_fixed_point_exists
+    (G : FinGroup ℕ₀) (p m r : ℕ₀)
+    (hp : Prime p) (hG : G.carrier.card = Mul.mul (pow p (succ m)) r)
+    (hr : ¬ ∃ t, Mul.mul p t = r) :
+    ∃ H : Subgroup G, H.carrier.card = pow p (succ m)
+```
+
+Prueba: `mckay_orbit_count` sobre la acción del Paso 2 da un índice fijo →
+`wieldandt_fixedPoint_is_subgroup` da el subgrupo.
+
+**Dependencia**: necesita `wielandt_p_ndvd_r` (Paso 6) para garantizar `p ∤ r`,
+que implica `p ∤ |Ω|`.
+
+#### Paso 5 — Modificar firma de `sylow_center_step_wielandt`
+
+En `Sylow.lean`, cambiar la firma de `sylow_center_step_wielandt` para aceptar
+la hipótesis inductiva `HI` como parámetro explícito, rompiendo la circularidad
+con `sylow_first`:
+
+```lean
+-- Antes (circular):
+private def sylow_center_step_wielandt
+    (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p) ... : ...
+
+-- Después (con HI explícito):
+private def sylow_center_step_wielandt
+    (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p)
+    (HI : ∀ (G' : FinGroup ℕ₀) (r' : ℕ₀),
+          lt₀ G'.carrier.card G.carrier.card →
+          ¬ ∃ t, Mul.mul p t = r' →
+          ∃ H' : Subgroup G', H'.carrier.card = p)
+    ... : ...
+```
+
+Actualizar la llamada en `wielandt_p_ndvd_r` para pasar `HI` explícitamente.
+
+#### Paso 6 — Reescribir `wielandt_p_ndvd_r` con inducción fuerte
+
+Reemplazar el `private axiom wielandt_p_ndvd_r` por un `private theorem` usando
+inducción fuerte sobre `G.carrier.card`:
+
+```lean
+private theorem wielandt_p_ndvd_r
+    (G : FinGroup ℕ₀) (p m r : ℕ₀)
+    (hp : Prime p) (hG : G.carrier.card = Mul.mul (pow p (succ m)) r) :
+    ¬ ∃ t, Mul.mul p t = r := by
+  -- Inducción fuerte sobre G.carrier.card
+  induction h_card : G.carrier.card using Nat.strong_rec_on with
+  | _ n ih => ...
+  -- Caso m = 0: cauchy_minimal da K ≤ G con |K| = p,
+  --   que es un subgrupo propio ⟹ contradicción con h_no_proper.
+  -- Caso m ≥ 1: pasar ih como HI a sylow_center_step_wielandt
+  --   (posible porque |G'| < |G| por hipótesis del paso inductivo).
+```
+
+**Caso m=0** (sin circularidad):
+
+- `cauchy_minimal G p hp ⟨r, hG⟩` da `K : Subgroup G` con `K.carrier.card = p`.
+- `K` es un subgrupo propio (su cardinal es `p < p·r = |G|` cuando `r ≥ 2`, o `|G|` es primo).
+- Esto contradice `h_no_proper` en `sylow_center_step_wielandt`.
+
+**Caso m≥1** (rompe la circularidad):
+
+- El paso inductivo de Wielandt da un subgrupo `Z ≤ center(G)` de orden `p`.
+- `G' = G/Z` satisface `|G'| = p^m · r < |G|`, luego `ih` aplicado a `G'` da `HI`.
+- `sylow_center_step_wielandt G p hp HI ...` cierra el caso.
+
+### Orden de ejecución dentro del Track 1
+
+```
+Paso 1  →  Paso 2  →  Paso 3  →  Paso 5  →  Paso 6  →  Paso 4
+(act)      (perm)     (fix)      (firma)    (p∤r)      (∃ H)
+```
+
+(Paso 4 depende de Paso 6; Paso 6 depende de Paso 5; el resto es independiente.)
 
 ---
 

@@ -2159,11 +2159,14 @@ namespace Peano
         exact (congrArg Λ hlen_eq).trans hS_len
 
     /-- Argumento de Wielandt, pieza 5:
-        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, entonces por la hipótesis inductiva
-        de Sylow existiría un subgrupo propio M de orden divisible por p^(m+1),
-        contradiciendo h_no_proper.
-        TODO: demostrar usando la p-valuación y el argumento de subgrupos propios. -/
-    private axiom wielandt_p_ndvd_r
+        Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, y ningún subgrupo propio de G
+        es divisible por p^(m+1), entonces ¬ p ∣ r.
+        Caso m = 0: demostrado via Cauchy + h_no_proper (ver wielandt_p_ndvd_r.md § 2).
+        Caso m ≥ 1: vacuamente verdadero en la práctica (ver wielandt_p_ndvd_r.md § 3);
+          añadir la IH fuerte (∀ G₀ < G, Sylow(G₀)) no basta porque h_no_proper impide
+          encontrar subgrupos propios con p^(m+2) ∣ |M|. Requeriría hSylow para el propio G
+          (circular) o grupos cociente (no disponibles). -/
+    private theorem wielandt_p_ndvd_r
         (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
@@ -2172,7 +2175,46 @@ namespace Peano
             ∃ K : Subgroup G0, K.carrier.card = p0)
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
           ¬ pow_dvd_card p (σ m) M.carrier) :
-        ¬ p ∣ r
+        ¬ p ∣ r := by
+      cases m with
+      | zero =>
+        intro ⟨r', hr'⟩
+        -- p^(σ 0) = p
+        have hp1 : p ^ (σ 𝟘) = p := (pow_succ p 𝟘).trans (by rw [pow_zero, one_mul])
+        -- p * r = |G|
+        have hr_eq' : Mul.mul p r = G.carrier.card := hp1 ▸ hr_eq
+        -- r' ≠ 0 (si no, r = 0 y |G| = 0, imposible)
+        have hr'_ne : r' ≠ 𝟘 := by
+          intro h0
+          rw [h0, mul_zero] at hr'
+          rw [hr', mul_zero] at hr_eq'
+          exact absurd (card_pos_of_mem_aux G.id_in) (hr_eq'.symm ▸ lt_irrefl 𝟘)
+        -- 1 < r (para mul_lt_left)
+        have hr_gt_one : lt₀ 𝟙 r := by
+          rw [hr']
+          have h_le : le₀ p (Mul.mul p r') := mul_le_right p r' hr'_ne
+          rcases h_le with h_lt | h_eq
+          · exact lt_trans 𝟙 p (Mul.mul p r') (one_lt_prime hp) h_lt
+          · rw [← h_eq]; exact one_lt_prime hp
+        -- p ∣ |G| con testigo p * r'
+        have hG_p_dvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card :=
+          ⟨Mul.mul p r', by rw [← hr_eq', hr']⟩
+        -- Por Cauchy: ∃ K ≤ G con |K| = p
+        obtain ⟨K, hK_card⟩ := hC G p hp hG_p_dvd
+        -- K es propio: p < p * r = |G|
+        have hK_lt : lt₀ K.carrier.card G.carrier.card := by
+          rw [hK_card, ← hr_eq']
+          exact mul_lt_left p r hp.1 hr_gt_one
+        have hK_ne : K.carrier.card ≠ G.carrier.card :=
+          ne_of_lt K.carrier.card G.carrier.card hK_lt
+        -- Contradicción: pow_dvd_card p (σ 0) K.carrier con t=1 vs. h_no_proper
+        exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card.symm⟩ (h_no_proper K hK_ne)
+      | succ m' =>
+        -- Vacuamente verdadero en la práctica (ver wielandt_p_ndvd_r.md § 3):
+        -- las hipótesis son inconsistentes si m ≥ 1, p ∣ r, en teoría de grupos estándar.
+        -- La IH fuerte sobre |G| no basta: h_no_proper bloquea todos los subgrupos propios.
+        -- Formalización completa requiere hSylow para G (circular) o grupos cociente.
+        sorry
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
         Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo

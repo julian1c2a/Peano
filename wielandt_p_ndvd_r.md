@@ -1,6 +1,6 @@
 # Plan de prueba: `wielandt_p_ndvd_r`
 
-## Enunciado
+## Enunciado actual (axioma en Sylow.lean)
 
 ```lean
 private axiom wielandt_p_ndvd_r
@@ -15,10 +15,10 @@ private axiom wielandt_p_ndvd_r
     ¬ p ∣ r
 ```
 
-**Contexto**: Este lema se usa dentro de `sylow_center_step_wielandt`, en el caso duro de la
-inducción de Sylow donde `p^(m+1) ∣ |G|` pero ningún subgrupo propio de G es divisible
-por `p^(m+1)`. El objetivo es probar `¬ p ∣ r` para que el argumento binomial de Wielandt
-(`binom_pow_p_mod`) pueda concluir `p ∤ |Ω|`.
+**Contexto de uso**: llamado desde `sylow_center_step_wielandt`, el "caso duro" de la
+inducción de Sylow: `p^(m+1) ∣ |G|` pero ningún subgrupo propio de G es divisible
+por `p^(m+1)`. El resultado `¬ p ∣ r` garantiza `p ∤ |Ω|` (vía la congruencia de Lucas),
+lo que activa el argumento de punto fijo de `wielandt_fixed_point_exists`.
 
 ---
 
@@ -26,200 +26,230 @@ por `p^(m+1)`. El objetivo es probar `¬ p ∣ r` para que el argumento binomial
 
 | Hipótesis | Tipo | Significado |
 |-----------|------|-------------|
-| `hp` | `Prime p` | p es primo; en particular `hp.1 : p ≠ 𝟘`, `one_lt_prime hp : lt₀ 𝟙 p` |
-| `hr_eq` | `p^(σ m) * r = \|G\|` | descomposición del orden de G |
-| `hC` | Teorema de Cauchy | si p₀ primo y p₀ ∣ \|G₀\|, ∃ subgrupo de orden p₀ |
-| `h_no_proper` | ∀ M propio, `¬ pow_dvd_card p (σ m) M.carrier` | ningún subgrupo propio tiene p^(m+1) ∣ \|M\| |
+| `hp` | `Prime p` | p primo; `hp.1 : p ≠ 𝟘`, `one_lt_prime hp : lt₀ 𝟙 p` |
+| `hr_eq` | `p^(σm) * r = \|G\|` | descomposición del orden de G |
+| `hC` | Teorema de Cauchy | primo p₀ y p₀ ∣ \|G₀\| implica ∃ subgrupo de orden p₀ |
+| `h_no_proper` | ∀ M propio, `¬ pow_dvd_card p (σm) M.carrier` | ningún subgrupo propio tiene p^(m+1) ∣ \|M\| |
 
-**Definición recordatorio**:
-
+**Recordatorio de definiciones**:
 ```lean
-def pow_dvd_card (p k : ℕ₀) (H : ℕ₀FSet) : Prop :=
-  ∃ m : ℕ₀, Mul.mul (p ^ k) m = H.card
-```
-
-Es decir, `pow_dvd_card p (σ m) M.carrier ↔ ∃ t, p^(σ m) * t = |M|`.
-
----
-
-## Análisis del caso m = 0 (prueba completa)
-
-### Por qué funciona
-
-Con m = 0: `p^(σ 0) = p^1 = p`. Las hipótesis se convierten en:
-
-- `hr_eq : p * r = |G|`
-- `h_no_proper : ∀ M propio, ¬ ∃ t, p * t = |M|`
-
-**Paso 1**: Asumir `p ∣ r`, obteniendo `r' : ℕ₀` con `r = p * r'` (por `hr : p ∣ r`).
-
-**Paso 2**: Reescribir para mostrar `p ∣ |G|`:
-
-```
-|G| = p * r = p * (p * r') = p * (p * r')
-```
-
-Testigo para `hC`: `t = p * r'`, usando `mul_comm` y `mul_assoc`.
-
-**Paso 3**: Aplicar `hC G p hp ⟨p * r', h_div_G⟩` para obtener `K : Subgroup G` con `|K| = p`.
-
-**Paso 4**: Demostrar que K es propio (`|K| ≠ |G|`), es decir `p ≠ p * r`:
-
-- De `r = p * r'` y `p ≥ 2` (por `prime_ge_two hp`): `r ≥ p ≥ 2`, así `p * r ≥ p * 2 > p`.
-- Concretamente: `mul_lt_left p r (hp.1) (one_lt_prime hp)` da `p < p * r = |G|`.
-- Por tanto `|K| = p ≠ |G|`.
-
-**Paso 5**: Aplicar `h_no_proper K hK_ne` para obtener `h_neg : ¬ pow_dvd_card p 1 K.carrier`,
-es decir `¬ ∃ t, p^1 * t = p`.
-
-**Paso 6**: Construir la contradicción mostrando que `pow_dvd_card p 1 K.carrier` SÍ se cumple:
-
-```lean
-have : pow_dvd_card p 1 K.carrier := ⟨𝟙, by rw [pow_one, mul_one]; exact hK_card⟩
-exact h_neg this
-```
-
-Aquí `pow_one p : p^1 = p` y `mul_one p : p * 1 = p` dan `p^1 * 1 = p = |K|`. ✓
-
-### Esqueleto Lean 4 para m = 0
-
-```lean
-intro ⟨r', hr'⟩
--- r = p * r', luego |G| = p * (p * r')
-have hG_eq : Mul.mul p (Mul.mul p r') = G.carrier.card := by
-  rw [← hr_eq, ← mul_assoc, mul_comm p p, mul_assoc]
-  -- hr_eq : p^1 * r = |G|, r = p * r'
-  rw [pow_one, hr']
--- Cauchy: ∃ K con |K| = p
-obtain ⟨K, hK_card⟩ := hC G p hp ⟨Mul.mul p r', hG_eq⟩
--- K es propio: |K| = p < |G|
-have hK_lt : lt₀ K.carrier.card G.carrier.card := by
-  rw [hK_card, ← hr_eq, pow_one]
-  exact mul_lt_left p r hp.1 (one_lt_prime hp)
-have hK_ne : K.carrier.card ≠ G.carrier.card := ne_of_lt hK_lt
--- h_no_proper contradice pow_dvd_card p 1 K
-have h_neg := h_no_proper K hK_ne
-have h_pos : pow_dvd_card p (σ 𝟘) K.carrier :=
-  ⟨𝟙, by simp [pow_one, mul_one, hK_card]⟩
-exact h_neg h_pos
+-- pow_dvd_card p k H ↔ ∃ t, p^k * t = |H|
+-- p ∣ r  (Peano.Arith.Divides)  ↔ ∃ r', r = Mul.mul p r'
 ```
 
 ---
 
-## Análisis del caso m ≥ 1 (brecha matemática)
+## § 1 — Estrategia general: Opción B + Opción C
 
-### Por qué el mismo argumento falla
+No disponemos de **grupos cociente** en la biblioteca, por lo que la Opción A
+(añadir la IH de Sylow como hipótesis para aplicarla a G/K) queda descartada.
 
-Con m = σ m' (m ≥ 1), el subgrupo K de orden p satisface:
+La estrategia adoptada combina:
 
+**Opción B — Descomposición por casos sobre m**
 ```
-pow_dvd_card p (σ(σ m')) K.carrier  ↔  ∃ t, p^(σ(σ m')) * t = p
-```
-
-Dado que `p^(σ(σ m')) ≥ p^2 = p*p ≥ 2p > p`:
-
-- Para `t = 𝟘`: `p^(σ(σ m')) * 0 = 0 ≠ p` (pues `p ≥ 2 > 0`).
-- Para `t = 𝟙`: `p^(σ(σ m')) * 1 = p^(σ(σ m')) > p`.
-- Para `t ≥ 𝟙`: el producto crece y nunca iguala p.
-
-Por tanto `pow_dvd_card p (σ m) K.carrier` es **falsa** para K de orden p con m ≥ 1.
-`h_no_proper K hK_ne` es una implicación verdadera pero **no genera contradicción**.
-
-### Argumento matemático estándar (lo que falta)
-
-Para m ≥ 1 el argumento de Wielandt requiere encontrar un subgrupo propio M con
-`|M| = p^(m+1)`, lo cual requiere la **hipótesis inductiva de Sylow** (no solo Cauchy):
-
-> **IH Sylow**: Para todo `H` con `|H| < |G|` y `p^(m+1) ∣ |H|`, existe subgrupo de H
-> de orden `p^(m+1)`.
-
-Con esa IH, el argumento sería:
-
-1. `p ∣ r` → `p^(m+2) ∣ |G|`
-2. Por Cauchy: `K ≤ G` con `|K| = p` (propio, ya que `|G| ≥ p^2 > p`)
-3. `|G/K| = |G|/p = p^(m+1) * r'` (requiere cociente o argumento de índices)
-4. `p^(m+1) ∣ |G/K|` con `|G/K| < |G|`
-5. IH Sylow → `∃ M/K` subgrupo de `G/K` con `|M/K| = p^(m+1)` (en realidad |M|=p^(m+2)... )
-
-Este camino requiere grupos cociente y el teorema de correspondencia, que no están disponibles
-en esta biblioteca.
-
-### Alternativa: caso m = 0 es el único relevante aquí
-
-Revisando dónde se llama `wielandt_p_ndvd_r`: dentro de `sylow_center_step_wielandt`,
-que a su vez es invocado únicamente desde el caso `m` fijo de `sylow_lift_from_cauchy`.
-La inducción sobre `|G|` en `sylow_lift_from_cauchy` maneja los casos m ≥ 1 mediante:
-
-- Caso 2 (subgrupo propio M con `p^(m+1) ∣ |M|`): aplicar IH a M.
-- Caso 3 (ningún M propio cumple lo anterior): llamar a `sylow_center_step_wielandt`.
-
-En el Caso 3, si `|G| = p^(m+1) * r` y ningún propio tiene `p^(m+1) ∣ |M|`, entonces
-**desde la propia estructura inductiva se puede deducir que `p ∤ r`** sin necesidad de
-`wielandt_p_ndvd_r`, porque si `p ∣ r` habría un subgrupo de orden `p^(m+1)` en G
-— pero ese subgrupo sería propio o impropio, y ambos casos dan contradicción con las
-hipótesis del Caso 3. Sin embargo, ese argumento es exactamente lo que `wielandt_p_ndvd_r`
-debe probar, cerrando el círculo.
-
----
-
-## Estrategia práctica recomendada
-
-### Opción A: Añadir la IH de Sylow como hipótesis adicional
-
-Cambiar la firma del axioma para incluir:
-
-```lean
-(hSylow : ∀ (H : FinGroup ℕ₀), lt₀ H.carrier.card G.carrier.card →
-  pow_dvd_card p (σ m) H.carrier →
-    ∃ K : Subgroup H, K.carrier.card = p ^ (σ m))
-```
-
-Con esa hipótesis extra, la prueba por m usando Cauchy + subgrupo cociente puede cerrarse.
-Habría que verificar que el sitio de llamada puede proveer esta IH (proviene de la
-inducción fuerte de `sylow_lift_from_cauchy`).
-
-### Opción B: Descomponer por casos sobre m en el axioma
-
-```lean
 cases m with
-| zero  => -- prueba completa como en §3
-| succ m' => -- aquí se necesita la IH de Sylow como hipótesis adicional
+| zero  => -- prueba completa (ver § 2)
+| succ m' => -- analizar si el caso puede ocurrir (ver § 3)
 ```
 
-### Opción C: Verificar si el contexto ya excluye m ≥ 1
-
-En el Caso 3 de `sylow_lift_from_cauchy`, para m ≥ 1, la combinación de
-`h_eq : |G| ≠ p^(σ m)` y `¬ h_ex : ∀ M propio, ¬ p^(σ m) ∣ |M|` podría
-ser suficiente para derivar directamente `p ∤ r` sin necesidad de Cauchy,
-usando sólo aritmética de divisibilidad sobre `|G| = p^(σ m) * r`.
+**Opción C — Verificar si m ≥ 1 es vacuamente cierto en el contexto**
+Para m ≥ 1, investigar si la combinación de `hr_eq`, `h_no_proper` y aritmética
+implica que p ∤ r sin necesidad de teoría de grupos (o que el caso ni siquiera
+ocurre en la práctica dentro de `sylow_lift_from_cauchy`).
 
 ---
 
-## Lemas clave disponibles
+## § 2 — Caso m = 0: prueba COMPLETA
+
+### Argumento matemático
+
+Con m = 0: `p^(σ 0) = p^1 = p`. Las hipótesis son:
+- `hr_eq : p * r = |G|`
+- `h_no_proper : ∀ M propio, ¬ ∃ t, p * t = |M|` (es decir, p ∤ |M|)
+
+Asumir `p ∣ r` para derivar `False`.
+
+1. `r = p * r'` (por hipótesis de divisibilidad).
+2. `|G| = p * (p * r')`, así `p ∣ |G|` con testigo `p * r'`.
+3. Por Cauchy (`hC`): ∃ `K : Subgroup G` con `|K| = p`.
+4. **K es propio**: `r' ≠ 0` (si no, |G| = 0) → `r > 1` → `p < p * r = |G|` → `|K| = p ≠ |G|`.
+5. Aplicar `h_no_proper K hK_ne`: obtenemos `¬ ∃ t, p^1 * t = |K|`.
+6. Pero `p^1 * 1 = p = |K|`: contradicción. ✓
+
+### Código Lean 4 listo para implementar
+
+```lean
+| zero =>
+  intro ⟨r', hr'⟩
+  -- p^(σ 0) = p
+  have hp1 : p ^ (σ 𝟘) = p := by rw [pow_succ, pow_zero, one_mul]
+  -- p * r = |G|
+  have hr_eq' : Mul.mul p r = G.carrier.card := hp1 ▸ hr_eq
+  -- r' ≠ 0 (si no, r = 0 y |G| = 0, imposible)
+  have hr'_ne : r' ≠ 𝟘 := by
+    intro h0
+    rw [h0, mul_zero] at hr'
+    rw [hr', mul_zero] at hr_eq'
+    exact absurd (card_pos_of_mem_aux G.id_in) (hr_eq'.symm ▸ lt_irrefl 𝟘)
+  -- r > 1 (para mul_lt_left)
+  have hr_gt_one : lt₀ 𝟙 r := by
+    rw [hr']
+    have h_le : le₀ p (Mul.mul p r') := mul_le_right p r' hr'_ne
+    rcases h_le with h_lt | rfl
+    · exact lt_trans 𝟙 p (Mul.mul p r') (one_lt_prime hp) h_lt
+    · exact one_lt_prime hp
+  -- p ∣ |G| con testigo p * r'
+  have hG_p_dvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card :=
+    ⟨Mul.mul p r', by rw [← hr_eq', hr']⟩
+  -- Por Cauchy: ∃ K ≤ G con |K| = p
+  obtain ⟨K, hK_card⟩ := hC G p hp hG_p_dvd
+  -- K es propio: p < p * r = |G|
+  have hK_lt : lt₀ K.carrier.card G.carrier.card := by
+    rw [hK_card, ← hr_eq']
+    exact mul_lt_left p r hp.1 hr_gt_one
+  have hK_ne : K.carrier.card ≠ G.carrier.card :=
+    ne_of_lt K.carrier.card G.carrier.card hK_lt
+  -- Contradicción: h_no_proper K hK_ne vs. pow_dvd_card p (σ 0) K
+  exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card⟩ (h_no_proper K hK_ne)
+```
+
+**Notas de implementación**:
+- `hp1` se obtiene de `pow_succ p 𝟘 : p^(σ 0) = p^0 * p = 1 * p = p`
+  (usando `pow_zero` y `one_mul`). El orden en `pow_succ` es `p^(σn) = p^n * p`,
+  así que `p^(σ 0) = p^0 * p = 1 * p = p` → `rw [pow_succ, pow_zero, one_mul]`.
+- `hG_p_dvd`: el testigo `Mul.mul p r'` da `p * (p * r') = p * r = |G|`
+  por `rw [← hr_eq', hr']` (primero ← hr_eq' cambia |G| a p*r, luego hr' cambia r a p*r').
+- El cierre final usa `exact absurd ⟨...⟩ (h_no_proper K hK_ne)` directamente.
+
+---
+
+## § 3 — Caso m ≥ 1 (Opción C): análisis del contexto
+
+### Por qué el argumento del caso m = 0 no se traslada
+
+Con m = σ m' (m ≥ 1), el subgrupo K de Cauchy tiene `|K| = p`. Para aplicar
+`h_no_proper K hK_ne` necesitaríamos `pow_dvd_card p (σ(σ m')) K.carrier`,
+es decir `∃ t, p^(m+2) * t = p`. Pero `p^(m+2) ≥ p^2 > p`, así que esta
+proposición es **trivialmente falsa** — no hay contradicción.
+
+### Análisis del contexto de llamada (Opción C)
+
+`wielandt_p_ndvd_r` es llamado desde `sylow_center_step_wielandt`, que a su vez
+solo es invocado desde el **Caso 3** de `sylow_lift_from_cauchy`:
+
+```
+-- Caso 3 en sylow_lift_from_cauchy:
+-- • h_eq : G0.carrier.card ≠ p ^ (σ m)   (Card ≠ p^(m+1), es decir r ≠ 1)
+-- • ∀ M propio, ¬ (M.carrier.card ≠ G0.carrier.card ∧ pow_dvd_card p (σ m) M.carrier)
+--   i.e., h_no_proper
+-- → sylow_center_step → sylow_center_step_wielandt → wielandt_p_ndvd_r
+```
+
+**Pregunta clave (Opción C)**: ¿Puede ocurrir el Caso 3 con m ≥ 1 y r > 1?
+
+**Análisis**:
+Sea |G| = p^(m+2) * r (r > 1, m ≥ 1). Queremos ver si h_no_proper puede sostenerse.
+Por el Teorema de Sylow para el exponente m+1 (que es exactamente lo que
+`sylow_lift_from_cauchy` demuestra inductivamente), existe H ≤ G con |H| = p^(m+1).
+
+- Si r > 1, entonces |G| = p^(m+2) * r > p^(m+1), así H es **propio**.
+- H tiene p^(m+1) ∣ |H|, contradiciendo h_no_proper.
+
+Por tanto: **si m ≥ 1 y r > 1, las hipótesis de `wielandt_p_ndvd_r` son
+inconsistentes** (no existe ningún G con esas propiedades en la teoría de grupos
+estándar). El caso `| succ m' =>` es en la práctica **vacuamente verdadero**.
+
+**Atención**: la demostración de este hecho usa el propio Teorema de Sylow (circular).
+En Lean 4, dentro del bloque `| succ m' =>`, **no podemos derivar esto formalmente**
+sin la IH de `sylow_lift_from_cauchy` ni grupos cociente. El `sorry` refleja esta
+deuda técnica, no un error de la librería.
+
+### Verificación aritmética directa (por qué tampoco basta)
+
+Intentar: de `hr_eq : p^(m+2) * r = |G|` y `h_no_proper` puramente, sin teoría
+de grupos, ¿se deduce `¬ p ∣ r`?
+
+No. La hipótesis `h_no_proper` habla de SUBGRUPOS, que son objetos de teoría de
+grupos. No hay forma de extraer información sobre r solo con aritmética.
+
+### Estado del caso m ≥ 1 en el código
+
+```lean
+| succ m' =>
+  -- Este caso es vacuamente verdadero en la teoría de grupos (ver § 3),
+  -- pero formalizarlo requiere la IH completa de sylow_lift_from_cauchy
+  -- o grupos cociente (no disponibles en esta biblioteca).
+  -- En la práctica, sylow_center_step_wielandt nunca es llamado con m ≥ 1
+  -- cuando r > 1, porque sylow_lift_from_cauchy habría tomado el Caso 2 antes.
+  sorry
+```
+
+---
+
+## § 4 — Código final a insertar en Sylow.lean
+
+Reemplazar `private axiom wielandt_p_ndvd_r ...` por:
+
+```lean
+private theorem wielandt_p_ndvd_r
+    (G : FinGroup ℕ₀) (p m r : ℕ₀)
+    (hp : Prime p)
+    (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
+    (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
+      (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
+        ∃ K : Subgroup G0, K.carrier.card = p0)
+    (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
+      ¬ pow_dvd_card p (σ m) M.carrier) :
+    ¬ p ∣ r := by
+  cases m with
+  | zero =>
+    intro ⟨r', hr'⟩
+    have hp1 : p ^ (σ 𝟘) = p := by rw [pow_succ, pow_zero, one_mul]
+    have hr_eq' : Mul.mul p r = G.carrier.card := hp1 ▸ hr_eq
+    have hr'_ne : r' ≠ 𝟘 := by
+      intro h0
+      rw [h0, mul_zero] at hr'
+      rw [hr', mul_zero] at hr_eq'
+      exact absurd (card_pos_of_mem_aux G.id_in) (hr_eq'.symm ▸ lt_irrefl 𝟘)
+    have hr_gt_one : lt₀ 𝟙 r := by
+      rw [hr']
+      have h_le : le₀ p (Mul.mul p r') := mul_le_right p r' hr'_ne
+      rcases h_le with h_lt | rfl
+      · exact lt_trans 𝟙 p (Mul.mul p r') (one_lt_prime hp) h_lt
+      · exact one_lt_prime hp
+    have hG_p_dvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card :=
+      ⟨Mul.mul p r', by rw [← hr_eq', hr']⟩
+    obtain ⟨K, hK_card⟩ := hC G p hp hG_p_dvd
+    have hK_lt : lt₀ K.carrier.card G.carrier.card := by
+      rw [hK_card, ← hr_eq']
+      exact mul_lt_left p r hp.1 hr_gt_one
+    have hK_ne : K.carrier.card ≠ G.carrier.card :=
+      ne_of_lt K.carrier.card G.carrier.card hK_lt
+    exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card⟩ (h_no_proper K hK_ne)
+  | succ m' =>
+    -- Opción C: vacuamente verdadero en la práctica (ver § 3).
+    -- Requiere grupos cociente o IH de sylow_lift_from_cauchy para formalizarlo.
+    sorry
+```
+
+---
+
+## § 5 — Lemas clave usados
 
 | Lema | Enunciado |
 |------|-----------|
 | `one_lt_prime hp` | `lt₀ 𝟙 p` |
-| `prime_ge_two hp` | `le₀ 𝟚 p` |
-| `pow_one p` | `p^𝟙 = p` |
+| `hp.1` | `p ≠ 𝟘` |
+| `pow_succ p n` | `p^(σn) = Mul.mul (p^n) p` |
 | `pow_zero p` | `p^𝟘 = 𝟙` |
-| `pow_succ p n` | `p^(σ n) = p^n * p` |
-| `pow_ne_zero hp.1 k` | `p^k ≠ 𝟘` |
-| `pow_ge_one h_p_gt_0` | `p^k ≥ 𝟙` |
-| `pow_lt_succ_exp h_p_gt_1` | `p^k < p^(σ k)` |
-| `mul_lt_left n m hn hm` | `n ≠ 𝟘 → lt₀ 𝟙 m → lt₀ n (n*m)` |
-| `mul_comm n m` | `n*m = m*n` |
+| `one_mul n` | `Mul.mul 𝟙 n = n` |
+| `mul_one n` | `Mul.mul n 𝟙 = n` |
+| `mul_zero n` | `Mul.mul n 𝟘 = 𝟘` |
 | `mul_assoc n m k` | `(n*m)*k = n*(m*k)` |
-| `mul_one n` | `n*𝟙 = n` |
+| `mul_lt_left n m hn hlt` | `n ≠ 𝟘 → lt₀ 𝟙 m → lt₀ n (n*m)` |
+| `mul_le_right n m hne` | `m ≠ 𝟘 → le₀ n (n*m)` |
+| `lt_trans a b c` | `lt₀ a b → lt₀ b c → lt₀ a c` |
+| `lt_irrefl a` | `¬ lt₀ a a` |
+| `ne_of_lt n m` | `lt₀ n m → n ≠ m` |
 | `card_pos_of_mem_aux G.id_in` | `lt₀ 𝟘 \|G\|` |
-
----
-
-## Conclusión
-
-- **m = 0**: prueba directa factible con los lemas disponibles. Ver esqueleto en §3.
-- **m ≥ 1**: requiere hipótesis adicional (IH de Sylow) o maquinaria de grupos cociente
-  no disponible en la librería.
-- **Acción recomendada**: añadir `hSylow` como parámetro extra a `wielandt_p_ndvd_r` y
-  verificar que el sitio de llamada en `sylow_center_step_wielandt` puede suministrarlo
-  a partir de la inducción fuerte de `sylow_lift_from_cauchy`.

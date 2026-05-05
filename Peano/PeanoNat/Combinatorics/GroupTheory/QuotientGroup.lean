@@ -1,5 +1,6 @@
 import Peano.PeanoNat
 import Peano.PeanoNat.Mul
+import Peano.PeanoNat.Arith
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.Combinatorics.Group
@@ -109,7 +110,7 @@ namespace Peano
 
     /-- Representante canónico: primer elemento de la lista del coseto.
         Para `C.elems = []` (imposible en el portador) devuelve `G.id` por defecto. -/
-    noncomputable def cosetRepOf (G : FinGroup ℕ₀) (H : Subgroup G) (C : ℕ₀FSet) : ℕ₀ :=
+    noncomputable def cosetRepOf (G : FinGroup ℕ₀) (_H : Subgroup G) (C : ℕ₀FSet) : ℕ₀ :=
       if h : C.elems = [] then G.id else C.elems.head h
 
     theorem cosetRepOf_eq_head (G : FinGroup ℕ₀) (H : Subgroup G) (C : ℕ₀FSet)
@@ -213,7 +214,7 @@ namespace Peano
 
     /-- Operación del cociente: `C₁ · C₂ = (rep C₁ · rep C₂)H`. -/
     noncomputable def quotientOp (G : FinGroup ℕ₀) (H : Subgroup G)
-        (hn : H.IsNormal) : BinOpOn (quotientCarrier G H) where
+        (_hn : H.IsNormal) : BinOpOn (quotientCarrier G H) where
       toFun C₁ C₂ := leftCoset G H (G.op (cosetRepOf G H C₁) (cosetRepOf G H C₂))
       map_carrier := fun C₁ C₂ h₁ h₂ => by
         rw [mem_quotientCarrier_iff]
@@ -226,7 +227,7 @@ namespace Peano
 
     /-- El coseto inverso de `C = gH` es `g⁻¹H`. -/
     noncomputable def quotientInv (G : FinGroup ℕ₀) (H : Subgroup G)
-        (hn : H.IsNormal) : MapOn (quotientCarrier G H) (quotientCarrier G H) where
+        (_hn : H.IsNormal) : MapOn (quotientCarrier G H) (quotientCarrier G H) where
       toFun C := leftCoset G H (G.inv (cosetRepOf G H C))
       map_carrier := fun C hC => by
         rw [mem_quotientCarrier_iff]
@@ -375,10 +376,58 @@ namespace Peano
     /-- El número de cosetos es `|G| / |H|`. -/
     theorem quotient_card (G : FinGroup ℕ₀) (H : Subgroup G) :
         (quotientCarrier G H).card = Peano.Div.div G.carrier.card H.carrier.card := by
-      -- El portador es sortFSetList (cosetClasses G H), que tiene el mismo cardinal.
-      -- Lagrange da |G| = |H| · [G:H].
-      -- Por definición, [G:H] = |cosetClasses G H| = card del portador.
-      sorry
+      -- Definimos f : G → quotientCarrier G H por g ↦ classOf g
+      let f : MapOn G.carrier (quotientCarrier G H) := {
+        toFun := fun x => (cosetEquivRel G H).classOf x
+        map_carrier := fun x hx =>
+          (mem_quotientCarrier_iff G H _).mpr
+            ((cosetEquivRel G H).classOf_mem_classes_of_mem x hx)
+      }
+      -- Cada fibra f.fiber C = C, luego tiene cardinal |H|
+      have h_fiber : ∀ C, C ∈ (quotientCarrier G H).elems →
+          (f.fiber C).card = H.carrier.card := fun C hCqs => by
+        have hC : C ∈ cosetClasses G H := (mem_quotientCarrier_iff G H C).mp hCqs
+        have h_fiber_eq : f.fiber C = C := by
+          apply FSet.eq_of_mem_iff; intro x; constructor
+          · intro hx
+            have hxData := (MapOn.mem_fiber_iff f C x).mp hx
+            have hxClass : x ∈ ((cosetEquivRel G H).classOf x).elems :=
+              (cosetEquivRel G H).classOf_nonempty_of_mem x hxData.1
+            have hfx : (cosetEquivRel G H).classOf x = C := by simpa [f] using hxData.2
+            exact hfx ▸ hxClass
+          · intro hxC
+            have hCeq : C = (cosetEquivRel G H).classOf x :=
+              cosetClass_eq_classOf_of_mem G H C x hC hxC
+            have hxClass : x ∈ ((cosetEquivRel G H).classOf x).elems := by
+              simpa [← hCeq] using hxC
+            have hxG := (cosetEquivRel G H).classOf_subset_domain x x hxClass
+            exact (MapOn.mem_fiber_iff f C x).mpr ⟨hxG, by simp [f, hCeq.symm]⟩
+        calc (f.fiber C).card = C.card := by simp [h_fiber_eq]
+          _ = H.carrier.card := card_eq_subgroup_card_of_mem_cosetClasses G H C hC
+      -- Aplicamos card_eq_mul_of_uniform_fibers: |G| = |H| · |G/H|
+      have h_mul : G.carrier.card = mul H.carrier.card (quotientCarrier G H).card :=
+        card_eq_mul_of_uniform_fibers f H.carrier.card h_fiber
+      -- H es no vacío → |H| ≠ 0
+      have hH_ne : H.carrier.card ≠ 𝟘 := by
+        obtain ⟨a, ha⟩ := H.nonempty
+        intro h
+        cases h_elems : H.carrier.elems with
+        | nil => exact absurd (h_elems ▸ ha) List.not_mem_nil
+        | cons hd tl =>
+          have hcard : H.carrier.card = σ (lengthₚ tl) := by
+            unfold FSet.card; rw [h_elems, lengthₚ_cons]
+          exact Axioms.succ_neq_zero _ (hcard ▸ h)
+      -- |H| ∣ |G| (por Lagrange vía card_eq_mul_of_uniform_fibers)
+      have h_dvd : Arith.Divides H.carrier.card G.carrier.card :=
+        ⟨(quotientCarrier G H).card, h_mul⟩
+      -- div_mul_cancel da: mul (|G|/|H|) |H| = |G|
+      have h_div_mul : mul (G.carrier.card / H.carrier.card) H.carrier.card = G.carrier.card :=
+        Arith.div_mul_cancel hH_ne h_dvd
+      -- Cancelamos |H| de  |H| · |G/H| = |H| · (|G|/|H|)
+      have h_eq : mul H.carrier.card (quotientCarrier G H).card =
+          mul H.carrier.card (G.carrier.card / H.carrier.card) :=
+        h_mul.symm.trans (h_div_mul.symm.trans (Mul.mul_comm _ _))
+      exact Mul.mul_cancelation_left H.carrier.card _ _ hH_ne h_eq
 
     /-!
     ## § 11. Homomorfismo canónico G → G/H
@@ -407,7 +456,7 @@ namespace Peano
         (cosetRepOf_leftCoset_eq G H _ hb_in).symm
 
     /-- El núcleo de `π` es precisamente `H`. -/
-    theorem quotientHomomorphism_kernel (G : FinGroup ℕ₀) (H : Subgroup G) (hn : H.IsNormal)
+    theorem quotientHomomorphism_kernel (G : FinGroup ℕ₀) (H : Subgroup G) (_hn : H.IsNormal)
         (g : ℕ₀) (hg : g ∈ G.carrier.elems) :
         (quotientHomomorphism G H) g = quotientId G H ↔ g ∈ H.carrier.elems := by
       simp only [quotientHomomorphism, quotientId]
@@ -439,7 +488,7 @@ namespace Peano
     /-- La imagen de un subgrupo `K` de `G` (con `H ≤ K`) bajo `π` es un subgrupo
         del cociente `G/H`. Se prueba como subgrupo de `FinGroup ℕ₀FSet`. -/
     noncomputable def imageSubgroup (G : FinGroup ℕ₀) (H : Subgroup G) (hn : H.IsNormal)
-        (K : Subgroup G) (hHK : ∀ h, h ∈ H.carrier.elems → h ∈ K.carrier.elems) :
+        (K : Subgroup G) (_hHK : ∀ h, h ∈ H.carrier.elems → h ∈ K.carrier.elems) :
         Subgroup (quotientGroup G H hn) where
       carrier := {
         elems := sortFSetList (K.carrier.elems.map (leftCoset G H))
@@ -486,11 +535,55 @@ namespace Peano
         apply leftCoset_eq_of_rel G H _ _ (inv_mem G (K.subset g hg))
           (inv_mem G (cosetRepOf_mem_G G H _ hr_in))
         -- cosetRel G H (G.inv g) (G.inv (cosetRepOf G H (leftCoset G H g)))
-        -- = G.inv (G.inv g) * G.inv (cosetRepOf G H (leftCoset G H g)) ∈ H
-        -- = g * G.inv r ∈ H (donde r = cosetRepOf (leftCoset G H g))
-        -- Sabemos: r ~ g (leftCoset G H r = leftCoset G H g)
-        -- Por normalidad de H, r ~ g implica r⁻¹ ~ g⁻¹
-        sorry
+        -- Prueba: de cosetRepOf_leftCoset_eq obtenemos G.inv r * g ∈ H.
+        -- Aplicar normalidad de H con x=g, n = G.inv r * g da:
+        --   G.op (G.op g (G.op (G.inv r) g)) (G.inv g) ∈ H
+        -- que simplifica a G.op g (G.inv r) ∈ H = cosetRel G H (G.inv g) (G.inv r).
+        let r := cosetRepOf G H (leftCoset G H g)
+        have hr_G : r ∈ G.carrier.elems := cosetRepOf_mem_G G H _ hr_in
+        have hg_G : g ∈ G.carrier.elems := K.subset g hg
+        have hrel : G.op (G.inv r) g ∈ H.carrier.elems :=
+          cosetRel_of_leftCoset_eq G H r g hr_G hg_G (cosetRepOf_leftCoset_eq G H _ hr_in)
+        have h_conj := hn g (G.op (G.inv r) g) hg_G hrel
+        have h_simp : G.op (G.op g (G.op (G.inv r) g)) (G.inv g) = G.op g (G.inv r) := by
+          have hr' := inv_mem G hr_G
+          rw [G.op_assoc g (G.op (G.inv r) g) (G.inv g) hg_G (op_mem G hr' hg_G) (inv_mem G hg_G),
+              G.op_assoc (G.inv r) g (G.inv g) hr' hg_G (inv_mem G hg_G),
+              (G.op_inv g hg_G).1, (G.op_id (G.inv r) hr').1]
+        unfold cosetRel
+        rw [inv_inv_eq G hg_G]
+        exact h_simp ▸ h_conj
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  quotientCarrier
+  mem_quotientCarrier_iff
+  mem_quotientCarrier_is_leftCoset
+  coset_nonempty_of_mem_quotientCarrier
+  leftCoset_mem_cosetClasses
+  leftCoset_mem_quotientCarrier
+  leftCoset_id_mem_quotientCarrier
+  cosetRel_of_leftCoset_eq
+  leftCoset_eq_iff_cosetRel
+  cosetRepOf
+  cosetRepOf_eq_head
+  cosetRepOf_mem_C
+  cosetRepOf_mem_G
+  cosetRepOf_leftCoset_eq
+  quotientOp_welldefined
+  quotientOp
+  quotientInv
+  quotientId
+  quotientId_mem
+  quotientOp_assoc
+  quotientOp_id
+  quotientOp_inv
+  quotientGroup
+  quotient_card
+  quotientHomomorphism
+  quotientHomomorphism_op
+  quotientHomomorphism_kernel
+  imageSubgroup
+)

@@ -21,6 +21,70 @@ factorial, binomial coefficients, and the Newton binomial theorem.
 
 ## Ideas and Alternatives
 
+### 2026-05-05 — Segundo y tercer teoremas de isomorfismos entre grupos
+
+#### Segundo teorema de isomorfismos
+
+Sea ⟨G, *⟩ grupo, H ≤ G, subgrupo, y N ⊴ G, subgrupo normal. Entonces:
+
+- H ∩ N ⊴ H
+
+- HN = {h * n | h ∈ H, n ∈ N} ≤ G
+
+- N ⊴ HN
+
+- (HN)/N ≃ H/(H ∩ N)
+
+Vamos a ver el primer punto: H ∩ N ⊴ H. Para ello, tomamos h ∈ H y k ∈ H ∩ N. Entonces, como N es normal en G, tenemos que h *k* h⁻¹ ∈ N. Además, como H es un subgrupo de G, tenemos que h *k* h⁻¹ ∈ H. Por lo tanto, h *k* h⁻¹ ∈ H ∩ N, lo que demuestra que H ∩ N es normal en H.
+
+Vamos a ver el sugndo punto: HN = {h *n | h ∈ H, n ∈ N} ≤ G. Para ello, tomamos h₁* n₁, h₂ *n₂ ∈ HN. Entonces, (h₁* n₁) *(h₂* n₂) = h₁ *(n₁* h₂) *n₂. Como N es normal en G, tenemos que n₁* h₂ = h₂' *n₁' para algún h₂' ∈ H y n₁' ∈ N. Por lo tanto, (h₁* n₁) *(h₂* n₂) = h₁ *h₂'* (n₁' *n₂), lo que demuestra que HN es cerrado bajo la operación de grupo. Además, el elemento identidad e ∈ HN ya que e = e* e con e ∈ H y e ∈ N. Finalmente, para cada h *n ∈ HN, su inverso es (h* n)⁻¹ = n⁻¹ * h⁻¹, que también pertenece a HN ya que n⁻¹ ∈ N y h⁻¹ ∈ H. Por lo tanto, HN es un subgrupo de G.
+
+El tercer punto: N ⊴ HN. Para ello, tomamos h *n ∈ HN y k ∈ N. Entonces, (h* n) *k* (h *n)⁻¹ = h* (n *k* n⁻¹) *h⁻¹. Como N es normal en G, tenemos que n* k *n⁻¹ ∈ N. Además, como H es un subgrupo de G, tenemos que h* (n *k* n⁻¹) *h⁻¹ ∈ N. Por lo tanto, (h* n) *k* (h * n)⁻¹ ∈ N, lo que demuestra que N es normal en HN.
+
+Vamos a finiquitar el cuarto punto: (HN)/N ≃ H/(H ∩ N). Para ello, toma h ∈ H. Entonces, el coset hN ∈ (HN)/N. Definamos la función φ : H/(H ∩ N) → (HN)/N por φ(h(H ∩ N)) = hN. Para mostrar que φ es un isomorfismo, primero debemos verificar que está bien definida. Si h₁(H ∩ N) = h₂(H ∩ N), entonces h₁⁻¹ * h₂ ∈ H ∩ N ⊆ N, lo que implica que h₁N = h₂N. Por lo tanto, φ está bien definida. Ahora, veamos que φ es un homomorfismo de grupos.
+
+#### Tercer teorema de isomorfismos
+
+Sea ⟨G, *⟩ grupo, y N₁, N₂ ⊴ G, subgrupos normales, N₁ ⊂ N₂. Entonces:
+
+- N₂/N₁ ⊴ G/N₁
+
+- (G/N₁)/(N₂/N₁) ≃ G/N₂
+
+- Si G/N₂ es cíclico, entonces (G/N₁)/(N₂/N₁) es cíclico.
+
+#### Cuarto teorema de isomorfismos
+
+Sea $G$ un grupo y $N$ un subgrupo normal de $G$. Existe una correspondencia biunívoca entre:
+
+- El conjunto de subgrupos de $G$ que contienen a $N$
+
+- El conjunto de todos los subgrupos del grupo cociente $G/N$.
+
+#### Lema de Zassenhaus (o de la Mariposa)
+
+Sea $G$ un grupo y $A$, $B$ dos subgrupos de $G$. Entonces existe un isomorfismo entre los grupos cocientes $(A \cap B) \backslash A$ y $(A \cap B) \backslash B$.
+
+Sean $U$ y $V$ subgrupos de un grupo finito $G$, y sean $u \trianglelefteq U$ y $v \trianglelefteq V$ sus respectivos subgrupos normales. El lema establece el siguiente isomorfismo:
+
+$$\frac{u(U \cap V)}{u(U \cap v)} \cong \frac{v(V \cap U)}{v(V \cap u)}$$
+
+¿Cómo se construye este isomorfismo?El isomorfismo no se define directamente entre los dos extremos, sino que ambos se demuestran isomorfos a un término central común basado en las intersecciones.
+
+La construcción sigue estos pasos:
+
+1. Identificar el "núcleo" común. Se define un grupo central que combina las intersecciones:
+
+   - Denominador común: $(U \cap v)(V \cap u)$
+
+   - Numerador común: $(U \cap V)$
+
+2. Aplicar el Segundo Teorema. Se utiliza el segundo teorema de isomorfismo (el del diamante) para demostrar que:
+
+   - El lado izquierdo es isomorfo a: $\frac{U \cap V}{(U \cap v)(U \cap v \cap u)}$ que se simplifica a $\frac{U \cap V}{(U \cap v)(V \cap u)}$.
+
+   - El lado derecho es isomorfo exactamente a la misma expresión.
+
 ### 2026-04-08 — Infrastructure modernization
 
 Migrated from the old `.bat`-based freeze system to the template-standard

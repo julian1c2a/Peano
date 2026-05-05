@@ -123,6 +123,40 @@ namespace Peano
         Peano.StrictOrder.IrreflLT (FSet α) :=
       ⟨fun s hs => (List.lt_irrefl s.elems) hs⟩
 
+    /-- `Std.Irrefl` derivado de `StrictLinearOrder α` (prioridad baja para no
+        competir con instancias específicas como la de `ℕ₀`). -/
+    instance (priority := 50) instStdIrreflOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] : Std.Irrefl (fun a b : α => a < b) where
+      irrefl := slo.irrefl
+
+    /-- `Std.Asymm` derivado de `StrictLinearOrder α` (irrefl + trans ⇒ asymm). -/
+    instance (priority := 50) instStdAsymmOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] : Std.Asymm (fun a b : α => a < b) where
+      asymm := fun _ _ hab hba => slo.irrefl _ (slo.trans hab hba)
+
+    /-- `Std.Trichotomous` derivado de `StrictLinearOrder α`. -/
+    instance (priority := 50) instStdTrichotomousOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] : Std.Trichotomous (fun a b : α => a < b) where
+      trichotomous := slo.trich
+
+    /-- `Trans` derivado de `StrictLinearOrder α`. -/
+    instance (priority := 50) instTransOfSLO {α : Type} [LT α] [DecidableEq α]
+        [slo : StrictLinearOrder α] :
+        Trans (fun a b : α => a < b) (fun a b : α => a < b) (fun a b : α => a < b) where
+      trans := slo.trans
+
+    /-- Orden lineal estricto sobre `FSet α`, heredado del orden lexicográfico
+        sobre listas cuando `α` tiene `StrictLinearOrder`. -/
+    instance instStrictLinearOrderFSet {α : Type} [DecidableEq α] [LT α]
+        [slo : StrictLinearOrder α] : StrictLinearOrder (FSet α) where
+      decLt := fun _s _t =>
+        have : DecidableRel (@LT.lt α _) := slo.decLt
+        inferInstance
+      irrefl := fun s hs => List.lt_irrefl s.elems hs
+      trans := fun h1 h2 => List.lt_trans h1 h2
+      trich := fun s t hs ht =>
+        FSet.ext (instTrichotomousListLt.trichotomous s.elems t.elems hs ht)
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 1. Aliases de tipos concretos
 

@@ -2,6 +2,43 @@
 
 ## [Unreleased]
 
+### Added (2026-05-05)
+
+- **GroupTheory/CorrespondenceTheorem.lean — Cuarto Teorema de Isomorfismo (0 sorry, 0 axiomas privados)**:
+  - `noncomputable def preimageSubgroup (G) (N) (hn) (Q)` — preimagen `ψ(Q) = π⁻¹(Q) ⊂ G` de un subgrupo `Q ≤ G/N`.
+  - `def SubgroupAbove (G) (N) (_hn)` — subtipo de subgrupos de `G` que contienen a `N`.
+  - `noncomputable def correspondencePhi` / `correspondencePsi` — las dos funciones inversas de la biyección.
+  - `theorem imageSubgroup_preimage` — `φ(ψ(Q)) = Q`.
+  - `theorem preimageSubgroup_image` — `ψ(φ(K)) = K` cuando `N ≤ K`.
+  - `theorem correspondencePhi_psi`, `correspondencePsi_phi` — identidades de composición.
+  - `theorem correspondenceInjective`, `correspondenceSurjective` — biyectividad de `φ`.
+  - Lemas auxiliares privados: `sorted_list_unique`, `FSet_eq_of_mem_iff`, `leftCoset_inv_eq`, `subgroup_ext_mem`, `qsubgroup_ext_mem`.
+  - **Trampa documentada**: `Function.Bijective` no existe sin Mathlib — workaround: dos teoremas separados `correspondenceInjective` + `correspondenceSurjective`.
+  - **Trampa documentada**: `SubgroupAbove` usa `_hn` con guión bajo porque el tipo resultante (`Type`) no depende del valor de `hn` en Lean 4.
+  - Build: 64 jobs · 0 errores · 0 warnings nuevos · 0 sorry.
+
+- **GroupTheory/NormalSubgroup.lean** (sesiones anteriores, ahora en build):
+  - `def centralizer (G) (H)` — centralizador `C_G(H)`.
+  - `def normalizer (G) (H)` — normalizador `N_G(H)`.
+  - `def rightCoset (G) (H) (g)` — coseto derecho `Hg`.
+  - Criterios: `isNormal_iff_normalizer_eq_G`, `isNormal_iff_leftCoset_eq_rightCoset`.
+
+- **GroupTheory/QuotientGroup.lean** (sesiones anteriores):
+  - `quotientCarrier`, `quotientOp`, `quotientInv`, `quotientId`, `quotientGroup` — estructura de grupo cociente `G/N`.
+  - `quotientHomomorphism` — homomorfismo canónico `π : G → G/N`.
+  - `imageSubgroup` — imagen de un subgrupo `K ≥ N` en `G/N`.
+  - 29 nombres exportados en total.
+
+- **GroupTheory/FirstIsomorphism.lean** (sesiones anteriores):
+  - `homKer`, `homImg` — núcleo e imagen de un homomorfismo.
+  - `homKer_isNormal`, `quotientHomomorphism_surjective`.
+  - `firstIsoMap` — isomorfismo `G/ker(φ) ≅ Im(φ)`, bijective.
+
+- **GroupTheory/SecondIsomorphism.lean** (sesiones anteriores):
+  - `subgroupHN` — subgrupo `HN = { h*n | h ∈ H, n ∈ N }`.
+  - `interHN_as_subgroup_H`, `interHN_as_subgroup_H_isNormal` — `H ∩ N ⊴ H`.
+  - `secondIsoMap` — isomorfismo `H/(H∩N) ≅ HN/N`, bijective.
+
 ### Added (2026-05-02)
 
 - **Foundation/CantorPairing.lean — biyección ℕ₀×ℕ₀ ≅ ℕ₀ completada (Phase F.1, 0 sorry)**:

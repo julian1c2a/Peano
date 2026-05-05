@@ -67,12 +67,17 @@
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
 | `Peano/PeanoNat/NumberTheory/Wilson.lean` | `Peano.Wilson` | `ModEq`, `Fermat`, `Factorial`, `Pow`, `Primes` | — |
-| **Teoría de grupos finitos** *(4 axiomas privados)* | | | |
+| **Teoría de grupos finitos** *(4 axiomas privados en Sylow.lean)* | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
 | `Peano/PeanoNat/Combinatorics/Orbit.lean` | `Peano.Orbit` | `Group`, `FSet` | `Action` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean` | `Peano.Action` | `Group`, `Orbit` | `Cosets`, `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean` | `Peano.GroupTheory` | `Cosets`, `Group` | `QuotientGroup` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean` | `Peano.GroupTheory` | `NormalSubgroup`, `Cosets` | `FirstIsomorphism`, `SecondIsomorphism`, `CorrespondenceTheorem` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `CosetAction`, `Sylow` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | `Cosets`, `Action`, `Group` | `Sylow` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `CosetAction`, `Action` | — |
@@ -124,6 +129,7 @@
 | `Peano.Cosets` | `GroupTheory/Sylow/Cosets.lean` | `Peano` |
 | `Peano.CosetAction` | `GroupTheory/Sylow/CosetAction.lean` | `Peano` |
 | `Peano.Sylow` | `GroupTheory/Sylow/Sylow.lean` | `Peano` |
+| `Peano.GroupTheory` | `GroupTheory/NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `CorrespondenceTheorem.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 
@@ -3189,8 +3195,11 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 > §37 `Digits.lean`, §38 `Pairing.lean`,
 > §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
 > §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
-> §43 `GroupTheory/Sylow/Cosets.lean`.
+> §43 `GroupTheory/Sylow/Cosets.lean`,
+> §44a `GroupTheory/NormalSubgroup.lean`, §44b `GroupTheory/QuotientGroup.lean`,
+> §44c `GroupTheory/FirstIsomorphism.lean`, §44d `GroupTheory/SecondIsomorphism.lean`.
 > §45 `Foundation/CantorPairing.lean` — documentado abajo.
+> §48 `GroupTheory/CorrespondenceTheorem.lean` — documentado abajo (2026-05-05).
 
 <!-- AUTO-UPDATE-2026-04-17-START -->
 ## Actualizacion de estado - 2026-04-17
@@ -3520,6 +3529,7 @@ Establece `List ℕ₀ ≃ ℕ₀` computacionalmente, completando la cadena `PA
 Teorema de Wilson: para todo primo `p`, `p ∣ (p−1)! + 1`.
 
 **Estrategia** (pairing argument):
+
 1. `modInv p a = aᵖ⁻² mod p` — inverso modular vía pequeño Fermat.
 2. `a · modInv p a ≡ 1 [MOD p]` para `0 < a < p`.
 3. `modInv` es involución: `modInv p (modInv p a) = a`.
@@ -3544,3 +3554,122 @@ Todos los lemas auxiliares son `private`. El único símbolo exportado es `wilso
 | Símbolo | Tipo | Computable | Visibilidad |
 |---------|------|------------|-------------|
 | `wilson` | `{p : ℕ₀} → Prime p → p ∣ add (factorial (sub p 𝟙)) 𝟙` | No | público |
+
+---
+
+## §48. Combinatorics/GroupTheory/CorrespondenceTheorem.lean — `namespace Peano.GroupTheory`
+
+*Dependencias: `QuotientGroup` (que incluye `NormalSubgroup`, `Cosets`, `Group`, `FSetFunction`)*
+*Actualizado: 2026-05-05 — 0 errores, 0 sorry, 0 axiomas privados*
+
+Teorema de Correspondencia (Cuarto Teorema de Isomorfismo): dado un grupo finito `G` y un
+subgrupo normal `N ⊴ G`, existe una **biyección** entre el conjunto de subgrupos de `G` que
+contienen a `N` y el conjunto de subgrupos del cociente `G/N`.
+
+La biyección es:
+
+- `φ(K) = imageSubgroup G N hn K hNK` — imagen de `K` en `G/N` bajo `π : g ↦ gN`
+- `ψ(Q) = preimageSubgroup G N hn Q` — preimagen de `Q ≤ G/N` bajo `π`
+
+**Estrategia**: demostrar `φ ∘ ψ = id` (`imageSubgroup_preimage`) y `ψ ∘ φ = id`
+(`preimageSubgroup_image`) usando representantes de cosetos (`cosetRepOf`) y la
+caracterización de `cosetRel`. La inyectividad y sobreyectividad se derivan
+trivialmente de las dos invertibildades.
+
+**Lemas auxiliares privados** (no exportados):
+
+- `sorted_list_unique` — extensionalidad de listas ordenadas genérica sobre `StrictLinearOrder α`
+- `FSet_eq_of_mem_iff` — extensionalidad genérica de `FSet α` por membresía
+- `subgroup_ext'`, `subgroup_ext_mem` — extensionalidad de `Subgroup G`
+- `qsubgroup_ext'`, `qsubgroup_ext_mem` — extensionalidad de `Subgroup (quotientGroup G N hn)`
+- `leftCoset_inv_eq` — `leftCoset G N (G.inv b) = (quotientGroup G N hn).inv (leftCoset G N b)`
+- `mem_imageSubgroup_iff` — caracterización de membresía en `imageSubgroup`
+
+### 48.1. Definiciones [D]
+
+**[D48.1]** `preimageSubgroup`
+
+- **Lean4:** `noncomputable def preimageSubgroup (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (Q : Subgroup (quotientGroup G N hn)) : Subgroup G`
+- **Matemática:** `ψ(Q) = π⁻¹(Q) = { g ∈ G | gN ∈ Q }`
+- **Construcción:** `ℕ₀FSet.filter (fun g => decide (leftCoset G N g ∈ Q.carrier.elems)) G.carrier`
+- **Computable:** No (usa `quotientGroup` que es noncomputable)
+
+**[D48.2]** `SubgroupAbove`
+
+- **Lean4:** `def SubgroupAbove (G : FinGroup ℕ₀) (N : Subgroup G) (_hn : N.IsNormal) : Type`
+- **Matemática:** Subtipo `{ K : Subgroup G // ∀ h, h ∈ N.carrier.elems → h ∈ K.carrier.elems }`
+- **Nota:** `_hn` con guión bajo porque el tipo `Type` no depende del valor de `hn` en Lean 4.
+
+**[D48.3]** `correspondencePhi`
+
+- **Lean4:** `noncomputable def correspondencePhi (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) : SubgroupAbove G N hn → Subgroup (quotientGroup G N hn)`
+- **Matemática:** `φ(K) = π(K) = imageSubgroup G N hn K hNK`
+
+**[D48.4]** `correspondencePsi`
+
+- **Lean4:** `noncomputable def correspondencePsi (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) : Subgroup (quotientGroup G N hn) → SubgroupAbove G N hn`
+- **Matemática:** `ψ(Q) = ⟨preimageSubgroup G N hn Q, N_le_preimageSubgroup G N hn Q⟩`
+
+### 48.2. Teoremas [T]
+
+**[T48.1]** `mem_preimageSubgroup_iff`
+
+- **Lean4:** `theorem mem_preimageSubgroup_iff (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (Q : Subgroup (quotientGroup G N hn)) (g : ℕ₀) : g ∈ (preimageSubgroup G N hn Q).carrier.elems ↔ g ∈ G.carrier.elems ∧ leftCoset G N g ∈ Q.carrier.elems`
+- **Matemática:** `g ∈ ψ(Q) ↔ g ∈ G ∧ gN ∈ Q`
+
+**[T48.2]** `N_le_preimageSubgroup`
+
+- **Lean4:** `theorem N_le_preimageSubgroup (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (Q : Subgroup (quotientGroup G N hn)) : ∀ n, n ∈ N.carrier.elems → n ∈ (preimageSubgroup G N hn Q).carrier.elems`
+- **Matemática:** `N ≤ ψ(Q)` para todo `Q ≤ G/N` (pues `π(n) = eN = id ∈ Q`)
+
+**[T48.3]** `imageSubgroup_preimage`
+
+- **Lean4:** `theorem imageSubgroup_preimage (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (Q : Subgroup (quotientGroup G N hn)) : imageSubgroup G N hn (preimageSubgroup G N hn Q) (N_le_preimageSubgroup G N hn Q) = Q`
+- **Matemática:** `φ(ψ(Q)) = Q` — la imagen de la preimagen es el subgrupo original
+- **Demostración:** `C ∈ φ(ψ(Q))` iff `∃ g ∈ ψ(Q), leftCoset G N g = C`, lo que equivale a `C ∈ Q`. El testigo para la dirección `←` es `g = cosetRepOf G N C`.
+
+**[T48.4]** `preimageSubgroup_image`
+
+- **Lean4:** `theorem preimageSubgroup_image (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (K : Subgroup G) (hNK : ∀ h, h ∈ N.carrier.elems → h ∈ K.carrier.elems) : preimageSubgroup G N hn (imageSubgroup G N hn K hNK) = K`
+- **Matemática:** `ψ(φ(K)) = K` cuando `N ≤ K`
+- **Demostración:** dirección `→`: dado `g ∈ ψ(φ(K))`, existe `k ∈ K` con `leftCoset G N g = leftCoset G N k`, luego `G.op (G.inv g) k ∈ N ≤ K`, y se recupera `g ∈ K` vía `inv_op_eq` + `inv_inv_eq`.
+
+**[T48.5]** `correspondencePhi_psi`
+
+- **Lean4:** `theorem correspondencePhi_psi (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (Q : Subgroup (quotientGroup G N hn)) : correspondencePhi G N hn (correspondencePsi G N hn Q) = Q`
+- **Matemática:** `φ ∘ ψ = id_{Subgroup(G/N)}`
+
+**[T48.6]** `correspondencePsi_phi`
+
+- **Lean4:** `theorem correspondencePsi_phi (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) (K : SubgroupAbove G N hn) : correspondencePsi G N hn (correspondencePhi G N hn K) = K`
+- **Matemática:** `ψ ∘ φ = id_{SubgroupAbove G N}`
+
+**[T48.7]** `correspondenceInjective`
+
+- **Lean4:** `theorem correspondenceInjective (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) : ∀ K₁ K₂ : SubgroupAbove G N hn, correspondencePhi G N hn K₁ = correspondencePhi G N hn K₂ → K₁ = K₂`
+- **Matemática:** `φ` es inyectiva
+- **Demostración:** aplica `correspondencePsi` a ambos lados y usa `correspondencePsi_phi`.
+
+**[T48.8]** `correspondenceSurjective`
+
+- **Lean4:** `theorem correspondenceSurjective (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal) : ∀ Q : Subgroup (quotientGroup G N hn), ∃ K : SubgroupAbove G N hn, correspondencePhi G N hn K = Q`
+- **Matemática:** `φ` es sobreyectiva (testigo: `K = correspondencePsi G N hn Q`)
+
+### 48.3. Resumen del módulo
+
+| Símbolo | Tipo | Computable | Visibilidad |
+|---------|------|------------|-------------|
+| `preimageSubgroup` | `noncomputable def` | No | público |
+| `SubgroupAbove` | `def` | Sí | público |
+| `correspondencePhi` | `noncomputable def` | No | público |
+| `correspondencePsi` | `noncomputable def` | No | público |
+| `mem_preimageSubgroup_iff` | `theorem` | — | público |
+| `N_le_preimageSubgroup` | `theorem` | — | público |
+| `imageSubgroup_preimage` | `theorem` | — | público |
+| `preimageSubgroup_image` | `theorem` | — | público |
+| `correspondencePhi_psi` | `theorem` | — | público |
+| `correspondencePsi_phi` | `theorem` | — | público |
+| `correspondenceInjective` | `theorem` | — | público |
+| `correspondenceSurjective` | `theorem` | — | público |
+
+**Exportados vía:** `export Peano.GroupTheory (preimageSubgroup mem_preimageSubgroup_iff N_le_preimageSubgroup imageSubgroup_preimage preimageSubgroup_image SubgroupAbove correspondencePhi correspondencePsi correspondencePhi_psi correspondencePsi_phi correspondenceInjective correspondenceSurjective)`

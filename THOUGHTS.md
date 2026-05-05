@@ -53,13 +53,15 @@ Sea ⟨G, *⟩ grupo, y N₁, N₂ ⊴ G, subgrupos normales, N₁ ⊂ N₂. Ent
 
 - Si G/N₂ es cíclico, entonces (G/N₁)/(N₂/N₁) es cíclico.
 
-#### Cuarto teorema de isomorfismos
+#### Cuarto teorema de isomorfismos ✅ FORMALIZADO (2026-05-05)
 
 Sea $G$ un grupo y $N$ un subgrupo normal de $G$. Existe una correspondencia biunívoca entre:
 
 - El conjunto de subgrupos de $G$ que contienen a $N$
 
 - El conjunto de todos los subgrupos del grupo cociente $G/N$.
+
+**Formalizado en `CorrespondenceTheorem.lean`** — `correspondencePhi`/`correspondencePsi` dan la biyección (`correspondenceInjective` + `correspondenceSurjective`), 0 sorry, 0 axiomas privados.
 
 #### Lema de Zassenhaus (o de la Mariposa)
 
@@ -183,7 +185,7 @@ propuesta concreta del autor.
 
 **Situación actual:** Solo hay 2 definiciones `noncomputable` en todo el proyecto:
 `choose` y `choose_unique` en `Prelim.lean`. Ambas usan `Classical.indefiniteDescription`.
-_No_ hay definiciones no-computables en los módulos aritméticos.
+*No* hay definiciones no-computables en los módulos aritméticos.
 
 **Usos de `Classical`** (que no son lo mismo que `noncomputable`):
 
@@ -939,7 +941,7 @@ Para que los Reales sean un "cuerpo" en el sentido algebraico, necesitas que $x 
 
 ### 3. El Estadio de la Completitud (Salto a la No-Computabilidad)
 
-Hasta aquí, solo tienes los reales computables (como $\pi, e, \sqrt{2}$). Pero si quieres el **Axioma del Supremo** para _cualquier_ conjunto acotado, entras en terreno no computable.
+Hasta aquí, solo tienes los reales computables (como $\pi, e, \sqrt{2}$). Pero si quieres el **Axioma del Supremo** para *cualquier* conjunto acotado, entras en terreno no computable.
 
 - **El Problema:** Imagina un conjunto de reales definido por una propiedad que depende de si una máquina de Turing se detiene. El supremo de ese conjunto existe matemáticamente, pero no hay forma de construir su función de aproximación $f(n)$.
 - **Necesidad Lógica:** El **Axioma de Elección (`Classical.choice`)**. Lo necesitas para "extraer" una sucesión de Cauchy de un conjunto de reales del cual solo sabes que tiene una cota superior, sin tener una receta para calcular los elementos de esa sucesión.
@@ -986,10 +988,10 @@ Para mostrar estos "momentos", podrías definir un namespace para cada uno:
 
 ## Respuestas formales a las Nuevas cuestiones (2026-05-02)
 
-_Las preguntas del 2026-04-27 se adoptan como decisiones de diseño formales.
+*Las preguntas del 2026-04-27 se adoptan como decisiones de diseño formales.
 AczelSetTheory ya existe como repositorio en GitHub y tiene una copia local en
 `E:\dropbox\github\lean4\AczelSetTheory\`. Lo que sigue es el análisis formal
-que determina exactamente qué resta hacer en Peano antes de la transición._
+que determina exactamente qué resta hacer en Peano antes de la transición.*
 
 ---
 

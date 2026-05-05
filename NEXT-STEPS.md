@@ -7,9 +7,10 @@
 
 ## Current build state
 
-`lake build` compila con **0 errores** y **0 sorry** en todo el proyecto (59 jobs).
+`lake build` compila con **0 errores** y **0 sorry** en todo el proyecto (64 jobs).
 
 Warnings activos (menores, no bloquean):
+
 - `PeanoNat.lean:28` — `n`, `m` sin usar (en una definición de instancia)
 - `CosetAction.lean:292–294` — variables de patrón sin usar en la acción
 - `Sylow.lean:2027` — `hΩ_nd` sin usar
@@ -24,11 +25,13 @@ Warnings activos (menores, no bloquean):
 | `sylow_third_dvd` | ~2478 | `sylow_third` | Muy difícil |
 
 **Eliminados** (histórico):
+
 - `sylow_card_eq` — 2026-04-28
 - `wielandt_omega_card` — 2026-04-28
 - `sylow_second_incl` — ✅ **ELIMINADO** (reemplazado por `coset_conjugate_exists` en `CosetAction.lean`)
 
 **Infrastructure disponible** (en `Binom.lean`):
+
 - `prime_dvd_binom_prime` — `p ∣ C(p,k)` para `0 < k < p`
 - `binom_prime_row` — `C(p·r, p) = r · C(p·r-1, p-1)`
 - `binom_pr_p_mod` — `C(p·r, p) ≡ r (mod p)`
@@ -53,7 +56,12 @@ Peano/PeanoNat/
 │   ├── Perm.lean            ⚠ §3–§4 marcadas como "sorry" en comentarios
 │   │                          (no son sorry reales — el código compila)
 │   └── GroupTheory/
-│       ├── Action.lean      ✅
+│       ├── Action.lean             ✅
+│       ├── NormalSubgroup.lean     ✅ centralizer, normalizer, rightCoset, criterios
+│       ├── QuotientGroup.lean      ✅ quotientGroup, quotientHomomorphism, imageSubgroup
+│       ├── FirstIsomorphism.lean   ✅ homKer, homImg, firstIsoMap (inyectivo + sobreyectivo)
+│       ├── SecondIsomorphism.lean  ✅ subgroupHN, interHN, secondIsoMap
+│       ├── CorrespondenceTheorem.lean ✅ preimageSubgroup, SubgroupAbove, φ/ψ biyección  ← AÑADIDO 2026-05-05
 │       └── Sylow/
 │           ├── Cosets.lean       ✅
 │           ├── CosetAction.lean  ✅ coset_conjugate_exists (cierra sylow_second_incl)
@@ -144,6 +152,7 @@ requiere refactor completo de polimorfismo de FinGroup.
 `Wilson.lean` compila con **0 errores** y **0 sorry**.
 
 **Teorema central**:
+
 ```lean
 theorem wilson {p : ℕ₀} (hp : Prime p) : p ∣ add (factorial (sub p 𝟙)) 𝟙
 ```
@@ -203,6 +212,11 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 | F.2 `GodelBeta.lean` | ✅ COMPLETADO (2026-05-02) |
 | F.3 `Foundation.lean` paraguas | ✅ COMPLETADO (2026-05-02) |
 | `Wilson.lean` | ✅ COMPLETADO (2026-05-05) |
+| `NormalSubgroup.lean` | ✅ COMPLETADO |
+| `QuotientGroup.lean` | ✅ COMPLETADO |
+| `FirstIsomorphism.lean` | ✅ COMPLETADO |
+| `SecondIsomorphism.lean` | ✅ COMPLETADO |
+| `CorrespondenceTheorem.lean` | ✅ COMPLETADO (2026-05-05) |
 | `CosetAction.lean` (Sylow II) | ✅ COMPLETADO |
 | 4 axiomas privados Sylow | ❌ Pendiente (Tracks 1 y 3) |
 | G.1 Migración documentación a `/doc/` | ❌ Pendiente |
@@ -241,6 +255,7 @@ Peano se declara **feature-frozen** cuando:
 - [ ] G.1 Documentación migrada a `/doc/`
 
 A partir del feature-freeze:
+
 - Solo se aceptan: corrección de errores, actualización de `lean-toolchain`,
   mejoras de build, lemas menores solicitados por AczelSetTheory.
 - No se desarrollan nuevos módulos matemáticos en Peano.
@@ -250,12 +265,14 @@ A partir del feature-freeze:
 Una vez feature-frozen Peano:
 
 1. Añadir dependencia en `AczelSetTheory/lakefile.lean`:
+
    ```lean
    require Peano from git
      "https://github.com/julian1c2a/Peano" @ "<sha-de-Foundation-sin-sorry>"
    ```
 
 2. Crear en AczelSetTheory:
+
    ```
    AczelSetTheory/Foundation/
    └── ListFromPeano.lean   ← import + prueba List ℕ₀ ≃ ℕ₀ vía encode_decode
@@ -270,6 +287,7 @@ Una vez feature-frozen Peano:
 ## FinGroup polymorphism — Phase 5 (largo plazo)
 
 Current `FinGroup` requiere carrier ⊆ `ℕ₀`. Bloquea:
+
 - Grupos cociente G/N (elementos son cosets, no `ℕ₀`)
 - `FinGroup (Subgroup G)` para la acción de conjugación (Sylow III)
 

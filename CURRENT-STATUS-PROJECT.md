@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-05-02
+**Última actualización:** 2026-05-05
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,21 +15,20 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (51 jobs)   [2026-05-02]
-sorry count     →  0 (5 axiomas privados en Sylow.lean, pendientes de prueba)
+lake build      →  Build completed successfully (64 jobs)   [2026-05-05]
+sorry count     →  0 (4 axiomas privados en Sylow.lean, pendientes de prueba)
 warnings        →  0
 errors          →  0
 ```
 
 ### Desglose de axiomas privados (Sylow.lean)
 
-*(Nota: `sylow_card_eq` fue probado el 2026-04-28. Los 5 restantes son:)*
+*(Nota: `sylow_card_eq` fue probado el 2026-04-28. Los 4 restantes son:)*
 
-| Axioma | Línea | Usado por | Dificultad | Ruta |
+| Axioma | Línea ~ | Usado por | Dificultad | Ruta |
 |---|---|---|---|---|
 | `wielandt_fixed_point_exists` | ~2062 | `sylow_center_step_wielandt` | Difícil | Wielandt paso 7 (órbita-estabilizador) |
 | `wielandt_p_ndvd_r` | ~2165 | `sylow_center_step_wielandt` | Medio | `binom_pow_p_mod` disponible |
-| `sylow_second_incl` | ~2374 | `sylow_second` | Difícil | H-acción sobre G/K |
 | `sylow_third_mod` | ~2442 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
 | `sylow_third_dvd` | ~2456 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
 
@@ -88,9 +87,14 @@ errors          →  0
 | `Combinatorics/Orbit.lean` | `Peano.Orbit` | Órbitas | ✅ |
 | `Combinatorics/Group.lean` | `Peano.Group` | `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]`, `Subgroup`, `gpow`, `order`, subgrupos, `IsNormal`, inter | ✅ |
 | **GroupTheory/** | | | |
+| `GroupTheory/NormalSubgroup.lean` | `Peano.GroupTheory` | `centralizer`, `normalizer`, `rightCoset`, criterios de normalidad | ✅ |
+| `GroupTheory/QuotientGroup.lean` | `Peano.GroupTheory` | `quotientGroup`, `quotientHomomorphism`, `imageSubgroup` (29 exports) | ✅ |
+| `GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `homKer`, `homImg`, `firstIsoMap` — G/ker≅Im | ✅ |
+| `GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `subgroupHN`, `interHN`, `secondIsoMap` — H/(H∩N)≅HN/N | ✅ |
+| `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
 | `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card`, `lagrange` | ✅ |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (0 sorry, 5 axiomas privados) | ⚠ 5 axiomas |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (0 sorry, 4 axiomas privados) | ⚠ 4 axiomas |
 
 ---
 

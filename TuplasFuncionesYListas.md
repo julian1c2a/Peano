@@ -28,9 +28,9 @@ Solo tenemos las reglas constructivas de derivación en $\text{FOL}^=$ (sin ley 
 
 $$\mathcal{B} = \{ \exists, \forall, \land, \lor, \neg, \implies, \iff, (, ), = \}$$
 
-$$\mathcal{C} = \left\{ 0, \sigma, \tau, +, *, <, \sqrt{} \right\}$$
+$$\mathcal{C} = \left\{ 0, \sigma, \tau, +, *, <, ≤, \sqrt{} \right\}$$
 
-$$\mathcal{D} = \{ a', b, c, d, e, f, g, h \}$$
+$$\mathcal{D} = \{ a, b, c, d, e, f, g, h \}$$
 
 $$\mathcal{E} = \{ x, y, z, w \}$$
 
@@ -50,89 +50,97 @@ $$\mathcal{\Lambda} = \mathcal{B} \cup \mathcal{C} \cup \mathcal{D} \cup \mathca
 
 $$\mathcal{\Gamma} = \{ \phi, \psi, \zeta, \delta, \epsilon, \eta, \theta \} \quad \text{(Variables de fórmulas)}$$
 
-(Las letras minúsculas o con apóstrofes actuarán como variables término, instanciadas sobre el universo de los números naturales).
+Las letras minúsculas o con apóstrofes actuarán como variables término, instanciadas sobre el universo de los números naturales, $\mathcal{T}\prime = \mathcal{D}\cup\mathcal{E}\cup\mathcal{F}\cup\mathcal{G}$, y definimos nuestro léxico para términos por ser un elemento de $\mathcal{T}\prime$ o bien un elemento de $\mathcal{T}'$ seguido de una o más repeticiones del elemento de $\mathcal{H}$.
 
 2.2 **Axiomas Fundamentales**
 
 Ax 1. $\exists 0$ (Axioma de existencia del cero)
 
-Ax 2. $\forall n, \exists \sigma(n)$ (Axioma de sucesión)
+Ax 2. $\forall n, \sigma(n) \neq 0$ (Axioma de no retorno al cero)
 
-Ax 3. $\forall n, \sigma(n) \neq 0$ (Axioma de no retorno al cero)
+Ax 3. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ (Axioma de inyectividad del sucesor)
 
-Ax 4. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ (Axioma de inyectividad del sucesor)
+Ax 4. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ (Axioma de predecesor)
 
-Ax 5. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ (Axioma de predecesor)
+Ax 5. $\forall n, n + 0 = n$ (Axioma de identidad aditiva)
 
-Ax 6. $\forall n, n + 0 = n$ (Axioma de identidad aditiva)
+Ax 6. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ (Axioma de definición recursiva de la suma)
 
-Ax 7. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ (Axioma de definición recursiva de la suma)
+Ax 7. $\forall n, \forall m, n + m = m + n$ (Axioma de conmutatividad de la suma)
 
-Ax 8. $\forall n, n * 0 = 0$ (Axioma de absorción multiplicativa)
+Ax 8. $\forall n, \forall m, \forall k, (n + m) + k = n + (m + k)$ (Axioma de asociatividad de la suma)
 
-Ax 9. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$ (Axioma de definición recursiva del producto)
+Ax 9. $\forall n, n * 0 = 0$ (Axioma de absorción multiplicativa)
 
-Ax 10. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ (Axioma de definición del orden estricto)
+Ax 10. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$ (Axioma de definición recursiva del producto)
 
-Ax 11. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ (Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada)
+Ax 11. $\forall n, \forall m, n * m = m * n$ (Axioma de conmutatividad del producto)
 
-Ax 12. $\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ (Axioma de acotación superior de la raíz cuadrada)
+Ax 12. $\forall n, \forall m, \forall k, (n * m) * k = n * (m * k)$ (Axioma de asociatividad del producto)
 
-Ax 13. $mod2(0) = 0$ (Axioma de módulo 2 para el cero)
+Ax 13. $\forall n, \forall m, \forall k, n * (m + k) = (n * m) + (n * k)$ (Axioma de distributividad del producto sobre la suma)
 
-Ax 14. $∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ (Axioma de módulo 2 para el sucesor)
+Ax 14. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ (Axioma de definición del orden estricto)
 
-Ax 15. $div2(0) = 0$ (Axioma de división por 2 para el cero)
+Ax 15. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ (Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada)
 
-Ax 16. $div2(1) = 0$ (Axioma de división por 2 para el uno)
+Ax 16. $\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ (Axioma de acotación superior de la raíz cuadrada)
 
-Ax 17. $∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(σ(n)) = div2(σ(σ(n)))))$  (Axioma de división por 2 para el sucesor y existencia de la función de división por 2)
+Ax 17. $∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ (Axioma de módulo 2 para el sucesor)
 
 Ax 18. $∀ n, (div2(n)*2) + mod2(n) = n$ (Axioma de Unicidad de la División por 2)
 
-Ax 19. $\forall n, \forall m, n + m = m + n$ (Axioma de conmutatividad de la suma)
+Teorema 19. $∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(σ(n)) = div2(σ(σ(n)))))$  (Axioma de división por 2 para el sucesor y existencia de la función de división por 2) Puede llegar a demostrarse. La primeralab or será comenzar a probarlo.
 
-Ax 20. $\forall n, \forall m, \forall k, (n + m) + k = n + (m + k)$ (Axioma de asociatividad de la suma)
+Teorema 15. $div2(0) = 0$ (Teorema de división por 2 para el cero)-> Teorema
 
-Ax 21. $\forall n, \forall m, n * m = m * n$ (Axioma de conmutatividad del producto)
+Teorema 16. $div2(1) = 0$ (Axioma de división por 2 para el uno)-> Teorema
 
-Ax 22. $\forall n, \forall m, \forall k, (n * m) * k = n * (m * k)$ (Axioma de asociatividad del producto)
+Teorema 17. $div2(2) = 1$ (Axioma de división por 2 para el dos)-> Teorema
 
-Ax 23. $\forall n, \forall m, \forall k, n * (m + k) = (n * m) + (n * k)$ (Axioma de distributividad del producto sobre la suma)
+Teorema 18. $div2(3) = 1$ (Axioma de división por 2 para el tres)-> Teorema
+
+Teorema 19. $div2(4) = 2$ (Axioma de división por 2 para el cuatro)-> Teorema
+
+Teorema 20. $mod2(0) = 0$ (Axioma de módulo 2 para el cero)
+
+
 
 2.3 **Definiciones Base**
 
-$∀ a, ∀ b, a \le b \iff a < b \lor a = b$ Notacfión estándar de la relación de orden no estricto
+Def 1. $∀ a, ∀ b, a \le b \iff a < b \lor a = b$ Notacfión estándar de la relación de orden no estricto
 
-$1 := \sigma(0)$ Definición/Notación de 1
+Def 2. $1 := \sigma(0)$ Definición/Notación de 1
 
-$2 := \sigma(1)$ Definición/Notación de 2
+Def 3. $2 := \sigma(1)$ Definición/Notación de 2
 
-$3 := \sigma(2)$ Definición/Notación de 3
+Def 4. $3 := \sigma(2)$ Definición/Notación de 3
 
-$4 := \sigma(3)$ Definición/Notación de 4
+Def 5. $4 := \sigma(3)$ Definición/Notación de 4
 
-$\tau(0) := 0$ Definición de la función de predecesor totalizada (con $\tau(0) = 0$ para evitar la colisión con el cero)
+Def 6. $\tau(0) := 0$ Definición de la función de predecesor totalizada (con $\tau(0) = 0$ para evitar la colisión con el cero)
 
-$\forall n, \exists \tau(n), \tau(\sigma(n)) = n$ Definición de la función de predecesor totalizada (con $\tau(n)$ definido recursivamente para todos los sucesores)
+Def 7. $\forall n, \exists \tau(n), \tau(\sigma(n)) = n$ Definición de la función de predecesor totalizada (con $\tau(n)$ definido recursivamente para todos los sucesores)
 
-$n^2 := n * n \quad \text{(Azúcar sintáctico para cuadrados perfectos)}$
+Def 8. $n^2 := n * n \quad \text{(Azúcar sintáctico para cuadrados perfectos)}$
 
 1. **La Estrategia Constructiva: Función de Cantor**
 
 Para introducir las 2-Tuplas lógicamente, postulamos la función de emparejamiento de Cantor y su residuo usando nuestras funciones primitivas:
 
-$$c(x,y) := div2((x+y) * (x+y+1) + 2 * y)$$
+Def 9. $$c(x,y) := div2((x+y) * (x+y+1) + 2 * y)$$
 
-$$r(x,y) := mod2((x+y) * (x+y+1) + 2 * y)$$
+Def 10. $$r(x,y) := mod2((x+y) * (x+y+1) + 2 * y)$$
 
 El predicado relacional base sobre tres naturales se define como:
 
-$$\text{Cantor}(x,y,c) := (2 * c = (x+y) * (x+y+1) + 2 * y)$$
+Def 11. $$\text{Cantor}(x,y,c) := (2 * c = (x+y) * (x+y+1) + 2 * y)$$
 
 Meta Deductiva: Demostrar formalmente que $\text{Cantor}(x,y,c)$ es total, sobreyectiva e inyectiva (biyectiva) permitiéndonos definir rigurosamente $\text{2-Tuple}(x,y) := c$ y sus proyecciones:
 
-$$[c].1 := \text{proyCantor}_1(c) \quad \text{y} \quad [c].2 := \text{proyCantor}_2(c)$$
+Def 12. $$[c].1 := \text{proyCantor}_1(c)$$
+
+Def 13. $$[c].2 := \text{proyCantor}_2(c)$$
 
 Evaluando algebraicamente: $2x = -(2y+1) \pm \sqrt{4y^2 + 4y + 1 - 4y^2 - 12y + 8c}$.
 
@@ -160,17 +168,7 @@ Teorema 32: $0 + 0 = 0$ (Instanciando el Ax 6)
 
 ### FASE 3 y 4: Límite del Sistema y Adopción Algebraica
 
-Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo: Conmutatividad y asociatividad de la suma y el producto, y la distributividad del producto sobre la suma. Son los axiomas 19 al 23, que adoptamos como hipótesis de trabajo para desarrollar la teoría de polinomios y la función de Cantor. Podemos adoptarlos puesto que tenemos modelos que los satisfacen.
-
-Ax 17 (Conmutatividad +): $\forall n, \forall m, n + m = m + n$
-
-Ax 18 (Asociatividad +): $\forall n, \forall m, \forall k, (n + m) + k = n + (m + k)$
-
-Ax 19 (Conmutatividad *): $\forall n, \forall m, n * m = m * n$
-
-Ax 20 (Asociatividad *): $\forall n, \forall m, \forall k, (n * m) * k = n * (m * k)$
-
-Ax 21 (Distributividad): $\forall n, \forall m, \forall k, n * (m + k) = (n * m) + (n * k)$
+Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo: Conmutatividad y asociatividad de la suma y el producto, y la distributividad del producto sobre la suma. Son los axiomas 19 al 23, que adoptamos como hipótesis de trabajo para desarrollar la teoría de polinomios y la función de Cantor. Podemos adoptarlos puesto que tenemos modelos que los satisfacen, lo que nos habla decon sistencia relativa.
 
 ### FASE 5: Teoremas Algebraicos Generales
 

@@ -50,7 +50,7 @@ $$\mathcal{\Lambda} = \mathcal{B} \cup \mathcal{C} \cup \mathcal{D} \cup \mathca
 
 $$\mathcal{\Gamma} = \{ \phi, \psi, \zeta, \delta, \epsilon, \eta, \theta \} \quad \text{(Variables de fórmulas)}$$
 
-Las letras minúsculas o con apóstrofes actuarán como variables término, instanciadas sobre el universo de los números naturales, $\mathcal{T}\prime = \mathcal{D}\cup\mathcal{E}\cup\mathcal{F}\cup\mathcal{G}$, y definimos nuestro léxico para términos por ser un elemento de $\mathcal{T}\prime$ o bien un elemento de $\mathcal{T}'$ seguido de una o más repeticiones del elemento de $\mathcal{H}$.
+Las letras minúsculas o con apóstrofes actuarán como variables término, instanciadas sobre el universo de los números naturales, $\mathcal{T}^\prime = \mathcal{D}\cup\mathcal{E}\cup\mathcal{F}\cup\mathcal{G}$, y definimos nuestro léxico para términos por ser un elemento de $\mathcal{T}^\prime$ o bien un elemento de $\mathcal{T}^\prime$ seguido de una o más repeticiones del elemento de $\mathcal{H}$.
 
 2.2 **Axiomas Fundamentales**
 

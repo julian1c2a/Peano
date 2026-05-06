@@ -2054,6 +2054,133 @@ namespace Peano
       · exact fun x hx => (List.mem_filter.mp hx).1
       · exact hlen
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt: acción wieldandtAct y lemas básicos (Pasos 1–2)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Dos listas ℕ₀ estrictamente ordenadas con los mismos elementos son iguales.
+        Auxiliar local (copia de `sorted_nodup_unique_list` en FSet.lean). -/
+    private theorem w4_sorted_unique :
+        ∀ {l₁ l₂ : List ℕ₀},
+        List.Pairwise (· < ·) l₁ → List.Pairwise (· < ·) l₂ →
+        (∀ z : ℕ₀, z ∈ l₁ ↔ z ∈ l₂) → l₁ = l₂
+      | [], [], _, _, _ => rfl
+      | [], y :: _, _, _, hmem =>
+          absurd ((hmem y).mpr List.mem_cons_self) List.not_mem_nil
+      | x :: _, [], _, _, hmem =>
+          absurd ((hmem x).mp List.mem_cons_self) List.not_mem_nil
+      | x :: xs, y :: ys, hs₁, hs₂, hmem =>
+          have hxs₁ := List.pairwise_cons.mp hs₁
+          have hxs₂ := List.pairwise_cons.mp hs₂
+          have hxy : x = y := by
+            have hx_in : x ∈ y :: ys := (hmem x).mp List.mem_cons_self
+            have hy_in : y ∈ x :: xs := (hmem y).mpr List.mem_cons_self
+            rcases List.mem_cons.mp hx_in with rfl | hx_ys
+            · rfl
+            · rcases List.mem_cons.mp hy_in with rfl | hy_xs
+              · rfl
+              · exact absurd
+                  (lt_trans_wp
+                    (List.rel_of_pairwise_cons hs₁ hy_xs)
+                    (List.rel_of_pairwise_cons hs₂ hx_ys))
+                  (nlt_self x)
+          have htail : xs = ys := by
+            apply w4_sorted_unique hxs₁.2 hxs₂.2
+            intro z
+            constructor
+            · intro hz
+              have hzy := (hmem z).mp (List.mem_cons.mpr (Or.inr hz))
+              rcases List.mem_cons.mp hzy with h_eq | h
+              · have h_lt : lt₀ x z := List.rel_of_pairwise_cons hs₁ hz
+                rw [h_eq, ← hxy] at h_lt
+                exact absurd h_lt (nlt_self x)
+              · exact h
+            · intro hz
+              have hzx := (hmem z).mpr (List.mem_cons.mpr (Or.inr hz))
+              rcases List.mem_cons.mp hzx with h_eq | h
+              · have h_lt : lt₀ y z := List.rel_of_pairwise_cons hs₂ hz
+                rw [h_eq, hxy] at h_lt
+                exact absurd h_lt (nlt_self y)
+              · exact h
+          Eq.trans (congrArg (List.cons x) htail) (congrArg (· :: ys) hxy)
+
+    /-- Acción de Wielandt: g ∈ G actúa sobre S ⊆ G por multiplicación izquierda,
+        devolviendo la sublista canónica ordenada de G.carrier. -/
+    private def wieldandtAct (G : FinGroup ℕ₀) (g : ℕ₀) (S : List ℕ₀) : List ℕ₀ :=
+      (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems
+
+    /-- La acción de Wielandt por el elemento neutro es la identidad. -/
+    private theorem wieldandtAct_id
+        (G : FinGroup ℕ₀) (S : List ℕ₀)
+        (hS_sorted : Sorted (· < ·) S)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) :
+        wieldandtAct G G.id S = S := by
+      show (G.carrier.filter (fun x => decide (x ∈ S.map (G.op G.id)))).elems = S
+      have hmap : S.map (G.op G.id) = S := by
+        induction S with
+        | nil => rfl
+        | cons x xs ih =>
+          rw [List.map_cons, (G.op_id x (hS_mem x List.mem_cons_self)).2]
+          congr 1
+          exact ih (List.pairwise_cons.mp hS_sorted).2
+                   (fun y hy => hS_mem y (List.mem_cons_of_mem x hy))
+      rw [hmap]
+      apply w4_sorted_unique
+      · exact List.Pairwise.filter _ G.carrier.sorted
+      · exact hS_sorted
+      · intro z
+        constructor
+        · intro hz; exact of_decide_eq_true (List.mem_filter.mp hz).2
+        · intro hz; exact List.mem_filter.mpr ⟨hS_mem z hz, decide_eq_true hz⟩
+
+    /-- La acción de Wielandt es compatible con la composición del grupo. -/
+    private theorem wieldandtAct_comp
+        (G : FinGroup ℕ₀) (g h : ℕ₀) (S : List ℕ₀)
+        (hg : g ∈ G.carrier.elems) (hh : h ∈ G.carrier.elems)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) :
+        wieldandtAct G g (wieldandtAct G h S) = wieldandtAct G (G.op g h) S := by
+      show (G.carrier.filter (fun x => decide (x ∈ (wieldandtAct G h S).map (G.op g)))).elems =
+           (G.carrier.filter (fun x => decide (x ∈ S.map (G.op (G.op g h))))).elems
+      apply w4_sorted_unique
+      · exact List.Pairwise.filter _ G.carrier.sorted
+      · exact List.Pairwise.filter _ G.carrier.sorted
+      · intro z
+        constructor
+        · intro hz
+          obtain ⟨hzG, hzt⟩ := List.mem_filter.mp hz
+          obtain ⟨t, ht_act, rfl⟩ := List.mem_map.mp (of_decide_eq_true hzt)
+          have ht_filter := List.mem_filter.mp ht_act
+          obtain ⟨s, hs, rfl⟩ := List.mem_map.mp (of_decide_eq_true ht_filter.2)
+          apply List.mem_filter.mpr
+          exact ⟨op_mem G hg (op_mem G hh (hS_mem s hs)),
+                 decide_eq_true (List.mem_map.mpr ⟨s, hs,
+                   G.op_assoc g h s hg hh (hS_mem s hs)⟩)⟩
+        · intro hz
+          obtain ⟨hzG, hzs⟩ := List.mem_filter.mp hz
+          obtain ⟨s, hs, rfl⟩ := List.mem_map.mp (of_decide_eq_true hzs)
+          have hassoc : G.op (G.op g h) s = G.op g (G.op h s) :=
+            G.op_assoc g h s hg hh (hS_mem s hs)
+          have ht_G : G.op h s ∈ G.carrier.elems := op_mem G hh (hS_mem s hs)
+          have ht_act : G.op h s ∈ wieldandtAct G h S := by
+            show G.op h s ∈ (G.carrier.filter (fun x => decide (x ∈ S.map (G.op h)))).elems
+            exact List.mem_filter.mpr ⟨ht_G, decide_eq_true (List.mem_map.mpr ⟨s, hs, rfl⟩)⟩
+          rw [hassoc]
+          apply List.mem_filter.mpr
+          exact ⟨op_mem G hg ht_G,
+                 decide_eq_true (List.mem_map.mpr ⟨G.op h s, ht_act, rfl⟩)⟩
+
+    /-- wieldandtAct preserva la pertenencia a Ω. -/
+    private theorem wieldandtAct_mem_omega
+        (G : FinGroup ℕ₀) (N : ℕ₀) (Ω : List (List ℕ₀))
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+          (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
+          (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
+        (g : ℕ₀) (hg : g ∈ G.carrier.elems) (S : List ℕ₀) (hS : S ∈ Ω) :
+        wieldandtAct G g S ∈ Ω :=
+      wielandt_translate_mem G Ω N hΩ_nd hΩ_mem hΩ_full g hg S hS
+
     /-- Argumento de Wielandt, pieza 3:
         Si G actúa sobre Ω por traslación izquierda y p ∤ |Ω|, existe un subgrupo
         H de G de orden N = p^(m+1).
@@ -2157,6 +2284,251 @@ namespace Peano
             intro x hx
             exact List.mem_filter.mpr ⟨hS_mem x hx, decide_eq_true hx⟩
         exact (congrArg Λ hlen_eq).trans hS_len
+
+    /-- Paso 3a: S punto fijo SET-LEVEL bajo wieldandtAct implica S es subgrupo de orden N. -/
+    private theorem wieldandt_fixedPoint_is_subgroup
+        (G : FinGroup ℕ₀) (S : List ℕ₀) (N : ℕ₀)
+        (hS_ne : S ≠ [])
+        (hS_nd : S.Nodup)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (hS_len : lengthₚ S = N)
+        (hS_fixed : ∀ g ∈ G.carrier.elems, wieldandtAct G g S = S) :
+        ∃ H : Subgroup G, H.carrier.card = N := by
+      have hS_set_fixed : ∀ g ∈ G.carrier.elems, ∀ x ∈ S, G.op g x ∈ S := by
+        intro g hg x hx
+        have hact : wieldandtAct G g S = S := hS_fixed g hg
+        have hgx_in_act : G.op g x ∈ wieldandtAct G g S := by
+          show G.op g x ∈ (G.carrier.filter (fun z => decide (z ∈ S.map (G.op g)))).elems
+          exact List.mem_filter.mpr
+            ⟨op_mem G hg (hS_mem x hx),
+             decide_eq_true (List.mem_map.mpr ⟨x, hx, rfl⟩)⟩
+        exact hact ▸ hgx_in_act
+      exact wielandt_fixed_is_subgroup G S N hS_ne hS_nd hS_mem hS_len hS_set_fixed
+
+    /-- Paso 3b: Si existe un punto fijo en Ω bajo wieldandtAct, existe subgrupo de orden N. -/
+    private theorem wieldandt_fixedPoint_exists_of_fix_nonempty
+        (G : FinGroup ℕ₀) (N : ℕ₀) (Ω : List (List ℕ₀))
+        (hN_ne : N ≠ 𝟘)
+        (hΩ_mem : ∀ S ∈ Ω, S.Nodup ∧ Sorted (· < ·) S ∧
+          (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
+        (hfix : ∃ S ∈ Ω, ∀ g ∈ G.carrier.elems, wieldandtAct G g S = S) :
+        ∃ H : Subgroup G, H.carrier.card = N := by
+      obtain ⟨S, hS_Ω, hS_fixed⟩ := hfix
+      obtain ⟨hS_nd, _hS_sorted, hS_mem, hS_len⟩ := hΩ_mem S hS_Ω
+      have hS_ne : S ≠ [] := by
+        intro h; rw [h, lengthₚ_nil] at hS_len; exact hN_ne hS_len.symm
+      exact wieldandt_fixedPoint_is_subgroup G S N hS_ne hS_nd hS_mem hS_len hS_fixed
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt Pieza B: elemento de orden p (de Cauchy)
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Si p es primo y p ∣ |G|, existe g ∈ G con g^p = G.id y g ≠ G.id.
+        Extrae el generador de orden p que produce cauchy_minimal internamente. -/
+    private theorem wielandt_elem_order_p
+        (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p)
+        (hdvd : ∃ t : ℕ₀, Mul.mul p t = G.carrier.card) :
+        ∃ g ∈ G.carrier.elems, g ≠ G.id ∧ gpow G g p = G.id := by
+      let F := ℕ₀FSet.filter (fun g => decide (gpow G g p = G.id)) G.carrier
+      have hid_in_F : G.id ∈ F.elems :=
+        List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (gpow_id_eq_id G p)⟩
+      have hp_dvd_F : p ∣ F.card := mckay_p_dvd_powEqId G p hp hdvd
+      have hF_pos : lt₀ 𝟘 F.card := card_pos_of_mem_aux hid_in_F
+      obtain ⟨k, hk⟩ := hp_dvd_F
+      have hk_ne : k ≠ 𝟘 := by
+        intro h0; rw [h0, mul_zero] at hk; rw [hk] at hF_pos
+        exact absurd hF_pos not_lt_zero
+      have hF_ge_p : le₀ p F.card := hk ▸ mul_le_right p k hk_ne
+      have hF_ge_2 : le₀ 𝟚 F.card := le_trans 𝟚 p F.card (prime_ge_two hp) hF_ge_p
+      obtain ⟨g, hg_in_F, hg_ne⟩ := exists_ne_of_card_ge hid_in_F hF_ge_2
+      exact ⟨g, (List.mem_filter.mp hg_in_F).1, hg_ne,
+             decide_eq_true_eq.mp (List.mem_filter.mp hg_in_F).2⟩
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt Órbita–Estabilizador para listas
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- El estabilizador de S en G bajo wieldandtAct.
+        Requiere que S sea un subconjunto de G (hS_mem) y esté ordenado (hS_sorted).
+        Devuelve el subgrupo { g ∈ G | g·S = S }. -/
+    private def wieldandtStab
+        (G : FinGroup ℕ₀) (S : List ℕ₀)
+        (hS_sorted : Sorted (· < ·) S)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) : Subgroup G where
+      carrier   := G.carrier.filter (fun g => decide (wieldandtAct G g S = S))
+      nonempty  := ⟨G.id, List.mem_filter.mpr
+                    ⟨G.id_in, decide_eq_true (wieldandtAct_id G S hS_sorted hS_mem)⟩⟩
+      subset    := fun a ha => (List.mem_filter.mp ha).1
+      op_closed := fun a b ha hb => by
+        have ⟨ha_G, ha_fix⟩ := List.mem_filter.mp ha
+        have ⟨hb_G, hb_fix⟩ := List.mem_filter.mp hb
+        rw [decide_eq_true_eq] at ha_fix hb_fix
+        refine List.mem_filter.mpr ⟨op_mem G ha_G hb_G, decide_eq_true ?_⟩
+        rw [← wieldandtAct_comp G a b S ha_G hb_G hS_mem, hb_fix, ha_fix]
+      id_in     := List.mem_filter.mpr
+                    ⟨G.id_in, decide_eq_true (wieldandtAct_id G S hS_sorted hS_mem)⟩
+      inv_closed := fun a ha => by
+        have ⟨ha_G, ha_fix⟩ := List.mem_filter.mp ha
+        rw [decide_eq_true_eq] at ha_fix
+        refine List.mem_filter.mpr ⟨inv_mem G ha_G, decide_eq_true ?_⟩
+        have hcomp :=
+          wieldandtAct_comp G (G.inv a) a S (inv_mem G ha_G) ha_G hS_mem
+        rw [ha_fix, (G.op_inv a ha_G).2] at hcomp
+        exact hcomp.trans (wieldandtAct_id G S hS_sorted hS_mem)
+
+    /-- La órbita de S ∈ Ω bajo G: sublista de Ω consistente en { g·S | g ∈ G }. -/
+    private def wieldandtOrb (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (S : List ℕ₀) :
+        List (List ℕ₀) :=
+      Ω.filter (fun T => G.carrier.elems.any (fun g => decide (wieldandtAct G g S = T)))
+
+    /-- Miembro de wieldandtOrb: T ∈ Orb(S) ↔ ∃ g ∈ G, g·S = T (y T ∈ Ω). -/
+    private theorem mem_wieldandtOrb_iff
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (S T : List ℕ₀) :
+        T ∈ wieldandtOrb G Ω S ↔
+        (T ∈ Ω) ∧ ∃ g ∈ G.carrier.elems, wieldandtAct G g S = T := by
+      simp only [wieldandtOrb, List.mem_filter, List.any_eq_true]
+      constructor
+      · rintro ⟨hT, g, hg, hd⟩
+        exact ⟨hT, g, hg, of_decide_eq_true hd⟩
+      · rintro ⟨hT, g, hg, heq⟩
+        exact ⟨hT, g, hg, decide_eq_true heq⟩
+
+    /-- S ∈ wieldandtOrb G Ω S cuando S ∈ Ω (el elemento neutro actúa trivialmente). -/
+    private theorem wieldandtOrb_self_mem
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (S : List ℕ₀)
+        (hS_Ω : S ∈ Ω)
+        (hS_sorted : Sorted (· < ·) S)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems) :
+        S ∈ wieldandtOrb G Ω S :=
+      (mem_wieldandtOrb_iff G Ω S S).mpr
+        ⟨hS_Ω, G.id, G.id_in,
+         wieldandtAct_id G S hS_sorted hS_mem⟩
+
+    /-- Órbita–estabilizador para wieldandtAct:
+        |wieldandtOrb G Ω S| · |(wieldandtStab G S hS_sorted hS_mem).carrier| = |G|. -/
+    private theorem wielandt_orbit_stab
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (S : List ℕ₀) (N : ℕ₀)
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_mem : ∀ T ∈ Ω, T.Nodup ∧ Sorted (· < ·) T ∧
+          (∀ x ∈ T, x ∈ G.carrier.elems) ∧ lengthₚ T = N)
+        (hΩ_full : ∀ T : List ℕ₀, T.Nodup → Sorted (· < ·) T →
+          (∀ x ∈ T, x ∈ G.carrier.elems) → lengthₚ T = N → T ∈ Ω)
+        (hS_Ω : S ∈ Ω) :
+        let ⟨_, hS_sorted, hS_memG, _⟩ := hΩ_mem S hS_Ω
+        Mul.mul (lengthₚ (wieldandtOrb G Ω S))
+                (wieldandtStab G S hS_sorted hS_memG).carrier.card =
+        G.carrier.card := by
+      obtain ⟨_, hS_sorted, hS_memG, _⟩ := hΩ_mem S hS_Ω
+      -- Prueba: análoga a orbit_stabilizer en Action.lean via card_eq_mul_of_uniform_fibers
+      -- La función G.carrier → wieldandtOrb G Ω S dada por g ↦ g·S tiene fibras uniformes
+      -- de tamaño |(wieldandtStab G S)|.
+      sorry
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt Pieza C: |Stab| = N cuando p ∤ |Orb|
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Si S ∈ Ω, la función h ↦ h·s₀ inyecta wieldandtStab G S en S.
+        Por tanto |(wieldandtStab G S hS_sorted hS_mem).carrier| ≤ |S| = N. -/
+    private theorem wieldandtStab_card_le
+        (G : FinGroup ℕ₀) (S : List ℕ₀) (N : ℕ₀)
+        (hS_ne : S ≠ [])
+        (hS_nd : S.Nodup)
+        (hS_sorted : Sorted (· < ·) S)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (hS_len : lengthₚ S = N) :
+        le₀ (wieldandtStab G S hS_sorted hS_mem).carrier.card N := by
+      -- Prueba: h ↦ h·s₀ inyecta Stab en S via op_cancel_right
+      -- TODO: formalizar via nodup_sub_len
+      sorry
+
+    /-- Dado p ∤ |wieldandtOrb G Ω S₀|, N = p^(m+1), y órbita-estabilizador,
+        wieldandtStab G S₀ es un subgrupo de G de orden N. -/
+    private theorem wielandt_stab_card_eq_N
+        (G : FinGroup ℕ₀) (Ω : List (List ℕ₀)) (S₀ : List ℕ₀) (N p m : ℕ₀)
+        (hp : Prime p)
+        (hN_eq : N = p ^ (σ m))
+        (hdvd_G : ∃ r, Mul.mul N r = G.carrier.card)
+        (hS₀_sorted : Sorted (· < ·) S₀)
+        (hS₀_nd : S₀.Nodup)
+        (hS₀_ne : S₀ ≠ [])
+        (hS₀_mem : ∀ x ∈ S₀, x ∈ G.carrier.elems)
+        (hS₀_len : lengthₚ S₀ = N)
+        (horb_stab : Mul.mul (lengthₚ (wieldandtOrb G Ω S₀))
+                             (wieldandtStab G S₀ hS₀_sorted hS₀_mem).carrier.card =
+                     G.carrier.card)
+        (hndvd_orb : ¬ p ∣ lengthₚ (wieldandtOrb G Ω S₀)) :
+        ∃ H : Subgroup G, H.carrier.card = N :=
+      -- |Stab| ≤ N (inyectividad h ↦ h·s₀)
+      -- N = p^(m+1) | |G| = |Orb|·|Stab|, p ∤ |Orb| → N | |Stab|
+      -- N | |Stab| ≤ N → |Stab| = N
+      ⟨wieldandtStab G S₀ hS₀_sorted hS₀_mem, sorry⟩
+
+    -- ══════════════════════════════════════════════════════════════════
+    -- § Wielandt Pieza A: partición de órbitas de ⟨g⟩ sobre Ω
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- La acción de g de orden p sobre Ω produce sólo órbitas de tamaño 1 ó p.
+        |Ω| = |fix_g(Ω)| + p·k para algún k. -/
+    private theorem wielandt_orbit_partition
+        (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id) (hg_ne : g ≠ G.id)
+        (Ω : List (List ℕ₀))
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_closed : ∀ S, S ∈ Ω → wieldandtAct G g S ∈ Ω)
+        (hΩ_inj : ∀ S, S ∈ Ω → ∀ T, T ∈ Ω →
+          wieldandtAct G g S = wieldandtAct G g T → S = T) :
+        ∃ k : ℕ₀, lengthₚ Ω = Peano.Add.add
+          (lengthₚ (Ω.filter (fun S => decide (wieldandtAct G g S = S))))
+          (Peano.Mul.mul p k) := by
+      suffices H : ∀ (n : ℕ₀) (Ω' : List (List ℕ₀)),
+          Ω'.Nodup →
+          (∀ S, S ∈ Ω' → wieldandtAct G g S ∈ Ω') →
+          (∀ S, S ∈ Ω' → ∀ T, T ∈ Ω' →
+            wieldandtAct G g S = wieldandtAct G g T → S = T) →
+          lengthₚ Ω' = n →
+          ∃ k : ℕ₀, lengthₚ Ω' = Peano.Add.add
+            (lengthₚ (Ω'.filter (fun S => decide (wieldandtAct G g S = S))))
+            (Peano.Mul.mul p k) from
+        H (lengthₚ Ω) Ω hΩ_nd hΩ_closed hΩ_inj rfl
+      intro n
+      induction n using well_founded_lt.induction
+      rename_i n ih
+      intro Ω' hΩ'_nd hΩ'_closed hΩ'_inj hlen
+      cases Ω' with
+      | nil => exact ⟨𝟘, rfl⟩
+      | cons S Ω'' =>
+        by_cases hS_fix : wieldandtAct G g S = S
+        · -- S es punto fijo: inducción en Ω''
+          have hΩ''_nd := (List.nodup_cons.mp hΩ'_nd).2
+          have hΩ''_closed : ∀ T, T ∈ Ω'' → wieldandtAct G g T ∈ Ω'' := by
+            intro T hT
+            have h1 := hΩ'_closed T (List.mem_cons_of_mem S hT)
+            rcases List.mem_cons.mp h1 with h_eq | h
+            · exfalso
+              have h_inj_res := hΩ'_inj T (List.mem_cons_of_mem S hT)
+                S List.mem_cons_self (h_eq.trans hS_fix.symm)
+              exact (List.nodup_cons.mp hΩ'_nd).1 (h_inj_res ▸ hT)
+            · exact h
+          have hΩ''_inj : ∀ T₁, T₁ ∈ Ω'' → ∀ T₂, T₂ ∈ Ω'' →
+              wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂ :=
+            fun T₁ h₁ T₂ h₂ heq =>
+              hΩ'_inj T₁ (List.mem_cons_of_mem S h₁)
+                T₂ (List.mem_cons_of_mem S h₂) heq
+          have hlen'' : lengthₚ Ω'' < n := by
+            have hsucc : n = σ (lengthₚ Ω'') := by
+              rw [← hlen]; exact (lengthₚ_cons S Ω'').symm
+            rw [hsucc]; exact lt_succ_self (lengthₚ Ω'')
+          obtain ⟨k, hk⟩ := ih (lengthₚ Ω'') hlen'' Ω'' hΩ''_nd hΩ''_closed hΩ''_inj rfl
+          refine ⟨k, ?_⟩
+          have h_filter : (S :: Ω'').filter (fun T => decide (wieldandtAct G g T = T)) =
+              S :: Ω''.filter (fun T => decide (wieldandtAct G g T = T)) :=
+            List.filter_cons_of_pos (decide_eq_true hS_fix)
+          rw [h_filter, lengthₚ_cons, lengthₚ_cons, hk]
+          exact (Peano.Add.succ_add _ _).symm
+        · -- S no es punto fijo: órbita de p elementos, eliminar y continuar
+          -- TODO: adaptar mckay_orbit_remove para wieldandtAct
+          exact ⟨𝟘, sorry⟩
 
     /-- Argumento de Wielandt, pieza 5:
         Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, y ningún subgrupo propio de G

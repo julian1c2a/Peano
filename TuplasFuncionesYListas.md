@@ -1,434 +1,282 @@
-## PROBLEMA DE FUNDAMENTACIÓN DE LAS MATEMÁTICAS EN UN ENTORNO DE PEANO Y FOL=
+FUNDAMENTACIÓN DE LAS MATEMÁTICAS EN UN ENTORNO DE PEANO Y FOL=
 
-El problema se plantea de la sigueinte manera, cuando tratamos de definir objetos matemáticos como listas, tuplas o funciones, nos encontramos con la dificultad de que no tenemos una definición clara de qué sea estos objetos en el mundo de la lógica, por muy inmediatos que nos parezcan a la intuición y al cálculo.
+PARTE I: EL MARCO TEÓRICO Y EL PROBLEMA FUNDACIONAL
 
-Sea $L : \text{List } \mathbb{N}$ una lista (finita) de números naturales. La solemos escribir como $[n_1, n_2, ..., n_k]$ dónde cada $n_i$ es un número natural. Pero inicialmente no es un objeto lógico definido, no sabemos qué es una lista, ni siquiera si existe. No sabemos cómo definirla, ni cómo probar su existencia.
+1. El Problema de los Objetos Matemáticos
 
-Sea $p : \text{2-Tuple } \mathbb{N}$ una 2-tupla de números naturales. Una forma habitual de expresarla es $⟨n_1, n_2⟩$ dónde cada $n_i$ es un número natural. Pero inicialmente no es un objeto lógico definido, no sabemos qué es una tupla, ni siquiera si existe. No sabemos cómo definirla, ni cómo probar su existencia.
+El problema se plantea de la siguiente manera: cuando tratamos de definir objetos matemáticos complejos como listas, tuplas o funciones, nos encontramos con la dificultad de que no tenemos una definición clara de qué sean estos objetos en el mundo de la lógica pura, por muy inmediatos que nos parezcan a la intuición y al cálculo computacional.
 
-Sea $f : \text{List } \mathbb{N} → \text{List } \mathbb{N} : n ↦ m$ una función que asigna a cada natural de una lista de números naturales un natural de otra lista de números naturales. Conocemos en nuestro sistema de FOL= + Peano[restringido a + y *], concretamente para la suma y el producto, la existencia de funciones como la función siguiente $σ : \mathbb{N} → \mathbb{N}$, postulada en los axiomas de Peano, que asigna a cada número natural su sucesor. También tenemos $+$ y $*$, que dados una par de números naturales nos dan exactamente un número natural resultado cada una de ellas. Pero más allá de estas funciones concretas, no tenemos una definición clara de qué es una función en general, ni siquiera si existen funciones más allá de las que ya conocemos. No sabemos cómo definirlas, ni cómo probar su existencia.
+Listas: Sea $L : \text{List } \mathbb{N}$ una lista (finita) de números naturales, comúnmente escrita como $[n_1, n_2, ..., n_k]$. Inicialmente no es un objeto lógico definido, no sabemos qué es una lista, ni siquiera si existe. No sabemos cómo definirla, ni cómo probar su existencia.
 
-En el sistema en que vivimos no sabemos como definir ni hacer nada directamente con listas, tuplas o funciones. No tenemos ni la más menor idea de qué es una lista, una tupla o una función. No sabemos siquiera si existen. No tenemos ni la más menor idea de cómo definirlas, ni de cómo probar su existencia.
+Tuplas: Sea $p : \text{2-Tuple } \mathbb{N}$ una 2-tupla, expresada como $\langle n_1, n_2 \rangle$. Inicialmente carece de estatus ontológico en nuestro sistema.
 
-### DE LO QUE **SÍ** DISPONEMOS
+Funciones: Sea $f : \text{List } \mathbb{N} \to \text{List } \mathbb{N} : n \mapsto m$. Conocemos funciones concretas postuladas axiomáticamente (sucesor $\sigma$, suma $+$, producto $*$), pero más allá de estas, no tenemos una definición general de qué es una función discreta ni cómo probar su existencia.
 
-Disponemos solo de la teoría de los axiomas de Peano añadidos a la lógica de predicados de primer orden FOL con igualdad, FOL=. Pero de una forma muy restringida, solo disponemos de la existencia general de la suma y la multiplicación, y de la función sucesor. También dispondremos de la relación de $<$ entre números naturales. No disponemos de ningún otro objeto matemático definido, ni siquiera de la existencia de otros objetos matemáticos más allá de los números naturales y las funciones suma, producto y sucesor.
+En el sistema base en el que operamos, no tenemos ni la más remota idea de qué son estos objetos.
 
-Como vivimos en Peano dentro de FOL=, no tendremos disponible, para comenzar, el principio de inducción generalizado, extendido a cualquier propiedad, que nos metería de lleno en lógica de segundo orden (cuantificación sobre predicados). Por lo tanto, no podremos definir ni probar nada sobre listas o tuplas, ni siquiera su existencia, sin antes definirlas y probar su existencia. Pero es que tampoco tenemos una facilidad de definición por recursión clara desde el principio.
+2. De lo que SÍ disponemos (El Entorno Restringido)
 
-Vivimos en FOL=+Peano. ¿Hasta dónde hemos desarrollado los naturales? Solo las existencia general de la suma y la multipliciación: podemos calcular mediante sumas, productos y la función sucesor, pero no tenemos más. A lo sumo tenemos la relación de orden estricto.
+Disponemos solo de la teoría de los axiomas de Peano añadidos a la Lógica de Predicados de Primer Orden con igualdad ($\text{FOL}^=$). Operamos de forma muy restringida:
 
-Alfabeto del que disponemos:
+Vivimos en $\text{FOL}^+ \text{Peano}$.
 
-$$\mathcal{B} = \left\{{∃}, {∀}, {∧}, {∨}, {¬}, {⟹}, {⟺}, {'('}, {')'}, {=}\right\}$$
-$$\mathcal{C} = \left\{{0}, {σ} , {τ}, {+}, {*}, {<}, {^}, {√}\right\}$$
-$$\mathcal{D} = \left\{ {a'}, {b}, {c}, {d}, {e}, {f}, {g}, {h}\right\}$$
-$$\mathcal{E} = \left\{ {x}, {y}, {z}, {w}\right\}$$
-$$\mathcal{F} = \left\{ {i}, {j}, {k}, {l}, {m}, {n}, {r}, {s}, {t}, {p}, {q}\right\}$$
-$$\mathcal{G} = \left\{ {u}, {v}\right\}$$
-$$\mathcal{H} = \left\{ {'} \right\}$$
-$$\mathcal{I} = \left\{ {1}, {2}, {3}, {{∃}^1} \right\}$$
-$$\mathcal{J} = \left\{div2, mod2\right\}$$
-$$\mathcal{K} = \left\{'⟨', '⟩', '[', ']', '{', '}', '.', ':', ';', ','\right\}$$
-$$\mathcal{\Lambda} = \mathcal{B} ∪ \mathcal{C} ∪ \mathcal{D} ∪ \mathcal{E} ∪ \mathcal{F} ∪ \mathcal{G} ∪ \mathcal{H}  ∪ \mathcal{I} ∪ \mathcal{J} ∪ \mathcal{K}$$
-y usaremos las letras siguientes como a sustituir por términos o fórmulas:
-$$\mathcal{\Gamma} = \left\{ ϕ, ψ, ζ, δ, ε, η, θ \right\}$$
+No disponemos del Principio de Inducción Generalizado extendido a cualquier propiedad (lo que evitará cuantificación sobre predicados de segundo orden).
 
-Las letras latinas minúsculas dentro de nuestro alfabeto $\mathcal{\Lambda}$ o esas mismas letras seguidas de un número de apóstrofes, como $x$, $y$, $z$, $x'$, $y''$, etc., serán usadas para definir variables término, es decir, objetos matemáticos concretos que pueden variar en un cierto rango de valores de nuestro universo. Nuestro universo define únicamente números naturales, por lo que estas variables término se referirán a números naturales concretos, aunque no sepamos cuáles son exactamente. Por ejemplo, $x$ podría ser el número natural 5, o el número natural 100, o el número natural 0, etc., pero no sabemos cuál es exactamente. Solo sabemos que $x$ es un número natural concreto.
+Solo tenemos las reglas constructivas de derivación en $\text{FOL}^=$ (sin ley del tercero excluido $P \lor \neg P$, ni doble negación estricta $\neg(\neg P) \implies P$).
 
-Todo símbolo/letra será usado solo cuando se encuentre definido o en el caso de los símbolos lógicos, cuando se usen para construir fórmulas. Por ejemplo, el símbolo $+$ solo se usará para construir fórmulas que hablen de la suma de números naturales, como $x + y = z$, pero no se usará para definir ningún objeto matemático concreto. De esta forma, no tendremos ningún número natural concreto definido como $+$, ni ningún número natural concreto definido como $σ$, etc.
+2.1 El Alfabeto Formal ($\mathcal{\Lambda}$)
 
-Las letras usadas como variables término se usarán libremente, y serán cuantificadas por los cuantificadores $∀$ y $∃$. Se permitirán en esas instancias de fórmulas con cuantificadores las pertenecidentes a $\mathcal{E}\cup\mathcal{F}\cup\mathcal{G}$ y esas mismas letras seguidas de un número cualquiera de apóstrofes de $\mathcal{H}$.
+$$\mathcal{B} = \{ \exists, \forall, \land, \lor, \neg, \implies, \iff, (, ), = \}$$
 
-De esta forma $∀ x$ se leerá como "para todo número natural $x$" y $∃ x$ se leerá como "existe un número natural $x$". Por ejemplo, $∀ x, x + 0 = x$ se leerá como "para todo número natural $x$, $x + 0$ es igual a $x$". Y $∃ x, x < 5$ se leerá como "existe un número natural $x$ tal que $x$ es menor que 5".
+$$\mathcal{C} = \left\{ 0, \sigma, \tau, +, *, <, \sqrt{} \right\}$$
 
-Las palabras que empiecen por letra latina en mayúsculas serán usadas para definir predicados de primer orden.
+$$\mathcal{D} = \{ a', b, c, d, e, f, g, h \}$$
 
-Las reglas de derivación que se usarán serán las reglas de derivación de la lógica de predicados de primer orden con igualdad, FOL=, solo las reglas que sean constructivas, es decir, que no impliquen el uso de la ley del tercero excluido ni de la doble negación. Por ejemplo, se podrán usar las reglas de introducción y eliminación de los cuantificadores $∀$ y $∃$, pero no se podrá usar la regla de introducción de la negación ni la regla de eliminación de la negación (tenemos disponible $P ⟹ ¬ (¬ P)$ pero no $¬ (¬ P) ⟹ P$, y tampoco tenemos disponible $P ∨ ¬ P$).
+$$\mathcal{E} = \{ x, y, z, w \}$$
 
-Axioma 1: $∃ 0$
+$$\mathcal{F} = \{ i, j, k, l, m, n, r, s, t, p, q \}$$
 
-Axioma 2: $∀ n, ∃ σ(n)$
+$$\mathcal{G} = \{ u, v \}$$
 
-Axioma 3: $∀ n, σ(n) ≠ 0$
+$$\mathcal{H} = \{ ' \}$$
 
-Axioma 4: $∀ n, ∀ m, σ(n) = σ(m) ⟹ n = m$
+$$\mathcal{I} = \{ 1, 2, 3, \exists^1 \}$$
 
-Axioma 5: $∀ n, ¬ n = 0 ⟹ ∃ m, σ(m) = n$
+$$\mathcal{J} = \{ div2, mod2 \}$$
 
-Axioma 6: $∀ n, n + 0 = n$
+$$\mathcal{K} = \{ \langle, \rangle, [, ], \{, \}, ., :, ;, , \}$$
 
-Axioma 7: $∀ n, ∀ m, n + σ(m) = σ(n + m)$
+$$\mathcal{\Lambda} = \mathcal{B} \cup \mathcal{C} \cup \mathcal{D} \cup \mathcal{E} \cup \mathcal{F} \cup \mathcal{G} \cup \mathcal{H} \cup \mathcal{I} \cup \mathcal{J} \cup \mathcal{K}$$
 
-Axioma 8: $∀ n, n * 0 = 0$
+$$\mathcal{\Gamma} = \{ \phi, \psi, \zeta, \delta, \epsilon, \eta, \theta \} \quad \text{(Variables de fórmulas)}$$
 
-Axioma 9: $∀ n, ∀ m, n * σ(m) = (n * m) + n$
+(Las letras minúsculas o con apóstrofes actuarán como variables término, instanciadas sobre el universo de los números naturales).
 
-Axioma 10: $∀ n, ∀ m, n < m ⟺ ∃ k, n + σ(k) = m$
+2.2 Axiomas Fundamentales
 
-Axioma 11: $∀ n, n^0 = 1$
+Ax 1. $\exists 0$
 
-Axioma 12: $∀ n, ∀ m, n^{σ(m)} = n^m * n$
+Ax 2. $\forall n, \exists \sigma(n)$
 
-Axioma 13: $√ 0 = 0$
+Ax 3. $\forall n, \sigma(n) \neq 0$
 
-Axioma 14: $√ 1 = 1$
+Ax 4. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$
 
-Axioma 15: $∀ n, ∃ √n, (√n)^2 ≤ n$
+Ax 5. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$
 
-Axioma 16: $∀ n, ∀ m, n < (√n + 1)^2$
+Ax 6. $\forall n, n + 0 = n$
 
-Definición 1: $1 := \sigma(0)$
+Ax 7. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$
 
-Definición 2: $2 := \sigma(1)$
+Ax 8. $\forall n, n * 0 = 0$
 
-Definición 3: $3 := \sigma(2)$
+Ax 9. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$
 
-Definición 4: $4 := \sigma(3)$
+Ax 10. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$
 
-Definición 5: $∀ n, ∃ div2(n), 2 * div2(n) = n ∨ 2 * div2(n) + 1 = n$
+Ax 11. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$
 
-Definición 6: $∀ n, ∃ mod2(n), 2 * div2(n) + mod2(n) = n$
+Ax 12. $\forall n, n < ((\sqrt{n} + 1) * (\sqrt{n} + 1))$
 
-Definición 7: $τ(0) := 0$
+(Nota: Entendemos de forma estándar $a \le b \iff a < b \lor a = b$)
 
-Definición 8: $∀ n, ∃ τ(n), τ(σ(n)) = n$
+2.3 Definiciones Base
 
-Definición 9: $∀ n, Even(n) ⟺ mod2(n) = 0$
+Def 1. $1 := \sigma(0)$
 
-Definición 10: $∀ n, Odd(n) ⟺ mod2(n) = 1$
+Def 2. $2 := \sigma(1)$
 
-Vamos a empezar por definir las 2-Tuplas de números naturales. Vamos a usa la función de emparejamiento de Cantor. Se trata de una función biyectiva $c : \mathbb{N} → \mathbb{N} → \mathbb{N}$ que asigna a cada par de números naturales un natural único. La función de emparejamiento de Cantor (y su residuo) se define como sigue:
-
-$$c(x,y) := div2({(x+y) * (x+y+1)} + 2 * y)$$
-$$r(x,y) := mod2({(x+y) * (x+y+1)} + 2 * y)$$
-
-### ¿Qué deberíamos demostrar con lo definido hasta aquí?
-
-1. $2 = σ(σ(0))$
-2. $2 = 1 + 1$
-3. $3 = σ(σ(σ(0)))$
-4. $3 = 1 + 2$
-5. $3 = 2 + 1$
-6. $3 = (1 + 1) + 1$
-7. $3 = 1 + (1 + 1)$
-8. $4 = σ(σ(σ(σ(0))))$
-9. $4 = 1 + 3$
-10. $4 = 3 + 1$
-11. $4 = 2 + 2$
-12. $4 = (1 + 1) + (1 + 1)$
-13. $4 = ((1 + 1) + 1) + 1 $
-14. $4 = 1 + (1 + (1 + 1))$
-15. $4 = 1 + (1 + 2) $
-16. $4 = (1 + 1) + 2$
-17. $4 = 2 + (1 + 1) $
-18. $4 = (2 + 1) + 1 $
-19. $4 = 2 + 2$
-20. $4 = (1 + 2) + 1$
-21. $4 = 1 + (2 + 1)$
-22. $0 ≠ 1$
-23. $0 ≠ 2$
-24. $0 ≠ 3$
-25. $0 ≠ 4$
-26. $1 ≠ 2$
-27. $1 ≠ 3$
-28. $1 ≠ 4$
-29. $2 ≠ 3$
-30. $2 ≠ 4$
-31. $3 ≠ 4$
-32. $0+0 = 0$
-33. $∀ n, 0+n=n$
-34. $1+1 = 2$
-35. $1+2 = 3$ y $2+1 = 3$
-36. $1+3 = 4$ y $3+1 = 4$ y $2+2 = 4$
-37. $∀ n, 1*n=n$
-38. $∀ n, n*1=n$
-39. $∀ n, n*2=n+n$
-40. $∀ n, 2*n=n+n$
-41. $∀ n, 3*n = (n + n) + n$
-42. $∀ n, n*3 = (n + n) + n$
-43. $∀ n, 3*n = n + (n + n)$
-44. $∀ n, n*3 = n + (n + n)$
-45. $∀ n, 3*n = n + 2*n$
-46. $∀ n, n*3 = n + 2*n$
-47. $∀ n, 3*n = 2*n + n$
-48. $∀ n, n*3 = 2*n + n$
-49. $∀ n, 0*n=0$
-50. $2*3=3+3$ y $3*2=3+3$
-51. $3*3=3+3+3$ y $3*4=4+4+4$ y $4*3=3+3+3+3$ y $3*4=4*3$
-52. $∀ n, σ(n) = n + 1 = 1 + n$
-53. $∀ n, σ(n) = n * 1 + 1$
-54. $∀ n, ∀ m, n < m ⟺ σ(n) < σ(m)$
-55. $∀ n, ¬ n < n$
-56. $∀ n, ∀ m, n < m ⟹ ¬ n = m$
-57. $∀ n, ∀ m, n < m ⟹ ¬ m < n$
-58. $∀ l, ∀ n, ∀ m, l < n ∧ n < m ⟹ l < m$
-59. $∀ n, ∀ m, n < m ∨ n = m ∨ m < n$
-60. $∀ n, n < σ(n)$
-61. $∀ n, ¬ n = 0 ⟹ τ(n) < n$
-62. $∀ n, ∀ m, ¬ n = 0 ⟹ τ(n) = m ⟹ n = σ(m)$
-63. $∀ n, n < σ(σ(n))$
-64. $∀ n, n < σ(σ(σ(n)))$
-65. $∀ n, n < σ(σ(σ(σ(n))))$
-66. $∀ n, 0 < σ(n)$
-67. $∀ n, 1 < σ(σ(m))$
-68. $∀ n, 2 < σ(σ(σ(m)))$
-69. $∀ n, 3 < σ(σ(σ(σ(m))))$
-70. $∀ n, 4 < σ(σ(σ(σ(σ(m)))))$
-71. $∀ n, ∀ m, σ(n) < σ(m) → n < m$
-72. $∀ n, 2*div2(n) < n ∨ 2*div2(n) = n$
-73. $∀ n, mod2(n) = 0 ∨ mod2(n) = 1$
+Def 3. $3 := \sigma(2)$
 
-- La función de emparejamiento de Cantor (para nosotros los números `c` de Cantor) es una serie de operaciones que tenemos bien definidas, y que podemos realizar por tanto. La función `r` será el residuo de Cantor, que nos servirá para recuperar la información de `y` a partir de `c`.
+Def 4. $4 := \sigma(3)$
 
-- Debemos demostrar que siempre existe un número natural `c` de Cantor para cada par de números naturales `x` e `y`. Es decir, debemos demostrar que la función de emparejamiento de Cantor es total. Formalmente:
+Def 5. $Div2(n, q) := (2 * q = n \lor 2 * q + 1 = n)$
 
-  $$∀ x, ∀ y, ∃ c, 2 * c = {(x+y) * (x+y+1)} + 2 * y$$
+Def 6. $Mod2(n, r) := \exists q, (Div2(n, q) \land (2 * q + r = n))$
 
-- Debemos demostrar que el número de Cantor encontrado es único:
+Def 7. $\tau(0) := 0$
 
-  $$∀ x, ∀ y, ∀ c, ∀ c', (2 * c = {(x+y) * (x+y+1)} + 2 * y) ∧ (2 * c' = {(x+y) * (x+y+1)} + 2 * y) → c = c'$$
+Def 8. $\forall n, \exists \tau(n), \tau(\sigma(n)) = n$
 
-- A partir de aquí podemos desarrollar la función de emparejamiento de Cantor como un predicado de primer orden sobre tres números naturales, que se cumple si y solo si el tercer número es el número de Cantor de los dos primeros:
+Def 9. $n^2 := n * n \quad \text{(Azúcar sintáctico para cuadrados perfectos)}$
 
-  $$\text{Cantor}(x,y,c) := (2 * c = {(x+y) * (x+y+1)} + 2 * y)$$
+3. La Estrategia Constructiva: Función de Cantor
 
-- Ahora debemos demostrar que, dado un número de Cantor `c`, siempre existe un par de números naturales `x` e `y` tal que `c` es el número de Cantor de `x` e `y`. Es decir, debemos demostrar que la función de emparejamiento de Cantor es sobreyectiva. Formalmente:
+Para introducir las 2-Tuplas lógicamente, postulamos la función de emparejamiento de Cantor y su residuo:
 
-  $$∀ c, ∃ x, ∃ y, 2 * c = {(x+y) * (x+y+1)} + 2 * y$$
-
-- Debemos demostrar que `c` determinad e forma única a `x` e `y`:
-
-  $$∀ c, ∀ x, ∀ x', ∀ y, ∀ y', (2 * c = {(x+y) * (x+y+1)} + 2 * y) ∧ (2 * c = {(x'+y') * (x'+y'+1)} + 2 * y') → (x = x' ∧ y = y')$$
-
-- Lo anterior nos permite definir un predicado de primer orden sobre tres números naturales, que se cumple si y solo si el tercer número es el número de Cantor de los dos primeros:
-
-  $${\text{proyCantor}}_1 (c,x) := ∃^1  y ∈ \mathbb{N}, 2 * c = {(x+y) * (x+y+1)} + 2 * y$$
-
-  $${\text{proyCantor}}_2 (c,y) := ∃^1  x ∈ \mathbb{N}, 2 * c = {(x+y) * (x+y+1)} + 2 * y$$
-
-- Ahora tendríamos que probar que $∀ c ∈ \mathbb{N}, ∃ x x' ∈ \mathbb{N}, {\text{proyCantor}}_1(c,x) ∧ {\text{proyCantor}}_1(c,x') ⟹ x = x'$, y que $∀ c ∈ \mathbb{N}, ∃ y y' ∈ \mathbb{N}, {\text{proyCantor}}_2(c,y) ∧ {\text{proyCantor}}_2(c,y') ⟹ y = y'$. Es decir, que cada número de Cantor determina de forma única a su proyección 1 y a su proyección 2.
-
-- Ahora tenemos que probar que:
-  Sean $x, y, x', y' ∈ \mathbb{N}$ y $c, c' ∈ \mathbb{N}$, entonces:
-
-  $$\text{Cantor}(x,y,c) ∧ \text{Cantor}(x',y',c') → (c = c' ↔ (x = x' ∧ y = y'))$$
-
-- A partir de aquí podemos definir la 2-tupla de naturales como el número de Cantor de sus componentes, y tener una sintaxism ás natural para escribir tuplas:
-
-  $$\text{2-Tuple}(x,y) := c \text{ tal que } \text{Cantor}(x,y,c)$$
-
-  $$⟨x,y⟩ := \text{2-Tuple}(x,y)$$
-
-- Vamos a calcular las proyecciones de forma concreta:
-
-  $$[⟨x,y⟩].1: = \text{proyCantor}_1(⟨x,y⟩) := x$$
-
-  $$0 = x*x+x*(2*y+1)+(y*(y+3)+2*c)$$
-
-  En una ecuación de segundo grado clásica, tendremos
-
-  $$2*x = {-{(2*y+1)} ± \sqrt{{(2*y+1)}^2 - 4*(y*(y+3)+2*c)}}$$
-
-  dónde el discrimiante es:
-
-    $$D = {(2*y+1)}^2 - 4*{(y*{(y+3)}+2*c)}$$
-
-    $$D = 4*y^2 + 4*y + 1 - 4*y^2 - 12*y - 8*c$$
-
-- Proyección Directa: De $⟨x, y⟩$ a $c = Cantor(x,y)$.
-
-   La función directa es trivial en términos de cálculo pero fundamental para validar la biyectividad. Se define como:
-
-   $$c = f(x, y) = \frac{(x+y)(x+y+1)}{2} + y$$
-
-   Propiedades de la Proyección Directa:
-
-  - Suma de la Diagonal ($w$):
-
-     Se define como $w = x + y$.
-
-  - Número Triangular ($T_w$):
-
-     El término $\frac{w(w+1)}{2}$ representa la cantidad de puntos en todas las diagonales anteriores a la actual.
-
-  - Desplazamiento ($y$):
-
-     Determina la posición específica dentro de la diagonal $w$.
-
-- Algoritmos Implementados
-
-    Para una implementación práctica, hemos desarrollado dos herramientas:
-
-    Calculador Directo: Toma $(x, y)$ y devuelve $c$ aplicando la fórmula polinómica.
-
-    Calculador Inverso: Toma $c$ y busca la diagonal $w$ mediante el método constructivo de "acumulación" (sumas y productos), garantizando que no se requieran raíces cuadradas para encontrar la solución entera.Ambos métodos se han integrado en el simulador interactivo adjunto para permitir la verificación cruzada de los resultados.
-
-Programa de Simulación Interactiva:
-
-```
-    <!DOCTYPE html>
-    <html lang="es">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Laboratorio de Cantor</title>
-        <script src="https://cdn.tailwindcss.com"></script>
-        <style>
-            .step-entry { animation: fadeIn 0.3s ease-out; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
-            .math-font { font-family: 'Times New Roman', Times, serif; }
-        </style>
-    </head>
-    <body class="bg-gray-100 min-h-screen p-4 md:p-8">
-
-        <div class="max-w-5xl mx-auto">
-            <header class="text-center mb-10">
-                <h1 class="text-4xl font-extrabold text-slate-800 mb-2">Laboratorio de la Función de Cantor</h1>
-                <p class="text-slate-600 italic">Exploración interactiva de biyectividad entre $\mathbb{N}^2$ y $\mathbb{N}$</p>
-            </header>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
-                <!-- SIMULADOR DIRECTO -->
-                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                    <div class="bg-indigo-600 p-4">
-                        <h2 class="text-white text-xl font-bold flex items-center">
-                        <span class="mr-2">➡️</span> Proyección Directa (x, y) → c
-                        </h2>
-                    </div>
-                    <div class="p-6">
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700">Valor x</label>
-                                <input type="number" id="dirX" value="2" min="0" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-slate-700">Valor y</label>
-                                <input type="number" id="dirY" value="1" min="0" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
-                            </div>
-                        </div>
-                    </div>
-                    <button onclick="runDirect()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg transition-all shadow-md">
-                        Calcular Cantor(x, y)
-                    </button>
-
-                    <div id="dirResult" class="mt-6 p-4 bg-slate-50 rounded-xl border-2 border-dashed border-slate-200 hidden">
-                        <p class="text-center text-slate-500 text-sm mb-1 uppercase font-bold tracking-widest">Resultado c</p>
-                        <p id="dirOut" class="text-center text-4xl font-black text-indigo-600"></p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SIMULADOR INVERSO -->
-            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                <div class="bg-emerald-600 p-4">
-                    <h2 class="text-white text-xl font-bold flex items-center">
-                        <span class="mr-2">⬅️</span> Inversión Constructiva c → (x, y)
-                    </h2>
-                </div>
-                <div class="p-6">
-                    <div class="mb-6">
-                        <label class="block text-sm font-semibold text-slate-700">Valor de Emparejamiento (c)</label>
-                        <input type="number" id="invC" value="7" min="0" class="w-full mt-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none">
-                    </div>
-                    <button onclick="runInverse()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-all shadow-md">
-                        Descomponer c
-                    </button>
-
-                    <div id="invResult" class="mt-6 hidden">
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100 text-center">
-                                <span class="block text-xs font-bold text-emerald-600 uppercase">Componente x</span>
-                                <span id="invOutX" class="text-3xl font-black text-emerald-700"></span>
-                            </div>
-                            <div class="p-3 bg-emerald-50 rounded-lg border border-emerald-100 text-center">
-                                <span class="block text-xs font-bold text-emerald-600 uppercase">Componente y</span>
-                                <span id="invOutY" class="text-3xl font-black text-emerald-700"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- LOG DE TRAZA (OCUPA TODA LA FILA ABAJO) -->
-            <div class="lg:col-span-2 bg-slate-900 rounded-2xl shadow-2xl p-6 overflow-hidden">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-emerald-400 font-mono font-bold uppercase tracking-tighter">Terminal de Ejecución Constructiva</h3>
-                    <button onclick="clearLog()" class="text-slate-500 hover:text-white text-xs uppercase underline">Limpiar Log</button>
-                </div>
-                <div id="consoleLog" class="font-mono text-sm space-y-1 h-64 overflow-y-auto pr-2 custom-scrollbar text-slate-300">
-                    <span class="text-slate-500 italic">// Sistema listo. Esperando operación...</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const consoleLog = document.getElementById('consoleLog');
-
-        function log(msg, color = 'text-slate-300') {
-            const div = document.createElement('div');
-            div.className = `step-entry ${color}`;
-            div.innerHTML = `> ${msg}`;
-            consoleLog.appendChild(div);
-            consoleLog.scrollTop = consoleLog.scrollHeight;
-        }
-
-        function clearLog() { consoleLog.innerHTML = '<span class="text-slate-500 italic">// Consola reiniciada.</span>'; }
-
-        // MÉTODOS DIRECTOS
-        function runDirect() {
-            const x = parseInt(document.getElementById('dirX').value);
-            const y = parseInt(document.getElementById('dirY').value);
-            if (isNaN(x) || isNaN(y)) return;
-
-            log(`Iniciando Cálculo Directo: f(${x}, ${y})`, 'text-indigo-400 font-bold');
-            const w = x + y;
-            log(`Diagonal calculada: w = x + y = ${w}`);
-            const triangular = (w * (w + 1)) / 2;
-            log(`Base triangular: T_w = (${w} * ${w+1}) / 2 = ${triangular}`);
-            const c = triangular + y;
-            log(`Resultado Final: c = ${triangular} + ${y} = ${c}`, 'text-white bg-indigo-900 px-2 rounded');
-
-            const outDiv = document.getElementById('dirResult');
-            const outVal = document.getElementById('dirOut');
-            outVal.innerText = c;
-            outDiv.classList.remove('hidden');
-        }
-
-        // MÉTODOS INVERSOS (CONSTRUCTIVOS)
-        function runInverse() {
-            const c = parseInt(document.getElementById('invC').value);
-            if (isNaN(c)) return;
-
-            log(`Iniciando Inversión Constructiva: c = ${c}`, 'text-emerald-400 font-bold');
-            const doubleC = 2 * c;
-            log(`Buscando diagonal mediante comparación: 2c = ${doubleC}`);
-
-            let w = 0;
-            // Solo sumas y productos para hallar w
-            while ((w + 1) * (w + 2) <= doubleC) {
-                w++;
-            }
-
-            log(`Diagonal w hallada (máximo w tal que T_w <= c): ${w}`, 'text-emerald-300');
-            
-            // Calculamos y usando sumas y productos
-            const wTriangular2 = w * (w + 1);
-            const twoY = (2 * c) - wTriangular2;
-            const y = twoY / 2;
-            const x = w - y;
-
-            log(`Resolviendo y: (2*${c} - ${w}*${w+1}) / 2 = ${y}`);
-            log(`Resolviendo x: w - y = ${w} - ${y} = ${x}`);
-            log(`Pareja recuperada: (${x}, ${y})`, 'text-white bg-emerald-900 px-2 rounded');
-
-            document.getElementById('invOutX').innerText = x;
-            document.getElementById('invOutY').innerText = y;
-            document.getElementById('invResult').classList.remove('hidden');
-        }
-        </script>
-    </body>
-    </html>
-```
+Def 10. $$c(x,y) := div2((x+y) * (x+y+1) + 2 * y)$$
+
+Def 11. $$r(x,y) := mod2((x+y) * (x+y+1) + 2 * y)$$
+
+El predicado relacional base sobre tres naturales se define como:
+
+Def 12. $$\text{Cantor}(x,y,c) := (2 * c = (x+y) * (x+y+1) + 2 * y)$$
+
+Meta Deductiva: Demostrar formalmente que $\text{Cantor}(x,y,c)$ es total, sobreyectiva e inyectiva (biyectiva) permitiéndonos definir rigurosamente $\text{2-Tuple}(x,y) := c$ y sus proyecciones:
+
+$$[c].1 := \text{proyCantor}_1(c) \quad \text{y} \quad [c].2 := \text{proyCantor}_2(c)$$
+
+Evaluando algebraicamente: $2x = -(2y+1) \pm \sqrt{4y^2 + 4y + 1 - 4y^2 - 12y + 8c}$.
+
+PARTE II: DESARROLLO DEDUCTIVO FORMAL (FASES 1-20)
+
+FASE 1: Aritmética de Constantes (Evaluación Mecánica)
+
+Aplicando instanciación universal ($\forall E$) y las reglas de igualdad sobre las definiciones base:
+
+Teorema 1: $2 = \sigma(\sigma(0))$
+
+Teorema 2: $1 + 1 = 2$ (Vía Ax 7 y Ax 6)
+
+Teorema 3: $3 = \sigma(\sigma(\sigma(0)))$
+
+Teorema 4: $1 + 2 = 3$
+
+Teorema 5: $2 + 1 = 3$
+
+FASE 2: Desigualdades y el Cero
+
+Teorema 22: $0 \neq 1$ (Demostrado invocando $\forall n, \sigma(n) \neq 0$)
+
+Teorema 32: $0 + 0 = 0$ (Instanciando el Ax 6)
+
+FASE 3 y 4: Límite del Sistema y Adopción Algebraica
+
+Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo:
+
+Ax 17 (Conmutatividad +): $\forall n, \forall m, n + m = m + n$
+
+Ax 18 (Asociatividad +): $\forall n, \forall m, \forall k, (n + m) + k = n + (m + k)$
+
+Ax 19 (Conmutatividad *): $\forall n, \forall m, n * m = m * n$
+
+Ax 20 (Asociatividad *): $\forall n, \forall m, \forall k, (n * m) * k = n * (m * k)$
+
+Ax 21 (Distributividad): $\forall n, \forall m, \forall k, n * (m + k) = (n * m) + (n * k)$
+
+FASE 5: Teoremas Algebraicos Generales
+
+Teorema 33: $\forall n, 0 + n = n$ (Por Ax 6 y Ax 17)
+
+Teorema 38/37: $\forall n, n * 1 = n \land 1 * n = n$
+
+Teorema 40: $\forall n, 2 * n = n + n$
+
+Teorema 52: $\forall n, \sigma(n) = n + 1 = 1 + n$
+
+FASE 6: Lema Polinómico
+
+Lema C1: $\forall x, \forall y, (x+y) * (x+y+1) = (x+y)^2 + x + y$ (Demostrado por distributividad).
+
+FASE 7: Relaciones de Orden ($<$) y Raíz Cuadrada ($\sqrt{}$)
+
+Antes de abordar la función de Cantor, establecemos el comportamiento de la raíz cuadrada a partir de sus dos únicos axiomas de acotación (Ax 11 y 12), demostrando que son suficientes para derivar las raíces triviales.
+
+Teorema 60: $\forall n, n < \sigma(n)$
+
+Teorema R1: $\sqrt{0} = 0$
+Demostración:
+
+Por Axioma 11, $(\sqrt{0})^2 \le 0$.
+
+Como en $\mathbb{N}$ no hay elementos menores a 0, se deduce estrictamente que $\sqrt{0} * \sqrt{0} = 0$.
+
+El único natural que multiplicado por sí mismo da 0 es el 0 (por Ax 8).
+
+$\therefore \sqrt{0} = 0$. $\blacksquare$
+
+Teorema R2: $\sqrt{1} = 1$
+Demostración:
+
+Por Axioma 11, $(\sqrt{1})^2 \le 1$. Esto restringe $\sqrt{1}$ a los valores 0 o 1.
+
+Supongamos por reducción al absurdo que $\sqrt{1} = 0$.
+
+Por Axioma 12, $1 < (\sqrt{1} + 1)^2$.
+
+Sustituyendo nuestra suposición: $1 < (0 + 1)^2 \implies 1 < 1^2 \implies 1 < 1$.
+
+Esto viola la irreflexividad del orden estricto (una contradicción lógica).
+
+$\therefore \sqrt{1} \neq 0$. Por eliminación de casos, $\sqrt{1} = 1$. $\blacksquare$
+
+FASE 8: Lema de Paridad (Producto de Consecutivos)
+
+Lema P1: $\forall w, \exists k, w * (w + 1) = 2 * k$ (Demostrado por casos par/impar mediante mod2).
+
+FASE 9: Totalidad de la Función de Cantor
+
+Teorema C2: $\forall x, \forall y, \exists c, \text{Cantor}(x,y,c)$
+(Demostrado porque el Lema P1 garantiza que la división polinómica por 2 siempre es exacta y devuelve un número natural cerrado).
+
+FASE 10: Inyectividad Parcial (Unicidad del Número)
+
+Lema C3: $\forall a, \forall b, 2*a = 2*b \implies a = b$ (Por monotonía del orden).
+
+Teorema C4: $\forall x, \forall y, \forall c, \forall c', (\text{Cantor}(x,y,c) \land \text{Cantor}(x,y,c')) \implies c = c'$.
+
+FASE 11: Sobreyectividad (Existencia de Proyecciones)
+
+Lema C5: $\forall c, \exists w, w*(w+1) \le 2c < (w+1)*(w+2)$ (Garantizado por los límites de $\sqrt{n}$ de los Ax 11 y 12 sobre el discriminante $D = 8c+1$).
+
+Teorema C6: $\forall c, \exists x, \exists y, \text{Cantor}(x,y,c)$.
+
+FASE 12: Biyectividad Completa
+
+Teorema C7 (Unicidad Proyectiva): $\forall c, \forall x, \forall x', \forall y, \forall y', (\text{Cantor}(x,y,c) \land \text{Cantor}(x',y',c)) \implies (x=x' \land y=y')$.
+
+FASE 13: Definición Sintáctica (Azúcar Funcional)
+
+Garantizada la biyección, validamos tu sintaxis original como objetos formales bien definidos:
+
+Def 11: $\langle x, y \rangle := c \iff \text{Cantor}(x,y,c)$
+
+Def 12 & 13: $[c].1 := x$ y $[c].2 := y$
+
+Teoremas C8 y C9: Demostramos que $[\langle x, y \rangle].1 = x$ y que $\langle [c].1, [c].2 \rangle = c$.
+
+FASE 14: Listas Finitas (LISP en Peano)
+
+Para evitar la colisión $\langle 0,0 \rangle = 0$, introducimos el desplazamiento del sucesor:
+
+Def 14: $Nil := 0$
+
+Def 15: $Cons(h, t) := \langle h, \sigma(t) \rangle$
+
+Teorema L1: $\forall h, \forall t, Cons(h, t) \neq Nil$
+
+(Sintaxis: $[x, y]$ se evalúa recursivamente como $Cons(x, Cons(y, Nil))$).
+
+FASE 15 y 16: Álgebra de Listas (Concatenación $\oplus$)
+
+Introducimos Axiomas temporales (22 a 25) para definir casos base ($Nil \oplus L = L$) y recursivos del monoide de listas, demostrando que $[x] \oplus [y] = [x, y]$.
+
+FASE 17: Funciones Discretas (Mapas Finitos)
+
+Un número natural se comporta lógicamente como una función evaluable si, decodificado como lista de tuplas, no posee claves repetidas.
+
+Ax 26 y 27: Establecen el comportamiento del predicado de pertenencia $In(x, L)$.
+
+Def 18 (IsFunction): $\forall p_1, p_2 \in F, ([p_1].1 = [p_2].1) \implies p_1 = p_2$.
+
+Teorema F2: Si $F$ es función, su evaluación $F(x)$ es lógicamente única.
+
+FASE 18: El Isomorfismo de la Correspondencia
+
+Cualquier lista $R$ actúa como una relación lógica $\text{Map}(R, x, y) \iff In(\langle x, y \rangle, R)$.
+
+Teorema F3: Demostramos que una lista cumple estructuralmente nuestra prueba (IsFunction) si y solo si la relación lógica es univalente en la meta-teoría (Functional(Map)).
+
+FASE 19: Factorización (Primos como Dominios)
+
+Se establecen las bases alternativas de secuenciación usando el Teorema Fundamental de la Aritmética (una función $p \mapsto e$ validada con IsFactorization).
+
+FASE 20: Aritmetización de la Sintaxis (Gödelización con Cantor)
+
+Utilizamos las Listas de Cantor (Cons) para codificar cadenas del alfabeto $\mathcal{\Lambda}$.
+
+Asignamos $\mathcal{G}(\forall) = 2, \mathcal{G}(=) = 10, \mathcal{G}(x) = 100$, etc.
+
+Una Fórmula Lógica se convierte en un solo natural: $\ulcorner S \urcorner = Cons(\mathcal{G}(s_1), \dots Nil)$.
+
+Aparecen los meta-predicados: $IsFormula(f)$ y $Dem(d, f)$, culminando la capacidad de autorreferencia del sistema Peano-FOL=.

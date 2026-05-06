@@ -2925,6 +2925,274 @@ namespace Peano
           _ = wieldandtAct G (gpow G g (mul bn p)) S := by rw [h_eq]
           _ = S := h_bnp
 
+    /-- Análogo de mckay_orbit_remove para la acción wieldandtAct.
+        Dado S ∈ Ω con g·S ≠ S y g de orden p primo, devuelve
+        Ω' = Ω \ {g^k·S | k < p} con las propiedades necesarias
+        para continuar la inducción en wielandt_orbit_partition. -/
+    private theorem wielandt_orbit_remove
+        (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+        (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id)
+        (Ω : List (List ℕ₀)) (S : List ℕ₀)
+        (hS_in : S ∈ Ω)
+        (hS_nfix : wieldandtAct G g S ≠ S)
+        (hS_sorted : Sorted (· < ·) S)
+        (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+        (hΩ_nd : Ω.Nodup)
+        (hΩ_closed : ∀ T, T ∈ Ω → wieldandtAct G g T ∈ Ω)
+        (hΩ_inj : ∀ T₁, T₁ ∈ Ω → ∀ T₂, T₂ ∈ Ω →
+          wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂) :
+        ∃ Ω' : List (List ℕ₀),
+          Ω'.Nodup ∧
+          (∀ T, T ∈ Ω' → wieldandtAct G g T ∈ Ω') ∧
+          (∀ T₁, T₁ ∈ Ω' → ∀ T₂, T₂ ∈ Ω' →
+            wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂) ∧
+          lengthₚ Ω = Peano.Add.add (lengthₚ Ω') p ∧
+          lengthₚ (Ω.filter (fun T => decide (wieldandtAct G g T = T))) =
+          lengthₚ (Ω'.filter (fun T => decide (wieldandtAct G g T = T))) := by
+      -- ── g^p · S = S ──────────────────────────────────────────────────
+      have hgp_act : wieldandtAct G (gpow G g p) S = S := by
+        rw [hgp]; exact wieldandtAct_id G S hS_sorted hS_mem
+      -- ── No early return: g^k · S ≠ S for 0 < k < p ──────────────────
+      have orbit_no_return : ∀ k : ℕ₀, lt₀ 𝟘 k → lt₀ k p →
+          wieldandtAct G (gpow G g k) S ≠ S := by
+        intro k hk_pos hk_lt heq
+        exact hS_nfix (wieldandtAct_gpow_fixed_of_gcd_one G hg S hS_sorted hS_mem k p
+                        heq hgp_act (gcd_eq_one_of_pos_lt_prime k p hk_pos hk_lt hp))
+      -- ── Define orbit ─────────────────────────────────────────────────
+      let orb : ℕ₀ → List ℕ₀ := fun k => wieldandtAct G (gpow G g k) S
+      -- ── g · (orb k) = orb (σ k) ──────────────────────────────────────
+      have rv_orb_eq : ∀ k : ℕ₀, wieldandtAct G g (orb k) = orb (σ k) := fun k => by
+        show wieldandtAct G g (wieldandtAct G (gpow G g k) S) =
+             wieldandtAct G (gpow G g (σ k)) S
+        rw [gpow_succ, ← gpow_comm_single G hg k]
+        exact wieldandtAct_comp G g (gpow G g k) S hg (gpow_mem G hg k) hS_mem
+      let orbit : List (List ℕ₀) := (ℕ₀FSet.Fin₀Set p).elems.map orb
+      -- ── orb is injective on Fin₀Set p ────────────────────────────────
+      have orb_inj : ∀ i j : ℕ₀,
+          i ∈ (ℕ₀FSet.Fin₀Set p).elems → j ∈ (ℕ₀FSet.Fin₀Set p).elems →
+          orb i = orb j → i = j := by
+        intro i j hi hj heq
+        have hi_lt := (ℕ₀FSet.mem_Fin₀Set_iff p i).mp hi
+        have hj_lt := (ℕ₀FSet.mem_Fin₀Set_iff p j).mp hj
+        rcases trichotomy i j with h_lt | h_eq | h_gt
+        · exfalso
+          have hpj : add (sub p j) j = p := sub_k_add_k p j (lt_imp_le j p hj_lt)
+          exact orbit_no_return _
+            (lt_of_lt_of_le (sub_pos_of_lt hj_lt) (le_self_add _ _))
+            (by have := (add_lt_add_left_iff (sub p j) i j).mpr h_lt; rwa [hpj] at this)
+            (calc wieldandtAct G (gpow G g (add (sub p j) i)) S
+                  = wieldandtAct G (gpow G g (sub p j)) (orb i) :=
+                        wieldandtAct_gpow_add G hg S hS_mem (sub p j) i
+                _ = wieldandtAct G (gpow G g (sub p j)) (orb j) := by rw [heq]
+                _ = wieldandtAct G (gpow G g (add (sub p j) j)) S :=
+                        (wieldandtAct_gpow_add G hg S hS_mem (sub p j) j).symm
+                _ = wieldandtAct G (gpow G g p) S := by rw [hpj]
+                _ = S := hgp_act)
+        · exact h_eq
+        · exfalso
+          have hpi : add (sub p i) i = p := sub_k_add_k p i (lt_imp_le i p hi_lt)
+          exact orbit_no_return _
+            (lt_of_lt_of_le (sub_pos_of_lt hi_lt) (le_self_add _ _))
+            (by have := (add_lt_add_left_iff (sub p i) j i).mpr h_gt; rwa [hpi] at this)
+            (calc wieldandtAct G (gpow G g (add (sub p i) j)) S
+                  = wieldandtAct G (gpow G g (sub p i)) (orb j) :=
+                        wieldandtAct_gpow_add G hg S hS_mem (sub p i) j
+                _ = wieldandtAct G (gpow G g (sub p i)) (orb i) := by rw [heq]
+                _ = wieldandtAct G (gpow G g (add (sub p i) i)) S :=
+                        (wieldandtAct_gpow_add G hg S hS_mem (sub p i) i).symm
+                _ = wieldandtAct G (gpow G g p) S := by rw [hpi]
+                _ = S := hgp_act)
+      -- ── orbit is nodup ───────────────────────────────────────────────
+      have orbit_nodup : orbit.Nodup :=
+        nodup_map_of_inj_on orb _ (sorted_nodup (ℕ₀FSet.Fin₀Set p).sorted) orb_inj
+      -- ── orbit has length p ───────────────────────────────────────────
+      have orbit_len_p : Λ orbit.length = p := by
+        show Λ ((ℕ₀FSet.Fin₀Set p).elems.map orb).length = p
+        rw [List.length_map]; exact ℕ₀FSet.Fin₀Set_card p
+      -- ── orbit elements are in Ω ──────────────────────────────────────
+      have orbit_mem_Ω : ∀ k : ℕ₀, lt₀ k p → orb k ∈ Ω := by
+        intro k hk
+        induction k with
+        | zero =>
+          have : orb 𝟘 = S := by
+            show wieldandtAct G (gpow G g 𝟘) S = S
+            rw [gpow_zero]; exact wieldandtAct_id G S hS_sorted hS_mem
+          rw [this]; exact hS_in
+        | succ k' ih =>
+          have hk'_lt := lt_trans k' (σ k') p (lt_succ_self k') hk
+          rw [← rv_orb_eq k']; exact hΩ_closed (orb k') (ih hk'_lt)
+      have orbit_mem_Ω' : ∀ T ∈ orbit, T ∈ Ω := fun T hT =>
+        let ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hT
+        hk_eq ▸ orbit_mem_Ω k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
+      -- ── orbit has no fixed points ─────────────────────────────────────
+      have orbit_no_fixed : ∀ k : ℕ₀, lt₀ k p → wieldandtAct G g (orb k) ≠ orb k := by
+        intro k hk heq
+        rw [rv_orb_eq k] at heq
+        -- heq : orb (σ k) = orb k
+        rcases (lt_succ_iff_lt_or_eq (σ k) p).mp ((succ_lt_succ_iff k p).mpr hk)
+            with h_lt | h_eq
+        · -- σ k < p: orb_inj gives σ k = k, contradicting lt_succ_self
+          exact absurd (orb_inj (σ k) k
+                    ((ℕ₀FSet.mem_Fin₀Set_iff p (σ k)).mpr h_lt)
+                    ((ℕ₀FSet.mem_Fin₀Set_iff p k).mpr hk) heq).symm
+                 (ne_of_lt k (σ k) (lt_succ_self k))
+        · -- σ k = p: orb (σ k) = S, so g^k · S = S — contradicts orbit_no_return
+          have h_k_pos : lt₀ 𝟘 k := by
+            apply pos_of_ne_zero
+            intro h0; subst h0
+            exact absurd h_eq
+              (ne_of_lt 𝟙 p (lt_of_lt_of_le (lt_succ_self 𝟙) (prime_ge_two hp)))
+          have h_orbsk_S : orb (σ k) = S := by
+            show wieldandtAct G (gpow G g (σ k)) S = S
+            rw [h_eq]; exact hgp_act
+          exact orbit_no_return k h_k_pos hk (h_orbsk_S ▸ heq).symm
+      -- ── Orbit preimage: g · T ∈ orbit → T ∈ orbit ───────────────────
+      have orbit_preimage : ∀ T, T ∈ Ω → wieldandtAct G g T ∈ orbit → T ∈ orbit := by
+        intro T hT hw
+        obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hw
+        have hk_lt := (ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in
+        rw [List.mem_map]
+        cases k with
+        | zero =>
+          -- g · T = orb 0 = S; and g · (orb (p-1)) = orb p = S
+          have h_p1_le : le₀ 𝟙 p :=
+            le_trans 𝟙 𝟚 p (Or.inl (lt_succ_self 𝟙)) (prime_ge_two hp)
+          have h_sub1p : add (sub p 𝟙) 𝟙 = p := sub_k_add_k p 𝟙 h_p1_le
+          have h_sub_lt : lt₀ (sub p 𝟙) p := by
+            have := @lt_add_of_pos_right (sub p 𝟙) 𝟙
+                      (pos_of_ne_zero 𝟙 (Peano.Axioms.succ_neq_zero 𝟘))
+            rwa [h_sub1p] at this
+          have h_orb0_S : orb 𝟘 = S := by
+            show wieldandtAct G (gpow G g 𝟘) S = S
+            rw [gpow_zero]; exact wieldandtAct_id G S hS_sorted hS_mem
+          have h_pred_act : wieldandtAct G g (orb (sub p 𝟙)) = S := by
+            have h := rv_orb_eq (sub p 𝟙)
+            have h_succ_eq : σ (sub p 𝟙) = p := by
+              rw [← add_one (sub p 𝟙)]; exact h_sub1p
+            rw [h_succ_eq] at h; rw [h]; exact hgp_act
+          have h_eq_T : T = orb (sub p 𝟙) :=
+            hΩ_inj T hT (orb (sub p 𝟙)) (orbit_mem_Ω (sub p 𝟙) h_sub_lt)
+              (hk_eq.symm.trans (h_orb0_S.trans h_pred_act.symm))
+          exact ⟨sub p 𝟙, (ℕ₀FSet.mem_Fin₀Set_iff p (sub p 𝟙)).mpr h_sub_lt, h_eq_T.symm⟩
+        | succ k' =>
+          have hk'_lt := lt_trans k' (σ k') p (lt_succ_self k') hk_lt
+          have h_eq_T : T = orb k' :=
+            hΩ_inj T hT (orb k') (orbit_mem_Ω k' hk'_lt)
+              (hk_eq.symm.trans (rv_orb_eq k').symm)
+          exact ⟨k', (ℕ₀FSet.mem_Fin₀Set_iff p k').mpr hk'_lt, h_eq_T.symm⟩
+      -- ── orbit closed under g ─────────────────────────────────────────
+      have orbit_closed : ∀ T ∈ orbit, wieldandtAct G g T ∈ orbit := by
+        intro T hT
+        obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hT
+        have hk_lt := (ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in
+        subst hk_eq
+        rw [rv_orb_eq k, List.mem_map]
+        rcases (lt_succ_iff_lt_or_eq (σ k) p).mp ((succ_lt_succ_iff k p).mpr hk_lt)
+            with h_lt | h_eq
+        · exact ⟨σ k, (ℕ₀FSet.mem_Fin₀Set_iff p (σ k)).mpr h_lt, rfl⟩
+        · have h_sk : wieldandtAct G (gpow G g (σ k)) S = S := by rw [h_eq]; exact hgp_act
+          have h_orb0_S : orb 𝟘 = S := by
+            show wieldandtAct G (gpow G g 𝟘) S = S
+            rw [gpow_zero]; exact wieldandtAct_id G S hS_sorted hS_mem
+          exact ⟨𝟘, (ℕ₀FSet.mem_Fin₀Set_iff p 𝟘).mpr (pos_of_ne_zero p hp.1),
+                 h_orb0_S.trans h_sk.symm⟩
+      -- ── nodup_sub_len helper ──────────────────────────────────────────
+      have nodup_sub_len : ∀ {l₁ l₂ : List (List ℕ₀)},
+          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
+        intro l₁ l₂
+        induction l₁ generalizing l₂ with
+        | nil => intro _ _; exact Nat.zero_le _
+        | cons a l₁' ih =>
+          intro hnd hsub
+          rw [List.nodup_cons] at hnd
+          obtain ⟨ha_nin, hnd'⟩ := hnd
+          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+          have h_ih := ih hnd' (fun x hx => by
+            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
+            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
+          rw [List.length_cons]
+          have h_pos : 0 < l₂.length := by
+            cases l₂ with
+            | nil => exact absurd ha2 List.not_mem_nil
+            | cons _ _ => exact Nat.zero_lt_succ _
+          have h_erase_len := List.length_erase_of_mem ha2
+          omega
+      -- ── Define Ω' and prove its properties ───────────────────────────
+      refine ⟨Ω.filter (fun T => !decide (T ∈ orbit)), ?_, ?_, ?_, ?_, ?_⟩
+      -- Property 1: Ω'.Nodup
+      · exact List.filter_sublist.nodup hΩ_nd
+      -- Property 2: Ω' closed under g
+      · intro T hT
+        rw [List.mem_filter] at hT ⊢
+        obtain ⟨hT_Ω, hT_not⟩ := hT
+        have hT_not_orbit : T ∉ orbit := by
+          intro h; simp [decide_eq_true h] at hT_not
+        exact ⟨hΩ_closed T hT_Ω, by
+          have hn : wieldandtAct G g T ∉ orbit :=
+            fun h => hT_not_orbit (orbit_preimage T hT_Ω h)
+          simp [hn]⟩
+      -- Property 3: injectivity preserved
+      · intro T₁ hT₁ T₂ hT₂ heq
+        exact hΩ_inj T₁ (List.mem_filter.mp hT₁).1 T₂ (List.mem_filter.mp hT₂).1 heq
+      -- Property 4: |Ω| = |Ω'| + p
+      · have filter_part : ∀ (l : List (List ℕ₀)) (q : List ℕ₀ → Bool),
+            l.length = Nat.add (l.filter q).length (l.filter (fun x => !q x)).length := by
+          intro l q
+          induction l with
+          | nil => simp
+          | cons x xs ih =>
+            cases h : q x
+            · have e1 : (x :: xs).filter q = xs.filter q := by simp [h]
+              have e2 : (x :: xs).filter (fun y => !q y) = x :: xs.filter (fun y => !q y) := by
+                simp [h]
+              simp only [e1, e2, List.length_cons, Nat.add_eq] at *; omega
+            · have e1 : (x :: xs).filter q = x :: xs.filter q := by simp [h]
+              have e2 : (x :: xs).filter (fun y => !q y) = xs.filter (fun y => !q y) := by
+                simp [h]
+              simp only [e1, e2, List.length_cons, Nat.add_eq] at *; omega
+        have filter_orbit_len :
+            (Ω.filter (fun T => decide (T ∈ orbit))).length = orbit.length := by
+          apply Nat.le_antisymm
+          · apply nodup_sub_len (List.filter_sublist.nodup hΩ_nd)
+            intro T hT; exact of_decide_eq_true (List.mem_filter.mp hT).2
+          · apply nodup_sub_len orbit_nodup
+            intro T hT
+            rw [List.mem_filter]
+            exact ⟨orbit_mem_Ω' T hT, decide_eq_true hT⟩
+        have hnat : Ω.length =
+            Nat.add (Ω.filter (fun T => !decide (T ∈ orbit))).length orbit.length := by
+          have h := filter_part Ω (fun T => decide (T ∈ orbit))
+          rw [filter_orbit_len] at h; simp only [Nat.add_eq] at h ⊢; omega
+        suffices h3 : Λ Ω.length = add (Λ (Ω.filter (fun T => !decide (T ∈ orbit))).length) p by
+          simpa [lengthₚ] using h3
+        rw [hnat, isomorph_Λ_add, orbit_len_p]
+      -- Property 5: same fixed-point filter count
+      · suffices h4 :
+            (Ω.filter (fun T => decide (wieldandtAct G g T = T))).length =
+            ((Ω.filter (fun T => !decide (T ∈ orbit))).filter
+              (fun T => decide (wieldandtAct G g T = T))).length by
+          exact congrArg Λ h4
+        apply Nat.le_antisymm
+        · apply nodup_sub_len (List.filter_sublist.nodup hΩ_nd)
+          intro T hT
+          rw [List.mem_filter] at hT ⊢
+          obtain ⟨hT_Ω, hT_fixed⟩ := hT
+          refine ⟨?_, hT_fixed⟩
+          rw [List.mem_filter]
+          refine ⟨hT_Ω, ?_⟩
+          -- T is a fixed point → T ∉ orbit (orbit has no fixed points)
+          have hn : T ∉ orbit := by
+            intro hT_orb
+            obtain ⟨k, hk_in, hk_eq⟩ := List.mem_map.mp hT_orb
+            exact orbit_no_fixed k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
+              (hk_eq ▸ of_decide_eq_true hT_fixed)
+          simp [hn]
+        · apply nodup_sub_len
+              (List.filter_sublist.nodup (List.filter_sublist.nodup hΩ_nd))
+          intro T hT
+          rw [List.mem_filter] at hT ⊢
+          exact ⟨(List.mem_filter.mp hT.1).1, hT.2⟩
+
     -- ══════════════════════════════════════════════════════════════════
     -- § Wielandt Pieza A: partición de órbitas de ⟨g⟩ sobre Ω
     -- ══════════════════════════════════════════════════════════════════

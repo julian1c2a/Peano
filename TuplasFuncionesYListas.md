@@ -160,7 +160,7 @@ Teorema 32: $0 + 0 = 0$ (Instanciando el Ax 6)
 
 ### FASE 3 y 4: Límite del Sistema y Adopción Algebraica
 
-Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo: Conmutatividad y asociatividad de la suma y el producto, y la distributividad del producto sobre la suma. Son los axiomas 19 al 23, que adoptamos como hipótesis de trabajo para desarrollar la teoría de polinomios y la función de Cantor. Podemos adoptarlos puesto que tenemos modelos que loss atisfacen.
+Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo: Conmutatividad y asociatividad de la suma y el producto, y la distributividad del producto sobre la suma. Son los axiomas 19 al 23, que adoptamos como hipótesis de trabajo para desarrollar la teoría de polinomios y la función de Cantor. Podemos adoptarlos puesto que tenemos modelos que los satisfacen.
 
 Ax 17 (Conmutatividad +): $\forall n, \forall m, n + m = m + n$
 

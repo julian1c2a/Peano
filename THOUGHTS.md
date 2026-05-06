@@ -187,6 +187,7 @@ Completada la infraestructura combinatoria para el argumento de Wielandt
   reduciendo el tamaño de la lista. Esto garantiza la terminación de la inducción: en la
   rama no-fija, `lengthₚ Ω_rem = lengthₚ Ω − p < n` (usando `lt_add_of_pos_right`).
 - **`calc` con `← add_assoc` + `← mul_succ`**: el cierre algebraico del caso no-fijo es:
+
   ```
   lengthₚ Ω = add (lengthₚ Ω_rem) p
             = add (add (filter fixed Ω_rem) (mul p k')) p
@@ -194,6 +195,7 @@ Completada la infraestructura combinatoria para el argumento de Wielandt
             = add (filter fixed Ω_rem) (mul p (σ k'))        [← mul_succ]
             = add (filter fixed Ω) (mul p (σ k'))            [hfilter_eq.symm]
   ```
+
   La clave es escribir `add (mul p k') p` como `mul p (σ k')` via `← mul_succ`.
 - **6ª propiedad de `wielandt_orbit_remove`**: se necesita `∀ T, T ∈ Ω' → T ∈ Ω` (inclusión)
   para propagar `hΩ_sorted`/`hΩ_mem` al IH de `wielandt_orbit_partition`. Sin ella, el IH

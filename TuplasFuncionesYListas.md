@@ -956,3 +956,88 @@ $\blacksquare$
 | Gaps formales | 0 | 0 |
 
 **Conclusión.** Adoptar Ax-Ind($\Phi$) reduce la base axiomática de 22 a 13 axiomas sustantivos (–9 axiomas), a costa de ~80 pasos de demostración adicionales para derivar las propiedades algebraicas y de orden. La ganancia conceptual es significativa: las propiedades del semianillo y del orden dejan de ser "hechos brutos" adoptados por consistencia relativa y pasan a ser consecuencias formales de la aritmética primitiva. La pérdida es el volumen de demostración y la complejidad de la doble inducción para Ax-Tric. Para el propósito fundacional del documento —establecer la función de Cantor, las listas y las funciones discretas— ambos sistemas son igualmente válidos; el sistema base es más económico en longitud total de prueba, el sistema con Ax-Ind es más honesto ontológicamente.
+
+---
+
+## APÉNDICE C: VARIANTE CON PRINCIPIO DE INDUCCIÓN GENERAL
+
+---
+
+### C.1 El Entorno Completo
+
+A diferencia de las aproximaciones más restringidas (sin inducción o con inducción finita), en esta variante disponemos de $\text{FOL}^= + \text{Peano}$ **con el Principio de Inducción Generalizado**. Esto significa que cuantificamos y permitimos la inducción sobre todas las fórmulas bien formadas de nuestro lenguaje de primer orden $\mathcal{\Lambda}$. 
+
+Gracias a este principio fundamental, las propiedades algebraicas del semianillo $(\mathbb{N}, +, *)$, las propiedades del orden total (irreflexividad, tricotomía), y la existencia y unicidad de funciones u operaciones auxiliares como la raíz cuadrada o la paridad, ya no necesitan ser adoptadas como axiomas independientes ni como esquemas finitos. Todas ellas se derivan formalmente como teoremas a partir de sus definiciones recursivas base.
+
+### C.2 Axiomas Fundamentales Reducidos
+
+#### Axiomas de Peano Puros y Principio de Inducción
+
+Ax 1. $\exists 0$
+
+Ax 2. $\forall n,\quad \sigma(n) \neq 0$
+
+Ax 3. $\forall n,\ \forall m,\quad \sigma(n) = \sigma(m) \implies n = m$
+
+**Ax-Ind (Esquema de Inducción General).** Para cualquier fórmula $\varphi(x)$ del lenguaje $\mathcal{\Lambda}$:
+$$\varphi(0) \land \forall n,\ \bigl(\varphi(n) \implies \varphi(\sigma(n))\bigr) \implies \forall n,\ \varphi(n)$$
+
+> **Nota sobre Inducción Fuerte:** A partir de Ax-Ind, se deriva como metateorema el principio de inducción fuerte, tomando como fórmula auxiliar $\psi(n) := \forall m \le n,\ \varphi(m)$.
+
+#### Definiciones Recursivas de la Suma y el Producto
+
+Ax 4. $\forall n,\quad n + 0 = n$
+
+Ax 5. $\forall n,\ \forall m,\quad n + \sigma(m) = \sigma(n + m)$
+
+Ax 6. $\forall n,\quad n * 0 = 0$
+
+Ax 7. $\forall n,\ \forall m,\quad n * \sigma(m) = (n * m) + n$
+
+#### Definición del Orden Estricto
+
+Ax 8. $\forall n,\ \forall m,\quad n < m \iff \exists k,\ n + \sigma(k) = m$
+
+#### Definiciones de la División Entera por 2
+
+Ax 9. $\forall n,\quad mod2(n) = 0 \iff mod2(\sigma(n)) = 1$
+
+Ax 10. $\forall n,\quad \bigl(div2(n) * 2\bigr) + mod2(n) = n$
+
+> *Todos los demás axiomas del sistema restringido o finito original (álgebra, orden total, raíz cuadrada) ahora son **teoremas demostrables** mediante el esquema de inducción.*
+
+### C.3 Impacto en el Desarrollo Deductivo
+
+Con el esquema de inducción general (Ax-Ind), todas las propiedades algebraicas y de orden se demuestran formalmente de forma directa:
+
+**1. Aritmética Básica y Álgebra:**
+- **Conmutatividad y Asociatividad** (Suma y Producto): Teoremas demostrables por inducción simple.
+- **Distributividad:** Teorema demostrable por inducción.
+- **Propiedades del Orden:** Irreflexividad, Tricotomía, Decidibilidad de la igualdad y Monotonía se demuestran por inducción fuerte o simple.
+
+**2. Raíz Cuadrada:**
+En lugar de postular la existencia y cotas de la raíz cuadrada axiomáticamente, se demuestra su existencia por inducción fuerte sobre los naturales. Definimos entonces $\sqrt{n}$ como el único $r$ tal que $r^2 \le n \land n < (\sigma(r))^2$.
+
+**3. Función de Cantor:**
+El **Lema de Paridad P1** ($\forall w,\ \exists k,\ w*(w+1) = 2*k$) se apoya ahora sobre los teoremas algebraicos formales y el teorema del rango de mod2 recién demostrados por inducción. La Totalidad, Inyectividad, Sobreyectividad y Unicidad Proyectiva se derivan tal como en el planteamiento original, ancladas sobre el sistema aritmético derivado.
+
+**4. Listas:**
+Propiedades fundamentales de las listas que requerían validación meta-teórica pueden ahora ser demostradas dentro del propio lenguaje formal, mapeando la longitud o la profundidad estructural a los naturales. Por ejemplo, la asociatividad de la concatenación ($(L \oplus M) \oplus N = L \oplus (M \oplus N)$) es formalmente demostrable.
+
+**5. Teorema Fundamental de la Aritmética (TFA):**
+En un sistema sin inducción general, la existencia y unicidad de la factorización prima debía tomarse como el axioma macroscópico $Ax-P$. Gracias a la disponibilidad de la inducción fuerte, el TFA se reduce a un **teorema demostrable** del sistema: $\forall n \ge 1,\ \exists^1 f,\ IsFactorization(f,n)$.
+
+### C.4 Resumen de la Base Axiomática Minimalista
+
+Al incorporar el Principio de Inducción General (Ax-Ind), la extensa lista de 22 axiomas independientes colapsa a los verdaderos fundamentos de la Aritmética de Peano, logrando una máxima pureza fundacional sin sacrificar expresividad:
+
+| Axiomas Fundamentales | Descripción |
+| --- | --- |
+| Ax 1, 2, 3 | Axiomas de Peano Puros ($0$, $\sigma$, e inyectividad de $\sigma$) |
+| **Ax-Ind** | **Esquema de Inducción Generalizado sobre fórmulas de $\mathcal{\Lambda}$** |
+| Ax 4, 5 | Ecuaciones recursivas de la Suma |
+| Ax 6, 7 | Ecuaciones recursivas del Producto |
+| Ax 8 | Definición del Orden Estricto ($<$) |
+| Ax 9, 10 | Ecuaciones base para la división y paridad ($div2$, $mod2$) |
+
+**Conclusión del Apéndice C.** Todos los demás enunciados matemáticos descritos (álgebra, orden, raíz, propiedades de listas y tuplas, factorización de primos) pierden su estatus de axioma y se erigen firmemente como **teoremas** en el sistema, lo cual representa el ideal fundacional completo de la Aritmética de Peano de primer orden.

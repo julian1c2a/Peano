@@ -2948,7 +2948,8 @@ namespace Peano
             wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂) ∧
           lengthₚ Ω = Peano.Add.add (lengthₚ Ω') p ∧
           lengthₚ (Ω.filter (fun T => decide (wieldandtAct G g T = T))) =
-          lengthₚ (Ω'.filter (fun T => decide (wieldandtAct G g T = T))) := by
+          lengthₚ (Ω'.filter (fun T => decide (wieldandtAct G g T = T))) ∧
+          (∀ T, T ∈ Ω' → T ∈ Ω) := by
       -- ── g^p · S = S ──────────────────────────────────────────────────
       have hgp_act : wieldandtAct G (gpow G g p) S = S := by
         rw [hgp]; exact wieldandtAct_id G S hS_sorted hS_mem
@@ -3118,7 +3119,7 @@ namespace Peano
           have h_erase_len := List.length_erase_of_mem ha2
           omega
       -- ── Define Ω' and prove its properties ───────────────────────────
-      refine ⟨Ω.filter (fun T => !decide (T ∈ orbit)), ?_, ?_, ?_, ?_, ?_⟩
+      refine ⟨Ω.filter (fun T => !decide (T ∈ orbit)), ?_, ?_, ?_, ?_, ?_, ?_⟩
       -- Property 1: Ω'.Nodup
       · exact List.filter_sublist.nodup hΩ_nd
       -- Property 2: Ω' closed under g
@@ -3192,6 +3193,8 @@ namespace Peano
           intro T hT
           rw [List.mem_filter] at hT ⊢
           exact ⟨(List.mem_filter.mp hT.1).1, hT.2⟩
+      -- Property 6: Ω' ⊆ Ω
+      · intro T hT; exact (List.mem_filter.mp hT).1
 
     -- ══════════════════════════════════════════════════════════════════
     -- § Wielandt Pieza A: partición de órbitas de ⟨g⟩ sobre Ω
@@ -3206,7 +3209,9 @@ namespace Peano
         (hΩ_nd : Ω.Nodup)
         (hΩ_closed : ∀ S, S ∈ Ω → wieldandtAct G g S ∈ Ω)
         (hΩ_inj : ∀ S, S ∈ Ω → ∀ T, T ∈ Ω →
-          wieldandtAct G g S = wieldandtAct G g T → S = T) :
+          wieldandtAct G g S = wieldandtAct G g T → S = T)
+        (hΩ_sorted : ∀ S, S ∈ Ω → Sorted (· < ·) S)
+        (hΩ_mem : ∀ S, S ∈ Ω → ∀ x ∈ S, x ∈ G.carrier.elems) :
         ∃ k : ℕ₀, lengthₚ Ω = Peano.Add.add
           (lengthₚ (Ω.filter (fun S => decide (wieldandtAct G g S = S))))
           (Peano.Mul.mul p k) := by
@@ -3215,15 +3220,17 @@ namespace Peano
           (∀ S, S ∈ Ω' → wieldandtAct G g S ∈ Ω') →
           (∀ S, S ∈ Ω' → ∀ T, T ∈ Ω' →
             wieldandtAct G g S = wieldandtAct G g T → S = T) →
+          (∀ S, S ∈ Ω' → Sorted (· < ·) S) →
+          (∀ S, S ∈ Ω' → ∀ x ∈ S, x ∈ G.carrier.elems) →
           lengthₚ Ω' = n →
           ∃ k : ℕ₀, lengthₚ Ω' = Peano.Add.add
             (lengthₚ (Ω'.filter (fun S => decide (wieldandtAct G g S = S))))
             (Peano.Mul.mul p k) from
-        H (lengthₚ Ω) Ω hΩ_nd hΩ_closed hΩ_inj rfl
+        H (lengthₚ Ω) Ω hΩ_nd hΩ_closed hΩ_inj hΩ_sorted hΩ_mem rfl
       intro n
       induction n using well_founded_lt.induction
       rename_i n ih
-      intro Ω' hΩ'_nd hΩ'_closed hΩ'_inj hlen
+      intro Ω' hΩ'_nd hΩ'_closed hΩ'_inj hΩ'_sorted hΩ'_mem hlen
       cases Ω' with
       | nil => exact ⟨𝟘, rfl⟩
       | cons S Ω'' =>
@@ -3248,16 +3255,46 @@ namespace Peano
             have hsucc : n = σ (lengthₚ Ω'') := by
               rw [← hlen]; exact (lengthₚ_cons S Ω'').symm
             rw [hsucc]; exact lt_succ_self (lengthₚ Ω'')
-          obtain ⟨k, hk⟩ := ih (lengthₚ Ω'') hlen'' Ω'' hΩ''_nd hΩ''_closed hΩ''_inj rfl
+          have hΩ''_sorted : ∀ T, T ∈ Ω'' → Sorted (· < ·) T :=
+            fun T hT => hΩ'_sorted T (List.mem_cons_of_mem S hT)
+          have hΩ''_mem : ∀ T, T ∈ Ω'' → ∀ x ∈ T, x ∈ G.carrier.elems :=
+            fun T hT => hΩ'_mem T (List.mem_cons_of_mem S hT)
+          obtain ⟨k, hk⟩ := ih (lengthₚ Ω'') hlen'' Ω'' hΩ''_nd hΩ''_closed hΩ''_inj
+              hΩ''_sorted hΩ''_mem rfl
           refine ⟨k, ?_⟩
           have h_filter : (S :: Ω'').filter (fun T => decide (wieldandtAct G g T = T)) =
               S :: Ω''.filter (fun T => decide (wieldandtAct G g T = T)) :=
             List.filter_cons_of_pos (decide_eq_true hS_fix)
           rw [h_filter, lengthₚ_cons, lengthₚ_cons, hk]
           exact (Peano.Add.succ_add _ _).symm
-        · -- S no es punto fijo: órbita de p elementos, eliminar y continuar
-          -- TODO: adaptar mckay_orbit_remove para wieldandtAct
-          exact ⟨𝟘, sorry⟩
+        · -- S no es punto fijo: usar wielandt_orbit_remove
+          have hS_sorted : Sorted (· < ·) S := hΩ'_sorted S List.mem_cons_self
+          have hS_mem' : ∀ x ∈ S, x ∈ G.carrier.elems := hΩ'_mem S List.mem_cons_self
+          obtain ⟨Ω_rem, hΩ_rem_nd, hΩ_rem_closed, hΩ_rem_inj, hlen_sum, hfilter_eq,
+                   hΩ_rem_sub⟩ :=
+            wielandt_orbit_remove G hg p hp hgp (S :: Ω'') S
+              List.mem_cons_self hS_fix hS_sorted hS_mem'
+              hΩ'_nd hΩ'_closed hΩ'_inj
+          have hΩ_rem_sorted : ∀ T, T ∈ Ω_rem → Sorted (· < ·) T :=
+            fun T hT => hΩ'_sorted T (hΩ_rem_sub T hT)
+          have hΩ_rem_mem : ∀ T, T ∈ Ω_rem → ∀ x ∈ T, x ∈ G.carrier.elems :=
+            fun T hT => hΩ'_mem T (hΩ_rem_sub T hT)
+          have h_n_eq : n = add (lengthₚ Ω_rem) p := hlen.symm.trans hlen_sum
+          have h_rem_lt : lengthₚ Ω_rem < n := by
+            rw [h_n_eq]; exact lt_add_of_pos_right (pos_of_ne_zero p hp.1)
+          obtain ⟨k', hk'⟩ := ih (lengthₚ Ω_rem) h_rem_lt Ω_rem hΩ_rem_nd hΩ_rem_closed
+              hΩ_rem_inj hΩ_rem_sorted hΩ_rem_mem rfl
+          refine ⟨σ k', ?_⟩
+          calc lengthₚ (S :: Ω'')
+              = add (lengthₚ Ω_rem) p := hlen_sum
+            _ = add (add (lengthₚ (Ω_rem.filter (fun T => decide (wieldandtAct G g T = T))))
+                        (mul p k')) p := by rw [hk']
+            _ = add (lengthₚ (Ω_rem.filter (fun T => decide (wieldandtAct G g T = T))))
+                    (add (mul p k') p) := by rw [← add_assoc]
+            _ = add (lengthₚ (Ω_rem.filter (fun T => decide (wieldandtAct G g T = T))))
+                    (mul p (σ k')) := by rw [← mul_succ]
+            _ = add (lengthₚ ((S :: Ω'').filter (fun T => decide (wieldandtAct G g T = T))))
+                    (mul p (σ k')) := by rw [hfilter_eq.symm]
 
     /-- Argumento de Wielandt, pieza 5:
         Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, y ningún subgrupo propio de G

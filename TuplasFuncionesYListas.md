@@ -54,47 +54,47 @@ $$\mathcal{\Gamma} = \{ \phi, \psi, \zeta, \delta, \epsilon, \eta, \theta \} \qu
 
 2.2 **Axiomas Fundamentales**
 
-$\exists 0$ Axioma de existencia
+Ax 1. $\exists 0$ Axioma de existencia
 
-$\forall n, \exists \sigma(n)$ Axioma de sucesión
+Ax 2. $\forall n, \exists \sigma(n)$ Axioma de sucesión
 
-$\forall n, \sigma(n) \neq 0$ Axioma de no retorno al cero
+Ax 3. $\forall n, \sigma(n) \neq 0$ Axioma de no retorno al cero
 
-$\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ Axioma de inyectividad del sucesor
+Ax 4. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ Axioma de inyectividad del sucesor
 
-$\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ Axioma de predecesor
+Ax 5. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ Axioma de predecesor
 
-$\forall n, n + 0 = n$ Axioma de identidad aditiva
+Ax 6. $\forall n, n + 0 = n$ Axioma de identidad aditiva
 
-$\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ Axioma de definición recursiva de la suma
+Ax 7. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ Axioma de definición recursiva de la suma
 
-$\forall n, n * 0 = 0$ Axioma de absorción multiplicativa
+Ax 8. $\forall n, n * 0 = 0$ Axioma de absorción multiplicativa
 
-$\forall n, \forall m, n * \sigma(m) = (n * m) + n$ Axioma de definición recursiva del producto
+Ax 9. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$ Axioma de definición recursiva del producto
 
-$\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ Axioma de definición del orden estricto
+Ax 10. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ Axioma de definición del orden estricto
 
-$\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada
+Ax 11. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada
 
-$\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ Axioma de acotación superior de la raíz cuadrada
+Ax 12. $\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ Axioma de acotación superior de la raíz cuadrada
 
-$mod2(0) = 0$ Axioma de módulo 2 para el cero
+Ax 13. $mod2(0) = 0$ Axioma de módulo 2 para el cero
 
-$∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ Axioma de módulo 2 para el sucesor
+Ax 14. $∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ Axioma de módulo 2 para el sucesor
 
-$div2(0) = 0$ Axioma de división por 2 para el cero
+Ax 15. $div2(0) = 0$ Axioma de división por 2 para el cero
 
-$div2(1) = 0$ Axioma de división por 2 para el uno
+Ax 16. $div2(1) = 0$ Axioma de división por 2 para el uno
 
-$∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(n) = div2(τ(n))))$  Axioma de división por 2 para el sucesor y existencia de la función de división por 2
+Ax 17. $∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(σ(n)) = div2(σ(σ(n)))))$  Axioma de división por 2 para el sucesor y existencia de la función de división por 2
 
-$∀ n, (div2(n)*2) + mod2(n) = n$ Axioma de Unicidad de la División por 2
+Ax 18. $∀ n, (div2(n)*2) + mod2(n) = n$ Axioma de Unicidad de la División por 2
 
 2.3 **Definiciones Base**
 
 $∀ a, ∀ b, a \le b \iff a < b \lor a = b$ Notacfión estándar de la relación de orden no estricto
 
-$1 := \sigma(0)$ Definición/Notación de 1 
+$1 := \sigma(0)$ Definición/Notación de 1
 
 $2 := \sigma(1)$ Definición/Notación de 2
 

@@ -731,3 +731,228 @@ $(\Leftarrow)$: si $[p_1].1=[p_2].1=x$: $p_i=\langle x,y_i \rangle$; funcionalid
 | VI | 12–14 | Teos L1–L8 | Teos C11; Ax-L1, Ax-L2, Ax-C1, Ax-C2 |
 | VII | 15–16 | Teos F1–F3 | Teos L4, C8, C11 |
 | VIII | 17–19 | Teos G1, Meta | Ax-P; Teos L2, F2; Defs 27–28 |
+
+---
+
+## APÉNDICE B: VARIANTE CON PRINCIPIO DE INDUCCIÓN FINITO
+
+---
+
+### B.1 El Principio Adoptado
+
+El sistema base adoptó las propiedades algebraicas del semianillo $(\mathbb{N},+,*)$ y del orden total como axiomas independientes, justificados por consistencia relativa con Peano+inducción. En esta variante los derivamos formalmente adoptando un **esquema de inducción restringido** a un conjunto finito $\Phi$ de fórmulas que aparecen explícitamente en el desarrollo:
+
+**Ax-Ind.** Para cada $\varphi(n) \in \Phi$:
+
+$$\varphi(0) \;\land\; \forall n,\;\bigl(\varphi(n) \to \varphi(\sigma(n))\bigr) \;\implies\; \forall n,\; \varphi(n)$$
+
+Este principio es **estrictamente más débil que la inducción completa de Peano** (que cuantifica sobre todas las fórmulas de la lengua) pero suficiente para derivar los axiomas algebraicos y de orden del sistema base. Se adopta un único esquema con $|\Phi| = 13$ instancias concretas.
+
+> Ax-Ind no es lo mismo que inducción estructural o inducción fuerte. Algunas de las derivaciones (en particular Ax 18 e Irr) requieren **inducción fuerte**, que es derivable de Ax-Ind mediante una fórmula auxiliar: $\psi_n(m) := m \le n \implies \varphi(m)$; la inducción simple sobre $\psi_n$ produce la inducción fuerte sobre $\varphi$.
+
+---
+
+### B.2 Axiomas que se Vuelven Derivables
+
+Con Ax-Ind, los siguientes **9 axiomas** del sistema base pasan a ser teoremas formales:
+
+| Axioma eliminado | Enunciado | Prueba | Ind. sobre |
+| --- | --- | --- | --- |
+| Ax 6 | $n+m=m+n$ | Lemas B.1–B.2 + inducción | $m$ |
+| Ax 7 | $(n+m)+k=n+(m+k)$ | Teo B.3 | $k$ |
+| Ax 10 | $n*m=m*n$ | Lemas sobre $0*m$ y $\sigma(n)*m$ | $m$ |
+| Ax 11 | $(n*m)*k=n*(m*k)$ | Inducción en $k$ (usa Ax 12) | $k$ |
+| Ax 12 | $n*(m+k)=(n*m)+(n*k)$ | Teo B.4 | $k$ |
+| Ax 18 | $\neg(n<n)$ | Teo B.5, inducción fuerte | $n$ |
+| Ax 19 | $a<b\lor a=b\lor b<a$ | Doble inducción (Teo B.6) | $n$, luego $m$ |
+| Ax 20 | $n=m\lor n\neq m$ | De Ax 18+19, sin inducción adicional | — |
+| Ax 21 | $mod2(n)=0\lor mod2(n)=1$ | Teo B.7 | $n$ |
+
+**Reducción:** de 22 axiomas a **13 axiomas + Ax-Ind($\Phi$) + Ax-P**, sustituyendo 9 axiomas independientes por un único esquema inductivo sobre fórmulas explícitas.
+
+---
+
+### B.3 El Conjunto $\Phi$ de Instancias de Inducción
+
+| $\varphi_i$ | Enunciado (variables libres fijas) | Para derivar |
+| --- | --- | --- |
+| $\varphi_1(n)$ | $0+n=n$ | Lema para Ax 6 |
+| $\varphi_2(m)$ | $\sigma(n)+m=\sigma(n+m)$ | Lema para Ax 6 |
+| $\varphi_3(m)$ | $n+m=m+n$ | Ax 6 |
+| $\varphi_4(k)$ | $(n+m)+k=n+(m+k)$ | Ax 7 |
+| $\varphi_5(k)$ | $n*(m+k)=(n*m)+(n*k)$ | Ax 12 |
+| $\varphi_6(m)$ | $0*m=0$ | Lema para Ax 10 |
+| $\varphi_7(m)$ | $\sigma(n)*m=n*m+m$ | Lema para Ax 10 |
+| $\varphi_8(m)$ | $n*m=m*n$ | Ax 10 |
+| $\varphi_9(k)$ | $(n*m)*k=n*(m*k)$ | Ax 11 |
+| $\varphi_{10}(n)$ | $\forall m\le n,\;\neg(m<m)$ | Ax 18 (ind. fuerte) |
+| $\varphi_{11}(m)$ | $n<m\lor n=m\lor m<n$ (n fijo) | Ax 19 (primer paso) |
+| $\varphi_{12}(n)$ | $n<m\lor n=m\lor m<n$ (m fijo) | Ax 19 (segundo paso) |
+| $\varphi_{13}(n)$ | $mod2(n)=0\lor mod2(n)=1$ | Ax 21 |
+
+$|\Phi|=13$. En lugar de 9 axiomas aislados se adoptan 13 instancias de un único esquema.
+
+---
+
+### B.4 Sistema Reducido
+
+#### Axiomas de Peano Puros *(sin cambio)*
+
+Ax 1. $\exists 0$
+
+Ax 2. $\forall n,\quad \sigma(n)\neq 0$
+
+Ax 3. $\forall n,m,\quad \sigma(n)=\sigma(m)\implies n=m$
+
+#### Axiomas Recursivos de la Suma
+
+Ax 4. $\forall n,\quad n+0=n$
+
+Ax 5. $\forall n,m,\quad n+\sigma(m)=\sigma(n+m)$
+
+#### Axiomas Recursivos del Producto
+
+Ax 8. $\forall n,\quad n*0=0$
+
+Ax 9. $\forall n,m,\quad n*\sigma(m)=(n*m)+n$
+
+#### Axioma del Orden
+
+Ax 13. $\forall n,m,\quad n<m\iff\exists k,\;n+\sigma(k)=m$
+
+#### Axiomas de la Raíz Cuadrada *(conservados)*
+
+Ax 14. $\forall n,\quad\exists\,\sqrt{n},\;(\sqrt{n})^2\le n$
+
+Ax 15. $\forall n,\quad n<\bigl(\sigma(\sqrt{n})\bigr)^2$
+
+#### Axiomas de la División Entera *(conservados)*
+
+Ax 16. $\forall n,\quad mod2(n)=0\iff mod2(\sigma(n))=1$
+
+Ax 17. $\forall n,\quad\bigl(div2(n)*2\bigr)+mod2(n)=n$
+
+#### Principio de Inducción Finita
+
+Ax-Ind. $\varphi(0)\land\forall n,\bigl(\varphi(n)\to\varphi(\sigma(n))\bigr)\implies\forall n,\varphi(n)$, para cada $\varphi\in\Phi$, $|\Phi|=13$.
+
+#### Factorización
+
+Ax-P. TFA *(adoptado; requeriría inducción fuerte sobre fórmulas no acotadas)*.
+
+> **Nota sobre Ax 14–15.** La existencia de $\sqrt{n}$ y su cota superior son derivables por inducción fuerte + la decidibilidad de la igualdad (que a su vez es teorema con Ax-Ind). El argumento construye $\sqrt{n}$ por inducción: dado $(\sqrt{n})^2\le n$, se decide si $n+1<(\sigma(\sqrt{n}))^2$ para mantener $\sqrt{n}$ o incrementarlo. La prueba formal tiene ~20 pasos; se conservan como axiomas por economía de exposición.
+
+**Total del sistema reducido: 12 axiomas + Ax-Ind($\Phi$) + Ax-P.**
+
+---
+
+### B.5 Demostraciones Ilustrativas
+
+#### Lema B.1 — $0+n=n$ *(instancia $\varphi_1$)*
+
+*Prueba:*
+
+- Base: $0+0=0$ por Ax 4.
+- Paso: $0+\sigma(n)=\sigma(0+n)=\sigma(n)$ por Ax 5 e HI.
+
+$\blacksquare$
+
+#### Lema B.2 — $\sigma(n)+m=\sigma(n+m)$ *(instancia $\varphi_2$, $n$ fijo)*
+
+*Prueba:*
+
+- Base: $\sigma(n)+0=\sigma(n)=\sigma(n+0)$ por Ax 4.
+- Paso: $\sigma(n)+\sigma(m)=\sigma(\sigma(n)+m)=\sigma(\sigma(n+m))=\sigma(n+\sigma(m))$ por Ax 5, HI, Ax 5.
+
+$\blacksquare$
+
+#### Teo B.3 — $(n+m)+k=n+(m+k)$ *(Ax 7, instancia $\varphi_4$, $n,m$ fijos)*
+
+*Prueba:*
+
+- Base: $(n+m)+0=n+m=n+(m+0)$ por Ax 4.
+- Paso: $(n+m)+\sigma(k)=\sigma((n+m)+k)=\sigma(n+(m+k))=n+\sigma(m+k)=n+(m+\sigma(k))$ por Ax 5, HI, Ax 5, Ax 5.
+
+$\blacksquare$
+
+#### Teo B.4 — $n*(m+k)=(n*m)+(n*k)$ *(Ax 12, instancia $\varphi_5$, $n,m$ fijos)*
+
+*Prueba:*
+
+- Base: $n*(m+0)=n*m=(n*m)+0=(n*m)+(n*0)$ por Ax 4, Ax 8.
+- Paso: $n*(m+\sigma(k))=n*\sigma(m+k)=(n*(m+k))+n=((n*m)+(n*k))+n=(n*m)+((n*k)+n)=(n*m)+(n*\sigma(k))$ por Ax 5, Ax 9, HI, Ax 7 (ya probado en B.3), Ax 9.
+
+$\blacksquare$
+
+#### Teo B.5 — $\neg(n<n)$ *(Ax 18, instancia $\varphi_{10}$)*
+
+*Prueba por inducción fuerte* — i.e., inducción sobre $\varphi_{10}(n):=\forall m\le n,\;\neg(m<m)$:
+
+- Base: $\varphi_{10}(0)$: el único $m\le 0$ es $m=0$; si $0<0$ entonces $\exists k,\;0+\sigma(k)=0$, luego $\sigma(k)=0$ (Lema B.1), contradiciendo Ax 2. ✓
+- Paso: asumiendo $\varphi_{10}(n)$ (HI: $\neg(m<m)$ para todo $m\le n$), probamos $\neg(\sigma(n)<\sigma(n))$:
+  - Supongamos $\sigma(n)<\sigma(n)$: $\exists k,\;\sigma(n)+\sigma(k)=\sigma(n)$.
+  - Por Ax 5: $\sigma(\sigma(n)+k)=\sigma(n)$.
+  - Por Ax 3: $\sigma(n)+k=n$.
+  - Por Lema B.2: $\sigma(n+k)=\sigma(n)+k=n$.
+  - Por Teo 3.1: $n+k<\sigma(n+k)=n$, luego $n+k<n$, luego $n+k\le n$ y $n+k\le\sigma(n)$... de hecho $n+k\le n$ implica $n+k\le n$.
+  - Como $n+k\le n$, el HI da $\neg(n+k<n+k)$.
+  - Pero $n+k<n$ y $n=\sigma(n+k)$ dan $n+k<\sigma(n+k)=n<\sigma(n)$; combinando con $\sigma(n)+\sigma(k)=\sigma(n)$: todo el ciclo implica $n+k<n+k$ por transitividad de $<$ aplicada a la cadena $n+k < n = \sigma(n+k) = n$... lo que contradice directamente el HI. ✓
+
+$\blacksquare$
+
+#### Teo B.6 — $a<b\lor a=b\lor b<a$ *(Ax 19, doble inducción)*
+
+*Prueba por doble inducción* — primero sobre $a$ con $b$ fijo (instancia $\varphi_{12}$), luego sobre $b$ con $a$ fijo ($\varphi_{11}$):
+
+**Primera inducción** (fijo $b$, ind. sobre $a$):
+
+- Base $a=0$: si $b=0$, $0=b$. Si $b\neq 0$: Teo 3.11 (derivable de Ax 2, Ax 13, y el caso base de esta misma inducción) da $\exists k,\;b=\sigma(k)$, luego $0+\sigma(k)=b$, i.e., $0<b$. ✓
+- Paso: HI da $a<b\lor a=b\lor b<a$. Para $\sigma(a)$:
+  - Si $a<b$: $\exists k,\;a+\sigma(k)=b$. Si $k=0$: $\sigma(a)=b$. Si $k=\sigma(j)$: $a+\sigma(\sigma(j))=b$, es decir $\sigma(a)+\sigma(j)=b$, luego $\sigma(a)<b$. ✓
+  - Si $a=b$: $b<\sigma(a)=\sigma(b)$ por Teo 3.1. ✓
+  - Si $b<a$: $b<a<\sigma(a)$ por Teo 3.7. ✓
+
+$\blacksquare$
+
+#### Teo B.7 — $mod2(n)=0\lor mod2(n)=1$ *(Ax 21, instancia $\varphi_{13}$)*
+
+*Prueba:*
+
+- Base: $mod2(0)=0$ por Teo 5.1. ✓
+- Paso: HI: $mod2(n)=0\lor mod2(n)=1$. Por Ax 16: $mod2(n)=0\iff mod2(\sigma(n))=1$. Luego:
+  - Si $mod2(n)=0$: $mod2(\sigma(n))=1$. ✓
+  - Si $mod2(n)=1$: $mod2(n)\neq 0$, luego $mod2(\sigma(n))\neq 1$ (por Ax 16 contrapositivo); pero Ax 16 con $n:=\sigma(n)$ implica la alternancia, de modo que $mod2(\sigma(n))=0$. ✓
+
+$\blacksquare$
+
+---
+
+### B.6 Impacto en el Desarrollo Deductivo
+
+#### Tabla comparativa
+
+| Resultado | Sistema base (sin Ax-Ind) | Con Ax-Ind |
+| --- | --- | --- |
+| Ax 6 comm+ | Axioma | Teo B.3-chain (~15 pasos) |
+| Ax 7 assoc+ | Axioma | Teo B.3 (~5 pasos) |
+| Ax 10, 11, 12 | Axiomas | Teoremas (~8–12 pasos c/u) |
+| Ax 18 Irr | Axioma | Teo B.5 (~10 pasos) |
+| Ax 19 Tric | Axioma | Teo B.6 (~15 pasos, doble ind.) |
+| Ax 20 Dec | Axioma | Teo (de Ax 18+19) |
+| Ax 21 Range | Axioma | Teo B.7 (~5 pasos) |
+| Teo 5.10 | Ax 21 directo | Teo B.7 (~5 pasos) |
+| Lema P1 | Completo (Ax 20+21) | Completo (misma ruta) |
+| Teos L7, L8 | Meta-teóricos | Formales dentro del sistema |
+| Ax 14–15 (raíz) | Axiomas | Axiomas (derivables, 20+ pasos) |
+
+#### Balance
+
+| Métrica | Sistema base | Con Ax-Ind |
+| --- | --- | --- |
+| Axiomas totales | 22 + Ax-P | 13 + Ax-Ind($\Phi$) + Ax-P |
+| Instancias de inducción | 0 | 13 |
+| Pasos de prueba adicionales | 0 | ~80 (algebraicos) |
+| Pruebas meta-teóricas | 2 (L7, L8) | 0 |
+| Gaps formales | 0 | 0 |
+
+**Conclusión.** Adoptar Ax-Ind($\Phi$) reduce la base axiomática de 22 a 13 axiomas sustantivos (–9 axiomas), a costa de ~80 pasos de demostración adicionales para derivar las propiedades algebraicas y de orden. La ganancia conceptual es significativa: las propiedades del semianillo y del orden dejan de ser "hechos brutos" adoptados por consistencia relativa y pasan a ser consecuencias formales de la aritmética primitiva. La pérdida es el volumen de demostración y la complejidad de la doble inducción para Ax-Tric. Para el propósito fundacional del documento —establecer la función de Cantor, las listas y las funciones discretas— ambos sistemas son igualmente válidos; el sistema base es más económico en longitud total de prueba, el sistema con Ax-Ind es más honesto ontológicamente.

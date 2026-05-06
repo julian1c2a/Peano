@@ -3200,6 +3200,7 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 > §44c `GroupTheory/FirstIsomorphism.lean`, §44d `GroupTheory/SecondIsomorphism.lean`.
 > §45 `Foundation/CantorPairing.lean` — documentado abajo.
 > §48 `GroupTheory/CorrespondenceTheorem.lean` — documentado abajo (2026-05-05).
+> §49 `GroupTheory/Sylow/Sylow.lean` — infraestructura Wielandt documentada abajo (2026-05-06).
 
 <!-- AUTO-UPDATE-2026-04-17-START -->
 ## Actualizacion de estado - 2026-04-17
@@ -3673,3 +3674,141 @@ trivialmente de las dos invertibildades.
 | `correspondenceSurjective` | `theorem` | — | público |
 
 **Exportados vía:** `export Peano.GroupTheory (preimageSubgroup mem_preimageSubgroup_iff N_le_preimageSubgroup imageSubgroup_preimage preimageSubgroup_image SubgroupAbove correspondencePhi correspondencePsi correspondencePhi_psi correspondencePsi_phi correspondenceInjective correspondenceSurjective)`
+
+<!-- AUTO-UPDATE-2026-05-06-START -->
+## Actualizacion de estado - 2026-05-06
+
+- Estado del build: 34 jobs, 0 errores, 1 sorry (`wielandt_p_ndvd_r`), 1 warning (variable `hg_ne` no usada).
+- **`wielandt_orbit_partition` completado**: sorry eliminado. Demostración por inducción bien fundada sobre `lengthₚ Ω`, con rama no-fija apoyada en `wielandt_orbit_remove` + `calc` usando `← add_assoc` y `← mul_succ`.
+- Nuevos lemas privados añadidos en `Sylow.lean` (infraestructura Wielandt Pieza A):
+  - `wieldandtAct_gpow_add` — descomposición g^(m+n)·S = g^m·(g^n·S)
+  - `wieldandtAct_gpow_fixed_of_gcd_one` — si g^k·S=S, g^p·S=S, gcd(k,p)=1 → g·S=S
+  - `wielandt_orbit_remove` — extrae la p-órbita de Ω (6 propiedades de salida)
+  - `wielandt_orbit_partition` — |Ω| = |fix(Ω)| + p·k (sin sorry)
+- Todos son `private`, no exportados.
+- Axiomas privados vigentes en Sylow.lean (4, sin cambio):
+  `wielandt_fixed_point_exists`, `wielandt_p_ndvd_r`, `sylow_third_mod`, `sylow_third_dvd`.
+  (Nota: `sylow_second_incl` fue demostrado en sesión anterior.)
+
+<!-- AUTO-UPDATE-2026-05-06-END -->
+
+---
+
+## §49. GroupTheory/Sylow/Sylow.lean — infraestructura Wielandt (Pieza A)
+
+*Namespace: `Peano.GroupTheory` (privados — no exportados)*
+*Dependencias: `Binom`, `Group`, `FSetFunction`, `Arith`, `Primes`, `Action`*
+*Actualizado: 2026-05-06 — 0 errores, 0 warnings en esta sección*
+
+Esta sección documenta cuatro lemas privados de infraestructura para el argumento combinatorio
+de Wielandt en la demostración del Primer Teorema de Sylow. Aunque todos son `private` y no
+forman parte de la API pública, se documentan aquí para referencia interna y continuidad.
+
+> **Nota:** Según §13 de AI-GUIDE.md, los símbolos `private` no son estrictamente exportables,
+> pero se incluyen aquí como registro del avance de la prueba de Sylow.
+
+### 49.1. Lemas auxiliares (privados)
+
+**[P49.1]** `wieldandtAct_gpow_add` *(private)*
+
+- **Lean4:**
+
+  ```lean
+  private theorem wieldandtAct_gpow_add
+      (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+      (S : List ℕ₀) (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+      (m n : ℕ₀) :
+      wieldandtAct G (gpow G g (add m n)) S =
+      wieldandtAct G (gpow G g m) (wieldandtAct G (gpow G g n) S)
+  ```
+
+- **Matemática:** La acción iterada g^(m+n)·S se factoriza como g^m·(g^n·S).
+- **Prueba:** `gpow_add` + `wieldandtAct_comp`.
+
+**[P49.2]** `wieldandtAct_gpow_fixed_of_gcd_one` *(private)*
+
+- **Lean4:**
+
+  ```lean
+  private theorem wieldandtAct_gpow_fixed_of_gcd_one
+      (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+      (S : List ℕ₀) (hS_sorted : Sorted (· < ·) S)
+      (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+      (k p : ℕ₀)
+      (hk : wieldandtAct G (gpow G g k) S = S)
+      (hp_act : wieldandtAct G (gpow G g p) S = S)
+      (hgcd : gcd k p = 𝟙) :
+      wieldandtAct G g S = S
+  ```
+
+- **Matemática:** Si g^k·S = S, g^p·S = S y mcd(k,p) = 1, entonces g·S = S.
+- **Prueba:** Bézout (`bezout_natform`): 1 = bn·k − bm·p (o viceversa). Construye 1 = add 1 (mul bm p) = mul bn k como cadena de igualdades y aplica periodicidad.
+
+**[P49.3]** `wielandt_orbit_remove` *(private)*
+
+- **Lean4:**
+
+  ```lean
+  private theorem wielandt_orbit_remove
+      (G : FinGroup ℕ₀) {g : ℕ₀} (hg : g ∈ G.carrier.elems)
+      (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id)
+      (Ω : List (List ℕ₀)) (S : List ℕ₀)
+      (hS_in : S ∈ Ω) (hS_nfix : wieldandtAct G g S ≠ S)
+      (hS_sorted : Sorted (· < ·) S) (hS_mem : ∀ x ∈ S, x ∈ G.carrier.elems)
+      (hΩ_nd : Ω.Nodup)
+      (hΩ_closed : ∀ T, T ∈ Ω → wieldandtAct G g T ∈ Ω)
+      (hΩ_inj : ∀ T₁, T₁ ∈ Ω → ∀ T₂, T₂ ∈ Ω →
+        wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂) :
+      ∃ Ω' : List (List ℕ₀),
+        Ω'.Nodup ∧
+        (∀ T, T ∈ Ω' → wieldandtAct G g T ∈ Ω') ∧
+        (∀ T₁, T₁ ∈ Ω' → ∀ T₂, T₂ ∈ Ω' →
+          wieldandtAct G g T₁ = wieldandtAct G g T₂ → T₁ = T₂) ∧
+        lengthₚ Ω = Peano.Add.add (lengthₚ Ω') p ∧
+        lengthₚ (Ω.filter (fun T => decide (wieldandtAct G g T = T))) =
+        lengthₚ (Ω'.filter (fun T => decide (wieldandtAct G g T = T))) ∧
+        (∀ T, T ∈ Ω' → T ∈ Ω)
+  ```
+
+- **Matemática:** Dado S ∈ Ω no fijo por g (de orden primo p), la órbita `{g^k·S | k < p}` tiene exactamente p elementos; extrayéndola obtenemos Ω' con |Ω| = |Ω'| + p y mismos puntos fijos.
+- **Construcción:** `orbit = (Fin₀Set p).elems.map (fun k => gpow G g k · S)`; `Ω' = Ω.filter (fun T => !decide (T ∈ orbit))`.
+- **Propiedades de salida (6):** nodup, cerrado, inyectivo, |Ω| = |Ω'| + p, fix(Ω) = fix(Ω'), Ω' ⊆ Ω.
+
+**[P49.4]** `wielandt_orbit_partition` *(private)*
+
+- **Lean4:**
+
+  ```lean
+  private theorem wielandt_orbit_partition
+      (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+      (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id) (hg_ne : g ≠ G.id)
+      (Ω : List (List ℕ₀))
+      (hΩ_nd : Ω.Nodup)
+      (hΩ_closed : ∀ S, S ∈ Ω → wieldandtAct G g S ∈ Ω)
+      (hΩ_inj : ∀ S, S ∈ Ω → ∀ T, T ∈ Ω →
+        wieldandtAct G g S = wieldandtAct G g T → S = T)
+      (hΩ_sorted : ∀ S, S ∈ Ω → Sorted (· < ·) S)
+      (hΩ_mem : ∀ S, S ∈ Ω → ∀ x ∈ S, x ∈ G.carrier.elems) :
+      ∃ k : ℕ₀, lengthₚ Ω = Peano.Add.add
+        (lengthₚ (Ω.filter (fun S => decide (wieldandtAct G g S = S))))
+        (Peano.Mul.mul p k)
+  ```
+
+- **Matemática:** Para g de orden primo p, |Ω| = |fix_g(Ω)| + p·k para algún k : ℕ₀.
+- **Prueba:** Inducción bien fundada sobre `n = lengthₚ Ω` (via `well_founded_lt.induction`).
+  - *Caso n = 0:* k = 0, `rfl`.
+  - *Caso cons S Ω'', S fijo:* IH sobre Ω'', obtiene k'; k = k'. Usa `succ_add` + `filter_cons_of_pos`.
+  - *Caso cons S Ω'', S no fijo:* Aplica `wielandt_orbit_remove` para obtener Ω_rem con |Ω| = |Ω_rem| + p y fix(Ω) = fix(Ω_rem); IH sobre Ω_rem obtiene k'; k = σ k'. Cierre por `calc` usando `← add_assoc` y `← mul_succ`.
+
+### 49.2. Estado de la prueba de Sylow (Wielandt)
+
+| Lema | Estado | Descripción |
+|------|--------|-------------|
+| `wieldandtAct_gpow_add` | ✅ probado | g^(m+n)·S = g^m·(g^n·S) |
+| `wieldandtAct_gpow_fixed_of_gcd_one` | ✅ probado | gcd=1 → punto fijo |
+| `wielandt_orbit_remove` | ✅ probado | extraer p-órbita de Ω |
+| `wielandt_orbit_partition` | ✅ probado | \|Ω\| = \|fix\| + p·k |
+| `wielandt_fixed_point_exists` | ⚠ axioma privado | paso 7 de Wielandt |
+| `wielandt_p_ndvd_r` | ⚠ sorry | p ∤ r = \|Ω\| / p^m |
+| `sylow_third_mod` | ⚠ axioma privado | n_p ≡ 1 mod p |
+| `sylow_third_dvd` | ⚠ axioma privado | n_p \| \|G\| / p^m |

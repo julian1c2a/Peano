@@ -54,41 +54,51 @@ $$\mathcal{\Gamma} = \{ \phi, \psi, \zeta, \delta, \epsilon, \eta, \theta \} \qu
 
 2.2 **Axiomas Fundamentales**
 
-Ax 1. $\exists 0$ Axioma de existencia
+Ax 1. $\exists 0$ (Axioma de existencia del cero)
 
-Ax 2. $\forall n, \exists \sigma(n)$ Axioma de sucesión
+Ax 2. $\forall n, \exists \sigma(n)$ (Axioma de sucesión)
 
-Ax 3. $\forall n, \sigma(n) \neq 0$ Axioma de no retorno al cero
+Ax 3. $\forall n, \sigma(n) \neq 0$ (Axioma de no retorno al cero)
 
-Ax 4. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ Axioma de inyectividad del sucesor
+Ax 4. $\forall n, \forall m, \sigma(n) = \sigma(m) \implies n = m$ (Axioma de inyectividad del sucesor)
 
-Ax 5. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ Axioma de predecesor
+Ax 5. $\forall n, \neg(n = 0) \implies \exists m, \sigma(m) = n$ (Axioma de predecesor)
 
-Ax 6. $\forall n, n + 0 = n$ Axioma de identidad aditiva
+Ax 6. $\forall n, n + 0 = n$ (Axioma de identidad aditiva)
 
-Ax 7. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ Axioma de definición recursiva de la suma
+Ax 7. $\forall n, \forall m, n + \sigma(m) = \sigma(n + m)$ (Axioma de definición recursiva de la suma)
 
-Ax 8. $\forall n, n * 0 = 0$ Axioma de absorción multiplicativa
+Ax 8. $\forall n, n * 0 = 0$ (Axioma de absorción multiplicativa)
 
-Ax 9. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$ Axioma de definición recursiva del producto
+Ax 9. $\forall n, \forall m, n * \sigma(m) = (n * m) + n$ (Axioma de definición recursiva del producto)
 
-Ax 10. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ Axioma de definición del orden estricto
+Ax 10. $\forall n, \forall m, n < m \iff \exists k, n + \sigma(k) = m$ (Axioma de definición del orden estricto)
 
-Ax 11. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada
+Ax 11. $\forall n, \exists \sqrt{n}, (\sqrt{n} * \sqrt{n}) \le n$ (Axioma de acotación inferior de la raíz cuadrada y existencia de la raíz cuadrada)
 
-Ax 12. $\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ Axioma de acotación superior de la raíz cuadrada
+Ax 12. $\forall n, n < (σ(\sqrt{n}) * σ(\sqrt{n}))$ (Axioma de acotación superior de la raíz cuadrada)
 
-Ax 13. $mod2(0) = 0$ Axioma de módulo 2 para el cero
+Ax 13. $mod2(0) = 0$ (Axioma de módulo 2 para el cero)
 
-Ax 14. $∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ Axioma de módulo 2 para el sucesor
+Ax 14. $∀ n, ∃ mod2(n), mod2(n) = 0 ⟺ mod2(σ(n)) = 1$ (Axioma de módulo 2 para el sucesor)
 
-Ax 15. $div2(0) = 0$ Axioma de división por 2 para el cero
+Ax 15. $div2(0) = 0$ (Axioma de división por 2 para el cero)
 
-Ax 16. $div2(1) = 0$ Axioma de división por 2 para el uno
+Ax 16. $div2(1) = 0$ (Axioma de división por 2 para el uno)
 
-Ax 17. $∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(σ(n)) = div2(σ(σ(n)))))$  Axioma de división por 2 para el sucesor y existencia de la función de división por 2
+Ax 17. $∀ n, \exists div2(n), ((div2(n) = div2(σ(n))) ⟺ ¬ (div2(σ(n)) = div2(σ(σ(n)))))$  (Axioma de división por 2 para el sucesor y existencia de la función de división por 2)
 
-Ax 18. $∀ n, (div2(n)*2) + mod2(n) = n$ Axioma de Unicidad de la División por 2
+Ax 18. $∀ n, (div2(n)*2) + mod2(n) = n$ (Axioma de Unicidad de la División por 2)
+
+Ax 19. $\forall n, \forall m, n + m = m + n$ (Axioma de conmutatividad de la suma)
+
+Ax 20. $\forall n, \forall m, \forall k, (n + m) + k = n + (m + k)$ (Axioma de asociatividad de la suma)
+
+Ax 21. $\forall n, \forall m, n * m = m * n$ (Axioma de conmutatividad del producto)
+
+Ax 22. $\forall n, \forall m, \forall k, (n * m) * k = n * (m * k)$ (Axioma de asociatividad del producto)
+
+Ax 23. $\forall n, \forall m, \forall k, n * (m + k) = (n * m) + (n * k)$ (Axioma de distributividad del producto sobre la suma)
 
 2.3 **Definiciones Base**
 
@@ -150,7 +160,7 @@ Teorema 32: $0 + 0 = 0$ (Instanciando el Ax 6)
 
 ### FASE 3 y 4: Límite del Sistema y Adopción Algebraica
 
-Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo:
+Al intentar probar $\forall n, 0+n=n$, el motor formal constata que en FOL= sin inducción es imposible. Para operar polinomios, asumimos temporalmente los axiomas de la estructura de semianillo: Conmutatividad y asociatividad de la suma y el producto, y la distributividad del producto sobre la suma. Son los axiomas 19 al 23, que adoptamos como hipótesis de trabajo para desarrollar la teoría de polinomios y la función de Cantor. Podemos adoptarlos puesto que tenemos modelos que loss atisfacen.
 
 Ax 17 (Conmutatividad +): $\forall n, \forall m, n + m = m + n$
 

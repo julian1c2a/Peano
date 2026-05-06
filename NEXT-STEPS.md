@@ -1,28 +1,34 @@
 # Next Steps — Eliminating the Remaining Private Axioms
 
-*Last updated: 2026-05-05*
+*Last updated: 2026-05-06*
 *Author: Julián Calderón Almendros*
 
 ---
 
 ## Current build state
 
-`lake build` compila con **0 errores** y **0 sorry** en todo el proyecto (64 jobs).
+`lake build` compila con **0 errores** y **1 sorry** en todo el proyecto (34 jobs).
 
 Warnings activos (menores, no bloquean):
 
-- `PeanoNat.lean:28` — `n`, `m` sin usar (en una definición de instancia)
-- `CosetAction.lean:292–294` — variables de patrón sin usar en la acción
-- `Sylow.lean:2027` — `hΩ_nd` sin usar
+- `Sylow.lean:3207` — variable `hg_ne` sin usar (en `wielandt_orbit_partition`)
+- `Sylow.lean:3307` — `wielandt_p_ndvd_r` usa `sorry`
 
-`Sylow.lean` compila con **4 private axioms** (antes eran 5):
+`Sylow.lean` compila con **4 private axioms/sorries**:
 
-| Axiom | Línea ~ | Usado por | Dificultad |
+| Axiom/sorry | Línea ~ | Usado por | Dificultad |
 |---|---|---|---|
 | `wielandt_fixed_point_exists` | ~2063 | `sylow_center_step_wielandt` | Difícil |
-| `wielandt_p_ndvd_r` | ~2166 | `sylow_center_step_wielandt` | Media |
-| `sylow_third_mod` | ~2464 | `sylow_third` | Muy difícil |
-| `sylow_third_dvd` | ~2478 | `sylow_third` | Muy difícil |
+| `wielandt_p_ndvd_r` | ~3307 | `sylow_center_step_wielandt` | Media |
+| `sylow_third_mod` | ~3464 | `sylow_third` | Muy difícil |
+| `sylow_third_dvd` | ~3478 | `sylow_third` | Muy difícil |
+
+**Completados en sesión 2026-05-06** (infraestructura Wielandt Pieza A):
+
+- `wieldandtAct_gpow_add` — ✅ demostrado
+- `wieldandtAct_gpow_fixed_of_gcd_one` — ✅ demostrado
+- `wielandt_orbit_remove` — ✅ demostrado (6 propiedades de salida)
+- `wielandt_orbit_partition` — ✅ **sorry eliminado** (|Ω| = |fix| + p·k)
 
 **Eliminados** (histórico):
 
@@ -97,6 +103,13 @@ Sea `|G| = p^(m+1) · r`. Define `Ω = { S ⊆ G.carrier.elems : |S| = p^(m+1) }
 - `binom_pow_p_mod` — `C(p^n·r, p^n) ≡ r (mod p)` ✅
 - `mckay_orbit_count` ✅
 - `cauchy_minimal` — `∃ K ≤ G, |K| = p` cuando `p ∣ |G|` ✅ (Sylow.lean:1641, 0 sorry)
+
+### Infraestructura completada en sesión 2026-05-06 (Pieza A)
+
+- `wieldandtAct_gpow_add` ✅ — g^(m+n)·S = g^m·(g^n·S)
+- `wieldandtAct_gpow_fixed_of_gcd_one` ✅ — gcd(k,p)=1 + periodos ⟹ punto fijo
+- `wielandt_orbit_remove` ✅ — extrae p-órbita de Ω con 6 propiedades
+- `wielandt_orbit_partition` ✅ — |Ω| = |fix_g(Ω)| + p·k
 
 ### Plan de acción en 6 pasos (orden de implementación)
 

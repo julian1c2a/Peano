@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-05-05
+**Última actualización:** 2026-05-06
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,22 +15,22 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (64 jobs)   [2026-05-05]
-sorry count     →  0 (4 axiomas privados en Sylow.lean, pendientes de prueba)
-warnings        →  0
+lake build      →  Build completed successfully (34 jobs)   [2026-05-06]
+sorry count     →  1 (wielandt_p_ndvd_r en Sylow.lean, pendiente de prueba)
+warnings        →  1 (variable hg_ne sin usar en wielandt_orbit_partition)
 errors          →  0
 ```
 
 ### Desglose de axiomas privados (Sylow.lean)
 
-*(Nota: `sylow_card_eq` fue probado el 2026-04-28. Los 4 restantes son:)*
+*(Completados en sesión 2026-05-06: `wieldandtAct_gpow_add`, `wieldandtAct_gpow_fixed_of_gcd_one`, `wielandt_orbit_remove`, `wielandt_orbit_partition` — los 4 son privados.)*
 
-| Axioma | Línea ~ | Usado por | Dificultad | Ruta |
+| Axioma/sorry | Línea ~ | Usado por | Dificultad | Ruta |
 |---|---|---|---|---|
 | `wielandt_fixed_point_exists` | ~2062 | `sylow_center_step_wielandt` | Difícil | Wielandt paso 7 (órbita-estabilizador) |
-| `wielandt_p_ndvd_r` | ~2165 | `sylow_center_step_wielandt` | Medio | `binom_pow_p_mod` disponible |
-| `sylow_third_mod` | ~2442 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
-| `sylow_third_dvd` | ~2456 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
+| `wielandt_p_ndvd_r` | ~3307 | `sylow_center_step_wielandt` | Medio | `binom_pow_p_mod` disponible |
+| `sylow_third_mod` | ~3464 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
+| `sylow_third_dvd` | ~3478 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
 
 ---
 
@@ -94,7 +94,7 @@ errors          →  0
 | `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
 | `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card`, `lagrange` | ✅ |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (0 sorry, 4 axiomas privados) | ⚠ 4 axiomas |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (1 sorry, 3 axiomas privados); `wielandt_orbit_partition` ✅ 2026-05-06 | ⚠ 4 pendientes |
 
 ---
 

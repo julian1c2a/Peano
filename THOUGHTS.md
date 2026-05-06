@@ -1,7 +1,7 @@
 # Thoughts — Peano
 
-**Last updated:** 2026-05-02
-**Author**: Julián Calderón Almendros
+**Last updated:** 2026-05-06
+*Author: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
 > open questions, and future directions here. Not normative — purely exploratory.
@@ -172,6 +172,33 @@ session-based locking.
   probar `0 < (x :: xs).length`.
 - **`noncomputable def` + `Classical.choice`**: la no-computabilidad de `encodeList` es
   inevitable; el `decodeList` sí es computable (puro `map` sobre `List.range`).
+
+### Sylow/Wielandt — Lecciones de la Pieza A (2026-05-06)
+
+Completada la infraestructura combinatoria para el argumento de Wielandt
+(`wielandt_orbit_partition`, sin sorry). Lecciones relevantes:
+
+- **`well_founded_lt.induction`**: la forma correcta de hacer inducción bien fundada
+  sobre un `ℕ₀` (no `strongRecOn`) es via `well_founded_lt.induction`. El `ih` resultante
+  tiene la forma `∀ m, lt₀ m n → P m`, lo que requiere proporcionar la prueba de `lt₀`
+  explícitamente en cada caso recursivo.
+- **Rama no-fija con `wielandt_orbit_remove`**: el truco clave para `wielandt_orbit_partition`
+  es que `wielandt_orbit_remove` extrae **exactamente p elementos** de Ω (la p-órbita de S),
+  reduciendo el tamaño de la lista. Esto garantiza la terminación de la inducción: en la
+  rama no-fija, `lengthₚ Ω_rem = lengthₚ Ω − p < n` (usando `lt_add_of_pos_right`).
+- **`calc` con `← add_assoc` + `← mul_succ`**: el cierre algebraico del caso no-fijo es:
+  ```
+  lengthₚ Ω = add (lengthₚ Ω_rem) p
+            = add (add (filter fixed Ω_rem) (mul p k')) p
+            = add (filter fixed Ω_rem) (add (mul p k') p)   [← add_assoc]
+            = add (filter fixed Ω_rem) (mul p (σ k'))        [← mul_succ]
+            = add (filter fixed Ω) (mul p (σ k'))            [hfilter_eq.symm]
+  ```
+  La clave es escribir `add (mul p k') p` como `mul p (σ k')` via `← mul_succ`.
+- **6ª propiedad de `wielandt_orbit_remove`**: se necesita `∀ T, T ∈ Ω' → T ∈ Ω` (inclusión)
+  para propagar `hΩ_sorted`/`hΩ_mem` al IH de `wielandt_orbit_partition`. Sin ella, el IH
+  no tiene acceso a las hipótesis de "elementos bien ordenados y en el carrier".
+- **`bezout_natform`**: devuelve la identidad de Bézout en forma `∃ bn bm, 𝟙 = sub (mul bn k) (mul bm p) ∨ 𝟙 = sub (mul bn p) (mul bm k)`. Para usarlo en `wieldandtAct_gpow_fixed_of_gcd_one` hay que tratar ambas ramas del `rcases` simétricamente.
 
 ---
 

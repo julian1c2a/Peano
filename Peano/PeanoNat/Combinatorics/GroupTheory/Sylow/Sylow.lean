@@ -3579,10 +3579,14 @@ namespace Peano
         -- Contradicción: pow_dvd_card p (σ 0) K.carrier con t=1 vs. h_no_proper
         exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card.symm⟩ (h_no_proper K hK_ne)
       | succ m' =>
-        -- Vacuamente verdadero en la práctica (ver wielandt_p_ndvd_r.md § 3):
-        -- las hipótesis son inconsistentes si m ≥ 1, p ∣ r, en teoría de grupos estándar.
-        -- La IH fuerte sobre |G| no basta: h_no_proper bloquea todos los subgrupos propios.
-        -- Formalización completa requiere hSylow para G (circular) o grupos cociente.
+        -- Bloqueado por Phase 5 (FinGroup polimorfismo).
+        -- Argumento matemático: asumir p ∣ r. Cauchy da K ≤ G con |K| = p (propio,
+        -- pues |G| = p^(σ(σm')) * r ≥ p^2 > p). Pero |K| = p no satisface
+        -- p^(σ(σm')) ∣ p (ya que σ(σm') ≥ 2), así que h_no_proper no se contradice.
+        -- La única ruta: cociente G/K — pero G/K es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
+        -- Una IH sobre |G| tampoco basta: h_no_proper impide que cualquier subgrupo
+        -- propio de G tenga p^(σm) ∣ |M|, cerrando todas las rutas de recursión.
+        -- Para eliminar este sorry: implementar Phase 5 (FinGroup sobre tipo genérico).
         sorry
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.

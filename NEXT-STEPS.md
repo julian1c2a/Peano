@@ -1,6 +1,6 @@
 # Next Steps — Eliminating the Remaining Private Axioms
 
-*Last updated: 2026-05-06*
+*Last updated: 2026-05-07*
 *Author: Julián Calderón Almendros*
 
 ---
@@ -11,17 +11,21 @@
 
 Warnings activos (menores, no bloquean):
 
-- `Sylow.lean:3207` — variable `hg_ne` sin usar (en `wielandt_orbit_partition`)
-- `Sylow.lean:3307` — `wielandt_p_ndvd_r` usa `sorry`
+- `Sylow.lean:3044` — variable `htrans` sin usar (en `wielandt_fixed_point_exists`)
+- `Sylow.lean:3438` — variable `hg_ne` sin usar (en `wielandt_orbit_stab`)
+- `Sylow.lean:3538` — declaración `wielandt_p_ndvd_r` usa `sorry` (caso `succ m'`)
 
-`Sylow.lean` compila con **4 private axioms/sorries**:
+`Sylow.lean` compila con **1 sorry + 2 private axioms**:
 
 | Axiom/sorry | Línea ~ | Usado por | Dificultad |
 |---|---|---|---|
-| `wielandt_fixed_point_exists` | ~2063 | `sylow_center_step_wielandt` | Difícil |
-| `wielandt_p_ndvd_r` | ~3307 | `sylow_center_step_wielandt` | Media |
-| `sylow_third_mod` | ~3464 | `sylow_third` | Muy difícil |
-| `sylow_third_dvd` | ~3478 | `sylow_third` | Muy difícil |
+| `wielandt_p_ndvd_r` (caso `succ m'`) | ~3586 | `sylow_center_step_wielandt` | Difícil |
+| `sylow_third_mod` | ~3875 | `sylow_third` | Muy difícil |
+| `sylow_third_dvd` | ~3889 | `sylow_third` | Muy difícil |
+
+**Completados en sesión 2026-05-07**:
+
+- `wielandt_fixed_point_exists` — ✅ **sorry/axiom eliminado** (demostrado como teorema completo)
 
 **Completados en sesión 2026-05-06** (infraestructura Wielandt Pieza A):
 
@@ -35,6 +39,7 @@ Warnings activos (menores, no bloquean):
 - `sylow_card_eq` — 2026-04-28
 - `wielandt_omega_card` — 2026-04-28
 - `sylow_second_incl` — ✅ **ELIMINADO** (reemplazado por `coset_conjugate_exists` en `CosetAction.lean`)
+- `wielandt_fixed_point_exists` — ✅ **ELIMINADO** 2026-05-07
 
 **Infrastructure disponible** (en `Binom.lean`):
 
@@ -71,7 +76,7 @@ Peano/PeanoNat/
 │       └── Sylow/
 │           ├── Cosets.lean       ✅
 │           ├── CosetAction.lean  ✅ coset_conjugate_exists (cierra sylow_second_incl)
-│           └── Sylow.lean        ⚠ 4 private axioms
+│           └── Sylow.lean        ⚠ 1 sorry + 2 private axioms
 └── Foundation/
     ├── CantorPairing.lean   ✅
     ├── GodelBeta.lean       ✅
@@ -83,16 +88,22 @@ Peano/PeanoNat/
 
 ---
 
-## Track 1 — `Wielandt.lean` (cierra `wielandt_p_ndvd_r` + `wielandt_fixed_point_exists`)
+## Track 1 — `Sylow.lean` (cierra `wielandt_p_ndvd_r` caso `succ m'`)
+
+### Estado actual (2026-05-07)
+
+`wielandt_fixed_point_exists` está **completamente demostrado** como `private theorem`
+(0 sorry, 0 axiom privado). El único pendiente del Track 1 es el caso `succ m'` del
+teorema `wielandt_p_ndvd_r`.
 
 ### Argumento matemático
 
 Sea `|G| = p^(m+1) · r`. Define `Ω = { S ⊆ G.carrier.elems : |S| = p^(m+1) }`.
 
 - `|Ω| = C(|G|, p^(m+1)) ≡ r (mod p)` por `binom_pow_p_mod` ✅
-- `wielandt_p_ndvd_r`: p ∤ r — vía inducción fuerte sobre `|G|` (ver Paso 5 y 6).
+- `wielandt_p_ndvd_r`: p ∤ r — vía inducción fuerte sobre `|G|`.
 - `wielandt_fixed_point_exists`: G actúa sobre Ω por traslación; p∤|Ω| →
-  `mckay_orbit_count` da punto fijo → el estabilizador tiene orden `p^(m+1)`.
+  `wielandt_exists_nondvd_orbit_aux` da punto fijo → el estabilizador tiene orden `p^(m+1)`. ✅
 
 ### Infraestructura ya disponible
 
@@ -103,135 +114,66 @@ Sea `|G| = p^(m+1) · r`. Define `Ω = { S ⊆ G.carrier.elems : |S| = p^(m+1) }
 - `binom_pow_p_mod` — `C(p^n·r, p^n) ≡ r (mod p)` ✅
 - `mckay_orbit_count` ✅
 - `cauchy_minimal` — `∃ K ≤ G, |K| = p` cuando `p ∣ |G|` ✅ (Sylow.lean:1641, 0 sorry)
+- `wieldandtAct_gpow_add` ✅
+- `wieldandtAct_gpow_fixed_of_gcd_one` ✅
+- `wielandt_orbit_remove` ✅
+- `wielandt_orbit_partition` ✅ (|Ω| = |fix| + p·k)
+- `wielandt_exists_nondvd_orbit_aux` ✅ (inducción estructural sobre |Ω|)
+- `wielandt_fixed_point_exists` ✅ **COMPLETADO 2026-05-07**
 
-### Infraestructura completada en sesión 2026-05-06 (Pieza A)
+### Pendiente: `wielandt_p_ndvd_r` caso `succ m'`
 
-- `wieldandtAct_gpow_add` ✅ — g^(m+n)·S = g^m·(g^n·S)
-- `wieldandtAct_gpow_fixed_of_gcd_one` ✅ — gcd(k,p)=1 + periodos ⟹ punto fijo
-- `wielandt_orbit_remove` ✅ — extrae p-órbita de Ω con 6 propiedades
-- `wielandt_orbit_partition` ✅ — |Ω| = |fix_g(Ω)| + p·k
+El teorema `wielandt_p_ndvd_r` prueba que si `|G| = p^(m+1) · r` y ningún
+subgrupo propio de `G` es divisible por `p^(m+1)`, entonces `p ∤ r`.
 
-### Plan de acción en 6 pasos (orden de implementación)
+El **caso `m = 0`** ya está demostrado: `cauchy_minimal` da `K : Subgroup G` con
+`|K| = p`; `K` es propio y contradice `h_no_proper`.
 
-#### Paso 1 — Acción de G sobre Ω por traslación izquierda
+El **caso `m' ≥ 1`** (succ m') tiene un `sorry`. El obstáculo es la circularidad:
+la prueba del caso inductivo necesita aplicar Sylow a un grupo más pequeño `G'`
+(un cociente `G/Z` donde `Z ≤ center(G)`, `|Z| = p`), pero eso requiere:
 
-Definir en `Sylow.lean` (junto a `wieldandtOmega`):
+1. Construir el grupo cociente `G/Z` como `FinGroup ℕ₀` — disponible en `QuotientGroup.lean`.
+2. Verificar `|G/Z| = p^m · r < |G|` — aritmética directa.
+3. Aplicar la hipótesis inductiva fuerte sobre `|G'|` para obtener `H' ≤ G'` con `|H'| = p^(m+1)`.
+4. Levantar `H'` a subgrupo de `G` — vía `FirstIsomorphism.lean` o preimagen.
 
-```lean
-def wieldandtAct (G : FinGroup ℕ₀) (g : ℕ₀) (S : List ℕ₀) : List ℕ₀ :=
-  (S.map (fun x => G.op g x)).mergeSort (· ≤ ·)
-```
+**Bloqueador principal**: la inducción fuerte sobre `|G|` no está disponible directamente
+en este contexto (Lean 4.29.0 sin Mathlib); requiere `Nat.strong_rec_on` o equivalente.
+Además, el paso 3 introduce una circularidad si se llama recursivamente a `sylow_first` —
+hay que pasar la hipótesis inductiva explícitamente como parámetro de `sylow_center_step_wielandt`.
 
-Demostrar:
+### Plan de acción
 
-- `wieldandtAct_mem_omega`: `S ∈ wieldandtOmega G N → wieldandtAct G g S ∈ wieldandtOmega G N`
-  (preserva cardinalidad `N`, membresía en `G`, y orden — porque `G.op g` es biyección sobre `G.carrier`).
-- `wieldandtAct_id`: `wieldandtAct G G.id S = S`
-- `wieldandtAct_comp`: `wieldandtAct G g (wieldandtAct G h S) = wieldandtAct G (G.op g h) S`
+#### Paso A — Modificar firma de `sylow_center_step_wielandt`
 
-#### Paso 2 — La acción es por permutaciones de Ω
-
-Construir `wieldandtActPerm : FinGroup ℕ₀ → ℕ₀ → ℕ₀FSet → ℕ₀FSet` sobre el
-`ℕ₀FSet` de índices de `wieldandtOmega` (índice `i : ℕ₀ < lengthₚ (wieldandtOmega G N)`).
-
-Alternativamente, trabajar directamente sobre `List (List ℕ₀)` con la maquinaria
-de `Action.lean` instanciada para `α = List ℕ₀` (elementos de `wieldandtOmega`).
-
-Demostrar que la función `g ↦ wieldandtAct G g` es una acción de grupo en el sentido
-de `Action.lean` (satisface `act_id` y `act_comp`).
-
-#### Paso 3 — Puntos fijos
-
-Un `S ∈ wieldandtOmega G N` es punto fijo si `∀ g ∈ G.carrier.elems, wieldandtAct G g S = S`.
-
-Demostrar:
-
-- `wieldandt_fixedPoint_is_subgroup`: si `S` es punto fijo entonces
-  `S` es la carrier de un subgrupo de `G` de orden `N = p^(m+1)`.
-  (Clave: S fijo ⟹ S cerrado bajo `G.op` y `G.inv` ⟹ subgrupo; `|S| = N` por definición de Ω.)
-- `wieldandt_fixedPoint_exists_of_fix_nonempty`: si `fix ≠ ∅` entonces `∃ H : Subgroup G, H.carrier.card = N`.
-
-#### Paso 4 — `wielandt_fixed_point_exists`
-
-Con los pasos anteriores y `mckay_orbit_count`:
+Añadir un parámetro explícito `HI` (hipótesis inductiva de Sylow para grupos más pequeños):
 
 ```lean
--- p ∤ |Ω| (por wielandt_p_ndvd_r, paso 6) ⟹ ∃ punto fijo ⟹ ∃ subgrupo de orden p^(m+1)
-theorem wielandt_fixed_point_exists
-    (G : FinGroup ℕ₀) (p m r : ℕ₀)
-    (hp : Prime p) (hG : G.carrier.card = Mul.mul (pow p (succ m)) r)
-    (hr : ¬ ∃ t, Mul.mul p t = r) :
-    ∃ H : Subgroup G, H.carrier.card = pow p (succ m)
+private theorem sylow_center_step_wielandt
+    (HI : ∀ (G' : FinGroup ℕ₀),
+          G'.carrier.card < G.carrier.card →
+          ∀ (p' : ℕ₀), Prime p' → (∃ t, Mul.mul p' t = G'.carrier.card) →
+          ∃ K : Subgroup G', K.carrier.card = p')
+    (G : FinGroup ℕ₀) ...
 ```
 
-Prueba: `mckay_orbit_count` sobre la acción del Paso 2 da un índice fijo →
-`wieldandt_fixedPoint_is_subgroup` da el subgrupo.
-
-**Dependencia**: necesita `wielandt_p_ndvd_r` (Paso 6) para garantizar `p ∤ r`,
-que implica `p ∤ |Ω|`.
-
-#### Paso 5 — Modificar firma de `sylow_center_step_wielandt`
-
-En `Sylow.lean`, cambiar la firma de `sylow_center_step_wielandt` para aceptar
-la hipótesis inductiva `HI` como parámetro explícito, rompiendo la circularidad
-con `sylow_first`:
+#### Paso B — Reescribir el caso `succ m'` con inducción fuerte
 
 ```lean
--- Antes (circular):
-private def sylow_center_step_wielandt
-    (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p) ... : ...
-
--- Después (con HI explícito):
-private def sylow_center_step_wielandt
-    (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p)
-    (HI : ∀ (G' : FinGroup ℕ₀) (r' : ℕ₀),
-          lt₀ G'.carrier.card G.carrier.card →
-          ¬ ∃ t, Mul.mul p t = r' →
-          ∃ H' : Subgroup G', H'.carrier.card = p)
-    ... : ...
+| succ m' =>
+  -- Sylow centrado: ∃ Z ≤ center(G), |Z| = p (por cauchy_minimal sobre center(G))
+  -- G' := G / Z,  |G'| = p^m' · r  <  |G|
+  -- HI aplicada a G' da H' ≤ G' con |H'| = p^(m+1)
+  -- Preimagen de H' en G tiene orden p^(m+1) · |Z| = p^(m+2)... (revisar aritmética)
 ```
 
-Actualizar la llamada en `wielandt_p_ndvd_r` para pasar `HI` explícitamente.
-
-#### Paso 6 — Reescribir `wielandt_p_ndvd_r` con inducción fuerte
-
-Reemplazar el `private axiom wielandt_p_ndvd_r` por un `private theorem` usando
-inducción fuerte sobre `G.carrier.card`:
-
-```lean
-private theorem wielandt_p_ndvd_r
-    (G : FinGroup ℕ₀) (p m r : ℕ₀)
-    (hp : Prime p) (hG : G.carrier.card = Mul.mul (pow p (succ m)) r) :
-    ¬ ∃ t, Mul.mul p t = r := by
-  -- Inducción fuerte sobre G.carrier.card
-  induction h_card : G.carrier.card using Nat.strong_rec_on with
-  | _ n ih => ...
-  -- Caso m = 0: cauchy_minimal da K ≤ G con |K| = p,
-  --   que es un subgrupo propio ⟹ contradicción con h_no_proper.
-  -- Caso m ≥ 1: pasar ih como HI a sylow_center_step_wielandt
-  --   (posible porque |G'| < |G| por hipótesis del paso inductivo).
-```
-
-**Caso m=0** (sin circularidad):
-
-- `cauchy_minimal G p hp ⟨r, hG⟩` da `K : Subgroup G` con `K.carrier.card = p`.
-- `K` es un subgrupo propio (su cardinal es `p < p·r = |G|` cuando `r ≥ 2`, o `|G|` es primo).
-- Esto contradice `h_no_proper` en `sylow_center_step_wielandt`.
-
-**Caso m≥1** (rompe la circularidad):
-
-- El paso inductivo de Wielandt da un subgrupo `Z ≤ center(G)` de orden `p`.
-- `G' = G/Z` satisface `|G'| = p^m · r < |G|`, luego `ih` aplicado a `G'` da `HI`.
-- `sylow_center_step_wielandt G p hp HI ...` cierra el caso.
-
-### Orden de ejecución dentro del Track 1
-
-```
-Paso 1  →  Paso 2  →  Paso 3  →  Paso 5  →  Paso 6  →  Paso 4
-(act)      (perm)     (fix)      (firma)    (p∤r)      (∃ H)
-```
-
-(Paso 4 depende de Paso 6; Paso 6 depende de Paso 5; el resto es independiente.)
+**Nota**: el argumento de Wielandt clásico construye el subgrupo de Sylow directamente
+sobre `G` usando el punto fijo de la acción sobre `Ω`; no pasa por un cociente.
+La alternativa más limpia puede ser demostrar `wielandt_p_ndvd_r` para `m = 0` (caso base)
+y observar que el caso `succ m'` se reduce (por hipótesis `h_no_proper`) al caso en que
+`G` mismo no tiene subgrupos propios de orden `p^(m+1)`, lo que —combinado con el argumento
+de Wielandt sobre la acción de `G` sobre `Ω`— puede dar la contradicción directamente.
 
 ---
 
@@ -307,11 +249,11 @@ Estos no bloquean ningún track pero conviene limpiarlos en algún momento:
 ## Orden de ejecución
 
 ```
-Wielandt.lean      ← siguiente prioridad (Track 1)
-  └─ Conjugation.lean  ← después de Wielandt (Track 3)
+wielandt_p_ndvd_r (succ m')  ← siguiente prioridad (Track 1)
+  └─ Conjugation.lean            ← después (Track 3)
 ```
 
-Track 2 (`CosetAction.lean`) ya está completo.
+Track 2 (`CosetAction.lean`) y `wielandt_fixed_point_exists` ya están completos.
 
 ---
 
@@ -347,7 +289,7 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 | `SecondIsomorphism.lean` | ✅ COMPLETADO |
 | `CorrespondenceTheorem.lean` | ✅ COMPLETADO (2026-05-05) |
 | `CosetAction.lean` (Sylow II) | ✅ COMPLETADO |
-| 4 axiomas privados Sylow | ❌ Pendiente (Tracks 1 y 3) |
+| 1 sorry + 2 private axioms Sylow | ❌ Pendiente (Tracks 1 y 3) |
 | G.1 Migración documentación a `/doc/` | ❌ Pendiente |
 
 ### G.1 — Migración de documentación a `/doc/`

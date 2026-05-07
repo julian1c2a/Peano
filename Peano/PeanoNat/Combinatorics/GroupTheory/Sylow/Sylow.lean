@@ -2865,15 +2865,15 @@ namespace Peano
           cases hq : q x with
           | false =>
             have hf1 : (x :: xs).filter q = xs.filter q := by
-              simp [List.filter_cons, hq]
+              simp [hq]
             have hf2 : (x :: xs).filter (fun x => !q x) = x :: xs.filter (fun x => !q x) := by
-              simp [List.filter_cons, hq, Bool.not_false]
+              simp [hq, Bool.not_false]
             rw [List.length_cons, hf1, hf2, List.length_cons]; omega
           | true =>
             have hf1 : (x :: xs).filter q = x :: xs.filter q := by
-              simp [List.filter_cons, hq]
+              simp [hq]
             have hf2 : (x :: xs).filter (fun x => !q x) = xs.filter (fun x => !q x) := by
-              simp [List.filter_cons, hq, Bool.not_true]
+              simp [hq, Bool.not_true]
             rw [List.length_cons, hf1, hf2, List.length_cons]; omega
 
     open Peano.Add in

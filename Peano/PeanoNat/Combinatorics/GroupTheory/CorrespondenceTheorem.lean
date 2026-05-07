@@ -350,6 +350,65 @@ namespace Peano
       intro Q
       exact ⟨correspondencePsi G N hn Q, correspondencePhi_psi G N hn Q⟩
 
+    /-!
+    # § 10. Cardinalidad de preimageSubgroup
+    -/
+
+    /-- La preimagen de `Q ≤ G/N` tiene cardinalidad `|Q| · |N|`. -/
+    theorem preimage_subgroup_card (G : FinGroup ℕ₀) (N : Subgroup G) (hn : N.IsNormal)
+        (Q : Subgroup (quotientGroup G N hn)) :
+        (preimageSubgroup G N hn Q).carrier.card =
+          Mul.mul Q.carrier.card N.carrier.card := by
+      let ψQ := preimageSubgroup G N hn Q
+      let QG := quotientGroup G N hn
+      let f : MapOn ψQ.carrier Q.carrier := {
+        toFun := fun g => leftCoset G N g
+        map_carrier := fun g hg => ((mem_preimageSubgroup_iff G N hn Q g).mp hg).2
+      }
+      have h_uniform : ∀ C, C ∈ Q.carrier.elems →
+          (f.fiber C).card = N.carrier.card := by
+        intro C hC
+        have hC_QG : C ∈ QG.carrier.elems := Q.subset C hC
+        let r := cosetRepOf G N C
+        have hr_G : r ∈ G.carrier.elems := cosetRepOf_mem_G G N C hC_QG
+        have hr_lc : leftCoset G N r = C := cosetRepOf_leftCoset_eq G N C hC_QG
+        have h_eq : f.fiber C = leftCoset G N r := by
+          apply FSet.eq_of_mem_iff'
+          intro x
+          constructor
+          · intro hx
+            obtain ⟨hx_ψ, hx_map⟩ := (MapOn.mem_fiber_iff f C x).mp hx
+            have hx_G : x ∈ G.carrier.elems := ψQ.subset x hx_ψ
+            have hlc : leftCoset G N x = leftCoset G N r := by
+              have h1 : leftCoset G N x = C := hx_map
+              exact h1.trans hr_lc.symm
+            exact (mem_leftCoset_iff G N r x hr_G).mpr
+              ⟨G.op (G.inv r) x,
+               cosetRel_symm G N x r hx_G hr_G
+                 (cosetRel_of_leftCoset_eq G N x r hx_G hr_G hlc),
+               by rw [← G.op_assoc r (G.inv r) x hr_G (inv_mem G hr_G) hx_G,
+                      (G.op_inv r hr_G).1, (G.op_id x hx_G).2]⟩
+          · intro hx_coset
+            obtain ⟨n, hn_N, hn_eq⟩ := (mem_leftCoset_iff G N r x hr_G).mp hx_coset
+            have hx_G : x ∈ G.carrier.elems := by
+              rw [← hn_eq]; exact op_mem G hr_G (N.subset n hn_N)
+            have hrel_rx : cosetRel G N r x := by
+              unfold cosetRel
+              rw [← hn_eq,
+                  ← G.op_assoc (G.inv r) r n (inv_mem G hr_G) hr_G (N.subset n hn_N),
+                  (G.op_inv r hr_G).2, (G.op_id n (N.subset n hn_N)).2]
+              exact hn_N
+            have hlc_eq : leftCoset G N x = C :=
+              (leftCoset_eq_of_rel G N r x hr_G hx_G hrel_rx).symm.trans hr_lc
+            exact (MapOn.mem_fiber_iff f C x).mpr
+              ⟨(mem_preimageSubgroup_iff G N hn Q x).mpr
+                 ⟨hx_G, by rw [hlc_eq]; exact hC⟩,
+               hlc_eq⟩
+        rw [h_eq]
+        exact coset_card_eq_subgroup_card G N r hr_G
+      have h_card := card_eq_mul_of_uniform_fibers f N.carrier.card h_uniform
+      rw [h_card, mul_comm]
+
   end GroupTheory
 end Peano
 
@@ -366,4 +425,5 @@ export Peano.GroupTheory (
   correspondencePsi_phi
   correspondenceInjective
   correspondenceSurjective
+  preimage_subgroup_card
 )

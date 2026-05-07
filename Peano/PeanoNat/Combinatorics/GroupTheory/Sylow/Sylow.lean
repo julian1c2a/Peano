@@ -2858,7 +2858,7 @@ namespace Peano
 
     /-- Partición de una lista por un predicado booleano. -/
     private theorem filter_partition_nat {α : Type} (q : α → Bool) :
-        ∀ l : List α, l.length = (l.filter q).length + (l.filter (fun x => !q x)).length
+        ∀ l : List α, l.length = ((l.filter q).length + (l.filter (fun x => !q x)).length : Nat)
       | [] => rfl
       | x :: xs => by
           have ih := filter_partition_nat q xs
@@ -2866,13 +2866,13 @@ namespace Peano
           | false =>
             have hf1 : (x :: xs).filter q = xs.filter q := by
               simp [List.filter_cons, hq]
-            have hf2 : (x :: xs).filter (fun y => !q y) = x :: xs.filter (fun y => !q y) := by
+            have hf2 : (x :: xs).filter (fun x => !q x) = x :: xs.filter (fun x => !q x) := by
               simp [List.filter_cons, hq, Bool.not_false]
             rw [List.length_cons, hf1, hf2, List.length_cons]; omega
           | true =>
             have hf1 : (x :: xs).filter q = x :: xs.filter q := by
               simp [List.filter_cons, hq]
-            have hf2 : (x :: xs).filter (fun y => !q y) = xs.filter (fun y => !q y) := by
+            have hf2 : (x :: xs).filter (fun x => !q x) = xs.filter (fun x => !q x) := by
               simp [List.filter_cons, hq, Bool.not_true]
             rw [List.length_cons, hf1, hf2, List.length_cons]; omega
 
@@ -2891,15 +2891,15 @@ namespace Peano
       induction n with
       | zero =>
         intro Ω hlen _ _ _ hndvd
-        have hnil : Ω = [] := List.length_eq_zero.mp (Nat.le_zero.mp hlen)
-        subst hnil
-        exact absurd (divides_zero p) hndvd
+        cases Ω with
+        | nil => exact absurd (divides_zero p) hndvd
+        | cons h t => exact absurd hlen (Nat.not_succ_le_zero _)
       | succ n' ih =>
         intro Ω hlen hΩ_nd hΩ_prop hΩ_closed hndvd
         cases hΩ : Ω with
-        | nil => exact absurd (divides_zero p) hndvd
+        | nil => subst hΩ; exact absurd (divides_zero p) hndvd
         | cons S₀ rest =>
-          have hS₀_mem : S₀ ∈ Ω := hΩ ▸ List.mem_cons_self S₀ rest
+          have hS₀_mem : S₀ ∈ Ω := hΩ.symm ▸ List.mem_cons_self
           obtain ⟨hS₀_sorted, hS₀_memG⟩ := hΩ_prop S₀ hS₀_mem
           rcases Classical.em (p ∣ lengthₚ (wieldandtOrb G Ω S₀)) with horb_dvd | horb_ndvd
           · -- p | |Orb(S₀)|: extract Ω' = Ω \ Orb(S₀) and apply IH
@@ -2907,8 +2907,8 @@ namespace Peano
               fun T => G.carrier.elems.any (fun g => decide (wieldandtAct G g S₀ = T))
             -- wieldandtOrb G Ω S₀ = Ω.filter q₀ by definition
             have h_orb_eq : wieldandtOrb G Ω S₀ = Ω.filter q₀ := rfl
-            let Ω' := Ω.filter (fun T => !q₀ T)
-            have h_part : Ω.length = Nat.add (Ω.filter q₀).length Ω'.length :=
+            let Ω' := Ω.filter (fun x => !q₀ x)
+            have h_part : Ω.length = ((Ω.filter q₀).length + Ω'.length : Nat) :=
               filter_partition_nat q₀ Ω
             -- S₀ ∈ Orb(S₀), so |Orb(S₀)| ≥ 1
             have hS₀_orb : S₀ ∈ wieldandtOrb G Ω S₀ :=
@@ -3027,9 +3027,9 @@ namespace Peano
             have hS₁_ndvd_Ω : ¬ p ∣ lengthₚ (wieldandtOrb G Ω S₁) := by
               rwa [show lengthₚ (wieldandtOrb G Ω S₁) = lengthₚ (wieldandtOrb G Ω' S₁) from
                 congrArg Λ h_orb_len]
-            exact ⟨S₁, hΩ ▸ hS₁_Ω, hS₁_ndvd_Ω⟩
+            exact ⟨S₁, hΩ ▸ hS₁_Ω, hΩ ▸ hS₁_ndvd_Ω⟩
           · -- ¬ p ∣ |Orb(S₀)|: we are done
-            exact ⟨S₀, hΩ ▸ hS₀_mem, horb_ndvd⟩
+            exact ⟨S₀, hΩ ▸ hS₀_mem, hΩ ▸ horb_ndvd⟩
 
     /-- Wielandt: si G actúa sobre Ω (N-subsets de G) y p ∤ |Ω|, ∃ H ≤ G con |H| = N = p^(m+1). -/
     private theorem wielandt_fixed_point_exists

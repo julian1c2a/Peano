@@ -3530,15 +3530,17 @@ namespace Peano
     /-- Argumento de Wielandt, pieza 5:
         Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, y ningún subgrupo propio de G
         es divisible por p^(m+1), entonces ¬ p ∣ r.
-        Caso m = 0: demostrado via Cauchy + h_no_proper (ver wielandt_p_ndvd_r.md § 2).
-        Caso m ≥ 1: vacuamente verdadero en la práctica (ver wielandt_p_ndvd_r.md § 3);
-          añadir la IH fuerte (∀ G₀ < G, Sylow(G₀)) no basta porque h_no_proper impide
-          encontrar subgrupos propios con p^(m+2) ∣ |M|. Requeriría hSylow para el propio G
-          (circular) o grupos cociente (no disponibles). -/
+        Caso m = 0: demostrado via Cauchy + h_no_proper.
+        Caso m ≥ 1: HI disponible (Sylow First para grupos de orden < |G|), pero la ruta
+          natural pasa por G/K (cociente), que es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
+          Bloqueador actual: tipo mismatch FinGroup ℕ₀ vs FinGroup ℕ₀FSet al aplicar HI. -/
     private theorem wielandt_p_ndvd_r
         (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
+        (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
+          pow_dvd_card p (σ m) G'.carrier →
+          ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
         (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
           (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
             ∃ K : Subgroup G0, K.carrier.card = p0)
@@ -3579,14 +3581,11 @@ namespace Peano
         -- Contradicción: pow_dvd_card p (σ 0) K.carrier con t=1 vs. h_no_proper
         exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card.symm⟩ (h_no_proper K hK_ne)
       | succ m' =>
-        -- Bloqueado por Phase 5 (FinGroup polimorfismo).
-        -- Argumento matemático: asumir p ∣ r. Cauchy da K ≤ G con |K| = p (propio,
-        -- pues |G| = p^(σ(σm')) * r ≥ p^2 > p). Pero |K| = p no satisface
-        -- p^(σ(σm')) ∣ p (ya que σ(σm') ≥ 2), así que h_no_proper no se contradice.
-        -- La única ruta: cociente G/K — pero G/K es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
-        -- Una IH sobre |G| tampoco basta: h_no_proper impide que cualquier subgrupo
-        -- propio de G tenga p^(σm) ∣ |M|, cerrando todas las rutas de recursión.
-        -- Para eliminar este sorry: implementar Phase 5 (FinGroup sobre tipo genérico).
+        -- HI disponible: ∀ G' : FinGroup ℕ₀, |G'| < |G| → p^(σm) | |G'| → ∃ K ≤ G', |K| = p^(σm).
+        -- Argumento: asumir p ∣ r. Cauchy da K ≤ G con |K| = p (propio).
+        -- HI no aplica a K directamente (p^(σ(σm')) ∤ p, ya que σ(σm') ≥ 2).
+        -- Ruta natural: cociente G/K — pero G/K es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
+        -- Bloqueador: tipo mismatch FinGroup ℕ₀ vs FinGroup ℕ₀FSet al aplicar HI a G/K.
         sorry
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
@@ -3601,6 +3600,9 @@ namespace Peano
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
       (G : FinGroup ℕ₀) (p m : ℕ₀)
+      (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
+        pow_dvd_card p (σ m) G'.carrier →
+        ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
@@ -3638,7 +3640,7 @@ namespace Peano
               (fun x hx => List.mem_filter.mpr ⟨hmap_G x hx, decide_eq_true hx⟩)
           rw [heq, List.length_map]; exact hS_len
       -- p ∤ r (por h_no_proper: si p | r, p^(m+2) | |G|, habría subgrupo propio)
-      have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr hC h_no_proper
+      have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr HI hC h_no_proper
       -- Congruencia de Lucas: C(N·r, N) ≡ r (mod p)
       have hcong : binom (mul N r) N ≡ r [MOD p] :=
         binom_pow_p_mod (p := p) (r := r) hp hr_ne (σ m) (Peano.Axioms.succ_neq_zero m)
@@ -3658,11 +3660,14 @@ namespace Peano
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
       (G : FinGroup ℕ₀) (p m : ℕ₀)
+      (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
+        pow_dvd_card p (σ m) G'.carrier →
+        ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
         ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) :=
-      sylow_center_step_wielandt hC G p m hp hpow h_no_proper
+      sylow_center_step_wielandt hC G p m HI hp hpow h_no_proper
 
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
         construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`.
@@ -3710,7 +3715,11 @@ namespace Peano
             obtain ⟨K, hK⟩ := ih M.carrier.card hM_lt G_M rfl hM_dvd
             exact ⟨subgroupOfSubgroup G0 M K, hK⟩
           -- Caso 3: ningún subgrupo propio es divisible por p^(m+1) → axioma
-          · exact sylow_center_step hC G0 p m hp hpow0
+          · let HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G0.carrier.card →
+                pow_dvd_card p (σ m) G'.carrier →
+                ∃ K : Subgroup G', K.carrier.card = p ^ (σ m) :=
+              fun G' hlt hpow' => ih G'.carrier.card (hn ▸ hlt) G' rfl hpow'
+            exact sylow_center_step hC G0 p m HI hp hpow0
               (fun M hM_ne hM_dvd => h_ex ⟨M, hM_ne, hM_dvd⟩)
       -- Inducción fuerte sobre |G|, generalizada a todos los FinGroups del mismo cardinal
       have key : ∀ n : ℕ₀, ∀ G0 : FinGroup ℕ₀, G0.carrier.card = n →

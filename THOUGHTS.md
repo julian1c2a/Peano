@@ -45,9 +45,9 @@ three Sylow theorems.
 
 ---
 
-- Gap 1: p_group_center_nontrivial (ecuación de clases) — hay que    probar en NormalSubgroup.lean *haciéndose*
+- Gap 1: p_group_center_nontrivial (ecuación de clases) — hay que    probar en NormalSubgroup.lean — ✅ COMPLETADO (2026-05-07)
 - Gap 2: preimage_subgroup_card — ✅ COMPLETADO (2026-05-07): `CorrespondenceTheorem.lean` exporta `preimage_subgroup_card`
-- Gap 3: añadir parámetro HI (IH fuerte) a wielandt_p_ndvd_r
+- Gap 3: añadir parámetro HI (IH fuerte) a wielandt_p_ndvd_r : *HACIÉNDOSE* — requiere refactorización de Sylow.lean para pasar HI a través de sylow_center_step_wielandt → coset_conjugate_exists → wielandt_p_ndvd_r; el caso succ m' es bloqueado por la falta de soporte de grupos cociente en FinGroup (Phase 5).
 
 ---
 

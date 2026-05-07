@@ -1,6 +1,6 @@
 # Thoughts — Peano
 
-**Last updated:** 2026-05-06
+**Last updated:** 2026-05-07
 *Author: Julián Calderón Almendros
 
 > This is an informal design journal. Record ideas, alternatives considered,
@@ -101,13 +101,13 @@ session-based locking.
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
 - [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
 - [ ] Should FSetFunction.lean (~1550 lines, ~92 declarations) be split into smaller modules?
-- [ ] How to approach `sylow_third_mod` and `sylow_third_dvd`? (requires normalizer N_G(K) — not yet in library)
+- [ ] How to approach `sylow_third_mod` and `sylow_third_dvd`? (requires constructing `FinGroup (Subgroup G)` — infrastructure now available via Phase 5, but the concrete `instance` still needs to be built)
 
 **Resolved questions (no longer open):**
 
-- ~~How to approach the remaining sorry in group theory modules~~ → All 3 Sylow theorems closed; 5 private axioms remain (Wielandt route).
+- ~~How to approach the remaining sorry in group theory modules~~ → All 3 Sylow theorems closed; 3 private axioms remain (wielandt_p_ndvd_r, sylow_third_mod, sylow_third_dvd).
 - ~~FSet design: Quotient vs sorted list~~ → Sorted list (ADR-007).
-- ~~FinGroup polymorphism approach~~ → Opción A implemented (ADR-010, 2026-04-27).
+- ~~FinGroup polymorphism approach~~ → Phase 5 COMPLETADA (2026-05-07): pleno polimorfismo sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]` en toda la infraestructura de grupos.
 - ~~Phase F Foundation (CantorPairing + GodelBeta)~~ → Phase F completamente terminada (2026-05-02): F.1 CantorPairing ✅, F.2 GodelBeta ✅, F.3 paraguas Foundation.lean ✅.
 
 ---
@@ -139,6 +139,7 @@ session-based locking.
 - The linear dependency chain (Axioms → Order → Arithmetic → Advanced) works well
 - Each module builds strictly on previous ones — no circular dependencies
 - 51 modules with 4 subdirectories: ListsAndSets/, NumberTheory/, Combinatorics/, GroupTheory/
+  (Phase 5 añadió EquivRel.lean y llegó a ~64 build jobs — conteo exacto de módulos pendiente de verificación)
 - FSetFunction.lean is the largest module (~1500 lines, ~92 exported declarations)
 
 ### Documentation
@@ -173,7 +174,32 @@ session-based locking.
 - **`noncomputable def` + `Classical.choice`**: la no-computabilidad de `encodeList` es
   inevitable; el `decodeList` sí es computable (puro `map` sobre `List.range`).
 
-### Sylow/Wielandt — Lecciones de la Pieza A (2026-05-06)
+### Phase 5 — Polimorfismo completo de FinGroup/FSet (2026-05-07)
+
+Refactorización completa de `Action.lean`, `Cosets.lean`, `FSet.lean`, `Group.lean`
+y nuevo módulo `EquivRel.lean`. Lecciones:
+
+- **`sorted_nodup_unique_list'` debe ir ANTES de `namespace FSet`**: en Lean 4.29.0
+  sin Mathlib, las `private theorem` con pattern matching estilo ecuación no se ven
+  dentro del namespace si se definen después de abrirlo. Colocarlas antes del namespace
+  evita "Unknown identifier".
+- **`[DecidableEq α]` es obligatorio en lemas de unicidad de listas ordenadas**: la
+  prueba de igualdad por extensión requiere comparar elementos por igualdad. Sin la
+  instancia `DecidableEq`, `decide` no puede resolver `x = y`.
+- **`FSet.eq_of_mem_iff'` vs `FSet.eq_of_mem_iff`**: la versión anterior (`eq_of_mem_iff`)
+  era específica para `ℕ₀`. Fue necesario añadir `eq_of_mem_iff'` genérico para que
+  `Cosets.lean` y `Action.lean` pudieran usarlo tras el refactor polimórfico.
+- **Instancias de `Subgroup`**: para poder escribir `FSet (Subgroup G)`, hacen falta
+  `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup` en `Group.lean`.
+  La igualdad se basa en `carrier`; el orden lexicográfico sobre `elems` es suficiente
+  para `StrictLinearOrder`.
+- **`▸`-chaining en `htail` causa type mismatch**: al reescribir con `▸` en cadena,
+  el tipo del goal puede quedar en forma reducida que no coincide con la siguiente reescritura.
+  Solución: usar `have h_lt : x < z := ...; rw [h_eq, hxy] at h_lt; exact absurd h_lt (slo.irrefl y)`.
+
+---
+
+
 
 Completada la infraestructura combinatoria para el argumento de Wielandt
 (`wielandt_orbit_partition`, sin sorry). Lecciones relevantes:
@@ -496,11 +522,12 @@ Este punto recoge la visión global del autor sobre el orden de las expansiones:
 5. ~~**Representaciones**~~: ✅ `Digits`, `Log`, `Sqrt`, `Fibonacci`, `Pairing` — todos completados.
 6. ~~**Instancias algebraicas**~~: ✅ `HSub`, `HDiv`, `HMod`, `HPow`, Zero, One, OfNat, Ord, WellFoundedRelation, DecidableRel.
 7. ~~**Infraestructura de conjuntos finitos**~~: ✅ List, FSet, FSetFSet, FSetFunction (~90 decl.), MapOn, Im, Pigeonhole, Perm.
-8. **Eliminar 5 axiomas privados en Sylow.lean** — ruta Wielandt en curso (2/5 pasos completados: `prime_dvd_binom_prime`, `binom_prime_row`).
-9. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
-10. **Phase 22**: ℤ — tipo inductivo canónico, operaciones, orden, aritmética.
-11. **Phase 23**: ℚ — estructura con invariante de coprimalidad, operaciones, campo.
-12. **Largo plazo**: ecuaciones diofánticas, polinomios Q[x], teoría analítica elemental.
+8. ~~**Phase 5 polimorfismo FinGroup/FSet**~~: ✅ COMPLETADO (2026-05-07). `FinGroup`, `GroupAction`, `EquivRelOn`, `leftCoset` son completamente polimórficos. `EquivRel.lean` añadido. Instancias de `Subgroup` creadas.
+9. **Eliminar 3 private axioms en Sylow.lean** — ruta Wielandt en curso (Track 1: `wielandt_p_ndvd_r`; Track 3: `sylow_third_mod` + `sylow_third_dvd`).
+10. **Tácticas**: `omega₀` bridge, `@[simp]` labels, mini-`ring₀`.
+11. **Phase 22**: ℤ — tipo inductivo canónico, operaciones, orden, aritmética.
+12. **Phase 23**: ℚ — estructura con invariante de coprimalidad, operaciones, campo.
+13. **Largo plazo**: ecuaciones diofánticas, polinomios Q[x], teoría analítica elemental.
 
 ### [11] Reemplazar `DList` por `List` y construir infraestructura de conjuntos finitos
 

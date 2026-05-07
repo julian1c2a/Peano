@@ -7,15 +7,14 @@
 
 ## Current build state
 
-`lake build` compila con **0 errores** y **1 sorry** en todo el proyecto (34 jobs).
+`lake build` compila con **0 errores** y **0 sorry** en todo el proyecto (64 jobs).
 
 Warnings activos (menores, no bloquean):
 
 - `Sylow.lean:3044` — variable `htrans` sin usar (en `wielandt_fixed_point_exists`)
 - `Sylow.lean:3438` — variable `hg_ne` sin usar (en `wielandt_orbit_stab`)
-- `Sylow.lean:3538` — declaración `wielandt_p_ndvd_r` usa `sorry` (caso `succ m'`)
 
-`Sylow.lean` compila con **1 sorry + 2 private axioms**:
+`Sylow.lean` compila con **0 sorry + 3 private axioms**:
 
 | Axiom/sorry | Línea ~ | Usado por | Dificultad |
 |---|---|---|---|
@@ -55,6 +54,11 @@ Warnings activos (menores, no bloquean):
 ```
 Peano/PeanoNat/
 ├── (aritmética base: Add, Sub, Mul, Div, Pow, Arith, Order, …)
+├── ListsAndSets/
+│   ├── FSet.lean                ✅ (Phase 5: API genérica — eq_of_mem_iff', sortList', ofList)
+│   ├── FSetFunction.lean        ✅
+│   ├── EquivRel.lean            ✅ (Phase 5: nuevo — EquivRelOn, classOf, 17 símbolos exportados)
+│   └── (…)
 ├── NumberTheory/
 │   ├── ModEq.lean           ✅ sin axiomas
 │   ├── Fermat.lean          ✅ sin axiomas
@@ -67,16 +71,16 @@ Peano/PeanoNat/
 │   ├── Perm.lean            ⚠ §3–§4 marcadas como "sorry" en comentarios
 │   │                          (no son sorry reales — el código compila)
 │   └── GroupTheory/
-│       ├── Action.lean             ✅
+│       ├── Action.lean             ✅ (Phase 5: completamente polimórfico sobre {α β : Type})
 │       ├── NormalSubgroup.lean     ✅ centralizer, normalizer, rightCoset, criterios
 │       ├── QuotientGroup.lean      ✅ quotientGroup, quotientHomomorphism, imageSubgroup
 │       ├── FirstIsomorphism.lean   ✅ homKer, homImg, firstIsoMap (inyectivo + sobreyectivo)
 │       ├── SecondIsomorphism.lean  ✅ subgroupHN, interHN, secondIsoMap
 │       ├── CorrespondenceTheorem.lean ✅ preimageSubgroup, SubgroupAbove, φ/ψ biyección  ← AÑADIDO 2026-05-05
 │       └── Sylow/
-│           ├── Cosets.lean       ✅
+│           ├── Cosets.lean       ✅ (Phase 5: completamente polimórfico sobre {α : Type})
 │           ├── CosetAction.lean  ✅ coset_conjugate_exists (cierra sylow_second_incl)
-│           └── Sylow.lean        ⚠ 1 sorry + 2 private axioms
+│           └── Sylow.lean        ⚠ 0 sorry + 3 private axioms
 └── Foundation/
     ├── CantorPairing.lean   ✅
     ├── GodelBeta.lean       ✅
@@ -207,14 +211,17 @@ luego n_p ∣ |G|/|K|.
 
 ### Bloqueador
 
-`List (Subgroup G)` no es `ℕ₀FSet` — los elementos son `Subgroup G`, no `ℕ₀`.
+`List (Subgroup G)` no es `FSet α` genérico sin instancias adecuadas.
 
 **Camino corto** (sin Phase 5): inyectar cada `Subgroup G` en `sylows` a su índice
 de lista (`ℕ₀`). Construir `ℕ₀FSet` de índices; mantener la biyección índice↔subgrupo
 como lema auxiliar.
 
-**Camino largo** (Phase 5): instanciar `FinGroup (Subgroup G)` — más limpio pero
-requiere refactor completo de polimorfismo de FinGroup.
+**Camino largo** (Phase 5 — ✅ INFRAESTRUCTURA DISPONIBLE 2026-05-07):
+instanciar `FinGroup (Subgroup G)` — ahora factible porque `FinGroup` es polimórfico
+sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]` y `Subgroup G`
+tiene las instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup`.
+La construcción concreta de `FinGroup (Subgroup G)` sigue pendiente.
 
 ---
 
@@ -275,7 +282,7 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 
 *Decisión adoptada 2026-05-02.*
 
-### G.0 — Estado actual (2026-05-05)
+### G.0 — Estado actual (2026-05-07)
 
 | Ítem | Estado |
 |------|---------|
@@ -289,7 +296,8 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 | `SecondIsomorphism.lean` | ✅ COMPLETADO |
 | `CorrespondenceTheorem.lean` | ✅ COMPLETADO (2026-05-05) |
 | `CosetAction.lean` (Sylow II) | ✅ COMPLETADO |
-| 1 sorry + 2 private axioms Sylow | ❌ Pendiente (Tracks 1 y 3) |
+| Phase 5 polimorfismo FinGroup/FSet/EquivRel | ✅ COMPLETADO (2026-05-07) |
+| 3 private axioms Sylow (0 sorry) | ❌ Pendiente (Tracks 1 y 3) |
 | G.1 Migración documentación a `/doc/` | ❌ Pendiente |
 
 ### G.1 — Migración de documentación a `/doc/`
@@ -355,12 +363,21 @@ Una vez feature-frozen Peano:
 
 ---
 
-## FinGroup polymorphism — Phase 5 (largo plazo)
+## FinGroup polymorphism — Phase 5 ✅ COMPLETADA (2026-05-07)
 
-Current `FinGroup` requiere carrier ⊆ `ℕ₀`. Bloquea:
+**Descripción**: `FinGroup`, `Subgroup`, `GroupAction`, `leftCoset`, `cosetRel`,
+`EquivRelOn` y toda la infraestructura de `Action.lean`, `Cosets.lean` y `FSet.lean`
+son ahora completamente polimórficos sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
 
-- Grupos cociente G/N (elementos son cosets, no `ℕ₀`)
-- `FinGroup (Subgroup G)` para la acción de conjugación (Sylow III)
+**Lo que se hizo**:
+- `FSet.lean`: añadidos `sorted_nodup_unique_list'` (genérico privado), `FSet.eq_of_mem_iff'`,
+  `sortedInsert'`, `sortList'`, `FSet.ofList` y sus lemas.
+- `EquivRel.lean`: nuevo módulo con `EquivRelOn`, `classOf`, familia canónica, `classes` y 17 símbolos exportados.
+- `Group.lean`: instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup`
+  para poder usar `FSet (Subgroup G)`.
+- `Cosets.lean` y `Action.lean`: completamente refactorizados a polimorfismo pleno.
 
-**Precondición**: completar Tracks 1 y 3 primero.
-Después de que Sylow III esté cerrado, revisar la generalización de FinGroup.
+**Consecuencia**: `FinGroup (Subgroup G)` es ahora instanciable (infraestructura disponible).
+Solo `Sylow.lean` sigue usando `FinGroup ℕ₀` concretamente.
+
+**Build resultante**: 64 jobs, 0 sorry, 3 private axioms en `Sylow.lean`.

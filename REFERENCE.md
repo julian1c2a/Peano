@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-05-05
+**Última actualización:** 2026-05-07
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 59 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-05*
+> 64 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-07*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -59,8 +59,9 @@
 | `Peano/PeanoNat/Combinatorics/Counting.lean` | `Peano.Counting` | `FSet`, `Primes` | — |
 | **Listas y conjuntos finitos** | | | |
 | `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `FSet` |
-| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFunction`, `Counting`, `Group` |
+| `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFunction`, `EquivRel`, `Counting`, `Group` |
 | `Peano/PeanoNat/ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | `FSet`, `List`, `Mul` | `Perm`, `Group` |
+| `Peano/PeanoNat/ListsAndSets/EquivRel.lean` | `Peano.EquivRel` | `FSet` | `Cosets` |
 | **Teoría de números** | | | |
 | `Peano/PeanoNat/NumberTheory/ModEq.lean` | `Peano.ModEq` | `Arith`, `Primes` | `Totient`, `CRT`, `Fermat` |
 | `Peano/PeanoNat/NumberTheory/Totient.lean` | `Peano.Totient` | `ModEq`, `Product`, `FSet` | `Fermat` |
@@ -115,6 +116,7 @@
 | `Peano.List` | `ListsAndSets/List.lean` | `Peano` |
 | `Peano.FSet` | `ListsAndSets/FSet.lean` | `Peano` |
 | `Peano.FSetFunction` | `ListsAndSets/FSetFunction.lean` | `Peano` |
+| `Peano.EquivRel` | `ListsAndSets/EquivRel.lean` | `Peano` |
 | `Peano.ModEq` | `NumberTheory/ModEq.lean` | `Peano` |
 | `Peano.Totient` | `NumberTheory/Totient.lean` | `Peano` |
 | `Peano.CRT` | `NumberTheory/ChineseRemainder.lean` | `Peano` |
@@ -2814,41 +2816,209 @@ Bloque `export Peano.FSetFunction (...)` actualizado y proyectado al completo, i
 - Estado: archivo de sondeo/verificación interactiva (sin definiciones, sin teoremas, no exporta símbolos).
 - Impacto en REFERENCE: no añade API nueva del proyecto.
 
-## 24A. ListsAndSets/FSet.lean — actualización reciente (2026-04-16)
+## 24A. ListsAndSets/FSet.lean — actualización Phase 5 (2026-05-07)
 
 **Archivo**: `Peano/PeanoNat/ListsAndSets/FSet.lean`
-**Namespace**: `Peano.FSet` (con lema privado en `Peano`)
+**Namespace**: `Peano.FSet` (con lemas privados en `Peano`)
 
-### 24A.1. Cambios proyectados [D/T]
+Esta sección documenta el API añadido en la Phase 5 de polimorfización. El módulo ya contenía infraestructura completa para `FSet ℕ₀`; estos cambios añaden infraestructura genérica para `FSet α`.
 
-**[D24A.1]** Alias exportados
+### 24A.1. Lemas de canonicidad (privados, no exportados)
 
-- `ℕ₀FSet := FSet ℕ₀` (añadido)
-- `ℕ₁FSet := FSet ℕ₁` (añadido)
-- `ℕ₂FSet := FSet ℕ₂` (ya existente)
+**[T24A.1priv]** `sorted_nodup_unique_list` (en `namespace Peano`, `private`)
 
-**[T24A.1]** Extensionalidad semántica para `FSet ℕ₀`
+- Igualdad de dos `List.Pairwise (· < ·)` de `ℕ₀` con la misma pertenencia.
+- Original. Solo aplica a `ℕ₀`.
 
-- **Lean4:**
+**[T24A.2priv]** `sorted_nodup_unique_list'` (en `namespace Peano`, `private`)
 
-  ```
-  theorem FSet.eq_of_mem_iff {s₁ s₂ : FSet ℕ₀}
-    (h : ∀ z : ℕ₀, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂
-  ```
+```lean
+private theorem sorted_nodup_unique_list' {α : Type} [DecidableEq α] [LT α]
+    [slo : StrictLinearOrder α] :
+    ∀ {l₁ l₂ : List α},
+    List.Pairwise (· < ·) l₁ → List.Pairwise (· < ·) l₂ →
+    (∀ z : α, z ∈ l₁ ↔ z ∈ l₂) → l₁ = l₂
+```
 
-- **Matemática:** si dos conjuntos finitos de `ℕ₀` tienen la misma pertenencia elemento a elemento,
-  entonces son iguales.
-- **Dependencias:** `FSet.ext` + lema privado de unicidad de listas ordenadas estrictas.
+- Versión polimórfica de `sorted_nodup_unique_list`. Funciona para cualquier `α` con `StrictLinearOrder`.
+- **Trampa resuelta**: debe colocarse ANTES del `namespace FSet` (no dentro); en Lean 4 los `private theorem` con recursión de ecuaciones no funcionan confiablemente dentro de un `namespace`.
+- **Trampa resuelta**: usar `have h_lt ... ; rw [...] at h_lt` en lugar de `▸`-chaining para el subgoal del rabo (`htail`); la propagación inversa de `▸` coacciona el tipo del argumento de `List.rel_of_pairwise_cons` incorrectamente.
 
-**[T24A.2]** Lema privado de canonicidad (no exportado)
+### 24A.2. Extensionalidad genérica [T]
 
-- `sorted_nodup_unique_list` en `namespace Peano`:
-  igualdad de listas `List.Pairwise (· < ·)` por equivalencia de pertenencia.
+**[T24A.3]** `FSet.eq_of_mem_iff {s₁ s₂ : FSet ℕ₀} (h : ∀ z : ℕ₀, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂`
 
-### 24A.2. Export block de FSet
+- Versión original (solo `FSet ℕ₀`). Se mantiene por compatibilidad.
 
-El bloque `export Peano.FSet (...)` ya incluye `FSet.eq_of_mem_iff`, `ℕ₀FSet`, `ℕ₁FSet` y
-permanece consistente con la API pública actual del módulo.
+**[T24A.4]** `FSet.eq_of_mem_iff' {α} [...] {s₁ s₂ : FSet α} (h : ∀ z : α, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂`
+
+- **Versión polimórfica** (Phase 5). Usada en `Cosets.lean` y `Action.lean`.
+- Dependencias: `FSet.ext` + `sorted_nodup_unique_list'`.
+
+### 24A.3. Ordenación genérica de listas [D/T]
+
+*(Familia `sortedInsert'` / `sortList'` — añadida en Phase 5)*
+
+**[D24A.1]** `sortedInsert' {β} [...] (x : β) : List β → List β`
+
+- Inserta `x` en una lista ordenada manteniendo el orden. Análogo a `sortedInsert` pero polimórfico sobre `β`.
+
+**[T24A.5]** `mem_sortedInsert'_iff {β} [...] {z x : β} {l : List β} : z ∈ sortedInsert' x l ↔ z = x ∨ z ∈ l`
+
+**[T24A.6]** `sorted_sortedInsert' {β} [...] {l : List β} (hl : Sorted (· < ·) l) (x : β) : Sorted (· < ·) (sortedInsert' x l)`
+
+**[D24A.2]** `sortList' {β} [...] : List β → List β`
+
+- Ordena una lista por inserción (insertion sort). Usa `sortedInsert'` recursivamente.
+
+**[T24A.7]** `sorted_sortList' {β} [...] (l : List β) : Sorted (· < ·) (sortList' l)`
+
+**[T24A.8]** `mem_sortList'_iff {β} [...] {x : β} {l : List β} : x ∈ sortList' l ↔ x ∈ l`
+
+### 24A.4. Construcción de `FSet β` desde lista [D/T]
+
+**[D24A.3]** `FSet.ofList {β} [...] (l : List β) : FSet β`
+
+```lean
+def FSet.ofList {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+    (l : List β) : FSet β :=
+  ⟨sortList' l, sorted_sortList' l⟩
+```
+
+- Convierte una lista arbitraria en `FSet β` (ordena y elimina duplicados implícitamente via estructura).
+
+**[T24A.9]** `FSet.mem_ofList_iff {β} [...] {x : β} {l : List β} : x ∈ (FSet.ofList l).elems ↔ x ∈ l`
+
+### 24A.5. Export block de FSet (actualizado)
+
+El bloque `export Peano.FSet (...)` incluye (entre otros):
+
+- Extensionalidad: `FSet.eq_of_mem_iff`, `FSet.eq_of_mem_iff'`
+- Alias de tipo: `ℕ₀FSet`, `ℕ₁FSet`, `ℕ₂FSet`
+- Ordenación genérica: `sortedInsert'`, `sorted_sortedInsert'`, `mem_sortedInsert'_iff`, `sortList'`, `sorted_sortList'`, `mem_sortList'_iff`
+- Construcción: `FSet.ofList`, `FSet.mem_ofList_iff`
+
+---
+
+## 24B. ListsAndSets/EquivRel.lean — `namespace Peano.EquivRel`
+
+**Archivo**: `Peano/PeanoNat/ListsAndSets/EquivRel.lean`
+**Namespace**: `Peano.EquivRel`
+**Dependencias**: `FSet`
+**Dependido por**: `Cosets`
+
+Relaciones de equivalencia sobre dominios finitos (`FSet α`), con clases de equivalencia, familias de representantes y lista canónica de clases.
+
+### 24B.1. Relación de equivalencia sobre dominio finito [D]
+
+**[D24B.1]** `EquivRelOn {α : Type} [DecidableEq α] [LT α] (A : FSet α)` (estructura)
+
+```lean
+structure EquivRelOn {α : Type} [DecidableEq α] [LT α]
+    (A : FSet α) where
+  rel      : α → α → Prop
+  decRel   : DecidableRel rel
+  refl_on  : ∀ a, a ∈ A.elems → rel a a
+  symm_on  : ∀ a b, a ∈ A.elems → b ∈ A.elems → rel a b → rel b a
+  trans_on : ∀ a b c,
+    a ∈ A.elems → b ∈ A.elems → c ∈ A.elems →
+    rel a b → rel b c → rel a c
+```
+
+- Las leyes (refl/symm/trans) se exigen solo para elementos de `A`.
+- **Computable:** Sí (todos los campos computables).
+
+### 24B.2. Clase de equivalencia [D/T]
+
+**[D24B.2]** `EquivRelOn.classOf {α} [...] {A : FSet α} (R : EquivRelOn A) (a : α) : FSet α`
+
+- `classOf a = { x ∈ A | R.rel a x }` (filtro de `A` por `R.rel a`).
+- **Computable:** Sí.
+
+**[T24B.1]** `EquivRelOn.mem_classOf_iff (R : EquivRelOn A) (a x : α) : x ∈ (R.classOf a).elems ↔ x ∈ A.elems ∧ R.rel a x`
+
+**[T24B.2]** `EquivRelOn.classOf_nonempty_of_mem (R : EquivRelOn A) (a : α) (ha) : a ∈ (R.classOf a).elems`
+
+- La clase de un elemento siempre lo contiene.
+
+**[T24B.3]** `EquivRelOn.classOf_subset_domain (R : EquivRelOn A) (a x : α) (hx) : x ∈ A.elems`
+
+- Todo elemento de una clase pertenece al dominio.
+
+**[T24B.4]** `EquivRelOn.rel_of_mem_classOf (R : EquivRelOn A) (a x : α) (hx) : R.rel a x`
+
+**[T24B.5]** `EquivRelOn.mem_classOf_of_rel (R : EquivRelOn A) (a x : α) (hxA) (hax) : x ∈ (R.classOf a).elems`
+
+**[T24B.6]** `EquivRelOn.classOf_eq_of_mem_classOf (R : EquivRelOn A) (a x : α) (ha) (hx) : R.classOf x = R.classOf a`
+
+- Si `x ∈ classOf a`, entonces `classOf x = classOf a`.
+
+**[T24B.7]** `EquivRelOn.mem_classOf_iff_of_rel (R : EquivRelOn A) (a b x : α) (ha) (hb) (hab) : x ∈ (R.classOf a).elems ↔ x ∈ (R.classOf b).elems`
+
+- Si `a ~ b`, las clases de `a` y `b` son iguales como conjuntos de pertenencia.
+
+**[T24B.8]** `EquivRelOn.classOf_eq_or_disjoint (R : EquivRelOn A) (a b : α) (ha) (hb) : (∀ x, x ∈ (R.classOf a).elems ↔ x ∈ (R.classOf b).elems) ∨ (∀ z, z ∉ (R.classOf a).elems ∨ z ∉ (R.classOf b).elems)`
+
+- Las clases son iguales (misma pertenencia) o disjuntas (ningún z pertenece a ambas).
+
+### 24B.3. Familia de representantes y clases canónicas [D/T]
+
+**[D24B.3]** `EquivRelOn.ClassFamily {α} [...] {A : FSet α} (R : EquivRelOn A)` (estructura)
+
+```lean
+structure EquivRelOn.ClassFamily {α : Type} [DecidableEq α] [LT α]
+    {A : FSet α} (R : EquivRelOn A) where
+  reps              : List α
+  reps_subset       : ∀ r, r ∈ reps → r ∈ A.elems
+  cover             : ∀ x, x ∈ A.elems → ∃ r, r ∈ reps ∧ x ∈ (R.classOf r).elems
+  pairwise_classes  : ∀ r s, r ∈ reps → s ∈ reps →
+    (∀ x, x ∈ (R.classOf r).elems ↔ x ∈ (R.classOf s).elems) ∨
+    (∀ z, z ∉ (R.classOf r).elems ∨ z ∉ (R.classOf s).elems)
+```
+
+**[D24B.4]** `EquivRelOn.canonicalClassFamily {α} [...] {A : FSet α} (R : EquivRelOn A) : R.ClassFamily`
+
+- La familia canónica usa `A.elems` como representantes. Todo `x ∈ A` aparece en su propia clase.
+
+**[D24B.5]** `EquivRelOn.classes {α} [...] {A : FSet α} (R : EquivRelOn A) : List (FSet α)`
+
+```lean
+def EquivRelOn.classes R := (A.elems.map (fun a => R.classOf a)).eraseDups
+```
+
+- Lista deduplicada de todas las clases de equivalencia.
+
+**[T24B.9]** `EquivRelOn.mem_classes_iff (R : EquivRelOn A) (C : FSet α) : C ∈ R.classes ↔ ∃ a, a ∈ A.elems ∧ R.classOf a = C`
+
+**[T24B.10]** `EquivRelOn.classOf_mem_classes_of_mem (R : EquivRelOn A) (a : α) (ha) : R.classOf a ∈ R.classes`
+
+**[T24B.11]** `EquivRelOn.mem_classes_elim (R : EquivRelOn A) {C : FSet α} (hC) : ∃ a, a ∈ A.elems ∧ C = R.classOf a`
+
+**[T24B.12]** `EquivRelOn.classes_cover (R : EquivRelOn A) (x : α) (hx) : ∃ C, C ∈ R.classes ∧ x ∈ C.elems`
+
+### 24B.4. Export block de EquivRel
+
+```
+export Peano.EquivRel (
+  EquivRelOn
+  EquivRelOn.classOf
+  EquivRelOn.mem_classOf_iff
+  EquivRelOn.classOf_nonempty_of_mem
+  EquivRelOn.classOf_subset_domain
+  EquivRelOn.rel_of_mem_classOf
+  EquivRelOn.mem_classOf_of_rel
+  EquivRelOn.classOf_eq_of_mem_classOf
+  EquivRelOn.mem_classOf_iff_of_rel
+  EquivRelOn.classOf_eq_or_disjoint
+  EquivRelOn.ClassFamily
+  EquivRelOn.canonicalClassFamily
+  EquivRelOn.classes
+  EquivRelOn.mem_classes_iff
+  EquivRelOn.classOf_mem_classes_of_mem
+  EquivRelOn.mem_classes_elim
+  EquivRelOn.classes_cover
+)
+```
 
 ---
 
@@ -2861,7 +3031,8 @@ permanece consistente con la API pública actual del módulo.
 **Sorry activos**: 2 (en `cyclicSubgroup` y `cyclicSubgroup'`, bloqueados en B2.3 `order`)
 **Alias de compatibilidad**: `abbrev ℕ₀FinGroup := FinGroup ℕ₀`
 
-> **Refactor 2026-04-27**: `FinGroup` es ahora polimórfico sobre cualquier `α` con `[DecidableEq α] [LT α] [StrictLinearOrder α]`. Los módulos `Action.lean`, `Cosets.lean` y `Sylow.lean` usan `FinGroup ℕ₀` concretamente.
+> **Refactor 2026-04-27**: `FinGroup` es ahora polimórfico sobre cualquier `α` con `[DecidableEq α] [LT α] [StrictLinearOrder α]`.
+> **Refactor 2026-05-07 (Phase 5)**: `Action.lean` y `Cosets.lean` son ahora completamente polimórficos: todas las definiciones y teoremas usan `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`. Solo `Sylow.lean` sigue usando `FinGroup ℕ₀` concretamente.
 
 ### 25.1. § 4 — `FinGroup`: estructura de grupo finito [D]
 
@@ -2883,7 +3054,7 @@ abbrev ℕ₀FinGroup := FinGroup ℕ₀
 
 - **Matemática:** Grupo finito con soporte `FSet α`, operación `op`, neutro `id : α`, inversa `inv`.
 - **Computable:** Sí (todos los campos son funciones computables o `FSet α`).
-- **Nota:** Los elementos del grupo son de tipo `α` (antes `ℕ₀`). Usar `FinGroup ℕ₀` para el caso concreto (Action, Cosets, Sylow).
+- **Nota:** Los elementos del grupo son de tipo `α` (antes `ℕ₀`). `FinGroup ℕ₀` sigue disponible via `ℕ₀FinGroup`.
 
 ### 25.2. § 4b — Lemas auxiliares [T]
 
@@ -3014,6 +3185,31 @@ es usar `mod (add m n) (order G g hg)` como testigo una vez que `order` esté di
 
 **[T25.19]** `improperSubgroup_normal {α} [...] (G : FinGroup α) : (improperSubgroup G).IsNormal`
 
+### 25.7b. § 5e — Igualdad e instancias de `Subgroup` [T/I]
+
+*(Añadido en Phase 5, 2026-05-07)*
+
+**[T25.20]** `Subgroup.ext_carrier {α} [...] {G : FinGroup α} {H₁ H₂ : Subgroup G} (h : H₁.carrier = H₂.carrier) : H₁ = H₂`
+
+- Extensionalidad: igualdad de carriers implica igualdad de subgrupos.
+
+**[T25.21]** `Subgroup.carrier_inj {α} [...] {G : FinGroup α} {H₁ H₂ : Subgroup G} : H₁ = H₂ ↔ H₁.carrier = H₂.carrier`
+
+- Equivalencia bidireccional de igualdad de subgrupos y sus carriers.
+
+**[I25.1]** `instDecidableEqSubgroup {α} [...] {G : FinGroup α} : DecidableEq (Subgroup G)`
+
+- `DecidableEq` sobre `Subgroup G`, derivado via `Subgroup.carrier_inj` y `DecidableEq (FSet α)`.
+
+**[I25.2]** `instLTSubgroup {α} [...] {G : FinGroup α} : LT (Subgroup G)`
+
+- Orden estricto sobre subgrupos: `H₁ < H₂ ↔ H₁.carrier < H₂.carrier`.
+
+**[I25.3]** `instStrictLinearOrderSubgroup {α} [...] {G : FinGroup α} : StrictLinearOrder (Subgroup G)`
+
+- `StrictLinearOrder` sobre `Subgroup G`, heredado del orden de `FSet α`.
+- Permite `FSet (Subgroup G)` como tipo (necesario para listas de subgrupos en Sylow).
+
 ### 25.8. § 5e — Intersección de subgrupos [D/T]
 
 **[D25.12]** `Subgroup.inter {α} [...] {G : FinGroup α} (H₁ H₂ : Subgroup G) : Subgroup G`
@@ -3043,6 +3239,143 @@ structure GroupHom {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
 - **Matemática:** Homomorfismo de grupos finitos que preserva op, id, inv.
 - **Computable:** Sí.
 - **Estado:** Estructura definida. Im, ker, comp y resultados de teoría de homomorfismos son trabajo futuro (B4).
+
+---
+
+---
+
+## 42. GroupTheory/Action.lean — `namespace Peano.GroupTheory`
+
+**Archivo**: `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean`
+**Namespace**: `Peano.GroupTheory`
+**Dependencias**: `Group`, `FSet`, `FSetFunction`, `Cosets`
+**Tamaño**: ~300 líneas
+
+> **Phase 5 (2026-05-07)**: completamente polimórfico. Todas las definiciones y teoremas usan `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]` para elementos de `G` y `{β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]` para elementos de `X`.
+
+### 42.1. § 1 — Acción de grupo [D]
+
+**[D42.1]** `GroupAction {α β} [...] (G : FinGroup α) (X : FSet β)` (estructura)
+
+```lean
+structure GroupAction
+    {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+    {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+    (G : FinGroup α) (X : FSet β) where
+  act        : α → β → β
+  act_closed : ∀ g x, g ∈ G.carrier.elems → x ∈ X.elems → act g x ∈ X.elems
+  act_id     : ∀ x, x ∈ X.elems → act G.id x = x
+  act_compat : ∀ g h x,
+                 g ∈ G.carrier.elems → h ∈ G.carrier.elems → x ∈ X.elems →
+                 act g (act h x) = act (G.op g h) x
+```
+
+- **Matemática:** Acción izquierda de `G` sobre `X`: `e·x = x` y `g·(h·x) = (g·h)·x`.
+- **Computable:** Sí.
+
+### 42.2. § 2 — Órbita [D/T]
+
+**[D42.2]** `GroupAction.orb {α β} [...] {G : FinGroup α} {X : FSet β} (ψ : GroupAction G X) (x : β) : FSet β`
+
+- `Orb(x) = { ψ(g, x) | g ∈ G } ⊆ X`. Construida filtrando `X` por `∃ g ∈ G, ψ(g, x) = y`.
+
+**[T42.1]** `mem_orb_iff (ψ : GroupAction G X) (x y : β) (hx) : y ∈ (ψ.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ ψ.act g x = y`
+
+### 42.3. § 3 — Estabilizador [D]
+
+**[D42.3]** `GroupAction.stab {α β} [...] {G : FinGroup α} {X : FSet β} (ψ : GroupAction G X) (x : β) (hx) : Subgroup G`
+
+- `Stab(x) = { g ∈ G | ψ(g, x) = x }`.
+- Demostrado que es subgrupo (cierre bajo op y inv, contiene id).
+- **Truco clave (inv_closed):** `ψ.act_compat (G.inv a) a x ...` da `ψ.act (G.op (G.inv a) a) x = ψ.act (G.inv a) (ψ.act a x) = ψ.act (G.inv a) x`; combinado con `G.op_inv` y `ψ.act_id` se concluye que `G.inv a` también fija `x`.
+
+### 42.4. § 4 — Teorema Órbita–Estabilizador [T]
+
+**[T42.2]** `orbit_stabilizer {α β} [...] {G : FinGroup α} {X : FSet β} (ψ : GroupAction G X) (x : β) (hx) : mul (ψ.orb x).card (ψ.stab x hx).carrier.card = G.carrier.card`
+
+- **Matemática:** |Orb(x)| · |Stab(x)| = |G|.
+- **Prueba:** Se define `f : MapOn G.carrier (ψ.orb x)` con `f(g) = ψ.act g x`. Se muestra que las fibras de `f` son exactamente los cosetos izquierdos `g·Stab(x)`, que tienen cardinal `|Stab(x)|` por `coset_card_eq_subgroup_card`. Se aplica `card_eq_mul_of_uniform_fibers`.
+
+### 42.5. § 5 — Partición en órbitas [T]
+
+**[T42.3]** `orbits_partition {α β} [...] {G : FinGroup α} {X : FSet β} (ψ : GroupAction G X) : (∀ x, x ∈ X.elems → ∃ y, y ∈ X.elems ∧ x ∈ (ψ.orb y).elems) ∧ (∀ x y, x ∈ X.elems → y ∈ X.elems → (ψ.orb x).elems = (ψ.orb y).elems ∨ ∀ z, z ∉ (ψ.orb x).elems ∨ z ∉ (ψ.orb y).elems)`
+
+- Primera parte: todo `x ∈ X` pertenece a la órbita de sí mismo (via `act_id`).
+- Segunda parte: dos órbitas son iguales o disjuntas (demostrado usando `mem_orb_iff` + `FSet.eq_of_mem_iff'`).
+
+---
+
+## 43. GroupTheory/Sylow/Cosets.lean — `namespace Peano.GroupTheory`
+
+**Archivo**: `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean`
+**Namespace**: `Peano.GroupTheory`
+**Dependencias**: `Group`, `FSet`, `EquivRel`, `FSetFunction`, `Mul`
+**Tamaño**: ~370 líneas
+
+> **Phase 5 (2026-05-07)**: completamente polimórfico. Todas las definiciones y teoremas usan `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+
+### 43.1. § 1 — Coseto izquierdo [D/T]
+
+**[D43.1]** `leftCoset {α} [...] (G : FinGroup α) (H : Subgroup G) (g : α) : FSet α`
+
+- `gH = { g·h | h ∈ H }`. Construido filtrando `G.carrier` por `∃ h ∈ H, g·h = x`.
+
+**[T43.1]** `mem_leftCoset_iff (G : FinGroup α) (H : Subgroup G) (g x : α) (hg) : x ∈ (leftCoset G H g).elems ↔ ∃ h, h ∈ H.carrier.elems ∧ G.op g h = x`
+
+**[T43.2]** `coset_card_eq_subgroup_card (G : FinGroup α) (H : Subgroup G) (g : α) (hg) : (leftCoset G H g).card = H.carrier.card`
+
+- La función `h ↦ g·h` es biyección `H → gH`. Demostrado via `MapOn.Bijective.card_eq`.
+
+### 43.2. § 2 — Relación de equivalencia por cosetos [D/T]
+
+**[D43.2]** `cosetRel {α} [...] (G : FinGroup α) (H : Subgroup G) (a b : α) : Prop`
+
+- `a ~ b ↔ G.op (G.inv a) b ∈ H.carrier.elems` (equivalencia por coseto izquierdo).
+
+**[T43.3]** `cosetRel_refl`, `cosetRel_symm`, `cosetRel_trans`
+
+- `cosetRel` es reflexiva, simétrica y transitiva sobre `G.carrier`.
+
+**[D43.3]** `cosetEquivRel {α} [...] (G : FinGroup α) (H : Subgroup G) : EquivRelOn G.carrier`
+
+- Empaqueta `cosetRel` como `EquivRelOn`.
+
+**[T43.4]** `mem_classOf_cosetEquivRel_iff_leftCoset (G : FinGroup α) (H : Subgroup G) (g x : α) (hg) : x ∈ ((cosetEquivRel G H).classOf g).elems ↔ x ∈ (leftCoset G H g).elems`
+
+**[T43.5]** `classOf_cosetEquivRel_eq_leftCoset (G : FinGroup α) (H : Subgroup G) (g : α) (hg) : (cosetEquivRel G H).classOf g = leftCoset G H g`
+
+**[T43.6]** `classOf_cosetEquivRel_card_eq_subgroup_card (G : FinGroup α) (H : Subgroup G) (g : α) (hg) : ((cosetEquivRel G H).classOf g).card = H.carrier.card`
+
+### 43.3. § 2b — Familia de cosetos [D/T]
+
+**[D43.4]** `cosetClassFamily {α} [...] (G : FinGroup α) (H : Subgroup G) : (cosetEquivRel G H).ClassFamily`
+
+- La familia canónica de representantes de cosetos.
+
+**[T43.7]** `mem_some_cosetClassFamily_class (G : FinGroup α) (H : Subgroup G) (x : α) (hx) : ∃ r, r ∈ (cosetClassFamily G H).reps ∧ x ∈ ((cosetEquivRel G H).classOf r).elems`
+
+**[D43.5]** `cosetClasses {α} [...] (G : FinGroup α) (H : Subgroup G) : List (FSet α)`
+
+- Lista deduplicada de todos los cosetos izquierdos.
+
+**[T43.8]** `card_eq_subgroup_card_of_mem_cosetClasses (G : FinGroup α) (H : Subgroup G) (C : FSet α) (hC) : C.card = H.carrier.card`
+
+**[T43.9]** `mem_some_cosetClasses (G : FinGroup α) (H : Subgroup G) (x : α) (hx) : ∃ C, C ∈ cosetClasses G H ∧ x ∈ C.elems`
+
+**[T43.10]** `cosetClass_eq_classOf_of_mem (G : FinGroup α) (H : Subgroup G) (C : FSet α) (x : α) (hC) (hxC) : C = (cosetEquivRel G H).classOf x`
+
+### 43.4. § 2c — Igualdad de cosetos [T]
+
+**[T43.11]** `leftCoset_subset_of_rel (G : FinGroup α) (H : Subgroup G) (a b : α) (ha) (hb) (hab : cosetRel G H a b) : ∀ x, x ∈ (leftCoset G H a).elems → x ∈ (leftCoset G H b).elems`
+
+**[T43.12]** `leftCoset_eq_of_rel (G : FinGroup α) (H : Subgroup G) (a b : α) (ha) (hb) (hab) : leftCoset G H a = leftCoset G H b`
+
+### 43.5. § 3 — Lema de Lagrange [T]
+
+**[T43.13]** `lagrange {α} [...] (G : FinGroup α) (H : Subgroup G) : ∃ k : ℕ₀, mul H.carrier.card k = G.carrier.card`
+
+- **Matemática:** |H| · [G:H] = |G| (el orden de H divide al de G).
+- **Prueba:** Se construye `f : MapOn G.carrier classesFSet` con `f(x) = classOf x`. Las fibras de `f` son exactamente las clases de `cosetEquivRel`, que tienen cardinal `|H|` (por `coset_card_eq_subgroup_card`). Se aplica `card_eq_mul_of_uniform_fibers`.
 
 ---
 
@@ -3194,8 +3527,9 @@ sylow_third (G : FinGroup) (p : ℕ₀)
 > §35 `Combinatorics/Fibonacci.lean`, §36 `Combinatorics/Counting.lean`,
 > §37 `Digits.lean`, §38 `Pairing.lean`,
 > §39 `Combinatorics/Perm.lean`, §40 `Combinatorics/Sign.lean`,
-> §41 `Combinatorics/Orbit.lean`, §42 `GroupTheory/Action.lean`,
-> §43 `GroupTheory/Sylow/Cosets.lean`,
+> §41 `Combinatorics/Orbit.lean`.
+> §42 `GroupTheory/Action.lean` — **documentado en §42 arriba (2026-05-07)**.
+> §43 `GroupTheory/Sylow/Cosets.lean` — **documentado en §43 arriba (2026-05-07)**.
 > §44a `GroupTheory/NormalSubgroup.lean`, §44b `GroupTheory/QuotientGroup.lean`,
 > §44c `GroupTheory/FirstIsomorphism.lean`, §44d `GroupTheory/SecondIsomorphism.lean`.
 > §45 `Foundation/CantorPairing.lean` — documentado abajo.
@@ -3691,6 +4025,30 @@ trivialmente de las dos invertibildades.
   (Nota: `sylow_second_incl` fue demostrado en sesión anterior.)
 
 <!-- AUTO-UPDATE-2026-05-06-END -->
+
+<!-- AUTO-UPDATE-2026-05-07-START -->
+## Actualizacion de estado - 2026-05-07 (Phase 5: polimorfización completa)
+
+- Estado del build: 64 build jobs, 0 errores, 0 sorry warnings (4 axiomas privados en Sylow.lean).
+- **Phase 5 completada**: `Action.lean` y `Cosets.lean` son ahora completamente polimórficos.
+  - Todas las definiciones usan `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+  - Solo `Sylow.lean` mantiene `FinGroup ℕ₀` concretamente (sin cambio).
+- **Infraestructura genérica añadida en `FSet.lean`**:
+  - `sorted_nodup_unique_list'` (private, genérico sobre `StrictLinearOrder α`).
+  - `FSet.eq_of_mem_iff'` — extensionalidad para `FSet α` genérico.
+  - `sortedInsert'`, `sorted_sortedInsert'`, `mem_sortedInsert'_iff` — inserción ordenada genérica.
+  - `sortList'`, `sorted_sortList'`, `mem_sortList'_iff` — ordenación de listas genérica.
+  - `FSet.ofList`, `FSet.mem_ofList_iff` — construcción de `FSet β` desde lista.
+- **`EquivRel.lean` creado**: `EquivRelOn`, `classOf`, 8 teoremas, `ClassFamily`, `canonicalClassFamily`, `classes`, 4 teoremas de clases. Exporta 17 símbolos.
+- **`Group.lean` actualizado**: `Subgroup.ext_carrier`, `Subgroup.carrier_inj`, `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup`.
+- Trampas resueltas:
+  - `private theorem` con recursión de ecuaciones debe colocarse ANTES del `namespace` enclosing.
+  - `▸`-chaining en term mode es peligroso (propaga tipo esperado hacia atrás); usar `have` + `rw [...] at h`.
+  - `FSet.eq_of_mem_iff` (solo `ℕ₀`) → reemplazado por `FSet.eq_of_mem_iff'` en Cosets/Action.
+- Axiomas privados vigentes en Sylow.lean (5, sin cambio):
+  `wielandt_fixed_point_exists`, `wielandt_p_ndvd_r`, `sylow_second_incl`, `sylow_third_mod`, `sylow_third_dvd`.
+
+<!-- AUTO-UPDATE-2026-05-07-END -->
 
 ---
 

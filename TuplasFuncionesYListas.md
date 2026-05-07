@@ -965,7 +965,7 @@ $\blacksquare$
 
 ### C.1 El Entorno Completo
 
-A diferencia de las aproximaciones más restringidas (sin inducción o con inducción finita), en esta variante disponemos de $\text{FOL}^= + \text{Peano}$ **con el Principio de Inducción Generalizado**. Esto significa que cuantificamos y permitimos la inducción sobre todas las fórmulas bien formadas de nuestro lenguaje de primer orden $\mathcal{\Lambda}$. 
+A diferencia de las aproximaciones más restringidas (sin inducción o con inducción finita), en esta variante disponemos de $\text{FOL}^= + \text{Peano}$ **con el Principio de Inducción Generalizado**. Esto significa que cuantificamos y permitimos la inducción sobre todas las fórmulas bien formadas de nuestro lenguaje de primer orden $\mathcal{\Lambda}$.
 
 Gracias a este principio fundamental, las propiedades algebraicas del semianillo $(\mathbb{N}, +, *)$, las propiedades del orden total (irreflexividad, tricotomía), y la existencia y unicidad de funciones u operaciones auxiliares como la raíz cuadrada o la paridad, ya no necesitan ser adoptadas como axiomas independientes ni como esquemas finitos. Todas ellas se derivan formalmente como teoremas a partir de sus definiciones recursivas base.
 
@@ -1011,6 +1011,7 @@ Ax 10. $\forall n,\quad \bigl(div2(n) * 2\bigr) + mod2(n) = n$
 Con el esquema de inducción general (Ax-Ind), todas las propiedades algebraicas y de orden se demuestran formalmente de forma directa:
 
 **1. Aritmética Básica y Álgebra:**
+
 - **Conmutatividad y Asociatividad** (Suma y Producto): Teoremas demostrables por inducción simple.
 - **Distributividad:** Teorema demostrable por inducción.
 - **Propiedades del Orden:** Irreflexividad, Tricotomía, Decidibilidad de la igualdad y Monotonía se demuestran por inducción fuerte o simple.

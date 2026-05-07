@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 59 jobs · 0 errores · 0 warnings · 0 sorry (4 axiomas privados en Sylow.lean)
+> **Build:** 64 jobs · 0 errores · 0 sorry (3 axiomas privados en Sylow.lean)
 > **Licencia:** MIT
 
 ---
@@ -59,7 +59,8 @@ Peano.lean                                        ← entrada; importa toda la l
       ├─ ListsAndSets/
       │  ├─ List.lean                             Peano.List         — listas polimórficas, sortedInsert genérico
       │  ├─ FSet.lean                             Peano.FSet         — conjuntos finitos genéricos (FSet α)
-      │  └─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
+      │  ├─ FSetFunction.lean                     Peano.FSetFunction — MapOn, Im, Perm, Pigeonhole, collision_of_card_lt, ~92 decl.
+      │  └─ EquivRel.lean                         Peano.EquivRel     — EquivRelOn, classOf, classes, ClassFamily, canonicalClassFamily
       ├─ NumberTheory/
       │  ├─ ModEq.lean                            Peano.ModEq        — congruencia modular
       │  ├─ Totient.lean                          Peano.Totient      — función φ de Euler
@@ -80,11 +81,11 @@ Peano.lean                                        ← entrada; importa toda la l
          ├─ Orbit.lean                            Peano.Orbit        — órbitas de permutaciones
          ├─ Group.lean                            Peano.Group        — FinGroup (α) polimórfico, Subgroup, gpow, subgrupos especiales
          └─ GroupTheory/
-            ├─ Action.lean                        Peano.Action       — acciones de grupo
+            ├─ Action.lean                        Peano.Action       — acciones de grupo (polimórfico)
             └─ Sylow/
-               ├─ Cosets.lean                     Peano.Cosets       — coclases
+               ├─ Cosets.lean                     Peano.Cosets       — coclases (polimórfico)
                ├─ CosetAction.lean                Peano.CosetAction  — acción de coclases (coset_conjugate_exists)
-               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 4 axiomas privados)
+               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 3 axiomas privados)
 ```
 
 ---
@@ -184,9 +185,9 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
   - `sylow_first` — existencia de p-subgrupo de Sylow
   - `sylow_second` — conjugación de subgrupos de Sylow
   - `sylow_third` — $n_p \equiv 1 \pmod{p}$ y $n_p \mid |G|$
-  - ⚠ 4 axiomas privados pendientes de prueba (rutas Wielandt y Conjugation en curso)
+  - ⚠ 3 axiomas privados pendientes de prueba (rutas Wielandt y Conjugation en curso)
 
-> *4 axiomas privados en Sylow.lean: `wielandt_fixed_point_exists`, `wielandt_p_ndvd_r`, `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba.*
+> *3 axiomas privados en Sylow.lean: `wielandt_p_ndvd_r` (caso succ m'), `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba.*
 
 ### Decidabilidad completa
 
@@ -274,15 +275,14 @@ import Peano.PeanoNat.NumberTheory.Wilson  -- Teorema de Wilson
 - [x] **Foundation/CantorPairing.lean** — biyección ℕ₀×ℕ₀ ≅ ℕ₀, `pair`/`fst`/`snd`/`pair_surj` (Phase F.1) ✅
 - [x] **Foundation/GodelBeta.lean** — función β de Gödel, `godel_beta_seq`, `encodeList`/`decodeList`/`encode_decode` (Phase F.2) ✅
 - [x] **Foundation/Foundation.lean** — módulo paraguas compilando (Phase F.3) ✅
-- [ ] **Eliminar 4 axiomas privados** en Sylow.lean:
-  - [ ] `wielandt_fixed_point_exists` y `wielandt_p_ndvd_r` — argumento de punto fijo de Wielandt (Track 1)
+- [ ] **Eliminar 3 axiomas privados** en Sylow.lean:
+  - [ ] `wielandt_p_ndvd_r` (caso succ m') — inducción fuerte sobre |G| + cociente G/Z (Track 1)
   - [ ] `sylow_third_mod` y `sylow_third_dvd` — acción de conjugación sobre subgrupos de Sylow (Track 3)
 
 ### Futuro
 
 - **Phase 22**: Extensión a enteros `ℤ` (tipo inductivo canónico)
 - **Phase 23**: Extensión a racionales `ℚ` (estructura con invariante de coprimalidad)
-- **FinGroup Fase 2–5**: `Action.lean` y `Cosets.lean` genéricos, `FinGroup (Subgroup G)` para Sylow III
 
 ---
 

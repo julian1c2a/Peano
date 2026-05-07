@@ -1,13 +1,13 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-05-06
+**Última actualización:** 2026-05-07
 **Autor**: Julián Calderón Almendros
 
 ---
 
 ## Resumen
 
-Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida íntegramente desde los axiomas de Peano. Incluye aritmética completa de ℕ₀, teoría de números (Fermat, Euler, CRT), conjuntos finitos con funciones y principio del palomar, y teoría de grupos finitos (permutaciones, orden de elemento, subgrupo cíclico, acciones, coclases, Sylow). Desde 2026-04-27 incluye también polimorfismo completo de `FinGroup` sobre tipo arbitrario con `StrictLinearOrder`.
+Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida íntegramente desde los axiomas de Peano. Incluye aritmética completa de ℕ₀, teoría de números (Fermat, Euler, CRT, Wilson), conjuntos finitos con funciones y principio del palomar, relaciones de equivalencia sobre dominios finitos, y teoría de grupos finitos (permutaciones, orden de elemento, subgrupo cíclico, acciones, coclases, Sylow). Toda la infraestructura de grupos (`FinGroup`, `GroupAction`, `leftCoset`, `cosetRel`, `EquivRelOn`) es completamente polimórfica sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
 
 ---
 
@@ -15,22 +15,22 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (34 jobs)   [2026-05-06]
-sorry count     →  1 (wielandt_p_ndvd_r en Sylow.lean, pendiente de prueba)
-warnings        →  1 (variable hg_ne sin usar en wielandt_orbit_partition)
+lake build      →  Build completed successfully (64 jobs)   [2026-05-07]
+sorry count     →  0
+warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne sin usar en wielandt_orbit_stab)
 errors          →  0
 ```
 
 ### Desglose de axiomas privados (Sylow.lean)
 
-*(Completados en sesión 2026-05-06: `wieldandtAct_gpow_add`, `wieldandtAct_gpow_fixed_of_gcd_one`, `wielandt_orbit_remove`, `wielandt_orbit_partition` — los 4 son privados.)*
-
-| Axioma/sorry | Línea ~ | Usado por | Dificultad | Ruta |
+| Axioma privado | Línea ~ | Usado por | Dificultad | Ruta |
 |---|---|---|---|---|
-| `wielandt_fixed_point_exists` | ~2062 | `sylow_center_step_wielandt` | Difícil | Wielandt paso 7 (órbita-estabilizador) |
-| `wielandt_p_ndvd_r` | ~3307 | `sylow_center_step_wielandt` | Medio | `binom_pow_p_mod` disponible |
-| `sylow_third_mod` | ~3464 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
-| `sylow_third_dvd` | ~3478 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
+| `wielandt_p_ndvd_r` (caso `succ m'`) | ~3586 | `sylow_center_step_wielandt` | Difícil | Inducción fuerte sobre \|G\| + cociente G/Z |
+| `sylow_third_mod` | ~3875 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
+| `sylow_third_dvd` | ~3889 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
+
+**Completados (2026-05-07)**:
+- `wielandt_fixed_point_exists` — ✅ **axioma privado eliminado** (demostrado como `private theorem`)
 
 ---
 
@@ -64,19 +64,26 @@ errors          →  0
 | `Peano/PeanoNat/Pairing.lean` | `Peano.Pairing` | Emparejamiento de Cantor y su inversa | ✅ |
 | **Foundation/** | | | |
 | `PeanoNat/Foundation/CantorPairing.lean` | `Peano.Foundation` | `triag`, `pair`, `antidiag`, `fst`, `snd`, `pair_surj` — biyección ℕ₀×ℕ₀≅ℕ₀ | ✅ |
+| `PeanoNat/Foundation/GodelBeta.lean` | `Peano.Foundation` | Función β de Gödel, `encodeList`/`decodeList`/`encode_decode` | ✅ |
+| `PeanoNat/Foundation/PeanoSystem.lean` | `Peano.Foundation` | Estructura PeanoSystem, morfismos, isomorfismos | ✅ |
+| `PeanoNat/Foundation/Initiality.lean` | `Peano.Foundation` | ℕ₀ como álgebra inicial; unicidad e inicialidad | ✅ |
+| `PeanoNat/Foundation/PureAxioms.lean` | `Peano.Foundation` | Sistema PA axiomático puro + teorema de paridad | ✅ |
+| `PeanoNat/Foundation/Foundation.lean` | `Peano.Foundation` | Módulo paraguas Foundation | ✅ |
 | **ListsAndSets/** | | | |
 | `ListsAndSets/List.lean` | `Peano.List` | Listas polimórficas `List α`, sorted, nodup, `sortedInsert` genérico | ✅ |
-| `ListsAndSets/FSet.lean` | `Peano.FSet` | `FSet α` — conjuntos finitos genéricos (lista ordenada + invariante `Sorted`) | ✅ |
+| `ListsAndSets/FSet.lean` | `Peano.FSet` | `FSet α` — conjuntos finitos genéricos (lista ordenada + invariante `Sorted`); `eq_of_mem_iff'`, `sortList'`, `ofList` | ✅ |
 | `ListsAndSets/FSetFunction.lean` | `Peano.FSetFunction` | MapOn, Im, Pigeonhole, `collision_of_card_lt`, inversas, Perm, ~92 decl. | ✅ |
+| `ListsAndSets/EquivRel.lean` | `Peano.EquivRel` | `EquivRelOn`, `classOf`, `classes`, `ClassFamily`, `canonicalClassFamily` — 17 símbolos exportados | ✅ |
 | **NumberTheory/** | | | |
 | `NumberTheory/ModEq.lean` | `Peano.ModEq` | Congruencia modular, compatibilidad aritmética | ✅ |
 | `NumberTheory/Totient.lean` | `Peano.Totient` | Función de Euler φ, `totient_prime`, `totient_pos` | ✅ |
 | `NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | Teorema Chino del Resto | ✅ |
 | `NumberTheory/Fermat.lean` | `Peano.Fermat` | Pequeño Teorema de Fermat | ✅ |
+| `NumberTheory/Wilson.lean` | `Peano.Wilson` | Teorema de Wilson — `p ∣ (p−1)! + 1`, pairing argument | ✅ |
 | **Combinatorics/** | | | |
 | `Combinatorics/Pow.lean` | `Peano.Pow` | Potenciación, `pow_add`, `pow_mul` | ✅ |
 | `Combinatorics/Factorial.lean` | `Peano.Factorial` | Factorial, `factorial_pos`, `factorial_succ` | ✅ |
-| `Combinatorics/Binom.lean` | `Peano.Binom` | Coef. binomiales, Pascal, `prime_dvd_binom_prime`, `binom_prime_row` | ✅ |
+| `Combinatorics/Binom.lean` | `Peano.Binom` | Coef. binomiales, Pascal, `prime_dvd_binom_prime`, `binom_pow_p_mod` | ✅ |
 | `Combinatorics/NewtonBinom.lean` | `Peano.NewtonBinom` | Binomio de Newton | ✅ |
 | `Combinatorics/Summation.lean` | `Peano.Summation` | Sumatorias `∑`, propiedades algebraicas | ✅ |
 | `Combinatorics/Product.lean` | `Peano.Product` | Productorias `∏` | ✅ |
@@ -85,104 +92,55 @@ errors          →  0
 | `Combinatorics/Perm.lean` | `Peano.Perm` | Permutaciones, `FunPerm`, composición | ✅ |
 | `Combinatorics/Sign.lean` | `Peano.Sign` | Signo de permutaciones | ✅ |
 | `Combinatorics/Orbit.lean` | `Peano.Orbit` | Órbitas | ✅ |
-| `Combinatorics/Group.lean` | `Peano.Group` | `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]`, `Subgroup`, `gpow`, `order`, subgrupos, `IsNormal`, inter | ✅ |
+| `Combinatorics/Group.lean` | `Peano.Group` | `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]`, `Subgroup`, `gpow`, `order`, subgrupos, `IsNormal`, inter; instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup` | ✅ |
 | **GroupTheory/** | | | |
 | `GroupTheory/NormalSubgroup.lean` | `Peano.GroupTheory` | `centralizer`, `normalizer`, `rightCoset`, criterios de normalidad | ✅ |
 | `GroupTheory/QuotientGroup.lean` | `Peano.GroupTheory` | `quotientGroup`, `quotientHomomorphism`, `imageSubgroup` (29 exports) | ✅ |
 | `GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `homKer`, `homImg`, `firstIsoMap` — G/ker≅Im | ✅ |
 | `GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `subgroupHN`, `interHN`, `secondIsoMap` — H/(H∩N)≅HN/N | ✅ |
 | `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
-| `GroupTheory/Action.lean` | `Peano.Action` | Acciones de grupo, `orb`, `stab`, `fix`, `orbit_stabilizer`, `orbits_partition` | ✅ |
-| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | Coclases, `cosetRel`, `coset_card_eq_subgroup_card`, `lagrange` | ✅ |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (1 sorry, 3 axiomas privados); `wielandt_orbit_partition` ✅ 2026-05-06 | ⚠ 4 pendientes |
+| `GroupTheory/Action.lean` | `Peano.Action` | `GroupAction` polimórfico, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition` | ✅ |
+| `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `leftCoset`, `cosetRel`, `cosetEquivRel`, `lagrange`, `cosetClasses` — polimórfico | ✅ |
+| `GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | Acción de G sobre coclases, `coset_conjugate_exists` (cierra Sylow II) | ✅ |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (0 sorry, 3 axiomas privados) | ⚠ 3 axiomas privados |
 
 ---
 
 ## Hitos completados
 
-### Fase 1–4: Aritmética completa de ℕ₀ y ℕ₁ (2026-03-03)
+### Phase 5 — Polimorfismo completo FinGroup/FSet/EquivRel (2026-05-07)
 
-- **Divisibilidad completa**: `divides_refl`, `divides_trans`, `antisymm_divides`.
-- **MCD y conmutatividad**: `gcd_step`, `gcd_greatest`, `gcd_comm`.
-- **Identidad de Bézout**: `bezout_additive` y `bezout_natform`.
-- **ℕ₁**: `Divides₁`, `IsGCD₁`, `gcd₁`, `Coprime₁`.
+- `FSet.lean`: añadidos `eq_of_mem_iff'` (genérico), `sortList'`, `FSet.ofList`.
+- `EquivRel.lean`: nuevo módulo — `EquivRelOn`, `classOf`, `classes`, `ClassFamily`, `canonicalClassFamily`, 17 símbolos exportados.
+- `Group.lean`: instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup` para `FSet (Subgroup G)`.
+- `Cosets.lean` y `Action.lean`: completamente refactorizados a polimorfismo pleno sobre `{α β : Type}`.
+- **Build**: 64 jobs, 0 sorry, 3 axiomas privados en Sylow.lean.
 
-### Fase 5–6: Infraestructura y exports (2026-03-15)
+### wielandt_fixed_point_exists — ✅ axioma eliminado (2026-05-07)
 
-- Potenciación, factorial, coeficientes binomiales, binomio de Newton.
-- Primos: `unique_prime_factorization`, `coprime_dvd_of_dvd_mul` (Gauss), `prime_iff_irreducible`.
+Demostrado como `private theorem` completo (0 sorry): G actúa sobre Ω por traslación;
+p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador tiene orden p^(m+1).
 
-### Fase 7–17: Reestructuración y modernización (2026-04-08)
+### Wilson.lean — ✅ 0 sorry (2026-05-05)
 
-- Directorio `PeanoNatLib/` → `Peano/`, `PeanoNatLib.lean` → `PeanoNat.lean`.
-- Subdirectorio `Combinatorics/` extraído. `Prelim.lean`, `Isomorph.lean`, `Decidable.lean` factorizados.
-- Copyright headers, migración de identificadores a convenciones Mathlib4.
+`wilson : p ∣ add (factorial (sub p 𝟙)) 𝟙` — pairing argument sobre {2,…,p−2}.
 
-### Phase 21: Completación de ℕ₀ (2026-04-09)
+### CorrespondenceTheorem.lean — ✅ 0 sorry (2026-05-05)
 
-- Instancias Init completas, `DecidableRel`, inducción fuerte, `IsEven`/`IsOdd`, `Decidable (Prime n)`.
-- Digits, Pairing, ModEq, Totient, CRT, Fermat.
+`correspondencePhi`/`correspondencePsi` — biyección entre subgrupos sobre N y subgrupos de G/N.
 
-### Phase 24: Conjuntos finitos y funciones (2026-04)
+### Phase F — Foundation: cadena Peano → Aczel → ZFC ✅ (2026-05-02)
 
-- **FSet α**: conjuntos finitos genéricos (estructura con lista ordenada + invariante `Sorted`).
-- **FSetFunction.lean** (~92 declaraciones): MapOn, Im, Pigeonhole, inversas, Perm, `card_eq_mul_of_uniform_fibers`.
-- **Nota**: ListList.lean y FSetFSet.lean eliminados en 2026-04-27 (fusionados en List.lean y FSet.lean).
-
-### Phase 25: Teoría de grupos finitos (2026-04)
-
-- **Perm.lean**: ✅ sin sorry (commit `9a17a8e`).
-- **Group.lean**: `FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α]` — polimórfico sobre tipo arbitrario. `Subgroup`, `gpow`, `order`, `order_pos`, `gpow_order_eq_id`, `gpow_mod_order`, subgrupos trivial/impropio/cíclico, `IsNormal`, `Subgroup.inter` — ✅ sin sorry.
-- **Action.lean**: `orbit_stabilizer`, `orbits_partition` — ✅ sin sorry.
-- **Cosets.lean**: coclases, `lagrange` — ✅ sin sorry.
-- **Sylow.lean**: todos los teoremas de Sylow I/II/III formalmente cerrados (0 sorry):
-  - `cauchy_minimal` — argumento de órbitas de McKay.
-  - `sylow_first`, `sylow_second`, `sylow_third` — todos cerrados.
-  - 5 axiomas privados pendientes de prueba.
-
-### Refactoring: StrictLinearOrder y FSet genérico (2026-04-27)
-
-- **StrictOrder.lean**: `StrictLinearOrder α` typeclass; instancia bridge `instIrreflLTOfSLO`.
-- **Tuple.lean**: `instStrictLinearOrderTuple` — `FSet (Tuple ℕ₀ n)` funciona automáticamente.
-- **List.lean**: `sortedInsert` generalizado a `[StrictLinearOrder α]`.
-- **FSet.lean**: `FSet α` genérico para cualquier tipo con `StrictLinearOrder α`.
-- **Group.lean**: `FinGroup (α) [DecidableEq α] [LT α] [StrictLinearOrder α]` con `carrier : FSet α`, `id : α`. Alias `abbrev ℕ₀FinGroup := FinGroup ℕ₀`.
-- Build: 52 → 51 jobs (eliminados ListList.lean y FSetFSet.lean).
-
-### Wielandt — pasos completados (2026-04-23 → 2026-04-28)
-
-- `prime_dvd_binom_prime` — p primo, 0 < k < p → p | C(p,k) ✅
-- `binom_prime_row` — C(p·r, p) = r · C(p·r−1, p−1) ✅
-- `binom_pr_p_mod` — C(p·r, p) ≡ r (mod p) por inducción sobre r ✅
-- `binom_pow_p_mod_aux` — C(p·M, p·K) ≡ C(M,K) (mod p) ✅
-- `binom_pow_p_mod` — C(p^n·r, p^n) ≡ r (mod p), n≥1 (Lucas) ✅
-- `sylow_card_eq` — unicidad del exponente de Sylow ✅ (2026-04-28)
-- `wielandt_omega_card` — ∃ Ω lista de N-sublistas de G con |Ω| = C(|G|,N) ✅ (2026-04-28)
-- **`CantorPairing.lean`** — biyección ℕ₀×ℕ₀ ≅ ℕ₀ completada (Phase F.1) ✅ (2026-05-02)
+- `CantorPairing.lean` — biyección ℕ₀×ℕ₀ ≅ ℕ₀
+- `GodelBeta.lean` — función β de Gödel; codificación List ℕ₀ ≃ ℕ₀
 
 ---
 
-## Próximos objetivos
+## Próximos objetivos (sprint final)
 
-### Phase F (cadena Peano → Aczel → ZFC)
-
-1. **`GodelBeta.lean`** (F.2) — función β de Gödel + `encodeList`/`decodeList`/`encode_decode`.
-   - Requiere: `ChineseRemainder`, `Factorial`, `Arith`, `CantorPairing` ✅.
-   - Lema central: `godel_mod_coprime` (coprimalidad de módulos 1+i·b y 1+j·b para i≠j).
-2. **`Foundation.lean`** (F.3) — paraguas que importa todos los módulos de Foundation/.
-
-### Ruta Wielandt (2 pasos restantes para `sylow_center_step`)
-
-1. **`wielandt_p_ndvd_r`** — ¬p∣r dado p^(m+1)·r = |G| y no hay subgrupo propio de orden p^(m+1).
-   - Herramienta clave: `binom_pow_p_mod` ya disponible. Si p∤r entonces p∤C(|G|,N) = |Ω|.
-2. **`wielandt_fixed_point_exists`** — ∃ H : Subgroup G, H.carrier.card = N.
-   - Argumento: G actúa sobre Ω; p∤|Ω| → alguna órbita tiene tamaño no divisible por p → tamaño 1 → estabilizador Stab_G(S₀) tiene orden N por órbita-estabilizador.
-   - Requiere: adaptar `mckay_orbit_count` a la acción sobre `List (List ℕ₀)`.
-
-### Otros axiomas privados
-
-1. **`sylow_second_incl`** — H-acción sobre G/K (coclases ya en librería), fixed point = r⁻¹Hr ⊆ K.
-2. **`sylow_third_mod`** y **`sylow_third_dvd`** — requieren normalizador y acción por conjugación sobre subgrupos.
+1. **`wielandt_p_ndvd_r` (caso `succ m'`)** — Track 1: inducción fuerte sobre |G|, cociente G/Z.
+2. **`sylow_third_mod` + `sylow_third_dvd`** — Track 3: acción de conjugación sobre {subgrupos de Sylow}.
+3. **Migración documentación a `/doc/`** — G.1: sistema de REFERENCE-{Tema}.md.
 
 ---
 

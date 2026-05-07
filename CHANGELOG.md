@@ -2,6 +2,34 @@
 
 ## [Unreleased]
 
+### Added (2026-05-07)
+
+- **Phase 5 — Polimorfismo completo de FinGroup/FSet/EquivRel**:
+  - `ListsAndSets/EquivRel.lean` — nuevo módulo: `EquivRelOn`, `classOf`, `classOf_eq_of_mem_classOf`, `classOf_eq_or_disjoint`, `ClassFamily`, `canonicalClassFamily`, `classes`, `classes_cover`; 17 símbolos exportados.
+  - `ListsAndSets/FSet.lean` — añadidos `eq_of_mem_iff'` (genérico), `sortedInsert'`, `sortList'`, `FSet.ofList` y lemas auxiliares.
+  - `Combinatorics/Group.lean` — instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup`; permite `FSet (Subgroup G)`.
+  - `GroupTheory/Sylow/Cosets.lean` — completamente refactorizado: `leftCoset`, `cosetRel`, `cosetEquivRel`, `cosetClasses`, `lagrange`; polimórfico sobre `{α : Type}`.
+  - `GroupTheory/Action.lean` — completamente refactorizado: `GroupAction`, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition`; polimórfico sobre `{α β : Type}`.
+  - Build: **64 jobs · 0 errores · 0 sorry · 2 warnings** (variables sin usar).
+
+- **Sylow.lean — `wielandt_fixed_point_exists` demostrado (axioma privado eliminado)**:
+  - Demostrado como `private theorem` completo (0 sorry, 0 axioma privado).
+  - Argumento: G actúa sobre Ω por traslación; p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da órbita de tamaño no divisible por p → tamaño 1 → estabilizador tiene orden p^(m+1).
+  - Pendientes: `wielandt_p_ndvd_r` (caso `succ m'`), `sylow_third_mod`, `sylow_third_dvd`.
+
+### Added (2026-05-06)
+
+- **Sylow.lean — Wielandt Pieza A completada (4 teoremas, 0 sorry)**:
+  - `wieldandtAct_gpow_add` — `act (g^a) · act (g^b) = act (g^(a+b))` sobre Ω.
+  - `wieldandtAct_gpow_fixed_of_gcd_one` — si `gcd(|G|, p) = 1` entonces g^|G| fija todo S ∈ Ω.
+  - `wielandt_orbit_remove` — extrae exactamente p elementos de la p-órbita de S en Ω (6 propiedades).
+  - `wielandt_orbit_partition` — `|Ω| = |fix(Ω)| + p·k`; elimina el axioma privado.
+  - Infraestructura: `wielandt_exists_nondvd_orbit_aux` (inducción estructural sobre |Ω|).
+
+- **Foundation/GodelBeta.lean — completado (Phase F.2, 0 sorry)**:
+  - `godel_beta_seq`, `encodeList`, `decodeList`, `encode_decode`.
+  - Cierra la cadena Peano → Aczel → ZFC: `List ℕ₀ ≃ ℕ₀` formalizado sobre axiomas de Peano.
+
 ### Added (2026-05-05)
 
 - **GroupTheory/CorrespondenceTheorem.lean — Cuarto Teorema de Isomorfismo (0 sorry, 0 axiomas privados)**:
@@ -16,6 +44,10 @@
   - **Trampa documentada**: `Function.Bijective` no existe sin Mathlib — workaround: dos teoremas separados `correspondenceInjective` + `correspondenceSurjective`.
   - **Trampa documentada**: `SubgroupAbove` usa `_hn` con guión bajo porque el tipo resultante (`Type`) no depende del valor de `hn` en Lean 4.
   - Build: 64 jobs · 0 errores · 0 warnings nuevos · 0 sorry.
+
+- **NumberTheory/Wilson.lean — Teorema de Wilson (0 sorry)**:
+  - `theorem wilson {p : ℕ₀} (hp : Prime p) : p ∣ add (factorial (sub p 𝟙)) 𝟙`
+  - Estrategia: pairing argument sobre `{2, …, p−2}`. Cada elemento se empareja con su inverso modular, salvo los puntos fijos 1 y p−1. Producto del rango interior ≡ 1 (mod p); luego (p−1)! ≡ −1 (mod p).
 
 - **GroupTheory/NormalSubgroup.lean** (sesiones anteriores, ahora en build):
   - `def centralizer (G) (H)` — centralizador `C_G(H)`.
@@ -38,6 +70,7 @@
   - `subgroupHN` — subgrupo `HN = { h*n | h ∈ H, n ∈ N }`.
   - `interHN_as_subgroup_H`, `interHN_as_subgroup_H_isNormal` — `H ∩ N ⊴ H`.
   - `secondIsoMap` — isomorfismo `H/(H∩N) ≅ HN/N`, bijective.
+
 
 ### Added (2026-05-02)
 

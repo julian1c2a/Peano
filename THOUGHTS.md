@@ -45,6 +45,12 @@ three Sylow theorems.
 
 ---
 
+- Gap 1: p_group_center_nontrivial (ecuación de clases) — hay que    probar en NormalSubgroup.lean *haciéndose*
+- Gap 2: preimage_subgroup_card — verificar CorrespondenceTheorem.lean primero *siguiente gap*
+- Gap 3: añadir parámetro HI (IH fuerte) a wielandt_p_ndvd_r
+
+---
+
 ## Architectural decisions — AczelSetTheory (2026-05-02)
 
 **¿Puede AczelSetTheory definir `Nat` a partir de `HFSet` solo?**

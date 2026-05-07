@@ -31,17 +31,22 @@ namespace Peano
     open Peano.Mul
 
     /-!
-    # § 1. GroupAction — acción (izquierda) de un FinGroup sobre un ℕ₀FSet
+    # § 1. GroupAction — acción (izquierda) de un FinGroup sobre un FSet
     -/
 
     /-- Una acción (izquierda) de `G` sobre un conjunto finito `X`:
         un homomorfismo de grupos de `G` al grupo simétrico de `X`,
         equivalente a una función `α : G × X → X` que satisface:
         - `α(e, x) = x`  para todo `x`,
-        - `α(g, α(h, x)) = α(g·h, x)`  para todo `g, h, x`. -/
-    structure GroupAction (G : FinGroup ℕ₀) (X : ℕ₀FSet) where
+        - `α(g, α(h, x)) = α(g·h, x)`  para todo `g, h, x`.
+
+        `α` tiene tipo `α → β → β` donde `G : FinGroup α` y `X : FSet β`. -/
+    structure GroupAction
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (G : FinGroup α) (X : FSet β) where
       /-- La función de acción: dados `g ∈ G` y `x ∈ X`, devuelve `g·x ∈ X`. -/
-      act        : ℕ₀ → ℕ₀ → ℕ₀
+      act        : α → β → β
       act_closed : ∀ g x, g ∈ G.carrier.elems → x ∈ X.elems → act g x ∈ X.elems
       act_id     : ∀ x, x ∈ X.elems → act G.id x = x
       act_compat : ∀ g h x,
@@ -55,14 +60,20 @@ namespace Peano
     /-- La órbita de `x ∈ X` bajo la acción `α`:
         `Orb(x) = { α(g, x) | g ∈ G }`.
         Se construye filtrando `X` por los `y` que tienen preimagen en `G`. -/
-    def GroupAction.orb {G : FinGroup ℕ₀} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x : ℕ₀) : ℕ₀FSet :=
-      ℕ₀FSet.filter (fun y => G.carrier.elems.any (fun g => decide (α.act g x = y))) X
+    def GroupAction.orb
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {G : FinGroup α} {X : FSet β}
+        (ψ : GroupAction G X) (x : β) : FSet β :=
+      FSet.filter (fun y => G.carrier.elems.any (fun g => decide (ψ.act g x = y))) X
 
-    /-- `y ∈ Orb(x)` si y solo si existe `g ∈ G` tal que `α(g, x) = y`. -/
-    theorem mem_orb_iff {G : FinGroup ℕ₀} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x y : ℕ₀) (hx : x ∈ X.elems) :
-        y ∈ (α.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ α.act g x = y := by
+    /-- `y ∈ Orb(x)` si y solo si existe `g ∈ G` tal que `ψ(g, x) = y`. -/
+    theorem mem_orb_iff
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {G : FinGroup α} {X : FSet β}
+        (ψ : GroupAction G X) (x y : β) (hx : x ∈ X.elems) :
+        y ∈ (ψ.orb x).elems ↔ ∃ g, g ∈ G.carrier.elems ∧ ψ.act g x = y := by
       constructor
       · intro hy
         have hf := List.mem_filter.mp hy
@@ -71,7 +82,7 @@ namespace Peano
         exact ⟨g, hg, by rwa [decide_eq_true_eq] at hd⟩
       · rintro ⟨g, hg, heq⟩
         exact List.mem_filter.mpr
-          ⟨heq ▸ α.act_closed g x hg hx,
+          ⟨heq ▸ ψ.act_closed g x hg hx,
            List.any_eq_true.mpr ⟨g, hg, decide_eq_true_eq.mpr heq⟩⟩
 
     /-!
@@ -79,11 +90,14 @@ namespace Peano
     -/
 
     /-- El estabilizador de `x` en `G`:
-        `Stab(x) = { g ∈ G | α(g, x) = x }`. -/
-    def GroupAction.stab {G : FinGroup ℕ₀} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) : Subgroup G where
-      carrier := ℕ₀FSet.filter (fun g => decide (α.act g x = x)) G.carrier
-      nonempty := ⟨G.id, List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (α.act_id x hx)⟩⟩
+        `Stab(x) = { g ∈ G | ψ(g, x) = x }`. -/
+    def GroupAction.stab
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {G : FinGroup α} {X : FSet β}
+        (ψ : GroupAction G X) (x : β) (hx : x ∈ X.elems) : Subgroup G where
+      carrier := FSet.filter (fun g => decide (ψ.act g x = x)) G.carrier
+      nonempty := ⟨G.id, List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (ψ.act_id x hx)⟩⟩
       subset := fun a ha => (List.mem_filter.mp ha).1
       op_closed := fun a b ha hb => by
         have ⟨ha_mem, ha_fix⟩ := List.mem_filter.mp ha
@@ -92,16 +106,16 @@ namespace Peano
         exact List.mem_filter.mpr
           ⟨op_mem G ha_mem hb_mem,
            decide_eq_true_eq.mpr (by
-            rw [← α.act_compat a b x ha_mem hb_mem hx, hb_fix, ha_fix])⟩
-      id_in := List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (α.act_id x hx)⟩
+            rw [← ψ.act_compat a b x ha_mem hb_mem hx, hb_fix, ha_fix])⟩
+      id_in := List.mem_filter.mpr ⟨G.id_in, decide_eq_true_eq.mpr (ψ.act_id x hx)⟩
       inv_closed := fun a ha => by
         have ⟨ha_mem, ha_fix⟩ := List.mem_filter.mp ha
         rw [decide_eq_true_eq] at ha_fix
         exact List.mem_filter.mpr
           ⟨inv_mem G ha_mem,
            decide_eq_true_eq.mpr (by
-            have h := α.act_compat (G.inv a) a x (inv_mem G ha_mem) ha_mem hx
-            rw [(G.op_inv a ha_mem).2, α.act_id x hx] at h
+            have h := ψ.act_compat (G.inv a) a x (inv_mem G ha_mem) ha_mem hx
+            rw [(G.op_inv a ha_mem).2, ψ.act_id x hx] at h
             rw [ha_fix] at h; exact h)⟩
 
     /-!
@@ -114,47 +128,50 @@ namespace Peano
     -/
 
     /-- Teorema órbita–estabilizador: `|Orb(x)| · |Stab(x)| = |G|`. -/
-    theorem orbit_stabilizer {G : FinGroup ℕ₀} {X : ℕ₀FSet}
-        (α : GroupAction G X) (x : ℕ₀) (hx : x ∈ X.elems) :
-        mul (α.orb x).card (α.stab x hx).carrier.card = G.carrier.card :=
+    theorem orbit_stabilizer
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {G : FinGroup α} {X : FSet β}
+        (ψ : GroupAction G X) (x : β) (hx : x ∈ X.elems) :
+        mul (ψ.orb x).card (ψ.stab x hx).carrier.card = G.carrier.card :=
       by
-        let S := α.stab x hx
-        let f : MapOn G.carrier (α.orb x) := {
-          toFun := fun g => α.act g x
+        let S := ψ.stab x hx
+        let f : MapOn G.carrier (ψ.orb x) := {
+          toFun := fun g => ψ.act g x
           map_carrier := fun g hg =>
-            (mem_orb_iff α x (α.act g x) hx).mpr ⟨g, hg, rfl⟩
+            (mem_orb_iff ψ x (ψ.act g x) hx).mpr ⟨g, hg, rfl⟩
         }
 
-        have h_fiber : ∀ y, y ∈ (α.orb x).elems → (f.fiber y).card = S.carrier.card := by
+        have h_fiber : ∀ y, y ∈ (ψ.orb x).elems → (f.fiber y).card = S.carrier.card := by
           intro y hy
-          obtain ⟨gy, hgy, hgyx⟩ := (mem_orb_iff α x y hx).mp hy
+          obtain ⟨gy, hgy, hgyx⟩ := (mem_orb_iff ψ x y hx).mp hy
 
           have h_fiber_eq_coset : f.fiber y = leftCoset G S gy := by
-            apply FSet.eq_of_mem_iff
+            apply FSet.eq_of_mem_iff'
             intro g
             constructor
             · intro hgFib
               have hgData := (MapOn.mem_fiber_iff f y g).mp hgFib
               have hg_mem : g ∈ G.carrier.elems := hgData.1
-              have hg_eq : α.act g x = y := hgData.2
+              have hg_eq : ψ.act g x = y := hgData.2
 
-              let h : ℕ₀ := G.op (G.inv gy) g
+              let h : α := G.op (G.inv gy) g
               have hhG : h ∈ G.carrier.elems :=
                 op_mem G (inv_mem G hgy) hg_mem
-              have hh_fix : α.act h x = x := by
-                have hInvY : α.act (G.inv gy) y = x := by
+              have hh_fix : ψ.act h x = x := by
+                have hInvY : ψ.act (G.inv gy) y = x := by
                   calc
-                    α.act (G.inv gy) y = α.act (G.inv gy) (α.act gy x) := by
+                    ψ.act (G.inv gy) y = ψ.act (G.inv gy) (ψ.act gy x) := by
                       rw [← hgyx]
-                    _ = α.act (G.op (G.inv gy) gy) x := by
-                      rw [α.act_compat (G.inv gy) gy x (inv_mem G hgy) hgy hx]
-                    _ = α.act G.id x := by rw [(G.op_inv gy hgy).2]
-                    _ = x := α.act_id x hx
+                    _ = ψ.act (G.op (G.inv gy) gy) x := by
+                      rw [ψ.act_compat (G.inv gy) gy x (inv_mem G hgy) hgy hx]
+                    _ = ψ.act G.id x := by rw [(G.op_inv gy hgy).2]
+                    _ = x := ψ.act_id x hx
                 calc
-                  α.act h x = α.act (G.inv gy) (α.act g x) := by
+                  ψ.act h x = ψ.act (G.inv gy) (ψ.act g x) := by
                     unfold h
-                    rw [α.act_compat (G.inv gy) g x (inv_mem G hgy) hg_mem hx]
-                  _ = α.act (G.inv gy) y := by rw [hg_eq]
+                    rw [ψ.act_compat (G.inv gy) g x (inv_mem G hgy) hg_mem hx]
+                  _ = ψ.act (G.inv gy) y := by rw [hg_eq]
                   _ = x := hInvY
 
               have hhS : h ∈ S.carrier.elems := by
@@ -173,14 +190,14 @@ namespace Peano
             · intro hgCos
               obtain ⟨h, hhS, hEq⟩ := (mem_leftCoset_iff G S gy g hgy).mp hgCos
               have hhG : h ∈ G.carrier.elems := S.subset h hhS
-              have hh_fix : α.act h x = x := by
+              have hh_fix : ψ.act h x = x := by
                 exact decide_eq_true_eq.mp ((List.mem_filter.mp hhS).2)
               have hg_mem : g ∈ G.carrier.elems := by
                 rw [← hEq]
                 exact op_mem G hgy hhG
-              have hact : α.act g x = y := by
+              have hact : ψ.act g x = y := by
                 rw [← hEq,
-                    ← α.act_compat gy h x hgy hhG hx,
+                    ← ψ.act_compat gy h x hgy hhG hx,
                     hh_fix,
                     hgyx]
               exact (MapOn.mem_fiber_iff f y g).mpr ⟨hg_mem, hact⟩
@@ -193,7 +210,7 @@ namespace Peano
           FSetFunction.card_eq_mul_of_uniform_fibers f S.carrier.card h_fiber
 
         calc
-          mul (α.orb x).card S.carrier.card = mul S.carrier.card (α.orb x).card := by
+          mul (ψ.orb x).card S.carrier.card = mul S.carrier.card (ψ.orb x).card := by
             rw [mul_comm]
           _ = G.carrier.card := Eq.symm h_card
 
@@ -208,76 +225,75 @@ namespace Peano
     -/
 
     /-- Partición de X en órbitas. -/
-    theorem orbits_partition {G : FinGroup ℕ₀} {X : ℕ₀FSet}
-        (α : GroupAction G X) :
+    theorem orbits_partition
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {G : FinGroup α} {X : FSet β}
+        (ψ : GroupAction G X) :
         -- Toda x ∈ X pertenece a exactamente una órbita
-        (∀ x, x ∈ X.elems → ∃ y, y ∈ X.elems ∧ x ∈ (α.orb y).elems) ∧
+        (∀ x, x ∈ X.elems → ∃ y, y ∈ X.elems ∧ x ∈ (ψ.orb y).elems) ∧
         -- Dos órbitas son iguales o disjuntas
         (∀ x y, x ∈ X.elems → y ∈ X.elems →
-          (α.orb x).elems = (α.orb y).elems ∨
-          ∀ z, z ∉ (α.orb x).elems ∨ z ∉ (α.orb y).elems) := by
+          (ψ.orb x).elems = (ψ.orb y).elems ∨
+          ∀ z, z ∉ (ψ.orb x).elems ∨ z ∉ (ψ.orb y).elems) := by
       constructor
-      · -- Parte 1: x ∈ orb(x) vía α(e, x) = x
-        intro x hx
-        exact ⟨x, hx, (mem_orb_iff α x x hx).mpr ⟨G.id, G.id_in, α.act_id x hx⟩⟩
-      · -- Parte 2: orb(x) = orb(y)  o  disjuntas
-        -- Si ∃ z ∈ orb(x) ∩ orb(y), entonces orb(x) = orb(y);
-        -- si no, son disjuntas.
-        intro x y hx hy
-        rcases Classical.em (∃ z, z ∈ (α.orb x).elems ∧ z ∈ (α.orb y).elems) with h | h
+      · intro x hx
+        exact ⟨x, hx, (mem_orb_iff ψ x x hx).mpr ⟨G.id, G.id_in, ψ.act_id x hx⟩⟩
+      · intro x y hx hy
+        rcases Classical.em (∃ z, z ∈ (ψ.orb x).elems ∧ z ∈ (ψ.orb y).elems) with h | h
         · left
           obtain ⟨z, hzx, hzy⟩ := h
-          obtain ⟨g₁, hg₁, hg₁_eq⟩ := (mem_orb_iff α x z hx).mp hzx
-          obtain ⟨g₂, hg₂, hg₂_eq⟩ := (mem_orb_iff α y z hy).mp hzy
-          have hxy_mem : x ∈ (α.orb y).elems := by
-            refine (mem_orb_iff α y x hy).mpr ?_
+          obtain ⟨g₁, hg₁, hg₁_eq⟩ := (mem_orb_iff ψ x z hx).mp hzx
+          obtain ⟨g₂, hg₂, hg₂_eq⟩ := (mem_orb_iff ψ y z hy).mp hzy
+          have hxy_mem : x ∈ (ψ.orb y).elems := by
+            refine (mem_orb_iff ψ y x hy).mpr ?_
             refine ⟨G.op (G.inv g₁) g₂, op_mem G (inv_mem G hg₁) hg₂, ?_⟩
-            have hzx' : α.act g₁ x = α.act g₂ y := by
+            have hzx' : ψ.act g₁ x = ψ.act g₂ y := by
               exact hg₁_eq.trans hg₂_eq.symm
             calc
-              α.act (G.op (G.inv g₁) g₂) y = α.act (G.inv g₁) (α.act g₂ y) := by
-                rw [α.act_compat (G.inv g₁) g₂ y (inv_mem G hg₁) hg₂ hy]
-              _ = α.act (G.inv g₁) (α.act g₁ x) := by rw [hzx']
-              _ = α.act (G.op (G.inv g₁) g₁) x := by
-                rw [α.act_compat (G.inv g₁) g₁ x (inv_mem G hg₁) hg₁ hx]
-              _ = α.act G.id x := by rw [(G.op_inv g₁ hg₁).2]
-              _ = x := α.act_id x hx
+              ψ.act (G.op (G.inv g₁) g₂) y = ψ.act (G.inv g₁) (ψ.act g₂ y) := by
+                rw [ψ.act_compat (G.inv g₁) g₂ y (inv_mem G hg₁) hg₂ hy]
+              _ = ψ.act (G.inv g₁) (ψ.act g₁ x) := by rw [hzx']
+              _ = ψ.act (G.op (G.inv g₁) g₁) x := by
+                rw [ψ.act_compat (G.inv g₁) g₁ x (inv_mem G hg₁) hg₁ hx]
+              _ = ψ.act G.id x := by rw [(G.op_inv g₁ hg₁).2]
+              _ = x := ψ.act_id x hx
 
-          have hyx_mem : y ∈ (α.orb x).elems := by
-            refine (mem_orb_iff α x y hx).mpr ?_
+          have hyx_mem : y ∈ (ψ.orb x).elems := by
+            refine (mem_orb_iff ψ x y hx).mpr ?_
             refine ⟨G.op (G.inv g₂) g₁, op_mem G (inv_mem G hg₂) hg₁, ?_⟩
-            have hzy' : α.act g₂ y = α.act g₁ x := by
+            have hzy' : ψ.act g₂ y = ψ.act g₁ x := by
               exact hg₂_eq.trans hg₁_eq.symm
             calc
-              α.act (G.op (G.inv g₂) g₁) x = α.act (G.inv g₂) (α.act g₁ x) := by
-                rw [α.act_compat (G.inv g₂) g₁ x (inv_mem G hg₂) hg₁ hx]
-              _ = α.act (G.inv g₂) (α.act g₂ y) := by rw [hzy']
-              _ = α.act (G.op (G.inv g₂) g₂) y := by
-                rw [α.act_compat (G.inv g₂) g₂ y (inv_mem G hg₂) hg₂ hy]
-              _ = α.act G.id y := by rw [(G.op_inv g₂ hg₂).2]
-              _ = y := α.act_id y hy
+              ψ.act (G.op (G.inv g₂) g₁) x = ψ.act (G.inv g₂) (ψ.act g₁ x) := by
+                rw [ψ.act_compat (G.inv g₂) g₁ x (inv_mem G hg₂) hg₁ hx]
+              _ = ψ.act (G.inv g₂) (ψ.act g₂ y) := by rw [hzy']
+              _ = ψ.act (G.op (G.inv g₂) g₂) y := by
+                rw [ψ.act_compat (G.inv g₂) g₂ y (inv_mem G hg₂) hg₂ hy]
+              _ = ψ.act G.id y := by rw [(G.op_inv g₂ hg₂).2]
+              _ = y := ψ.act_id y hy
 
-          have horb_eq : α.orb x = α.orb y := by
-            apply FSet.eq_of_mem_iff
+          have horb_eq : ψ.orb x = ψ.orb y := by
+            apply FSet.eq_of_mem_iff'
             intro w
             constructor
             · intro hwx
-              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff α x w hx).mp hwx
-              obtain ⟨k, hk, hkx⟩ := (mem_orb_iff α y x hy).mp hxy_mem
-              exact (mem_orb_iff α y w hy).mpr
+              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff ψ x w hx).mp hwx
+              obtain ⟨k, hk, hkx⟩ := (mem_orb_iff ψ y x hy).mp hxy_mem
+              exact (mem_orb_iff ψ y w hy).mpr
                 ⟨G.op g k, op_mem G hg hk, by
-                  rw [← α.act_compat g k y hg hk hy, hkx, hgw]⟩
+                  rw [← ψ.act_compat g k y hg hk hy, hkx, hgw]⟩
             · intro hwy
-              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff α y w hy).mp hwy
-              obtain ⟨k, hk, hky⟩ := (mem_orb_iff α x y hx).mp hyx_mem
-              exact (mem_orb_iff α x w hx).mpr
+              obtain ⟨g, hg, hgw⟩ := (mem_orb_iff ψ y w hy).mp hwy
+              obtain ⟨k, hk, hky⟩ := (mem_orb_iff ψ x y hx).mp hyx_mem
+              exact (mem_orb_iff ψ x w hx).mpr
                 ⟨G.op g k, op_mem G hg hk, by
-                  rw [← α.act_compat g k x hg hk hx, hky, hgw]⟩
+                  rw [← ψ.act_compat g k x hg hk hx, hky, hgw]⟩
 
           exact congrArg FSet.elems horb_eq
         · right
           intro z
-          rcases Classical.em (z ∈ (α.orb x).elems) with hzx | hzx
+          rcases Classical.em (z ∈ (ψ.orb x).elems) with hzx | hzx
           · exact Or.inr (fun hzy => absurd ⟨z, hzx, hzy⟩ h)
           · exact Or.inl hzx
 

@@ -654,5 +654,62 @@ namespace Peano
     futuro (necesita Lehmer codes o una generalización polimorfa de FinGroup).
     -/
 
+    /-!
+    # § 8. Instancias de orden y decidibilidad para `Subgroup G`
+
+    Para que `FSet (Subgroup G)` y `FinGroup (Subgroup G)` sean posibles,
+    necesitamos `DecidableEq`, `LT` y `StrictLinearOrder` sobre subgrupos.
+    El orden se hereda del orden sobre `FSet α` (orden del soporte).
+    -/
+
+    /-- Extensionalidad de subgrupos: igualdad de soportes implica igualdad. -/
+    theorem Subgroup.ext_carrier {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {G : FinGroup α} {H₁ H₂ : Subgroup G}
+        (h : H₁.carrier = H₂.carrier) : H₁ = H₂ := by
+      rcases H₁ with ⟨c₁, ne₁, sub₁, op₁, id₁, inv₁⟩
+      rcases H₂ with ⟨c₂, ne₂, sub₂, op₂, id₂, inv₂⟩
+      cases h
+      have h1 : ne₁  = ne₂  := proof_irrel ne₁  ne₂
+      have h2 : sub₁ = sub₂ := proof_irrel sub₁ sub₂
+      have h3 : op₁  = op₂  := proof_irrel op₁  op₂
+      have h4 : id₁  = id₂  := proof_irrel id₁  id₂
+      have h5 : inv₁ = inv₂ := proof_irrel inv₁ inv₂
+      subst h1; subst h2; subst h3; subst h4; subst h5
+      rfl
+
+    /-- Proyección del soporte preserva la igualdad. -/
+    theorem Subgroup.carrier_inj {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {G : FinGroup α} {H₁ H₂ : Subgroup G}
+        (h : H₁ = H₂) : H₁.carrier = H₂.carrier :=
+      congrArg Subgroup.carrier h
+
+    /-- Igualdad decidible de subgrupos, heredada del soporte. -/
+    instance instDecidableEqSubgroup {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {G : FinGroup α} : DecidableEq (Subgroup G) :=
+      fun H₁ H₂ =>
+        if h : H₁.carrier = H₂.carrier then
+          isTrue (Subgroup.ext_carrier h)
+        else
+          isFalse (fun heq => h (Subgroup.carrier_inj heq))
+
+    /-- Orden estricto sobre subgrupos: `H₁ < H₂ ↔ H₁.carrier < H₂.carrier`. -/
+    instance instLTSubgroup {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {G : FinGroup α} : LT (Subgroup G) where
+      lt := fun H₁ H₂ => H₁.carrier < H₂.carrier
+
+    /-- `StrictLinearOrder` sobre subgrupos, heredado del orden sobre soportes. -/
+    instance instStrictLinearOrderSubgroup {α : Type} [DecidableEq α] [LT α]
+        [slo : StrictLinearOrder α] {G : FinGroup α} :
+        StrictLinearOrder (Subgroup G) where
+      decLt  := fun H₁ H₂ =>
+        (instStrictLinearOrderFSet (α := α)).decLt H₁.carrier H₂.carrier
+      irrefl := fun H h =>
+        (instStrictLinearOrderFSet (α := α)).irrefl H.carrier h
+      trans  := fun {_a _b _c} hab hbc =>
+        (instStrictLinearOrderFSet (α := α)).trans hab hbc
+      trich  := fun H₁ H₂ h₁ h₂ =>
+        Subgroup.ext_carrier
+          ((instStrictLinearOrderFSet (α := α)).trich H₁.carrier H₂.carrier h₁ h₂)
+
   end Group
 end Peano

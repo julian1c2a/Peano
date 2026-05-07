@@ -306,6 +306,53 @@ namespace Peano
             · exact h
         Eq.trans (congrArg (List.cons x) htail) (congrArg (· :: ys) hxy)
 
+  /-- Versión genérica: dos listas de `α` estrictamente ordenadas con la misma
+      pertenencia son iguales. Requiere `StrictLinearOrder α`. -/
+  private theorem sorted_nodup_unique_list' {α : Type} [DecidableEq α] [LT α]
+      [slo : StrictLinearOrder α] :
+      ∀ {l₁ l₂ : List α},
+      List.Pairwise (· < ·) l₁ → List.Pairwise (· < ·) l₂ →
+      (∀ z : α, z ∈ l₁ ↔ z ∈ l₂) → l₁ = l₂
+    | [], [], _, _, _ => rfl
+    | [], y :: ys, _, _, hmem =>
+        absurd ((hmem y).mpr List.mem_cons_self) List.not_mem_nil
+    | x :: xs, [], _, _, hmem =>
+        absurd ((hmem x).mp List.mem_cons_self) List.not_mem_nil
+    | x :: xs, y :: ys, hs₁, hs₂, hmem =>
+        have hxs₁ := List.pairwise_cons.mp hs₁
+        have hxs₂ := List.pairwise_cons.mp hs₂
+        have hxy : x = y := by
+          have hx_in : x ∈ y :: ys := (hmem x).mp List.mem_cons_self
+          have hy_in : y ∈ x :: xs := (hmem y).mpr List.mem_cons_self
+          rcases List.mem_cons.mp hx_in with rfl | hx_ys
+          · rfl
+          · rcases List.mem_cons.mp hy_in with rfl | hy_xs
+            · rfl
+            · exact absurd
+                (slo.trans
+                  (List.rel_of_pairwise_cons hs₁ hy_xs)
+                  (List.rel_of_pairwise_cons hs₂ hx_ys))
+                (slo.irrefl x)
+        have htail : xs = ys := by
+          apply sorted_nodup_unique_list' hxs₁.2 hxs₂.2
+          intro z
+          constructor
+          · intro hz
+            have hzy := (hmem z).mp (List.mem_cons.mpr (Or.inr hz))
+            rcases List.mem_cons.mp hzy with h_eq | h
+            · have h_lt : x < z := List.rel_of_pairwise_cons hs₁ hz
+              rw [h_eq, hxy] at h_lt
+              exact absurd h_lt (slo.irrefl y)
+            · exact h
+          · intro hz
+            have hzx := (hmem z).mpr (List.mem_cons.mpr (Or.inr hz))
+            rcases List.mem_cons.mp hzx with h_eq | h
+            · have h_lt : y < z := List.rel_of_pairwise_cons hs₂ hz
+              rw [h_eq, hxy] at h_lt
+              exact absurd h_lt (slo.irrefl y)
+            · exact h
+        Eq.trans (congrArg (List.cons x) htail) (congrArg (· :: ys) hxy)
+
   namespace FSet
 
     /-- Extensionalidad semántica de `ℕ₀FSet`: dos conjuntos con la misma
@@ -313,6 +360,13 @@ namespace Peano
     theorem FSet.eq_of_mem_iff {s₁ s₂ : FSet ℕ₀}
         (h : ∀ z : ℕ₀, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂ :=
       FSet.ext (sorted_nodup_unique_list s₁.sorted s₂.sorted h)
+
+    /-- Extensionalidad semántica genérica de `FSet α`:
+        dos conjuntos con la misma pertenencia son iguales. -/
+    theorem FSet.eq_of_mem_iff' {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {s₁ s₂ : FSet α}
+        (h : ∀ z : α, z ∈ s₁.elems ↔ z ∈ s₂.elems) : s₁ = s₂ :=
+      FSet.ext (sorted_nodup_unique_list' s₁.sorted s₂.sorted h)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § 4. Inserción ordenada genérica (StrictLinearOrder α)
@@ -944,6 +998,127 @@ namespace Peano
           simp [sortFSetList, mem_sortedInsertFSet_iff, ih];
 
     -- ══════════════════════════════════════════════════════════════════
+    -- § 11b. Ordenación genérica de listas: sortedInsert' / sortList'
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Inserta un elemento en una lista ya ordenada, manteniendo el orden.
+        Versión genérica para cualquier `β` con `StrictLinearOrder β`. -/
+    def sortedInsert' {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (x : β) : List β → List β
+      | [] => [x]
+      | y :: ys =>
+          if x < y then x :: y :: ys
+          else if x = y then y :: ys
+          else y :: sortedInsert' x ys
+
+    /-- Ordenación por inserción genérica para `List β`. -/
+    def sortList' {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        : List β → List β
+      | [] => []
+      | x :: xs => sortedInsert' x (sortList' xs)
+
+    theorem mem_sortedInsert'_iff {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {z x : β} {l : List β} :
+        z ∈ sortedInsert' x l ↔ z = x ∨ z ∈ l := by
+      induction l with
+      | nil => simp [sortedInsert']
+      | cons y ys ih =>
+        simp only [sortedInsert']
+        split
+        · constructor
+          · intro h
+            rcases List.mem_cons.mp h with rfl | h
+            · exact Or.inl rfl
+            · exact Or.inr h
+          · intro h
+            rcases h with rfl | h
+            · exact List.mem_cons.mpr (Or.inl rfl)
+            · exact List.mem_cons.mpr (Or.inr h)
+        · split
+          · rename_i _ heq
+            constructor
+            · intro h
+              exact Or.inr h
+            · intro h
+              rcases h with rfl | h
+              · rw [heq]
+                exact List.mem_cons.mpr (Or.inl rfl)
+              · exact h
+          · constructor
+            · intro h
+              rcases List.mem_cons.mp h with rfl | h
+              · exact Or.inr (List.mem_cons.mpr (Or.inl rfl))
+              · rcases ih.mp h with rfl | hmem
+                · exact Or.inl rfl
+                · exact Or.inr (List.mem_cons.mpr (Or.inr hmem))
+            · intro h
+              rcases h with rfl | h
+              · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inl rfl)))
+              · rcases List.mem_cons.mp h with rfl | hmem
+                · exact List.mem_cons.mpr (Or.inl rfl)
+                · exact List.mem_cons.mpr (Or.inr (ih.mpr (Or.inr hmem)))
+
+    theorem sorted_sortedInsert' {β : Type} [DecidableEq β] [LT β]
+        [slo : StrictLinearOrder β] {l : List β}
+        (hs : Sorted (· < ·) l) (x : β) :
+        Sorted (· < ·) (sortedInsert' x l) := by
+      induction l with
+      | nil => exact sorted_singleton _ x
+      | cons y ys ih =>
+        unfold sortedInsert'
+        split
+        next hlt =>
+          exact List.Pairwise.cons
+            (fun z hz =>
+              match List.mem_cons.mp hz with
+              | Or.inl h => h ▸ hlt
+              | Or.inr h => Trans.trans hlt (List.rel_of_pairwise_cons hs h))
+            hs
+        next hnotlt =>
+          split
+          next heq =>
+            exact hs
+          next hneq =>
+            have hys := (List.pairwise_cons.mp hs).2
+            exact List.Pairwise.cons
+              (fun z hz =>
+                match mem_sortedInsert'_iff.mp hz with
+                | Or.inl hzx =>
+                    hzx ▸
+                    by
+                      by_cases hyx : y < x
+                      · exact hyx
+                      · exact False.elim (hneq (slo.trich x y hnotlt hyx))
+                | Or.inr hmem => List.rel_of_pairwise_cons hs hmem)
+              (ih hys)
+
+    theorem sorted_sortList' {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (l : List β) :
+        Sorted (· < ·) (sortList' l) := by
+      induction l with
+      | nil => exact sorted_nil _
+      | cons x xs ih =>
+          exact sorted_sortedInsert' ih x
+
+    theorem mem_sortList'_iff {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {x : β} {l : List β} :
+        x ∈ sortList' l ↔ x ∈ l := by
+      induction l with
+      | nil => simp [sortList']
+      | cons y ys ih =>
+          simp [sortList', mem_sortedInsert'_iff, ih]
+
+    /-- Construye un `FSet β` a partir de una lista genérica (posiblemente no ordenada). -/
+    def FSet.ofList {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (l : List β) : FSet β :=
+      ⟨sortList' l, sorted_sortList' l⟩
+
+    theorem FSet.mem_ofList_iff {β : Type} [DecidableEq β] [LT β] [StrictLinearOrder β]
+        {x : β} {l : List β} :
+        x ∈ (FSet.ofList l).elems ↔ x ∈ l :=
+      mem_sortList'_iff
+
+    -- ══════════════════════════════════════════════════════════════════
     -- § 12. Unión, intersección, imagen, cociente
     -- ══════════════════════════════════════════════════════════════════
 
@@ -1129,6 +1304,7 @@ export Peano.FSet (
   FSet
   FSet.ext
   FSet.eq_of_mem_iff
+  FSet.eq_of_mem_iff'
   ℕ₀FSet
   ℕ₁FSet
   ℕ₂FSet
@@ -1165,6 +1341,14 @@ export Peano.FSet (
   sorted_sortedInsertFSet
   sorted_sortFSetList
   mem_sortFSetList_iff
+  sortedInsert'
+  sortList'
+  mem_sortedInsert'_iff
+  sorted_sortedInsert'
+  sorted_sortList'
+  mem_sortList'_iff
+  FSet.ofList
+  FSet.mem_ofList_iff
   FSet.insert
   mem_insert_iff
   FSet.union

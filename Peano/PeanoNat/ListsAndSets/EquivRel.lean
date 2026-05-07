@@ -68,13 +68,14 @@ namespace Peano
       (R.mem_classOf_iff a x).mpr ⟨hxA, hax⟩
 
     theorem EquivRelOn.classOf_eq_of_mem_classOf
-        {A : FSet ℕ₀} (R : EquivRelOn A) (a x : ℕ₀)
+        {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        {A : FSet α} (R : EquivRelOn A) (a x : α)
         (ha : a ∈ A.elems) (hx : x ∈ (R.classOf a).elems) :
         R.classOf x = R.classOf a := by
       have hxA : x ∈ A.elems := (R.mem_classOf_iff a x).mp hx |>.1
       have hax : R.rel a x := (R.mem_classOf_iff a x).mp hx |>.2
       have hxa : R.rel x a := R.symm_on a x ha hxA hax
-      apply FSet.eq_of_mem_iff
+      apply FSet.eq_of_mem_iff'
       intro y
       constructor
       · intro hxy

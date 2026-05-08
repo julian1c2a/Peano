@@ -28,6 +28,9 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.CosetAction
 import Peano.PeanoNat.Combinatorics.GroupTheory.Action
 import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.Totient
+import Peano.PeanoNat.Combinatorics.GroupTheory.NormalSubgroup
+import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
+import Peano.PeanoNat.Combinatorics.GroupTheory.CorrespondenceTheorem
 
 set_option autoImplicit false
 
@@ -3527,27 +3530,239 @@ namespace Peano
             _ = add (lengthₚ ((S :: Ω'').filter (fun T => decide (wieldandtAct G g T = T))))
                     (mul p (σ k')) := by rw [hfilter_eq.symm]
 
+    -- ══════════════════════════════════════════════════════════════════
+    -- Infraestructura: transporte FinGroup ℕ₀FSet → FinGroup ℕ₀
+    -- ══════════════════════════════════════════════════════════════════
+
+    /-- Inyectividad de `indexOfₚ`: si `a, b ∈ l` y sus índices son iguales, entonces a = b.
+        No requiere nodup; usa getDₚ_indexOfₚ. -/
+    private theorem indexOfₚ_inj {α : Type} [DecidableEq α]
+        (dflt : α) (l : List α) (a b : α)
+        (ha : a ∈ l) (hb : b ∈ l)
+        (h : List.indexOfₚ a l = List.indexOfₚ b l) : a = b := by
+      have ha' := getDₚ_indexOfₚ dflt a l ha
+      have hb' := getDₚ_indexOfₚ dflt b l hb
+      rw [h] at ha'
+      exact ha'.symm.trans hb'
+
+    /-- Acceso al i-ésimo elemento de `QG`. -/
+    private def qgNth (QG : FinGroup ℕ₀FSet) (i : ℕ₀) : ℕ₀FSet :=
+      getDₚ ℕ₀FSet.empty QG.carrier.elems i
+
+    /-- Índice de un coset en `QG`. -/
+    private def qgIdx (QG : FinGroup ℕ₀FSet) (C : ℕ₀FSet) : ℕ₀ :=
+      List.indexOfₚ C QG.carrier.elems
+
+    /-- En lista sorted estricta, indexOfₚ (getDₚ dflt l i) l = i para i < lengthₚ l. -/
+    private theorem indexOfₚ_getDₚ_sorted (dflt : ℕ₀FSet) (l : List ℕ₀FSet)
+        (hl : Sorted (· < ·) l) (i : ℕ₀) (hi : lt₀ i (lengthₚ l)) :
+        List.indexOfₚ (getDₚ dflt l i) l = i := by
+      induction l generalizing i with
+      | nil => exact absurd hi (nlt_n_0 i)
+      | cons a as ihas =>
+        cases i with
+        | zero =>
+          simp [getDₚ_cons_zero, List.indexOfₚ_cons_eq a a as rfl]
+        | succ j =>
+          rw [getDₚ_cons_succ]
+          have hj : lt₀ j (lengthₚ as) := by
+            rw [lengthₚ_cons] at hi; exact (succ_lt_succ_iff j (lengthₚ as)).mp hi
+          have has_sorted : Sorted (· < ·) as := List.Pairwise.of_cons hl
+          have ha_lt : ∀ y ∈ as, a < y := by
+            cases hl with | cons hrel _ => exact hrel
+          have hmem_as : getDₚ dflt as j ∈ as := getDₚ_mem dflt as j hj
+          have ha_ne : a ≠ getDₚ dflt as j := by
+            intro heq
+            exact absurd (heq ▸ ha_lt _ hmem_as) (IrreflLT.lt_irrefl _)
+          rw [List.indexOfₚ_cons_ne _ a as ha_ne]
+          congr 1
+          exact ihas has_sorted j hj
+
+    private theorem qgIdx_qgNth (QG : FinGroup ℕ₀FSet) (i : ℕ₀)
+        (hi : lt₀ i QG.carrier.card) : qgIdx QG (qgNth QG i) = i := by
+      unfold qgIdx qgNth
+      simp only [FSet.card] at hi
+      exact indexOfₚ_getDₚ_sorted ℕ₀FSet.empty QG.carrier.elems QG.carrier.sorted i hi
+
+    /-- qgNth (qgIdx QG C) = C cuando C ∈ QG.carrier. -/
+    private theorem qgNth_qgIdx (QG : FinGroup ℕ₀FSet) (C : ℕ₀FSet)
+        (hC : C ∈ QG.carrier.elems) : qgNth QG (qgIdx QG C) = C :=
+      getDₚ_indexOfₚ ℕ₀FSet.empty C QG.carrier.elems hC
+
+    /-- qgNth QG i ∈ QG.carrier cuando i < |QG|. -/
+    private theorem qgNth_mem (QG : FinGroup ℕ₀FSet) (i : ℕ₀)
+        (hi : lt₀ i QG.carrier.card) : qgNth QG i ∈ QG.carrier.elems :=
+      getDₚ_mem ℕ₀FSet.empty QG.carrier.elems i hi
+
+    /-- qgIdx QG C < |QG| cuando C ∈ QG.carrier. -/
+    private theorem qgIdx_lt (QG : FinGroup ℕ₀FSet) (C : ℕ₀FSet)
+        (hC : C ∈ QG.carrier.elems) : lt₀ (qgIdx QG C) QG.carrier.card :=
+      List.indexOfₚ_lt_length C QG.carrier.elems hC
+
+    /-- Transporte: convierte un FinGroup ℕ₀FSet en un FinGroup ℕ₀ isomorfo
+        indexando los elementos como 0, 1, ..., n-1 donde n = |QG|. -/
+    private noncomputable def finGroupFSetToN₀ (QG : FinGroup ℕ₀FSet) : FinGroup ℕ₀ where
+      carrier := ℕ₀FSet.Fin₀Set QG.carrier.card
+      op := {
+        toFun := fun i j => qgIdx QG (QG.op (qgNth QG i) (qgNth QG j))
+        map_carrier := fun i j hi hj => by
+          rw [ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card]
+          apply qgIdx_lt
+          apply QG.op.map_carrier
+          · exact qgNth_mem QG i ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card i).mp hi)
+          · exact qgNth_mem QG j ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card j).mp hj)
+      }
+      id := qgIdx QG QG.id
+      inv := {
+        toFun := fun i => qgIdx QG (QG.inv (qgNth QG i))
+        map_carrier := fun i hi => by
+          rw [ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card]
+          apply qgIdx_lt
+          apply QG.inv.map_carrier
+          exact qgNth_mem QG i ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card i).mp hi)
+      }
+      id_in := by
+        rw [ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card]
+        exact qgIdx_lt QG QG.id QG.id_in
+      op_assoc := fun a b c ha hb hc => by
+        simp only []
+        have ha' := qgNth_mem QG a ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card a).mp ha)
+        have hb' := qgNth_mem QG b ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card b).mp hb)
+        have hc' := qgNth_mem QG c ((ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card c).mp hc)
+        have hab' := QG.op.map_carrier _ _ ha' hb'
+        have hbc' := QG.op.map_carrier _ _ hb' hc'
+        rw [qgNth_qgIdx QG _ hab', QG.op_assoc _ _ _ ha' hb' hc',
+            qgNth_qgIdx QG _ hbc']
+      op_id := fun a ha => by
+        have ha_lt : lt₀ a QG.carrier.card := (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card a).mp ha
+        have ha' := qgNth_mem QG a ha_lt
+        obtain ⟨hid1, hid2⟩ := QG.op_id _ ha'
+        dsimp only []
+        constructor
+        · rw [qgNth_qgIdx QG QG.id QG.id_in, hid1, qgIdx_qgNth QG a ha_lt]
+        · rw [qgNth_qgIdx QG QG.id QG.id_in, hid2, qgIdx_qgNth QG a ha_lt]
+      op_inv := fun a ha => by
+        have ha_lt : lt₀ a QG.carrier.card := (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card a).mp ha
+        have ha' := qgNth_mem QG a ha_lt
+        have hinva' := QG.inv.map_carrier _ ha'
+        obtain ⟨hinv1, hinv2⟩ := QG.op_inv _ ha'
+        dsimp only []
+        constructor
+        · rw [qgNth_qgIdx QG _ hinva', hinv1]
+        · rw [qgNth_qgIdx QG _ hinva', hinv2]
+
+    /-- El cardinal del grupo transportado es igual al del original. -/
+    private theorem finGroupFSetToN₀_card (QG : FinGroup ℕ₀FSet) :
+        (finGroupFSetToN₀ QG).carrier.card = QG.carrier.card :=
+      ℕ₀FSet.Fin₀Set_card QG.carrier.card
+
+    private theorem finGroupFSetToN₀_carrier (QG : FinGroup ℕ₀FSet) :
+        (finGroupFSetToN₀ QG).carrier = ℕ₀FSet.Fin₀Set QG.carrier.card := rfl
+
+    /-- Decodifica un subgrupo de `finGroupFSetToN₀ QG` como subgrupo de `QG`. -/
+    private noncomputable def decodeSubgroup (QG : FinGroup ℕ₀FSet)
+        (J : Subgroup (finGroupFSetToN₀ QG)) : Subgroup QG where
+      carrier := FSet.filter (fun C => decide (qgIdx QG C ∈ J.carrier.elems)) QG.carrier
+      nonempty := by
+        obtain ⟨i, hi⟩ := J.nonempty
+        have hi_fin : lt₀ i QG.carrier.card := by
+          have hisub : i ∈ (ℕ₀FSet.Fin₀Set QG.carrier.card).elems :=
+            finGroupFSetToN₀_carrier QG ▸ J.subset i hi
+          exact (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card i).mp hisub
+        exact ⟨qgNth QG i, List.mem_filter.mpr ⟨
+          qgNth_mem QG i hi_fin,
+          decide_eq_true_eq.mpr (by
+            have : qgIdx QG (qgNth QG i) = i := qgIdx_qgNth QG i hi_fin
+            rw [this]; exact hi)⟩⟩
+      subset := fun C hC => (List.mem_filter.mp hC).1
+      op_closed := fun A B hA hB => by
+        have hA_fil := List.mem_filter.mp hA
+        have hB_fil := List.mem_filter.mp hB
+        have hiA := decide_eq_true_eq.mp hA_fil.2
+        have hiB := decide_eq_true_eq.mp hB_fil.2
+        have hiA_fin : qgIdx QG A ∈ (finGroupFSetToN₀ QG).carrier.elems :=
+          J.subset _ hiA
+        have hiB_fin : qgIdx QG B ∈ (finGroupFSetToN₀ QG).carrier.elems :=
+          J.subset _ hiB
+        have hop := J.op_closed _ _ hiA hiB
+        -- (finGroupFSetToN₀ QG).op A_idx B_idx = qgIdx QG (QG.op A B)
+        simp only [finGroupFSetToN₀] at hop
+        -- op in finGroupFSetToN₀ = qgIdx QG (QG.op (qgNth A_idx) (qgNth B_idx))
+        -- = qgIdx QG (QG.op A B)  [since qgNth (qgIdx A) = A]
+        rw [qgNth_qgIdx QG A hA_fil.1, qgNth_qgIdx QG B hB_fil.1] at hop
+        exact List.mem_filter.mpr ⟨QG.op.map_carrier _ _ hA_fil.1 hB_fil.1,
+          decide_eq_true_eq.mpr hop⟩
+      id_in := by
+        have hid := J.id_in
+        simp only [finGroupFSetToN₀] at hid
+        exact List.mem_filter.mpr ⟨QG.id_in, decide_eq_true_eq.mpr hid⟩
+      inv_closed := fun A hA => by
+        have hA_fil := List.mem_filter.mp hA
+        have hiA := decide_eq_true_eq.mp hA_fil.2
+        have hiA_fin : qgIdx QG A ∈ (finGroupFSetToN₀ QG).carrier.elems :=
+          J.subset _ hiA
+        have hinv := J.inv_closed _ hiA
+        simp only [finGroupFSetToN₀] at hinv
+        rw [qgNth_qgIdx QG A hA_fil.1] at hinv
+        exact List.mem_filter.mpr ⟨QG.inv.map_carrier _ hA_fil.1,
+          decide_eq_true_eq.mpr hinv⟩
+
+    /-- El cardinal de `decodeSubgroup` coincide con el del subgrupo original. -/
+    private theorem decodeSubgroup_card (QG : FinGroup ℕ₀FSet)
+        (J : Subgroup (finGroupFSetToN₀ QG)) :
+        (decodeSubgroup QG J).carrier.card = J.carrier.card := by
+      -- f : J.carrier → (decodeSubgroup QG J).carrier via qgNth
+      -- g : (decodeSubgroup QG J).carrier → J.carrier via qgIdx
+      -- card_eq_of_injections A B f hf g hg : A.card = B.card
+      -- Nuestro goal: (decodeSubgroup).card = J.card
+      -- necesitamos A = decodeSubgroup, B = J.carrier
+      apply card_eq_of_injections
+        (f := { toFun := fun C => qgIdx QG C
+                map_carrier := fun C hC => by
+                  exact (decide_eq_true_eq.mp (List.mem_filter.mp hC).2) })
+        (hf := by
+          intro A B hA hB heq
+          simp only [] at heq
+          have hA_fil := List.mem_filter.mp hA
+          have hB_fil := List.mem_filter.mp hB
+          exact indexOfₚ_inj ℕ₀FSet.empty QG.carrier.elems A B hA_fil.1 hB_fil.1 heq)
+        (g := { toFun := fun i => qgNth QG i
+                map_carrier := fun i hi => by
+                  have hi_carrier : i ∈ (ℕ₀FSet.Fin₀Set QG.carrier.card).elems :=
+                    finGroupFSetToN₀_carrier QG ▸ J.subset _ hi
+                  have hi_fin : lt₀ i QG.carrier.card :=
+                    (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card i).mp hi_carrier
+                  exact List.mem_filter.mpr ⟨
+                    qgNth_mem QG i hi_fin,
+                    decide_eq_true_eq.mpr (by rw [qgIdx_qgNth QG i hi_fin]; exact hi)⟩ })
+        (hg := by
+          intro i j hi hj heq
+          simp only [] at heq
+          have hi_carrier : i ∈ (ℕ₀FSet.Fin₀Set QG.carrier.card).elems :=
+            finGroupFSetToN₀_carrier QG ▸ J.subset _ hi
+          have hj_carrier : j ∈ (ℕ₀FSet.Fin₀Set QG.carrier.card).elems :=
+            finGroupFSetToN₀_carrier QG ▸ J.subset _ hj
+          have hi_fin : lt₀ i QG.carrier.card :=
+            (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card i).mp hi_carrier
+          have hj_fin : lt₀ j QG.carrier.card :=
+            (ℕ₀FSet.mem_Fin₀Set_iff QG.carrier.card j).mp hj_carrier
+          have := congrArg (qgIdx QG) heq
+          rwa [qgIdx_qgNth QG i hi_fin, qgIdx_qgNth QG j hj_fin] at this)
+
     /-- Argumento de Wielandt, pieza 5:
         Si p ∣ r y p^(m+1) | |G| con |G| = p^(m+1) · r, y ningún subgrupo propio de G
-        es divisible por p^(m+1), entonces ¬ p ∣ r.
-        Caso m = 0: demostrado via Cauchy + h_no_proper.
-        Caso m ≥ 1: HI disponible (Sylow First para grupos de orden < |G|), pero la ruta
-          natural pasa por G/K (cociente), que es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
-          Bloqueador actual: tipo mismatch FinGroup ℕ₀ vs FinGroup ℕ₀FSet al aplicar HI. -/
+        es divisible por p^(m+1), entonces ¬ p ∣ r. -/
     private theorem wielandt_p_ndvd_r
         (G : FinGroup ℕ₀) (p m r : ℕ₀)
         (hp : Prime p)
         (hr_eq : Mul.mul (p ^ (σ m)) r = G.carrier.card)
-        (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
-          pow_dvd_card p (σ m) G'.carrier →
-          ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
         (hC : ∀ (G0 : FinGroup ℕ₀) (p0 : ℕ₀), Prime p0 →
           (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
             ∃ K : Subgroup G0, K.carrier.card = p0)
         (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
           ¬ pow_dvd_card p (σ m) M.carrier) :
         ¬ p ∣ r := by
-      cases m with
+      induction m generalizing G r with
       | zero =>
         intro ⟨r', hr'⟩
         -- p^(σ 0) = p
@@ -3580,13 +3795,536 @@ namespace Peano
           ne_of_lt K.carrier.card G.carrier.card hK_lt
         -- Contradicción: pow_dvd_card p (σ 0) K.carrier con t=1 vs. h_no_proper
         exact absurd ⟨𝟙, by rw [hp1, mul_one]; exact hK_card.symm⟩ (h_no_proper K hK_ne)
-      | succ m' =>
-        -- HI disponible: ∀ G' : FinGroup ℕ₀, |G'| < |G| → p^(σm) | |G'| → ∃ K ≤ G', |K| = p^(σm).
-        -- Argumento: asumir p ∣ r. Cauchy da K ≤ G con |K| = p (propio).
-        -- HI no aplica a K directamente (p^(σ(σm')) ∤ p, ya que σ(σm') ≥ 2).
-        -- Ruta natural: cociente G/K — pero G/K es FinGroup ℕ₀FSet, no FinGroup ℕ₀.
-        -- Bloqueador: tipo mismatch FinGroup ℕ₀ vs FinGroup ℕ₀FSet al aplicar HI a G/K.
-        sorry
+      | succ m' ih =>
+        -- m = σ m', so σ m = σ (σ m').
+        -- Hipótesis: |G| = p^(σ(σm')) * r.
+        -- Meta: ¬ p ∣ r.
+        --
+        -- Argumento de Wielandt (paso inductivo):
+        -- 1. Ecuación de clases → p ∣ |Z(G)|.
+        -- 2. Cauchy en Z(G) → Z_G ≤ Z(G) con |Z_G| = p.
+        -- 3. Z_G es normal (subgrupo central).
+        -- 4. Cociente G' = G/Z_G con |G'| = p^(σm') * r < |G|.
+        -- 5. Todo subgrupo propio de G' que sería divisible por p^(σm')
+        --    levanta por preimagen a un subgrupo propio de G divisible por p^(σ(σm')),
+        --    contradiciendo h_no_proper.
+        -- 6. Aplicar hipótesis inductiva a G'.
+
+        -- Paso 1: p ∣ |Z(G)| (ecuación de clases)
+        have hZ_dvd : ∃ t : ℕ₀, Mul.mul p t = (center G).carrier.card := by
+          -- ── Auxiliar 1: prime_dvd_of_dvd_prime_pow ──────────────────────────
+          have h_prime_dvd_pow : ∀ (n : ℕ₀) {d : ℕ₀}, d ∣ p ^ n → d ≠ 𝟙 → p ∣ d := by
+            intro n; induction n with
+            | zero =>
+              intro d hd hne
+              change d ∣ (𝟙 : ℕ₀) at hd
+              obtain ⟨k, hk⟩ := hd
+              exact absurd (mul_eq_one hk.symm).1 hne
+            | succ n' ih =>
+              intro d hd hne
+              change d ∣ mul (p ^ n') p at hd
+              rcases prime_coprime_or_dvd hp (n := d) with hdvd | hcop
+              · exact hdvd
+              · have hd' : d ∣ mul p (p ^ n') := by rwa [mul_comm] at hd
+                exact ih (coprime_dvd_of_dvd_mul (coprime_symm hcop) hd') hne
+          -- ── Auxiliar 2: partición del cardinal por predicado booleano ────────
+          have h_card_split_bool : ∀ (q : ℕ₀ → Bool) (s : ℕ₀FSet),
+              s.card = add (FSet.filter q s).card
+                           ((FSet.filter (fun x => !q x) s).card) := by
+            intro q s
+            suffices h_list : ∀ (l : List ℕ₀),
+                lengthₚ l = add (lengthₚ (l.filter q))
+                                (lengthₚ (l.filter (fun x => !q x))) by
+              simpa [FSet.card, FSet.filter] using h_list s.elems
+            intro l; induction l with
+            | nil => simp [lengthₚ_nil, zero_add]
+            | cons x xs ih =>
+              cases hq : q x with
+              | false =>
+                have h1 : (x :: xs).filter q = xs.filter q := by simp [hq]
+                have h2 : (x :: xs).filter (fun y => !q y) =
+                    x :: xs.filter (fun y => !q y) := by simp [hq]
+                simp only [h1, h2, lengthₚ_cons, ih, ← add_succ]
+              | true =>
+                have h1 : (x :: xs).filter q = x :: xs.filter q := by simp [hq]
+                have h2 : (x :: xs).filter (fun y => !q y) =
+                    xs.filter (fun y => !q y) := by simp [hq]
+                simp only [h1, h2, lengthₚ_cons, ih, ← succ_add]
+          -- ── Auxiliar 3: conmutatividad de filter-filter (card) ───────────────
+          have h_filter_filter_card : ∀ (p q : ℕ₀ → Bool) (s : ℕ₀FSet),
+              (FSet.filter p (FSet.filter q s)).card =
+              (FSet.filter q (FSet.filter p s)).card := by
+            intro p q s
+            congr 1
+            apply FSet.eq_of_mem_iff
+            intro z
+            simp only [FSet.filter, List.mem_filter]
+            constructor
+            · intro ⟨⟨hz_s, hqz⟩, hpz⟩; exact ⟨⟨hz_s, hpz⟩, hqz⟩
+            · intro ⟨⟨hz_s, hpz⟩, hqz⟩; exact ⟨⟨hz_s, hqz⟩, hpz⟩
+          -- ── Definir la acción de conjugación ─────────────────────────────────
+          let conjAct : GroupAction G G.carrier :=
+            { act := fun g x => G.op (G.op g x) (G.inv g)
+              act_closed := fun g x hg hx =>
+                op_mem G (op_mem G hg hx) (inv_mem G hg)
+              act_id := fun x hx => by
+                show G.op (G.op G.id x) (G.inv G.id) = x
+                rw [inv_id_eq G, (G.op_id x hx).2, (G.op_id x hx).1]
+              act_compat := fun g h x hg hh hx => by
+                show G.op (G.op g (G.op (G.op h x) (G.inv h))) (G.inv g) =
+                     G.op (G.op (G.op g h) x) (G.inv (G.op g h))
+                rw [inv_op_eq G hg hh]
+                have hghx : G.op (G.op g h) x ∈ G.carrier.elems :=
+                  op_mem G (op_mem G hg hh) hx
+                have hhx  : G.op h x ∈ G.carrier.elems := op_mem G hh hx
+                have hhinv : G.inv h ∈ G.carrier.elems := inv_mem G hh
+                have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg
+                calc G.op (G.op g (G.op (G.op h x) (G.inv h))) (G.inv g)
+                    = G.op (G.op (G.op g (G.op h x)) (G.inv h)) (G.inv g) := by
+                          rw [← G.op_assoc g (G.op h x) (G.inv h) hg hhx hhinv]
+                  _ = G.op (G.op (G.op (G.op g h) x) (G.inv h)) (G.inv g) := by
+                          rw [← G.op_assoc g h x hg hh hx]
+                  _ = G.op (G.op (G.op g h) x) (G.op (G.inv h) (G.inv g)) :=
+                          G.op_assoc _ _ _ hghx hhinv hginv }
+          -- ── Predicado isFixed: x es punto fijo de la acción de conjugación ──
+          let isFixed : ℕ₀ → Bool :=
+            fun x => G.carrier.elems.all (fun g => decide (conjAct.act g x = x))
+          -- ── isFixed x = true ↔ x ∈ center G (para x ∈ G.carrier) ────────────
+          have h_isFixed_center : ∀ x ∈ G.carrier.elems,
+              isFixed x = true ↔ x ∈ (center G).carrier.elems := by
+            intro x hx
+            simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
+            constructor
+            · intro h_all
+              rw [mem_center_iff]
+              refine ⟨hx, fun g hg => ?_⟩
+              have hact : G.op (G.op g x) (G.inv g) = x := h_all g hg
+              have hgx : G.op g x ∈ G.carrier.elems := op_mem G hg hx
+              have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg
+              calc G.op x g
+                  = G.op (G.op (G.op g x) (G.inv g)) g := by rw [hact]
+                _ = G.op (G.op g x) (G.op (G.inv g) g) :=
+                        G.op_assoc (G.op g x) (G.inv g) g hgx hginv hg
+                _ = G.op (G.op g x) G.id := by rw [(G.op_inv g hg).2]
+                _ = G.op g x := (G.op_id (G.op g x) hgx).1
+            · intro hmem g hg
+              obtain ⟨_, hcomm⟩ := (mem_center_iff G x).mp hmem
+              show G.op (G.op g x) (G.inv g) = x
+              have hgx := op_mem G hg hx
+              have hginv := inv_mem G hg
+              rw [← hcomm g hg, G.op_assoc x g (G.inv g) hx hg hginv,
+                  (G.op_inv g hg).1, (G.op_id x hx).1]
+          -- ── center.card = (filter isFixed G.carrier).card ────────────────────
+          have h_center_eq_fixed :
+              (center G).carrier.card = (FSet.filter isFixed G.carrier).card := by
+            congr 1
+            apply FSet.eq_of_mem_iff
+            intro z
+            simp only [FSet.filter, List.mem_filter]
+            constructor
+            · intro hz
+              exact ⟨(center G).subset z hz,
+                     (h_isFixed_center z ((center G).subset z hz)).mpr hz⟩
+            · intro ⟨hz_G, hfixed⟩
+              exact (h_isFixed_center z hz_G).mp hfixed
+          -- ── G.id ∈ filter isFixed G.carrier (para positividad) ───────────────
+          have h_id_in_fixed : G.id ∈ (FSet.filter isFixed G.carrier).elems := by
+            simp only [FSet.filter, List.mem_filter]
+            exact ⟨G.id_in, (h_isFixed_center G.id G.id_in).mpr
+              ((mem_center_iff G G.id).mpr ⟨G.id_in, fun x hx =>
+                by rw [(G.op_id x hx).2, (G.op_id x hx).1]⟩)⟩
+          -- ── p | (conjAct.orb x).card para x ∈ G no fijo ─────────────────────
+          have h_p_dvd_orb : ∀ x ∈ G.carrier.elems, isFixed x = false →
+              p ∣ (conjAct.orb x).card := by
+            intro x hx hx_nf
+            have ⟨g₀, hg₀_mem, hg₀_ne⟩ : ∃ g₀ ∈ G.carrier.elems, conjAct.act g₀ x ≠ x := by
+              apply Classical.byContradiction; intro hall
+              have hfixT : isFixed x = true := by
+                simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
+                intro g hg
+                apply Classical.byContradiction; intro h_ne
+                exact hall ⟨g, hg, h_ne⟩
+              simp [hfixT] at hx_nf
+            -- El estabilizador es propio
+            have h_stab_ne : (conjAct.stab x hx).carrier.card ≠ G.carrier.card := by
+              intro h_eq
+              have h_os := orbit_stabilizer conjAct x hx
+              have hGne : G.carrier.card ≠ 𝟘 :=
+                (ne_of_lt 𝟘 _ (card_pos_of_mem_aux G.id_in)).symm
+              have h_orb_one : (conjAct.orb x).card = 𝟙 := by
+                apply mul_cancelation_right (conjAct.orb x).card 𝟙 G.carrier.card hGne
+                rw [one_mul]; exact h_eq ▸ h_os
+              have hlen : (conjAct.orb x).elems.length = 1 := by
+                have hcard : Λ (conjAct.orb x).elems.length = Λ 1 := by
+                  simpa [FSet.card, lengthₚ] using h_orb_one
+                exact Λ_inj _ _ hcard
+              obtain ⟨y, hy_eq⟩ : ∃ y, (conjAct.orb x).elems = [y] := by
+                have h1 : (conjAct.orb x).elems.length = 1 := hlen
+                cases h2 : (conjAct.orb x).elems with
+                | nil => simp [h2] at h1
+                | cons a t =>
+                  cases t with
+                  | nil => exact ⟨a, rfl⟩
+                  | cons b s => simp [h2] at h1
+              have hx_in_orb : x ∈ (conjAct.orb x).elems :=
+                (mem_orb_iff conjAct x x hx).mpr
+                  ⟨G.id, G.id_in, conjAct.act_id x hx⟩
+              rw [hy_eq] at hx_in_orb
+              have hyx : y = x := (List.mem_singleton.mp hx_in_orb).symm
+              have hg₀_in : conjAct.act g₀ x ∈ (conjAct.orb x).elems :=
+                (mem_orb_iff conjAct x (conjAct.act g₀ x) hx).mpr ⟨g₀, hg₀_mem, rfl⟩
+              rw [hy_eq, hyx] at hg₀_in
+              exact hg₀_ne (List.mem_singleton.mp hg₀_in)
+            have h_stab_ndvd : ¬ pow_dvd_card p (σ (σ m')) (conjAct.stab x hx).carrier :=
+              h_no_proper (conjAct.stab x hx) h_stab_ne
+            apply Classical.byContradiction; intro h_orb_ndvd
+            have h_cop : Coprime (p ^ σ (σ m')) (conjAct.orb x).card := by
+              unfold Coprime IsGCD
+              refine ⟨one_divides _, one_divides _, ?_⟩
+              intro c ⟨hc_pow, hc_orb⟩
+              by_cases hc1 : c = 𝟙
+              · exact hc1 ▸ divides_refl 𝟙
+              · exact absurd
+                    (divides_trans (h_prime_dvd_pow (σ (σ m')) hc_pow hc1) hc_orb)
+                    h_orb_ndvd
+            have h_pow_dvd_stab : p ^ σ (σ m') ∣
+                (conjAct.stab x hx).carrier.card :=
+              coprime_dvd_of_dvd_mul h_cop
+                ⟨r, (orbit_stabilizer conjAct x hx).trans hr_eq.symm⟩
+            exact h_stab_ndvd ⟨h_pow_dvd_stab.choose, h_pow_dvd_stab.choose_spec.symm⟩
+          -- ── p | (filter (!isFixed) G.carrier).card — inducción ───────────────
+          have h_p_dvd_nonfixed :
+              p ∣ (FSet.filter (fun y => !isFixed y) G.carrier).card := by
+            suffices h_suff : ∀ (n : Nat) (X : ℕ₀FSet),
+                X.elems.length ≤ n →
+                (∀ y ∈ X.elems, y ∈ G.carrier.elems) →
+                (∀ y ∈ X.elems, ∀ g ∈ G.carrier.elems, conjAct.act g y ∈ X.elems) →
+                p ∣ (FSet.filter (fun y => !isFixed y) X).card by
+              exact h_suff G.carrier.elems.length G.carrier (Nat.le_refl _)
+                (fun y hy => hy)
+                (fun y hy g hg => conjAct.act_closed g y hg hy)
+            intro n; induction n with
+            | zero =>
+              intro X hlen _ _
+              have hnil : X.elems = [] :=
+                List.eq_nil_of_length_eq_zero (Nat.le_zero.mp hlen)
+              simp only [FSet.card, FSet.filter, hnil, List.filter_nil,
+                          lengthₚ, isomorph_0_Λ]
+              exact divides_zero p
+            | succ n' ih =>
+              intro X hlen h_sub h_closed
+              cases hX : X.elems with
+              | nil =>
+                simp only [FSet.card, FSet.filter, hX, List.filter_nil,
+                            lengthₚ, isomorph_0_Λ]
+                exact divides_zero p
+              | cons x₀ rest =>
+                have hx₀ : x₀ ∈ X.elems := hX ▸ List.mem_cons_self
+                have hx₀_G : x₀ ∈ G.carrier.elems := h_sub x₀ hx₀
+                -- Predicado: "estar en la órbita de x₀"
+                let inOrb₀ : ℕ₀ → Bool :=
+                  fun z => G.carrier.elems.any
+                    (fun g => decide (conjAct.act g x₀ = z))
+                -- x₀ ∈ orb(x₀) (via G.id)
+                have hx₀_inOrb : inOrb₀ x₀ = true := by
+                  simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq]
+                  exact ⟨G.id, G.id_in, conjAct.act_id x₀ hx₀_G⟩
+                -- X' = X sin la órbita de x₀
+                let X' := FSet.filter (fun y => !inOrb₀ y) X
+                -- X'.elems.length ≤ n' (reducido)
+                have hX'_len : X'.elems.length ≤ n' := by
+                  apply Nat.lt_succ_iff.mp
+                  apply Nat.lt_of_lt_of_le _ hlen
+                  show (X.elems.filter (fun y => !inOrb₀ y)).length < X.elems.length
+                  rw [hX]
+                  rw [List.filter_cons]
+                  simp only [hx₀_inOrb, Bool.not_true, ite_false]
+                  exact Nat.lt_succ_of_le (List.length_filter_le _ _)
+                -- X' ⊆ G.carrier
+                have hX'_sub : ∀ y ∈ X'.elems, y ∈ G.carrier.elems := by
+                  intro y hy
+                  exact h_sub y (List.mem_filter.mp hy).1
+                -- X' es cerrada bajo la acción (por disjunción de órbitas)
+                have hX'_closed :
+                    ∀ y ∈ X'.elems, ∀ g ∈ G.carrier.elems,
+                    conjAct.act g y ∈ X'.elems := by
+                  intro y hy g hg
+                  simp only [X', FSet.filter] at hy ⊢
+                  obtain ⟨hy_X, hy_nInOrb⟩ := List.mem_filter.mp hy
+                  refine List.mem_filter.mpr ⟨h_closed y hy_X g hg, ?_⟩
+                  -- Convert hy_nInOrb to inOrb₀ y = false
+                  have hy_inOrb_false : inOrb₀ y = false := by
+                    cases h : inOrb₀ y with
+                    | true => simp [h] at hy_nInOrb
+                    | false => rfl
+                  -- Prove goal by contradiction: assume conjAct.act g y is in orbit of x₀
+                  apply Classical.byContradiction; intro h_not_goal
+                  have h_inOrb_gy : inOrb₀ (conjAct.act g y) = true := by
+                    cases h : inOrb₀ (conjAct.act g y) with
+                    | true => rfl
+                    | false => exfalso; exact absurd (by simp [h]) h_not_goal
+                  -- Extract witness from h_inOrb_gy
+                  simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq] at h_inOrb_gy
+                  obtain ⟨h_elem, hh_G, hh_eq⟩ := h_inOrb_gy
+                  have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg
+                  -- conjAct.act (G.inv g) (conjAct.act h_elem x₀) = y
+                  have h_reaches_y : conjAct.act (G.op (G.inv g) h_elem) x₀ = y := by
+                    have hginvh : G.op (G.inv g) h_elem ∈ G.carrier.elems :=
+                      op_mem G hginv hh_G
+                    calc conjAct.act (G.op (G.inv g) h_elem) x₀
+                        = conjAct.act (G.inv g) (conjAct.act h_elem x₀) := by
+                              rw [conjAct.act_compat (G.inv g) h_elem x₀
+                                    hginv hh_G hx₀_G]
+                      _ = conjAct.act (G.inv g) (conjAct.act g y) := by
+                              rw [hh_eq]
+                      _ = conjAct.act (G.op (G.inv g) g) y := by
+                              rw [conjAct.act_compat (G.inv g) g y hginv hg
+                                    (h_sub y hy_X)]
+                      _ = conjAct.act G.id y := by rw [(G.op_inv g hg).2]
+                      _ = y := conjAct.act_id y (h_sub y hy_X)
+                  -- y is in orbit of x₀ — contradicts hy_inOrb_false
+                  have h_inOrb_y : inOrb₀ y = true := by
+                    simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq]
+                    exact ⟨G.op (G.inv g) h_elem, op_mem G hginv hh_G, h_reaches_y⟩
+                  simp [hy_inOrb_false] at h_inOrb_y
+                -- IH sobre X'
+                have h_IH : p ∣ (FSet.filter (fun y => !isFixed y) X').card :=
+                  ih X' hX'_len hX'_sub hX'_closed
+                -- Partición: (filter !isFixed X).card = parte_inOrb + parte_noInOrb
+                have h_split :
+                    (FSet.filter (fun y => !isFixed y) X).card =
+                    add (FSet.filter (fun y => !isFixed y) (FSet.filter inOrb₀ X)).card
+                        (FSet.filter (fun y => !isFixed y) X').card := by
+                  have step1 := h_card_split_bool inOrb₀
+                      (FSet.filter (fun y => !isFixed y) X)
+                  rw [step1]
+                  congr 1
+                  · exact h_filter_filter_card inOrb₀ (fun y => !isFixed y) X
+                  · rw [h_filter_filter_card (fun y => !inOrb₀ y) (fun y => !isFixed y) X]
+                -- Caso x₀ fijo o no fijo
+                cases h_isfixed_x₀ : isFixed x₀ with
+                | true =>
+                  -- x₀ es fijo: inOrb₀ z → z = x₀, así la parte inOrb es de card 0
+                  have h_inOrb_only_x₀ : ∀ z, inOrb₀ z = true → z = x₀ := by
+                    intro z hz
+                    simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq] at hz
+                    obtain ⟨g, hg, hgz⟩ := hz
+                    simp only [isFixed, List.all_eq_true, decide_eq_true_eq] at h_isfixed_x₀
+                    rw [← hgz]
+                    exact h_isfixed_x₀ g hg
+                  have h_orb_part_zero :
+                      (FSet.filter (fun y => !isFixed y) (FSet.filter inOrb₀ X)).card = 𝟘 := by
+                    have hsplit := h_card_split_bool isFixed (FSet.filter inOrb₀ X)
+                    have hall_card : (FSet.filter isFixed (FSet.filter inOrb₀ X)).card =
+                        (FSet.filter inOrb₀ X).card := by
+                      have heq : FSet.filter isFixed (FSet.filter inOrb₀ X) = FSet.filter inOrb₀ X := by
+                        apply FSet.eq_of_mem_iff
+                        intro z
+                        simp only [FSet.filter, List.mem_filter]
+                        exact ⟨fun h => h.1, fun h => ⟨h, by
+                          rw [h_inOrb_only_x₀ z h.2]; exact h_isfixed_x₀⟩⟩
+                      rw [heq]
+                    rw [hall_card] at hsplit
+                    exact (add_cancel _ _ _ ((add_zero _).trans hsplit)).symm
+                  rw [h_split, h_orb_part_zero, zero_add]
+                  exact h_IH
+                | false =>
+                  -- x₀ no es fijo: toda la órbita es no-fija, p ∣ |inOrb parte|
+                  -- Todos en filter inOrb₀ X son no-fijos
+                  have h_orb_nonfixed :
+                      ∀ z ∈ (FSet.filter inOrb₀ X).elems, isFixed z = false := by
+                    intro z hz
+                    simp only [FSet.filter, List.mem_filter] at hz
+                    obtain ⟨hz_X, hz_inOrb⟩ := hz
+                    simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq] at hz_inOrb
+                    obtain ⟨g, hg_G, hg_eq⟩ := hz_inOrb
+                    apply Classical.byContradiction; intro h_fixed_z
+                    have h_fixed_z_true : isFixed z = true := by
+                      cases h : isFixed z with
+                      | true => rfl
+                      | false => exact (h_fixed_z h).elim
+                    have h_z_fixes : ∀ k ∈ G.carrier.elems, conjAct.act k z = z := by
+                      simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
+                        at h_fixed_z_true
+                      exact h_fixed_z_true
+                    have hginv : G.inv g ∈ G.carrier.elems := inv_mem G hg_G
+                    have hginv_z : conjAct.act (G.inv g) z = x₀ := by
+                      rw [← hg_eq, conjAct.act_compat (G.inv g) g x₀ hginv hg_G hx₀_G,
+                          (G.op_inv g hg_G).2, conjAct.act_id x₀ hx₀_G]
+                    have h_all_k : ∀ k ∈ G.carrier.elems, conjAct.act k x₀ = z := by
+                      intro k hk
+                      have hkginv : G.op k (G.inv g) ∈ G.carrier.elems :=
+                        op_mem G hk hginv
+                      calc conjAct.act k x₀
+                          = conjAct.act k (conjAct.act (G.inv g) z) := by
+                                rw [hginv_z]
+                        _ = conjAct.act (G.op k (G.inv g)) z :=
+                                conjAct.act_compat k (G.inv g) z hk hginv
+                                  (h_sub z hz_X)
+                        _ = z := h_z_fixes _ hkginv
+                    have hx₀_eq_z : x₀ = z := by
+                      have := h_all_k G.id G.id_in
+                      rwa [conjAct.act_id x₀ hx₀_G] at this
+                    have h_x₀_fixed : isFixed x₀ = true := by
+                      simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
+                      intro k hk; exact (h_all_k k hk).trans hx₀_eq_z.symm
+                    simp [h_x₀_fixed] at h_isfixed_x₀
+                  -- filter (!isFixed) (filter inOrb₀ X) = filter inOrb₀ X
+                  have h_inOrb_all_nonfixed :
+                      (FSet.filter (fun y => !isFixed y) (FSet.filter inOrb₀ X)).card =
+                      (FSet.filter inOrb₀ X).card := by
+                    congr 1
+                    apply FSet.eq_of_mem_iff
+                    intro z
+                    simp only [FSet.filter, List.mem_filter]
+                    constructor
+                    · exact fun ⟨hmem, _⟩ => hmem
+                    · intro hmem
+                      exact ⟨hmem, by simp [h_orb_nonfixed z (List.mem_filter.mpr hmem)]⟩
+                  -- (filter inOrb₀ X).card = (conjAct.orb x₀).card
+                  have h_inOrb_eq_orb :
+                      (FSet.filter inOrb₀ X).card = (conjAct.orb x₀).card := by
+                    congr 1
+                    apply FSet.eq_of_mem_iff
+                    intro z
+                    simp only [FSet.filter, List.mem_filter]
+                    rw [mem_orb_iff conjAct x₀ z hx₀_G]
+                    simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq]
+                    constructor
+                    · intro ⟨hz_X, g, hg, hgz⟩; exact ⟨g, hg, hgz⟩
+                    · intro ⟨g, hg, hgz⟩
+                      exact ⟨by rw [← hgz]; exact h_closed x₀ hx₀ g hg,
+                             g, hg, hgz⟩
+                  -- p ∣ (conjAct.orb x₀).card
+                  have h_orb_dvd : p ∣ (conjAct.orb x₀).card :=
+                    h_p_dvd_orb x₀ hx₀_G h_isfixed_x₀
+                  rw [h_split, h_inOrb_all_nonfixed, h_inOrb_eq_orb]
+                  exact divides_add h_orb_dvd h_IH
+          -- ── Conclusión: p ∣ |Z(G)| ──────────────────────────────────────────
+          have h_G_dvd : p ∣ G.carrier.card :=
+            ⟨Mul.mul (p ^ σ m') r, by
+              have hpow_local : p ^ σ (σ m') = Mul.mul (p ^ σ m') p := pow_succ p (σ m')
+              rw [← mul_assoc, mul_comm p (p ^ σ m'), ← hpow_local]
+              exact hr_eq.symm⟩
+          have h_G_split : G.carrier.card =
+              add (FSet.filter isFixed G.carrier).card
+                  (FSet.filter (fun y => !isFixed y) G.carrier).card :=
+            h_card_split_bool isFixed G.carrier
+          have h_nonfixed_lt :
+              lt₀ (FSet.filter (fun y => !isFixed y) G.carrier).card
+                  G.carrier.card := by
+            rw [h_G_split, add_comm]
+            exact lt_add_of_pos_right (card_pos_of_mem_aux h_id_in_fixed)
+          have h_fixed_dvd : p ∣ (FSet.filter isFixed G.carrier).card := by
+            have h_sub_eq :
+                sub G.carrier.card
+                    (FSet.filter (fun y => !isFixed y) G.carrier).card =
+                (FSet.filter isFixed G.carrier).card := by
+              rw [h_G_split, add_comm]
+              exact add_k_sub_k _ _
+            rw [← h_sub_eq]
+            exact divides_sub h_nonfixed_lt h_G_dvd h_p_dvd_nonfixed
+          obtain ⟨k, hk⟩ := h_center_eq_fixed ▸ h_fixed_dvd
+          exact ⟨k, hk.symm⟩
+
+        -- Paso 2: Cauchy en Z(G) → Z_cg ≤ subgroupToFinGroup G (center G), |Z_cg| = p
+        let centerG := subgroupToFinGroup G (center G)
+        obtain ⟨Z_cg, hZ_cg_card⟩ := hC centerG p hp hZ_dvd
+
+        -- Paso 3: Levantar Z_cg a subgrupo de G y probar que es normal
+        let Z_G := subgroupOfSubgroup G (center G) Z_cg
+        -- |Z_G| = p (misma carrier que Z_cg)
+        have hZ_card : Z_G.carrier.card = p := hZ_cg_card
+        -- Z_G ⊆ Z(G) (pues Z_cg ⊆ centerG cuyo carrier = (center G).carrier)
+        have hZ_central : ∀ z, z ∈ Z_G.carrier.elems → z ∈ (center G).carrier.elems :=
+          fun z hz => Z_cg.subset z hz
+        -- Z_G es normal por ser subgrupo central
+        have hZ_normal : Z_G.IsNormal := central_subgroup_isNormal G Z_G hZ_central
+
+        -- Paso 4: Cociente G' = finGroupFSetToN₀ (quotientGroup G Z_G)
+        let QG := quotientGroup G Z_G hZ_normal
+        let G' := finGroupFSetToN₀ QG
+
+        -- Auxiliares aritméticos usados en múltiples pasos
+        have hp_ne : p ≠ 𝟘 := prime_ne_zero hp
+        have hΨp_pos : 0 < Ψ p :=
+          Nat.pos_of_ne_zero (fun h => hp_ne (Ψ_inj p 𝟘 (h.trans isomorph_0_Ψ.symm)))
+        -- p^(σ(σm')) = p^(σm') * p  (pow_succ aplicado, guardado como have para evitar
+        -- fallos de rewrite por diferencia entre HPow.hPow y la función interna)
+        have hpow : p ^ σ (σ m') = Mul.mul (p ^ σ m') p := pow_succ p (σ m')
+        -- |G| = (p^(σm') * p) * r
+        have hGcard : G.carrier.card = Mul.mul (Mul.mul (p ^ σ m') p) r := by
+          rw [← hr_eq, hpow]
+        -- (p^(σm') * p) * r = (p^(σm') * r) * p  (commutativity rearrangement)
+        have hrearrange : Mul.mul (Mul.mul (p ^ σ m') p) r =
+                          Mul.mul (Mul.mul (p ^ σ m') r) p := by
+          rw [mul_assoc p (p ^ σ m') r, mul_comm p r, ← mul_assoc r (p ^ σ m') p]
+
+        -- Paso 4a: |G'| = p^(σm') * r
+        have h1 : G'.carrier.card = Peano.Div.div G.carrier.card p := by
+          calc G'.carrier.card
+              = QG.carrier.card                                := finGroupFSetToN₀_card QG
+            _ = (quotientCarrier G Z_G).card                  := rfl
+            _ = Peano.Div.div G.carrier.card Z_G.carrier.card := quotient_card G Z_G
+            _ = Peano.Div.div G.carrier.card p               := by rw [hZ_card]
+        have hG'_card : Mul.mul (p ^ (σ m')) r = G'.carrier.card := by
+          rw [h1, hGcard]
+          -- Goal: p^(σm') * r = div ((p^(σm') * p) * r) p
+          apply Ψ_inj
+          rw [isomorph_Ψ_mul, isomorph_Ψ_div, isomorph_Ψ_mul, isomorph_Ψ_mul]
+          -- Goal: Ψ(p^σm') * Ψr = Ψ(p^σm') * Ψp * Ψr / Ψp
+          have hrw : Nat.mul (Nat.mul (Ψ (p ^ σ m')) (Ψ p)) (Ψ r) =
+                     Nat.mul (Nat.mul (Ψ (p ^ σ m')) (Ψ r)) (Ψ p) := by
+            simp only [Nat.mul_eq]
+            rw [Nat.mul_assoc, Nat.mul_comm (Ψ p) (Ψ r), ← Nat.mul_assoc]
+          rw [hrw]
+          exact (Nat.mul_div_cancel _ hΨp_pos).symm
+
+        -- Paso 4b: |G'| < |G|
+        have hG'_lt : lt₀ G'.carrier.card G.carrier.card := by
+          rw [← hG'_card, hGcard, hrearrange]
+          -- Goal: lt₀ (p^(σm') * r) ((p^(σm') * r) * p)
+          apply mul_lt_left
+          · -- p^(σm') * r ≠ 𝟘
+            intro h
+            have h' : G'.carrier.card = 𝟘 := hG'_card.symm.trans h
+            exact absurd (card_pos_of_mem_aux G'.id_in) (h'.symm ▸ lt_irrefl 𝟘)
+          · exact one_lt_prime hp
+
+        -- Paso 5: ningún subgrupo propio de G' es divisible por p^(σm')
+        have h_no_proper' : ∀ M' : Subgroup G', M'.carrier.card ≠ G'.carrier.card →
+            ¬ pow_dvd_card p (σ m') M'.carrier := by
+          intro M' hM'_ne hM'_dvd
+          -- Decodificar M' : Subgroup G' como M'_QG : Subgroup QG
+          let M'_QG := decodeSubgroup QG M'
+          -- Preimagen de M'_QG en G
+          let PIM := preimageSubgroup G Z_G hZ_normal M'_QG
+          -- |PIM| = |M'_QG| * |Z_G| = |M'| * p
+          have hPIM_card : PIM.carrier.card = Mul.mul M'.carrier.card p := by
+            rw [preimage_subgroup_card G Z_G hZ_normal M'_QG,
+                decodeSubgroup_card QG M', hZ_card]
+          -- PIM es propio en G: |PIM| ≠ |G|
+          have hPIM_ne : PIM.carrier.card ≠ G.carrier.card := by
+            rw [hPIM_card, hGcard.trans hrearrange]
+            -- Goal: mul M'.card p ≠ mul (mul (p^σm') r) p
+            intro h
+            -- Por cancelación derecha con p ≠ 0: |M'| = p^(σm') * r = |G'|
+            exact hM'_ne ((mul_cancelation_right M'.carrier.card
+              (Mul.mul (p ^ σ m') r) p hp_ne h).trans hG'_card)
+          -- p^(σ(σm')) ∣ |PIM|
+          have hPIM_dvd : pow_dvd_card p (σ (σ m')) PIM.carrier := by
+            obtain ⟨k, hk⟩ := hM'_dvd
+            -- hk : p^(σm') * k = |M'|
+            -- |PIM| = |M'| * p = p^(σm') * k * p = p^(σ(σm')) * k
+            refine ⟨k, ?_⟩
+            rw [hPIM_card, ← hk, hpow]
+            -- Goal: mul (mul (p^σm') p) k = mul (mul (p^σm') k) p
+            rw [mul_assoc p (p ^ σ m') k, mul_comm p k, ← mul_assoc k (p ^ σ m') p]
+          -- Contradicción: PIM propio en G pero divisible por p^(σ(σm'))
+          exact h_no_proper PIM hPIM_ne hPIM_dvd
+
+        -- Paso 6: aplicar hipótesis inductiva a G' con m'
+        exact ih G' r hG'_card h_no_proper'
 
     /-- Caso duro de la inducción de Sylow, demostrado por el argumento de Wielandt.
         Cubre el escenario donde `p^(m+1) | |G|` pero ningún subgrupo
@@ -3600,9 +4338,6 @@ namespace Peano
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
       (G : FinGroup ℕ₀) (p m : ℕ₀)
-      (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
-        pow_dvd_card p (σ m) G'.carrier →
-        ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
@@ -3640,7 +4375,7 @@ namespace Peano
               (fun x hx => List.mem_filter.mpr ⟨hmap_G x hx, decide_eq_true hx⟩)
           rw [heq, List.length_map]; exact hS_len
       -- p ∤ r (por h_no_proper: si p | r, p^(m+2) | |G|, habría subgrupo propio)
-      have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr HI hC h_no_proper
+      have hp_ndvd_r : ¬ p ∣ r := wielandt_p_ndvd_r G p m r hp hr hC h_no_proper
       -- Congruencia de Lucas: C(N·r, N) ≡ r (mod p)
       have hcong : binom (mul N r) N ≡ r [MOD p] :=
         binom_pow_p_mod (p := p) (r := r) hp hr_ne (σ m) (Peano.Axioms.succ_neq_zero m)
@@ -3660,14 +4395,11 @@ namespace Peano
         (∃ t : ℕ₀, Mul.mul p0 t = G0.carrier.card) →
           ∃ K : Subgroup G0, K.carrier.card = p0)
       (G : FinGroup ℕ₀) (p m : ℕ₀)
-      (HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G.carrier.card →
-        pow_dvd_card p (σ m) G'.carrier →
-        ∃ K : Subgroup G', K.carrier.card = p ^ (σ m))
       (hp : Prime p) (hpow : pow_dvd_card p (σ m) G.carrier)
       (h_no_proper : ∀ M : Subgroup G, M.carrier.card ≠ G.carrier.card →
         ¬ pow_dvd_card p (σ m) M.carrier) :
         ∃ H : Subgroup G, H.carrier.card = p ^ (σ m) :=
-      sylow_center_step_wielandt hC G p m HI hp hpow h_no_proper
+      sylow_center_step_wielandt hC G p m hp hpow h_no_proper
 
     /-- Paso 2 (elevación inductiva): asumiendo Cauchy mínimo,
         construir subgrupos de orden `p^(m+1)` cuando `p^(m+1) | |G|`.
@@ -3715,11 +4447,7 @@ namespace Peano
             obtain ⟨K, hK⟩ := ih M.carrier.card hM_lt G_M rfl hM_dvd
             exact ⟨subgroupOfSubgroup G0 M K, hK⟩
           -- Caso 3: ningún subgrupo propio es divisible por p^(m+1) → axioma
-          · let HI : ∀ G' : FinGroup ℕ₀, lt₀ G'.carrier.card G0.carrier.card →
-                pow_dvd_card p (σ m) G'.carrier →
-                ∃ K : Subgroup G', K.carrier.card = p ^ (σ m) :=
-              fun G' hlt hpow' => ih G'.carrier.card (hn ▸ hlt) G' rfl hpow'
-            exact sylow_center_step hC G0 p m HI hp hpow0
+          · exact sylow_center_step hC G0 p m hp hpow0
               (fun M hM_ne hM_dvd => h_ex ⟨M, hM_ne, hM_dvd⟩)
       -- Inducción fuerte sobre |G|, generalizada a todos los FinGroups del mismo cardinal
       have key : ∀ n : ℕ₀, ∀ G0 : FinGroup ℕ₀, G0.carrier.card = n →

@@ -195,11 +195,11 @@ namespace Peano
     /-! ## § 4. H∩N como subgrupo normal de H -/
 
     /-- H∩N como subgrupo de `Subgroup.toFinGroup H`. -/
-    def interHN_as_subgroup_H (G : FinGroup ℕ₀) (H N : Subgroup G) (hn : N.IsNormal) :
+    def interHN_as_subgroup_H (G : FinGroup ℕ₀) (H N : Subgroup G) (_hn : N.IsNormal) :
         Subgroup (Subgroup.toFinGroup H) where
       carrier    := (H.inter N).carrier
       nonempty   := (H.inter N).nonempty
-      subset     := fun a ha => Subgroup.inter_subset_left H N ha
+      subset     := fun _a ha => Subgroup.inter_subset_left H N ha
       op_closed  := fun a b ha hb => (H.inter N).op_closed a b ha hb
       id_in      := (H.inter N).id_in
       inv_closed := fun a ha => (H.inter N).inv_closed a ha
@@ -272,7 +272,7 @@ namespace Peano
         Subgroup.inter_subset_right H N hrel
       have hrel_HN : cosetRel (HNg G H N hn) (NK G H N hn) r h := by
         unfold cosetRel
-        simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup]
+        simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup]
         exact hrel_N
       exact leftCoset_eq_of_rel (HNg G H N hn) (NK G H N hn) r h
         (H_le_subgroupHN G H N hn r hr_H)
@@ -298,11 +298,11 @@ namespace Peano
           (H_le_subgroupHN G H N hn r₂ hr₂_H)
           hφ
       unfold cosetRel at hrel_HN
-      simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup] at hrel_HN
+      simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup] at hrel_HN
       have hir₁_H : G.inv r₁ ∈ H.carrier.elems := H.inv_closed r₁ hr₁_H
       have hrel_H : G.op (G.inv r₁) r₂ ∈ H.carrier.elems :=
         H.op_closed _ r₂ hir₁_H hr₂_H
-      simp only [interK, interHN_as_subgroup_H, HH, Subgroup.toFinGroup]
+      simp only [interK, interHN_as_subgroup_H, Subgroup.toFinGroup]
       rw [mem_inter_iff_aux H N]
       exact ⟨H.subset _ hrel_H, hrel_H, hrel_HN⟩
 
@@ -320,7 +320,7 @@ namespace Peano
       have hx_HN2 : x ∈ (HNg G H N hn).carrier.elems := hx_HN
       have hrel : cosetRel (HNg G H N hn) (NK G H N hn) h x := by
         unfold cosetRel
-        simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup]
+        simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup]
         rw [← heq, ← G.op_assoc (G.inv h) h n
               (inv_mem G (H.subset h hh)) (H.subset h hh) (N.subset n hn_mem),
             (G.op_inv h (H.subset h hh)).2, (G.op_id n (N.subset n hn_mem)).2]

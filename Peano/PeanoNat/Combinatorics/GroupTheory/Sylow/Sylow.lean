@@ -3044,7 +3044,7 @@ namespace Peano
           (∀ x ∈ S, x ∈ G.carrier.elems) ∧ lengthₚ S = N)
         (hΩ_full : ∀ S : List ℕ₀, S.Nodup → Sorted (· < ·) S →
           (∀ x ∈ S, x ∈ G.carrier.elems) → lengthₚ S = N → S ∈ Ω)
-        (htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω,
+        (_htrans : ∀ g ∈ G.carrier.elems, ∀ S ∈ Ω,
           (G.carrier.filter (fun x => decide (x ∈ S.map (G.op g)))).elems ∈ Ω)
         (hndvd : ¬ p ∣ lengthₚ Ω)
         (hN_pm : ∃ m : ℕ₀, N = p ^ (σ m)) :
@@ -3438,7 +3438,7 @@ namespace Peano
         |Ω| = |fix_g(Ω)| + p·k para algún k. -/
     private theorem wielandt_orbit_partition
         (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
-        (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id) (hg_ne : g ≠ G.id)
+        (p : ℕ₀) (hp : Prime p) (hgp : gpow G g p = G.id) (_hg_ne : g ≠ G.id)
         (Ω : List (List ℕ₀))
         (hΩ_nd : Ω.Nodup)
         (hΩ_closed : ∀ S, S ∈ Ω → wieldandtAct G g S ∈ Ω)
@@ -4009,14 +4009,14 @@ namespace Peano
               have hnil : X.elems = [] :=
                 List.eq_nil_of_length_eq_zero (Nat.le_zero.mp hlen)
               simp only [FSet.card, FSet.filter, hnil, List.filter_nil,
-                          lengthₚ, isomorph_0_Λ]
+                          lengthₚ]
               exact divides_zero p
             | succ n' ih =>
               intro X hlen h_sub h_closed
               cases hX : X.elems with
               | nil =>
                 simp only [FSet.card, FSet.filter, hX, List.filter_nil,
-                            lengthₚ, isomorph_0_Λ]
+                            lengthₚ]
                 exact divides_zero p
               | cons x₀ rest =>
                 have hx₀ : x₀ ∈ X.elems := hX ▸ List.mem_cons_self
@@ -4038,7 +4038,7 @@ namespace Peano
                   show (X.elems.filter (fun y => !inOrb₀ y)).length < X.elems.length
                   rw [hX]
                   rw [List.filter_cons]
-                  simp only [hx₀_inOrb, Bool.not_true, ite_false]
+                  simp only [hx₀_inOrb, Bool.not_true]
                   exact Nat.lt_succ_of_le (List.length_filter_le _ _)
                 -- X' ⊆ G.carrier
                 have hX'_sub : ∀ y ∈ X'.elems, y ∈ G.carrier.elems := by
@@ -4121,8 +4121,10 @@ namespace Peano
                         apply FSet.eq_of_mem_iff
                         intro z
                         simp only [FSet.filter, List.mem_filter]
-                        exact ⟨fun h => h.1, fun h => ⟨h, by
-                          rw [h_inOrb_only_x₀ z h.2]; exact h_isfixed_x₀⟩⟩
+                        constructor
+                        · intro h; exact h.1
+                        · intro h
+                          exact And.intro h (by rw [h_inOrb_only_x₀ z h.2]; exact h_isfixed_x₀)
                       rw [heq]
                     rw [hall_card] at hsplit
                     exact (add_cancel _ _ _ ((add_zero _).trans hsplit)).symm

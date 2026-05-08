@@ -4898,15 +4898,515 @@ namespace Peano
                 rw [← G.op_assoc g (G.op (G.op h k) (G.inv h)) (G.inv g) hg
                       (op_mem G (op_mem G hh hk_mem) hh') hg']
 
-    /-- Axioma: n_p ≡ 1 (mod p). -/
-    private axiom sylow_third_mod
+    /-- Existencia del exponente p-ádico máximo. -/
+    private theorem padic_val_exists
+        (p : ℕ₀) (hp : Prime p) :
+        ∀ N : ℕ₀, N ≠ 𝟘 →
+          ∃ n : ℕ₀,
+            (∃ m : ℕ₀, Mul.mul (p ^ n) m = N) ∧
+            ¬ (∃ m : ℕ₀, Mul.mul (p ^ (σ n)) m = N) := by
+      intro N
+      induction N using well_founded_lt.induction
+      rename_i N' ih
+      intro hN'
+      rcases Classical.em (∃ k : ℕ₀, mul p k = N') with hdvd | hndvd
+      · obtain ⟨k, hk⟩ := hdvd
+        rcases Classical.em (k = 𝟘) with rfl | hk_ne
+        · rw [mul_zero] at hk; exact absurd hk.symm hN'
+        · have hlt : lt₀ k N' := hk ▸ mul_lt_right k p hk_ne (one_lt_prime hp)
+          obtain ⟨n₀, ⟨m, hm⟩, hn₀_ndvd⟩ := ih k hlt hk_ne
+          have hps : p ^ σ n₀ = Mul.mul (p ^ n₀) p := pow_succ p n₀
+          have h_pow_m : Mul.mul (p ^ σ n₀) m = N' :=
+            calc Mul.mul (p ^ σ n₀) m
+                  = Mul.mul (Mul.mul (p ^ n₀) p) m := by rw [hps]
+                _ = Mul.mul (Mul.mul p (p ^ n₀)) m := by rw [mul_comm (p ^ n₀) p]
+                _ = Mul.mul p (Mul.mul (p ^ n₀) m) := mul_assoc (p ^ n₀) p m
+                _ = Mul.mul p k := by rw [hm]
+                _ = N' := hk
+          have h_ndvd : ¬ ∃ j : ℕ₀, Mul.mul (p ^ (σ (σ n₀))) j = N' := by
+            intro ⟨j, hj⟩
+            apply hn₀_ndvd
+            have hss : p ^ σ (σ n₀) = Mul.mul (p ^ σ n₀) p := pow_succ p (σ n₀)
+            exact ⟨j, mul_cancelation_left p _ _ (prime_ne_zero hp)
+              (calc Mul.mul p (Mul.mul (p ^ σ n₀) j)
+                    = Mul.mul (Mul.mul p (p ^ σ n₀)) j := (mul_assoc (p ^ σ n₀) p j).symm
+                  _ = Mul.mul (Mul.mul (p ^ σ n₀) p) j := by rw [mul_comm p (p ^ σ n₀)]
+                  _ = Mul.mul (p ^ σ (σ n₀)) j := by rw [hss]
+                  _ = N' := hj
+                  _ = Mul.mul p k := hk.symm)⟩
+          exact ⟨σ n₀, ⟨m, h_pow_m⟩, h_ndvd⟩
+      · have hpz : p ^ 𝟘 = 𝟙 := pow_zero p
+        exact ⟨𝟘, ⟨N', by rw [hpz, one_mul]⟩,
+          fun ⟨m, hm⟩ => hndvd ⟨m, by
+            have hps1 : p ^ σ 𝟘 = Mul.mul (p ^ 𝟘) p := pow_succ p 𝟘
+            rw [hps1, hpz, one_mul] at hm; exact hm⟩⟩
+
+    /-- Existencia de un subgrupo de Sylow-p. -/
+    private theorem sylow_existence
+        (G : FinGroup ℕ₀) (p : ℕ₀) (hp : Prime p) :
+        ∃ H : Subgroup G, isSylowSubgroup G H p := by
+      have h_card_ne : G.carrier.card ≠ 𝟘 := by
+        intro h; exact absurd (h ▸ card_pos_of_mem_aux G.id_in) (lt_irrefl 𝟘)
+      obtain ⟨n₀, ⟨m, hm⟩, hn₀_ndvd⟩ := padic_val_exists p hp G.carrier.card h_card_ne
+      obtain ⟨H, hH_card⟩ := sylow_first G p n₀ hp ⟨m, hm⟩
+      exact ⟨H, ⟨n₀, ⟨⟨m, hm⟩, hn₀_ndvd⟩, hH_card⟩⟩
+
+    /-- **Tercer Teorema de Sylow (parte 1)**: n_p ≡ 1 (mod p). -/
+    private theorem sylow_third_mod
         (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
         (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows)
         (h_nodup : sylows.Nodup) :
-        ∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙
+        ∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙 := by
+      -- ── Obtener H₀ y exponente n₀ ──────────────────────────────────────
+      obtain ⟨H₀, hH₀_sylow⟩ := sylow_existence G p hp
+      have hH₀_sylow_copy := hH₀_sylow
+      obtain ⟨n₀, hn₀_exp, hn₀_card⟩ := hH₀_sylow_copy
+      -- ── S = FSet de todos los subgrupos de Sylow-p ──────────────────────
+      let S : FSet (Subgroup G) := FSet.ofList sylows
+      let ψG := conjAction G p sylows h_all_sylow h_all_included
+      have hH₀_in_S : H₀ ∈ S.elems := FSet.mem_ofList_iff.mpr (h_all_included H₀ hH₀_sylow)
+      -- ── H₀ actúa sobre S por restricción de ψG ──────────────────────────
+      let H₀G := subgroupToFinGroup G H₀
+      let ψ₀ : GroupAction H₀G S := {
+        act := ψG.act
+        act_closed := fun g x hg hx => ψG.act_closed g x (H₀.subset g hg) hx
+        act_id := ψG.act_id
+        act_compat := fun g h x hg hh hx =>
+          ψG.act_compat g h x (H₀.subset g hg) (H₀.subset h hh) hx
+      }
+      -- ── Helper: divisor ≠ 𝟙 de p^n es divisible por p ──────────────────
+      have h_prime_dvd_pow : ∀ (n : ℕ₀) {d : ℕ₀}, d ∣ p ^ n → d ≠ 𝟙 → p ∣ d := by
+        intro n
+        induction n with
+        | zero =>
+          intro d hd hne
+          change d ∣ 𝟙 at hd
+          obtain ⟨k, hk⟩ := hd
+          exact absurd (mul_eq_one hk.symm).1 hne
+        | succ n' ih =>
+          intro d hd hne
+          change d ∣ mul (p ^ n') p at hd
+          rcases prime_coprime_or_dvd hp (n := d) with hdvd | hcop
+          · exact hdvd
+          · have hcop' : Coprime d p := coprime_symm hcop
+            have hd' : d ∣ mul p (p ^ n') := by rwa [mul_comm] at hd
+            exact ih (coprime_dvd_of_dvd_mul hcop' hd') hne
+      -- ── Helper: lista Nodup incluida en otra tiene longitud ≤ ──────────
+      have nodup_sub_len : ∀ {l₁ l₂ : List (Subgroup G)},
+          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
+        intro l₁ l₂
+        induction l₁ generalizing l₂ with
+        | nil => intro _ _; exact Nat.zero_le _
+        | cons a l₁' ih_sub =>
+          intro hnd hsub
+          rw [List.nodup_cons] at hnd
+          obtain ⟨ha_nin, hnd'⟩ := hnd
+          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
+          have h_ih := ih_sub hnd' (fun x hx => by
+            have hxa : x ≠ a := fun heq => ha_nin (heq ▸ hx)
+            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
+          rw [List.length_cons]
+          have h_pos : 0 < l₂.length := by
+            cases l₂ with
+            | nil => exact absurd ha2 List.not_mem_nil
+            | cons _ _ => exact Nat.zero_lt_succ _
+          have h_erase_len := List.length_erase_of_mem ha2
+          omega
+      -- ── H₀ es punto fijo de ψ₀ ─────────────────────────────────────────
+      have hH₀_fixed : ∀ h ∈ H₀G.carrier.elems, ψ₀.act h H₀ = H₀ := by
+        intro h hh
+        show (if hg : h ∈ G.carrier.elems then conjSubgroup G h hg H₀ else H₀) = H₀
+        rw [dif_pos (H₀.subset h hh)]
+        apply Subgroup.ext_carrier
+        apply FSet.eq_of_mem_iff'
+        intro x
+        constructor
+        · intro hx
+          obtain ⟨hx_mem, hx_any⟩ := List.mem_filter.mp hx
+          obtain ⟨k, hk_mem, hk_eq⟩ := List.any_eq_true.mp hx_any
+          rw [decide_eq_true_eq] at hk_eq
+          rw [hk_eq]
+          exact H₀.op_closed _ _ (H₀.op_closed h k hh hk_mem) (H₀.inv_closed h hh)
+        · intro hx
+          apply List.mem_filter.mpr
+          constructor
+          · exact H₀.subset x hx
+          · apply List.any_eq_true.mpr
+            have hhG := H₀.subset h hh
+            have hh'G := inv_mem G hhG
+            have hxG := H₀.subset x hx
+            let k₀ := G.op (G.op (G.inv h) x) h
+            have hk₀_H₀ : k₀ ∈ H₀.carrier.elems :=
+              H₀.op_closed _ _ (H₀.op_closed _ x (H₀.inv_closed h hh) hx) hh
+            refine ⟨k₀, hk₀_H₀, decide_eq_true_eq.mpr ?_⟩
+            symm
+            calc G.op (G.op h k₀) (G.inv h)
+                = G.op (G.op h (G.op (G.op (G.inv h) x) h)) (G.inv h) := rfl
+              _ = G.op (G.op (G.op h (G.op (G.inv h) x)) h) (G.inv h) := by
+                    rw [G.op_assoc h (G.op (G.inv h) x) h hhG (op_mem G hh'G hxG) hhG]
+              _ = G.op (G.op (G.op (G.op h (G.inv h)) x) h) (G.inv h) := by
+                    rw [← G.op_assoc h (G.inv h) x hhG hh'G hxG]
+              _ = G.op (G.op (G.op G.id x) h) (G.inv h) := by rw [(G.op_inv h hhG).1]
+              _ = G.op (G.op x h) (G.inv h) := by rw [(G.op_id x hxG).2]
+              _ = G.op x (G.op h (G.inv h)) := by
+                    rw [← G.op_assoc x h (G.inv h) hxG hhG hh'G]
+              _ = G.op x G.id := by rw [(G.op_inv h hhG).1]
+              _ = x := (G.op_id x hxG).1
+      -- ── H₀ es el único punto fijo de ψ₀ ────────────────────────────────
+      have h_unique_fixed : ∀ K : Subgroup G, K ∈ S.elems →
+          (∀ h ∈ H₀G.carrier.elems, ψ₀.act h K = K) → K = H₀ := by
+        intro K hK_in_S hK_fixed
+        have hK_sylow : isSylowSubgroup G K p := h_all_sylow K (FSet.mem_ofList_iff.mp hK_in_S)
+        have hK_card : K.carrier.card = p ^ n₀ :=
+          (sylow_card_eq G p H₀ K hH₀_sylow hK_sylow).symm.trans hn₀_card
+        -- H₀ normaliza K
+        have hH₀_norm_K : ∀ h ∈ H₀.carrier.elems, ∀ k ∈ K.carrier.elems,
+            G.op (G.op h k) (G.inv h) ∈ K.carrier.elems := by
+          intro h hh k hk
+          have hconj_eq : conjSubgroup G h (H₀.subset h hh) K = K := by
+            have h1 : ψ₀.act h K = K := hK_fixed h hh
+            change (if hg : h ∈ G.carrier.elems then conjSubgroup G h hg K else K) = K at h1
+            rw [dif_pos (H₀.subset h hh)] at h1; exact h1
+          have hmem : G.op (G.op h k) (G.inv h) ∈
+              (conjSubgroup G h (H₀.subset h hh) K).carrier.elems := by
+            apply List.mem_filter.mpr; constructor
+            · exact op_mem G (op_mem G (H₀.subset h hh) (K.subset k hk))
+                            (inv_mem G (H₀.subset h hh))
+            · exact List.any_eq_true.mpr ⟨k, hk, decide_eq_true_eq.mpr rfl⟩
+          rw [hconj_eq] at hmem; exact hmem
+        -- H₀ ≤ N_G(K)
+        have hH₀_le_NG : ∀ h ∈ H₀.carrier.elems, h ∈ (normalizer G K).carrier.elems := by
+          intro h hh
+          rw [mem_normalizer_iff]
+          refine ⟨H₀.subset h hh, hH₀_norm_K h hh, ?_⟩
+          intro k hk
+          have hh' : G.inv h ∈ H₀.carrier.elems := H₀.inv_closed h hh
+          have h2 := hH₀_norm_K (G.inv h) hh' k hk
+          rwa [inv_inv_eq G (H₀.subset h hh)] at h2
+        -- Construir NG, K_NG, H₀_NG
+        let NG := subgroupToFinGroup G (normalizer G K)
+        let K_NG : Subgroup NG := {
+          carrier := K.carrier
+          nonempty := K.nonempty
+          subset := fun x hx => H_subset_normalizer G K x hx
+          op_closed := fun a b ha hb => K.op_closed a b ha hb
+          id_in := K.id_in
+          inv_closed := fun a ha => K.inv_closed a ha
+        }
+        let H₀_NG : Subgroup NG := {
+          carrier := H₀.carrier
+          nonempty := H₀.nonempty
+          subset := fun x hx => hH₀_le_NG x hx
+          op_closed := fun a b ha hb => H₀.op_closed a b ha hb
+          id_in := H₀.id_in
+          inv_closed := fun a ha => H₀.inv_closed a ha
+        }
+        have hNG_lagrange_G : ∃ s, mul (normalizer G K).carrier.card s = G.carrier.card :=
+          lagrange G (normalizer G K)
+        -- K_NG es Sylow-p en NG
+        have hK_NG_sylow : isSylowSubgroup NG K_NG p := by
+          obtain ⟨r, hr⟩ := lagrange NG K_NG
+          refine ⟨n₀, ⟨⟨r, ?_⟩, ?_⟩, hK_card⟩
+          · rwa [show K_NG.carrier.card = p ^ n₀ from hK_card] at hr
+          · intro ⟨m, hm⟩
+            apply hn₀_exp.2
+            obtain ⟨s, hs⟩ := hNG_lagrange_G
+            exact ⟨mul m s, by rw [← mul_assoc m (p ^ σ n₀) s, hm]; exact hs⟩
+        -- H₀_NG es Sylow-p en NG
+        have hH₀_NG_sylow : isSylowSubgroup NG H₀_NG p := by
+          obtain ⟨r, hr⟩ := lagrange NG H₀_NG
+          refine ⟨n₀, ⟨⟨r, ?_⟩, ?_⟩, hn₀_card⟩
+          · rwa [show H₀_NG.carrier.card = p ^ n₀ from hn₀_card] at hr
+          · intro ⟨m, hm⟩
+            apply hn₀_exp.2
+            obtain ⟨s, hs⟩ := hNG_lagrange_G
+            exact ⟨mul m s, by rw [← mul_assoc m (p ^ σ n₀) s, hm]; exact hs⟩
+        -- Aplicar sylow_second_incl en NG: ∃ r ∈ N_G(K), r⁻¹·K·r ⊆ H₀
+        obtain ⟨r, hr_NG, hr_incl⟩ :=
+          sylow_second_incl NG p hp K_NG H₀_NG hK_NG_sylow hH₀_NG_sylow
+        obtain ⟨hr_G, _, hr_bwd⟩ := (mem_normalizer_iff G K r).mp hr_NG
+        -- Mapa de conjugación f : K → H₀, k ↦ r⁻¹·k·r
+        let f_conj : MapOn K.carrier H₀.carrier := {
+          toFun := fun k => G.op (G.inv r) (G.op k r)
+          map_carrier := fun k hk => hr_incl k hk
+        }
+        -- f es inyectiva
+        have h_f_inj : f_conj.Injective := by
+          intro k₁ k₂ hk₁ hk₂ h_eq
+          have h2 := op_cancel_left G (inv_mem G hr_G)
+                      (op_mem G (K.subset k₁ hk₁) hr_G)
+                      (op_mem G (K.subset k₂ hk₂) hr_G) h_eq
+          exact op_cancel_right G hr_G (K.subset k₁ hk₁) (K.subset k₂ hk₂) h2
+        -- f es sobreyectiva (por |K| = |H₀|)
+        have h_f_surj : f_conj.Surjective :=
+          (MapOn.injective_iff_surjective_of_card_eq
+            (hK_card.trans hn₀_card.symm) f_conj).mp h_f_inj
+        -- H₀ ≤ K
+        have h_H₀_le_K : ∀ h₀ ∈ H₀.carrier.elems, h₀ ∈ K.carrier.elems := by
+          intro h₀ hh₀
+          obtain ⟨k, hk, hk_eq⟩ := h_f_surj h₀ hh₀
+          rw [← hk_eq]
+          have hfk_eq : f_conj.toFun k = G.op (G.inv r) (G.op k r) := rfl
+          rw [hfk_eq, ← G.op_assoc (G.inv r) k r (inv_mem G hr_G) (K.subset k hk) hr_G]
+          exact hr_bwd k hk
+        -- K ≤ H₀ (inclusión identidad H₀ → K es biyectiva)
+        let g_incl : MapOn H₀.carrier K.carrier := {
+          toFun := id
+          map_carrier := fun h₀ hh₀ => h_H₀_le_K h₀ hh₀
+        }
+        have h_g_inj : g_incl.Injective := fun a _ b _ hab => hab
+        have h_g_surj : g_incl.Surjective :=
+          (MapOn.injective_iff_surjective_of_card_eq
+            (hn₀_card.trans hK_card.symm) g_incl).mp h_g_inj
+        -- K = H₀
+        apply Subgroup.ext_carrier
+        apply FSet.eq_of_mem_iff'
+        intro z
+        constructor
+        · intro hz
+          obtain ⟨h₀, hh₀, h₀_eq⟩ := h_g_surj z hz
+          exact h₀_eq ▸ hh₀
+        · intro hz
+          exact h_H₀_le_K z hz
+      -- ── h_key: p | |l| cuando l ⊆ S\{H₀} cerrada bajo ψ₀ ──────────────
+      have h_key : ∀ (n : ℕ₀) (l : List (Subgroup G)),
+          lengthₚ l = n → l.Nodup → (∀ K, K ∈ l → K ∈ S.elems) →
+          (H₀ ∉ l) → (∀ K ∈ l, ∀ h ∈ H₀G.carrier.elems, ψ₀.act h K ∈ l) →
+          ∃ k : ℕ₀, mul p k = lengthₚ l := by
+        intro n
+        induction n using well_founded_lt.induction
+        rename_i n ih
+        intro l hl_len hl_nd hl_in_S hH₀_not hl_closed
+        cases l with
+        | nil => exact ⟨𝟘, by rw [mul_zero, lengthₚ_nil]⟩
+        | cons K₀ rest_l =>
+          have hK₀_in_S : K₀ ∈ S.elems := hl_in_S K₀ List.mem_cons_self
+          have hK₀_ne_H₀ : K₀ ≠ H₀ :=
+            fun heq => hH₀_not (heq ▸ List.mem_cons_self)
+          have hK₀_in_orb : K₀ ∈ (ψ₀.orb K₀).elems :=
+            (mem_orb_iff ψ₀ K₀ K₀ hK₀_in_S).mpr
+              ⟨H₀G.id, H₀G.id_in, ψ₀.act_id K₀ hK₀_in_S⟩
+          -- Órbita-estabilizador: |orb(K₀)| · |stab(K₀)| = |H₀G| = p^n₀
+          have h_os := orbit_stabilizer ψ₀ K₀ hK₀_in_S
+          have h_H₀G_card : H₀G.carrier.card = p ^ n₀ := hn₀_card
+          have h_orbit_dvd : (ψ₀.orb K₀).card ∣ p ^ n₀ :=
+            ⟨(ψ₀.stab K₀ hK₀_in_S).carrier.card, (h_H₀G_card ▸ h_os).symm⟩
+          -- |orb(K₀)| ≠ 𝟙 (K₀ no es punto fijo, pues solo H₀ lo es)
+          have h_orb_ne_one : (ψ₀.orb K₀).card ≠ 𝟙 := by
+            intro h_one
+            apply hK₀_ne_H₀
+            apply h_unique_fixed K₀ hK₀_in_S
+            intro h hh
+            have hact_in_orb : ψ₀.act h K₀ ∈ (ψ₀.orb K₀).elems :=
+              (mem_orb_iff ψ₀ K₀ _ hK₀_in_S).mpr ⟨h, hh, rfl⟩
+            have h_Λ1 : Λ 1 = 𝟙 := by
+              change Λ 1 = σ 𝟘; rw [isomorph_σ_Λ, isomorph_0_Λ]
+            have h_len1 : (ψ₀.orb K₀).elems.length = 1 :=
+              Λ_inj _ _ (by
+                show (ψ₀.orb K₀).card = Λ 1
+                rw [h_Λ1]; exact h_one)
+            obtain ⟨a, ha⟩ := List.length_eq_one.mp h_len1
+            have hK₀_eq_a : K₀ = a := by
+              rw [ha] at hK₀_in_orb; exact List.mem_singleton.mp hK₀_in_orb
+            have hact_eq_a : ψ₀.act h K₀ = a := by
+              rw [ha] at hact_in_orb; exact List.mem_singleton.mp hact_in_orb
+            rw [hact_eq_a, ← hK₀_eq_a]
+          -- p | |orb(K₀)|
+          have h_p_dvd_orb : p ∣ (ψ₀.orb K₀).card :=
+            h_prime_dvd_pow n₀ h_orbit_dvd h_orb_ne_one
+          obtain ⟨j, hj⟩ := h_p_dvd_orb
+          -- La órbita está contenida en l
+          have h_orb_in_l : ∀ K' ∈ (ψ₀.orb K₀).elems, K' ∈ K₀ :: rest_l := by
+            intro K' hK'
+            obtain ⟨g, hg, hg_eq⟩ := (mem_orb_iff ψ₀ K₀ K' hK₀_in_S).mp hK'
+            rw [← hg_eq]
+            exact hl_closed K₀ List.mem_cons_self g hg
+          -- orbit_filter = l ∩ orb(K₀),  rest' = l \ orb(K₀)
+          let orbit_filter :=
+            (K₀ :: rest_l).filter (fun K' => decide (K' ∈ (ψ₀.orb K₀).elems))
+          let rest' :=
+            (K₀ :: rest_l).filter (fun K' => !decide (K' ∈ (ψ₀.orb K₀).elems))
+          -- |orbit_filter| = |orb(K₀)|
+          have h_orb_filter_len : orbit_filter.length = (ψ₀.orb K₀).elems.length := by
+            apply Nat.le_antisymm
+            · apply nodup_sub_len (List.filter_sublist.nodup hl_nd)
+              intro x hx; exact decide_eq_true_eq.mp (List.mem_filter.mp hx).2
+            · apply nodup_sub_len (sorted_nodup (ψ₀.orb K₀).sorted)
+              intro x hx
+              exact List.mem_filter.mpr ⟨h_orb_in_l x hx, decide_eq_true_eq.mpr hx⟩
+          -- l.length = orbit_filter.length + rest'.length
+          have h_filter_split : (K₀ :: rest_l).length =
+              orbit_filter.length + rest'.length := by
+            suffices h : ∀ (ls : List (Subgroup G)) (q : Subgroup G → Bool),
+                ls.length = (ls.filter q).length + (ls.filter (fun x => !q x)).length from
+              h (K₀ :: rest_l) (fun K' => decide (K' ∈ (ψ₀.orb K₀).elems))
+            intro ls q
+            induction ls with
+            | nil => simp
+            | cons a ls' ih_fs =>
+              cases h_q : q a with
+              | false =>
+                have e1 : (a :: ls').filter q = ls'.filter q :=
+                  List.filter_cons_of_neg (by simp [h_q])
+                have e2 : (a :: ls').filter (fun x => !q x) = a :: ls'.filter (fun x => !q x) := by
+                  simp [h_q]
+                simp only [e1, e2, List.length_cons]
+                omega
+              | true =>
+                have e1 : (a :: ls').filter q = a :: ls'.filter q :=
+                  List.filter_cons_of_pos (by simp [h_q])
+                have e2 : (a :: ls').filter (fun x => !q x) = ls'.filter (fun x => !q x) := by
+                  simp [h_q]
+                simp only [e1, e2, List.length_cons]
+                omega
+          -- K₀ ∈ orbit_filter (por hK₀_in_orb)
+          have hK₀_in_filter : K₀ ∈ orbit_filter :=
+            List.mem_filter.mpr ⟨List.mem_cons_self, decide_eq_true_eq.mpr hK₀_in_orb⟩
+          -- rest'.length < l.length
+          have h_rest'_lt : rest'.length < (K₀ :: rest_l).length := by
+            have h_pos : 0 < orbit_filter.length := by
+              cases h_nil : orbit_filter with
+              | nil => exact absurd (h_nil ▸ hK₀_in_filter) List.not_mem_nil
+              | cons _ _ => exact Nat.zero_lt_succ _
+            rw [h_filter_split]; omega
+          -- lengthₚ rest' < n
+          have h_rest'_lt_n : lt₀ (lengthₚ rest') n := by
+            rw [← hl_len]
+            exact (isomorph_Λ_lt rest'.length (K₀ :: rest_l).length).mp h_rest'_lt
+          -- Propiedades de rest'
+          have h_rest'_nd : rest'.Nodup := List.filter_sublist.nodup hl_nd
+          have h_rest'_in_S : ∀ K, K ∈ rest' → K ∈ S.elems :=
+            fun K hK => hl_in_S K ((List.mem_filter.mp hK).1)
+          have h_H₀_not_rest' : H₀ ∉ rest' :=
+            fun hH₀ => hH₀_not ((List.mem_filter.mp hH₀).1)
+          have h_rest'_closed : ∀ K ∈ rest', ∀ h ∈ H₀G.carrier.elems, ψ₀.act h K ∈ rest' := by
+            intro K hK h hh
+            apply List.mem_filter.mpr
+            constructor
+            · exact hl_closed K ((List.mem_filter.mp hK).1) h hh
+            · rw [Bool.not_eq_true, decide_eq_true_eq]
+              intro hact_in_orb
+              have hK_not_in_orb : K ∉ (ψ₀.orb K₀).elems := by
+                intro hK_in
+                have h2 := (List.mem_filter.mp hK).2
+                rw [decide_eq_true_eq.mpr hK_in] at h2
+                simp at h2
+              apply hK_not_in_orb
+              obtain ⟨g₀, hg₀, hg₀_eq⟩ := (mem_orb_iff ψ₀ K₀ _ hK₀_in_S).mp hact_in_orb
+              apply (mem_orb_iff ψ₀ K₀ K hK₀_in_S).mpr
+              refine ⟨H₀G.op (H₀G.inv h) g₀, op_mem H₀G (inv_mem H₀G hh) hg₀, ?_⟩
+              have hK_in_S' := hl_in_S K ((List.mem_filter.mp hK).1)
+              rw [← ψ₀.act_compat (H₀G.inv h) g₀ K₀ (inv_mem H₀G hh) hg₀ hK₀_in_S]
+              rw [hg₀_eq]
+              rw [ψ₀.act_compat (H₀G.inv h) h K (inv_mem H₀G hh) hh hK_in_S']
+              rw [(H₀G.op_inv h hh).2, ψ₀.act_id K hK_in_S']
+          -- Aplicar HI a rest'
+          obtain ⟨k', hk'⟩ := ih (lengthₚ rest') h_rest'_lt_n rest' rfl
+              h_rest'_nd h_rest'_in_S h_H₀_not_rest' h_rest'_closed
+          -- Combinar: mul p (add j k') = lengthₚ (K₀ :: rest_l)
+          refine ⟨add j k', ?_⟩
+          rw [mul_add, ← hj, ← hk']
+          have h_orb_card : (ψ₀.orb K₀).card = Λ orbit_filter.length := by
+            simp only [FSet.card, lengthₚ]
+            exact congrArg Λ h_orb_filter_len.symm
+          rw [h_orb_card]
+          simp only [lengthₚ]
+          rw [← isomorph_Λ_add orbit_filter.length rest'.length]
+          exact congrArg Λ h_filter_split.symm
+      -- ── Aplicar h_key a rest = sylows sin H₀ ─────────────────────────────
+      have hH₀_in_sylows : H₀ ∈ sylows := FSet.mem_ofList_iff.mp hH₀_in_S
+      let rest := sylows.filter (fun K => decide (K ≠ H₀))
+      have h_rest_nd : rest.Nodup := List.filter_sublist.nodup h_nodup
+      have h_rest_in_S : ∀ K, K ∈ rest → K ∈ S.elems :=
+        fun K hK => FSet.mem_ofList_iff.mpr (List.mem_of_mem_filter K hK)
+      have h_H₀_not_rest : H₀ ∉ rest := by
+        intro hH₀
+        have := (List.mem_filter.mp hH₀).2
+        simp at this
+      have h_rest_closed : ∀ K ∈ rest, ∀ h ∈ H₀G.carrier.elems,
+          ψ₀.act h K ∈ rest := by
+        intro K hK h hh
+        have hK_sylow_mem : K ∈ sylows := List.mem_of_mem_filter K hK
+        have hψ_in_S := ψG.act_closed h K (H₀.subset h hh)
+            (FSet.mem_ofList_iff.mpr hK_sylow_mem)
+        have hψ_in_sylows := FSet.mem_ofList_iff.mp hψ_in_S
+        have hψ_ne_H₀ : ψ₀.act h K ≠ H₀ := by
+          intro h_eq
+          have hK_ne_H₀ : K ≠ H₀ :=
+            fun heq => absurd (decide_eq_true_eq.mpr heq)
+              (Bool.not_eq_true'.mp (List.mem_filter.mp hK).2 |>.symm ▸
+               decide_eq_false_iff_not.mpr (decide_eq_true_eq.mpr heq |>.symm ▸
+               fun x => x) |>.symm ▸ decide_eq_false_iff_not.mpr id)
+          -- Argumento vía orbitas: H₀ ∈ orb(K) contradice unicidad de punto fijo
+          have hH₀_in_orbH₀ : H₀ ∈ (ψ₀.orb H₀).elems :=
+            (mem_orb_iff ψ₀ H₀ H₀ hH₀_in_S).mpr
+              ⟨H₀G.id, H₀G.id_in, ψ₀.act_id H₀ hH₀_in_S⟩
+          have hK_in_S' := h_rest_in_S K hK
+          have hH₀_in_orbK : H₀ ∈ (ψ₀.orb K).elems :=
+            (mem_orb_iff ψ₀ K H₀ hK_in_S').mpr ⟨h, hh, h_eq⟩
+          have hK_in_orbK : K ∈ (ψ₀.orb K).elems :=
+            (mem_orb_iff ψ₀ K K hK_in_S').mpr
+              ⟨H₀G.id, H₀G.id_in, ψ₀.act_id K hK_in_S'⟩
+          rcases (orbits_partition ψ₀).2 K H₀ hK_in_S' hH₀_in_S with h_eq_orb | h_disj
+          · -- orbit(K) = orbit(H₀)
+            have hK_in_orbH₀ : K ∈ (ψ₀.orb H₀).elems := h_eq_orb ▸ hK_in_orbK
+            obtain ⟨g', hg', hg'_eq⟩ := (mem_orb_iff ψ₀ H₀ K hH₀_in_S).mp hK_in_orbH₀
+            have : K = H₀ := by rw [← hg'_eq]; exact hH₀_fixed g' hg'
+            exact absurd this (decide_eq_false_iff_not.mp
+              (Bool.not_eq_true'.mp (List.mem_filter.mp hK).2))
+          · -- Las órbitas son disjuntas: H₀ no puede estar en ambas
+            rcases h_disj H₀ with h_not_orbK | h_not_orbH₀
+            · exact absurd hH₀_in_orbK h_not_orbK
+            · exact absurd hH₀_in_orbH₀ h_not_orbH₀
+        exact List.mem_filter.mpr ⟨hψ_in_sylows, decide_eq_true_eq.mpr hψ_ne_H₀⟩
+      obtain ⟨k, hk⟩ := h_key (lengthₚ rest) rest rfl h_rest_nd h_rest_in_S
+          h_H₀_not_rest h_rest_closed
+      -- ── Combinación final ─────────────────────────────────────────────────
+      refine ⟨k, ?_⟩
+      -- sylows.length = 1 + rest.length
+      have h_filter_one : (sylows.filter (fun K => decide (K = H₀))).length = 1 := by
+        apply Nat.le_antisymm
+        · apply nodup_sub_len (List.filter_sublist.nodup h_nodup)
+          intro x hx
+          exact List.mem_singleton.mpr (decide_eq_true_eq.mp (List.mem_filter.mp hx).2)
+        · have hmem : H₀ ∈ sylows.filter (fun K => decide (K = H₀)) :=
+            List.mem_filter.mpr ⟨hH₀_in_sylows, decide_eq_true_eq.mpr rfl⟩
+          cases h_nil : sylows.filter (fun K => decide (K = H₀)) with
+          | nil => exact absurd (h_nil ▸ hmem) List.not_mem_nil
+          | cons _ _ => exact Nat.zero_lt_succ _
+      have h_len_split : sylows.length = 1 + rest.length := by
+        have h_split : sylows.length =
+            (sylows.filter (fun K => decide (K = H₀))).length +
+            (sylows.filter (fun K => decide (K ≠ H₀))).length := by
+          suffices h : ∀ (ls : List (Subgroup G)) (q : Subgroup G → Bool),
+              ls.length = (ls.filter q).length + (ls.filter (fun x => !q x)).length from
+            h sylows (fun K => decide (K = H₀))
+          intro ls q
+          induction ls with
+          | nil => simp
+          | cons a ls' ih_ls =>
+            cases h_q : q a with
+            | false =>
+              have e1 : (a :: ls').filter q = ls'.filter q :=
+                List.filter_cons_of_neg (by simp [h_q])
+              have e2 : (a :: ls').filter (fun x => !q x) = a :: ls'.filter (fun x => !q x) := by
+                simp [h_q]
+              simp only [e1, e2, List.length_cons]; omega
+            | true =>
+              have e1 : (a :: ls').filter q = a :: ls'.filter q :=
+                List.filter_cons_of_pos (by simp [h_q])
+              have e2 : (a :: ls').filter (fun x => !q x) = ls'.filter (fun x => !q x) := by
+                simp [h_q]
+              simp only [e1, e2, List.length_cons]; omega
+        rw [h_filter_one] at h_split
+        omega
+      have h_Λ1 : Λ 1 = 𝟙 := by change Λ 1 = σ 𝟘; rw [isomorph_σ_Λ, isomorph_0_Λ]
+      simp only [lengthₚ]
+      rw [h_len_split, isomorph_Λ_add, h_Λ1, ← hk]
+      exact add_comm 𝟙 (lengthₚ rest)
 
     /-- n_p | |G|.
         Prueba: G actúa sobre los subgrupos de Sylow-p por conjugación (acción transitiva

@@ -5211,11 +5211,12 @@ namespace Peano
             cases h_orb_list : (ψ₀.orb K₀).elems with
             | nil =>
               rw [h_orb_list] at hK₀_in_orb
-              exact absurd hK₀_in_orb (List.not_mem_nil _)
+              simp at hK₀_in_orb
             | cons a rest_orb =>
               cases rest_orb with
               | cons b _ =>
-                simp only [List.length_cons] at h_len1; omega
+                rw [h_orb_list] at h_len1
+                simp at h_len1
               | nil =>
                 have ha : (ψ₀.orb K₀).elems = [a] := h_orb_list
                 have hK₀_eq_a : K₀ = a := by
@@ -5247,10 +5248,10 @@ namespace Peano
               intro x hx
               exact List.mem_filter.mpr ⟨h_orb_in_l x hx, decide_eq_true_eq.mpr hx⟩
           -- l.length = orbit_filter.length + rest'.length
-          have h_filter_split : (K₀ :: rest_l).length =
-              orbit_filter.length + rest'.length := by
+          have h_filter_split : ((K₀ :: rest_l).length : Nat) =
+              (orbit_filter.length + rest'.length : Nat) := by
             suffices h : ∀ (ls : List (Subgroup G)) (q : Subgroup G → Bool),
-                ls.length = (ls.filter q).length + (ls.filter (fun x => !q x)).length from
+                (ls.length : Nat) = ((ls.filter q).length + (ls.filter (fun x => !q x)).length : Nat) from
               h (K₀ :: rest_l) (fun K' => decide (K' ∈ (ψ₀.orb K₀).elems))
             intro ls q
             induction ls with
@@ -5296,8 +5297,8 @@ namespace Peano
             apply List.mem_filter.mpr
             constructor
             · exact hl_closed K ((List.mem_filter.mp hK).1) h hh
-            · rw [Bool.not_eq_true, decide_eq_true_eq]
-              intro hact_in_orb
+            · -- goal: (!decide (ψ₀.act h K ∈ (ψ₀.orb K₀).elems)) = true
+              -- means: ψ₀.act h K ∉ (ψ₀.orb K₀).elems
               have hK_not_in_orb : K ∉ (ψ₀.orb K₀).elems := by
                 intro hK_in
                 have h2 := (List.mem_filter.mp hK).2
@@ -5317,7 +5318,7 @@ namespace Peano
               h_rest'_nd h_rest'_in_S h_H₀_not_rest' h_rest'_closed
           -- Combinar: mul p (add j k') = lengthₚ (K₀ :: rest_l)
           refine ⟨add j k', ?_⟩
-          rw [mul_add, ← hj, ← hk']
+          rw [mul_add, ← hj, hk']
           have h_orb_card : (ψ₀.orb K₀).card = Λ orbit_filter.length := by
             simp only [FSet.card, lengthₚ]
             exact congrArg Λ h_orb_filter_len.symm
@@ -5330,7 +5331,7 @@ namespace Peano
       let rest := sylows.filter (fun K => decide (K ≠ H₀))
       have h_rest_nd : rest.Nodup := List.filter_sublist.nodup h_nodup
       have h_rest_in_S : ∀ K, K ∈ rest → K ∈ S.elems :=
-        fun K hK => FSet.mem_ofList_iff.mpr (List.mem_of_mem_filter K hK)
+        fun K hK => FSet.mem_ofList_iff.mpr ((List.mem_filter.mp hK).1)
       have h_H₀_not_rest : H₀ ∉ rest := by
         intro hH₀
         have := (List.mem_filter.mp hH₀).2
@@ -5338,17 +5339,13 @@ namespace Peano
       have h_rest_closed : ∀ K ∈ rest, ∀ h ∈ H₀G.carrier.elems,
           ψ₀.act h K ∈ rest := by
         intro K hK h hh
-        have hK_sylow_mem : K ∈ sylows := List.mem_of_mem_filter K hK
+        have hK_sylow_mem : K ∈ sylows := (List.mem_filter.mp hK).1
         have hψ_in_S := ψG.act_closed h K (H₀.subset h hh)
             (FSet.mem_ofList_iff.mpr hK_sylow_mem)
         have hψ_in_sylows := FSet.mem_ofList_iff.mp hψ_in_S
         have hψ_ne_H₀ : ψ₀.act h K ≠ H₀ := by
           intro h_eq
-          have hK_ne_H₀ : K ≠ H₀ :=
-            fun heq => absurd (decide_eq_true_eq.mpr heq)
-              (Bool.not_eq_true'.mp (List.mem_filter.mp hK).2 |>.symm ▸
-               decide_eq_false_iff_not.mpr (decide_eq_true_eq.mpr heq |>.symm ▸
-               fun x => x) |>.symm ▸ decide_eq_false_iff_not.mpr id)
+          have hK_ne_H₀ : K ≠ H₀ := decide_eq_true_eq.mp (List.mem_filter.mp hK).2
           -- Argumento vía orbitas: H₀ ∈ orb(K) contradice unicidad de punto fijo
           have hH₀_in_orbH₀ : H₀ ∈ (ψ₀.orb H₀).elems :=
             (mem_orb_iff ψ₀ H₀ H₀ hH₀_in_S).mpr
@@ -5364,8 +5361,7 @@ namespace Peano
             have hK_in_orbH₀ : K ∈ (ψ₀.orb H₀).elems := h_eq_orb ▸ hK_in_orbK
             obtain ⟨g', hg', hg'_eq⟩ := (mem_orb_iff ψ₀ H₀ K hH₀_in_S).mp hK_in_orbH₀
             have : K = H₀ := by rw [← hg'_eq]; exact hH₀_fixed g' hg'
-            exact absurd this (decide_eq_false_iff_not.mp
-              (Bool.not_eq_true'.mp (List.mem_filter.mp hK).2))
+            exact absurd this hK_ne_H₀
           · -- Las órbitas son disjuntas: H₀ no puede estar en ambas
             rcases h_disj H₀ with h_not_orbK | h_not_orbH₀
             · exact absurd hH₀_in_orbK h_not_orbK
@@ -5387,12 +5383,12 @@ namespace Peano
           cases h_nil : sylows.filter (fun K => decide (K = H₀)) with
           | nil => exact absurd (h_nil ▸ hmem) List.not_mem_nil
           | cons _ _ => exact Nat.zero_lt_succ _
-      have h_len_split : sylows.length = 1 + rest.length := by
-        have h_split : sylows.length =
-            (sylows.filter (fun K => decide (K = H₀))).length +
-            (sylows.filter (fun K => decide (K ≠ H₀))).length := by
+      have h_len_split : (sylows.length : Nat) = (1 + rest.length : Nat) := by
+        have h_split : (sylows.length : Nat) =
+            ((sylows.filter (fun K => decide (K = H₀))).length +
+            (sylows.filter (fun K => decide (K ≠ H₀))).length : Nat) := by
           suffices h : ∀ (ls : List (Subgroup G)) (q : Subgroup G → Bool),
-              ls.length = (ls.filter q).length + (ls.filter (fun x => !q x)).length from
+              (ls.length : Nat) = ((ls.filter q).length + (ls.filter (fun x => !q x)).length : Nat) from
             h sylows (fun K => decide (K = H₀))
           intro ls q
           induction ls with

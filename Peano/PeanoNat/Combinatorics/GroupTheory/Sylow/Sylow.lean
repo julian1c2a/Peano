@@ -4603,55 +4603,411 @@ namespace Peano
 
     El número `n_p` de subgrupos de Sylow `p` satisface:
     - `n_p ≡ 1 (mod p)`
-    - `n_p | [G : H]` donde `H` es cualquier subgrupo de Sylow `p`.
+    - `n_p | |G|`
     -/
 
-    /-- Axioma: n_p ≡ 1 (mod p).
-        La prueba estándar: H actúa sobre el conjunto S de subgrupos de Sylow-p
-        por conjugación (h, K) ↦ hKh⁻¹. Un punto fijo K satisface H ⊆ N_G(K);
-        como K ▹ N_G(K) y H es un p-subgrupo de Sylow de N_G(K), se tiene H = K.
-        Así |fix| = 1. Por conteo de órbitas (mckay_orbit_count generalizado a
-        grupos p-primarios), n_p = 1 + p·k.
-        Requiere: acción de H sobre una lista de Subgroup G (el conjunto de Sylow
-        no es un ℕ₀FSet), normalizer N_G(K), y conteo de órbitas para p-grupos.
-        TODO: reemplazar por demostración completa. -/
+    -- ── Auxiliares para sylow_third_dvd ─────────────────────────────────
+
+    /-- Subgrupo conjugado de K por g: { g·k·g⁻¹ | k ∈ K }. -/
+    private def conjSubgroup (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        (K : Subgroup G) : Subgroup G where
+      carrier := FSet.filter
+        (fun x => K.carrier.elems.any
+          (fun k => decide (x = G.op (G.op g k) (G.inv g))))
+        G.carrier
+      nonempty := by
+        obtain ⟨k₀, hk₀⟩ := K.nonempty
+        refine ⟨G.op (G.op g k₀) (G.inv g), List.mem_filter.mpr ⟨?_, ?_⟩⟩
+        · exact op_mem G (op_mem G hg (K.subset k₀ hk₀)) (inv_mem G hg)
+        · apply List.any_eq_true.mpr
+          exact ⟨k₀, hk₀, decide_eq_true_eq.mpr rfl⟩
+      subset := fun x hx => (List.mem_filter.mp hx).1
+      op_closed := by
+        intro a b ha hb
+        obtain ⟨ha_mem, ha_any⟩ := List.mem_filter.mp ha
+        obtain ⟨hb_mem, hb_any⟩ := List.mem_filter.mp hb
+        obtain ⟨ka, hka, hka_eq⟩ := List.any_eq_true.mp ha_any
+        obtain ⟨kb, hkb, hkb_eq⟩ := List.any_eq_true.mp hb_any
+        rw [decide_eq_true_eq] at hka_eq hkb_eq
+        -- a·b = g·(ka·kb)·g⁻¹
+        have hkab : G.op ka kb ∈ K.carrier.elems :=
+          K.op_closed ka kb hka hkb
+        apply List.mem_filter.mpr
+        constructor
+        · exact op_mem G ha_mem hb_mem
+        · apply List.any_eq_true.mpr
+          refine ⟨G.op ka kb, hkab, decide_eq_true_eq.mpr ?_⟩
+          -- Need: a·b = g·(ka·kb)·g⁻¹
+          -- a = g·ka·g⁻¹, b = g·kb·g⁻¹
+          -- a·b = (g·ka·g⁻¹)·(g·kb·g⁻¹) = g·ka·(g⁻¹·g)·kb·g⁻¹ = g·ka·kb·g⁻¹
+          rw [hka_eq, hkb_eq]
+          have hka_mem := K.subset ka hka
+          have hkb_mem := K.subset kb hkb
+          have hg' := inv_mem G hg
+          -- (g·ka·g⁻¹)·(g·kb·g⁻¹) = g·ka·(g⁻¹·g)·kb·g⁻¹
+          calc G.op (G.op (G.op g ka) (G.inv g)) (G.op (G.op g kb) (G.inv g))
+              = G.op (G.op g ka) (G.op (G.inv g) (G.op (G.op g kb) (G.inv g))) := by
+                rw [G.op_assoc (G.op g ka) (G.inv g) (G.op (G.op g kb) (G.inv g))
+                    (op_mem G hg hka_mem) hg' (op_mem G (op_mem G hg hkb_mem) hg')]
+            _ = G.op (G.op g ka) (G.op (G.op (G.inv g) (G.op g kb)) (G.inv g)) := by
+                rw [← G.op_assoc (G.inv g) (G.op g kb) (G.inv g) hg'
+                      (op_mem G hg hkb_mem) hg']
+            _ = G.op (G.op g ka) (G.op (G.op (G.op (G.inv g) g) kb) (G.inv g)) := by
+                rw [← G.op_assoc (G.inv g) g kb hg' hg hkb_mem]
+            _ = G.op (G.op g ka) (G.op (G.op G.id kb) (G.inv g)) := by
+                rw [(G.op_inv g hg).2]
+            _ = G.op (G.op g ka) (G.op kb (G.inv g)) := by
+                rw [(G.op_id kb hkb_mem).2]
+            _ = G.op g (G.op ka (G.op kb (G.inv g))) := by
+                rw [← G.op_assoc g ka (G.op kb (G.inv g)) hg hka_mem
+                      (op_mem G hkb_mem hg')]
+            _ = G.op g (G.op (G.op ka kb) (G.inv g)) := by
+                rw [G.op_assoc ka kb (G.inv g) hka_mem hkb_mem hg']
+            _ = G.op (G.op g (G.op ka kb)) (G.inv g) := by
+                rw [← G.op_assoc g (G.op ka kb) (G.inv g) hg
+                      (op_mem G hka_mem hkb_mem) hg']
+      id_in := by
+        apply List.mem_filter.mpr
+        constructor
+        · exact G.id_in
+        · apply List.any_eq_true.mpr
+          refine ⟨G.id, K.id_in, decide_eq_true_eq.mpr ?_⟩
+          -- g·id·g⁻¹ = id
+          rw [(G.op_id g hg).1, (G.op_inv g hg).1]
+      inv_closed := by
+        intro a ha
+        obtain ⟨ha_mem, ha_any⟩ := List.mem_filter.mp ha
+        obtain ⟨k, hk, hk_eq⟩ := List.any_eq_true.mp ha_any
+        rw [decide_eq_true_eq] at hk_eq
+        -- a = g·k·g⁻¹, so a⁻¹ = g·k⁻¹·g⁻¹
+        have hk_mem := K.subset k hk
+        have hk_inv := K.inv_closed k hk
+        apply List.mem_filter.mpr
+        constructor
+        · exact inv_mem G ha_mem
+        · apply List.any_eq_true.mpr
+          refine ⟨G.inv k, hk_inv, decide_eq_true_eq.mpr ?_⟩
+          -- Need: G.inv a = g·(G.inv k)·g⁻¹
+          -- a = g·k·g⁻¹, so G.inv a = (g·k·g⁻¹)⁻¹ = g·k⁻¹·g⁻¹ (since inv(g·k·g⁻¹) = g·k⁻¹·g⁻¹)
+          have hg' := inv_mem G hg
+          rw [hk_eq]
+          -- inv(g·k·g⁻¹) = (g⁻¹)⁻¹ · k⁻¹ · g⁻¹  ... use inv_op_eq twice
+          -- inv(g·k·g⁻¹) = inv(g⁻¹) · inv(g·k) = g · (inv(k) · inv(g)) = g · k⁻¹ · g⁻¹
+          rw [inv_op_eq G (op_mem G hg hk_mem) hg',
+              inv_op_eq G hg hk_mem,
+              inv_inv_eq G hg,
+              G.op_assoc g (G.inv k) (G.inv g) hg (inv_mem G hk_mem) hg']
+
+    /-- La conjugación k ↦ g·k·g⁻¹ es una biyección K.carrier → (conjSubgroup G g hg K).carrier. -/
+    private theorem conjSubgroup_card_eq (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        (K : Subgroup G) :
+        (conjSubgroup G g hg K).carrier.card = K.carrier.card := by
+      let cK := conjSubgroup G g hg K
+      -- Define la conjugación como MapOn K.carrier cK.carrier
+      let φ : MapOn K.carrier cK.carrier := {
+        toFun := fun k => G.op (G.op g k) (G.inv g),
+        map_carrier := fun k hk => by
+          apply List.mem_filter.mpr
+          constructor
+          · exact op_mem G (op_mem G hg (K.subset k hk)) (inv_mem G hg)
+          · apply List.any_eq_true.mpr
+            exact ⟨k, hk, decide_eq_true_eq.mpr rfl⟩
+      }
+      -- φ es inyectiva por cancelación
+      have h_inj : φ.Injective := by
+        intro k₁ k₂ hk₁ hk₂ heq
+        apply op_cancel_left G hg (K.subset k₁ hk₁) (K.subset k₂ hk₂)
+        exact op_cancel_right G (inv_mem G hg)
+          (op_mem G hg (K.subset k₁ hk₁))
+          (op_mem G hg (K.subset k₂ hk₂))
+          heq
+      -- φ es sobreyectiva por definición del carrier filtrado
+      have h_surj : φ.Surjective := by
+        intro x hx
+        obtain ⟨_, hx_any⟩ := List.mem_filter.mp hx
+        obtain ⟨k, hk, hk_eq⟩ := List.any_eq_true.mp hx_any
+        rw [decide_eq_true_eq] at hk_eq
+        exact ⟨k, hk, hk_eq.symm⟩
+      -- |Im φ| = |K| por inyectividad; |Im φ| = |cK| por sobreyectividad
+      have h_card1 : φ.Im.card = K.carrier.card := card_image_of_injective φ h_inj
+      have h_card2 : φ.Im.card = cK.carrier.card := card_image_of_surjective φ h_surj
+      exact h_card2.symm.trans h_card1
+
+    /-- El conjugado de un subgrupo de Sylow-p sigue siendo de Sylow-p. -/
+    private theorem conjSubgroup_isSylow (G : FinGroup ℕ₀) (g : ℕ₀) (hg : g ∈ G.carrier.elems)
+        (K : Subgroup G) (p : ℕ₀) (hK : isSylowSubgroup G K p) :
+        isSylowSubgroup G (conjSubgroup G g hg K) p := by
+      obtain ⟨n, hn_exp, hn_card⟩ := hK
+      exact ⟨n, hn_exp, (conjSubgroup_card_eq G g hg K).trans hn_card⟩
+
+    /-- `sortedInsert' x l` con `x ∉ l` tiene la misma longitud que `x :: l`. -/
+    private theorem length_sortedInsert'_of_not_mem {β : Type}
+        [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (x : β) (l : List β) (hx : x ∉ l) :
+        lengthₚ (sortedInsert' x l) = σ (lengthₚ l) := by
+      induction l with
+      | nil =>
+        simp [sortedInsert', lengthₚ_nil, lengthₚ_cons]
+      | cons y ys ih =>
+        simp only [sortedInsert']
+        split
+        · -- x < y → x :: y :: ys
+          simp [lengthₚ_cons]
+        · split
+          · rename_i hlt heq
+            -- x = y → contradiction
+            subst heq
+            exact absurd List.mem_cons_self hx
+          · -- y :: sortedInsert' x ys
+            have hx_ys : x ∉ ys := fun h => hx (List.mem_cons_of_mem y h)
+            simp only [lengthₚ_cons]
+            rw [ih hx_ys]
+
+    /-- `lengthₚ (sortList' l) = lengthₚ l` cuando `l` es Nodup. -/
+    private theorem lengthₚ_sortList'_of_nodup {β : Type}
+        [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (l : List β) (h : l.Nodup) :
+        lengthₚ (sortList' l) = lengthₚ l := by
+      induction l with
+      | nil => simp [sortList', lengthₚ_nil]
+      | cons x xs ih =>
+        rw [List.nodup_cons] at h
+        obtain ⟨hx_nin, hxs_nd⟩ := h
+        simp only [sortList', lengthₚ_cons]
+        have hx_nin_sort : x ∉ sortList' xs := by rwa [mem_sortList'_iff]
+        rw [length_sortedInsert'_of_not_mem x (sortList' xs) hx_nin_sort,
+            ih hxs_nd]
+
+    /-- Para una lista sin duplicados `l`, la longitud de `FSet.ofList l` coincide
+        con la de `l`. -/
+    private theorem length_ofList_eq_of_nodup {β : Type}
+        [DecidableEq β] [LT β] [StrictLinearOrder β]
+        (l : List β) (h : l.Nodup) :
+        (FSet.ofList l).card = lengthₚ l := by
+      unfold FSet.card FSet.ofList
+      exact lengthₚ_sortList'_of_nodup l h
+
+    /-- G actúa sobre el conjunto (FSet) de subgrupos de Sylow-p por conjugación. -/
+    private def conjAction (G : FinGroup ℕ₀) (p : ℕ₀)
+        (sylows : List (Subgroup G))
+        (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+        GroupAction G (FSet.ofList sylows) where
+      act := fun g K =>
+        if hg : g ∈ G.carrier.elems then conjSubgroup G g hg K else K
+      act_closed := by
+        intro g K hg hK
+        rw [dif_pos hg]
+        -- conjSubgroup G g hg K ∈ FSet.ofList sylows
+        rw [FSet.mem_ofList_iff]
+        apply h_all_included
+        apply conjSubgroup_isSylow G g hg K p
+        apply h_all_sylow K
+        exact FSet.mem_ofList_iff.mp hK
+      act_id := by
+        intro K hK
+        rw [dif_pos G.id_in]
+        -- conjSubgroup G G.id _ K = K
+        apply Subgroup.ext_carrier
+        apply FSet.eq_of_mem_iff'
+        intro x
+        constructor
+        · intro hx
+          obtain ⟨hx_mem, hx_any⟩ := List.mem_filter.mp hx
+          obtain ⟨k, hk, hk_eq⟩ := List.any_eq_true.mp hx_any
+          rw [decide_eq_true_eq] at hk_eq
+          -- x = G.id · k · G.inv G.id = k
+          have hk_mem := K.subset k hk
+          rw [hk_eq, (G.op_id k hk_mem).2, inv_id_eq G, (G.op_id k hk_mem).1]
+          exact hk
+        · intro hx
+          apply List.mem_filter.mpr
+          constructor
+          · exact K.subset x hx
+          · apply List.any_eq_true.mpr
+            refine ⟨x, hx, decide_eq_true_eq.mpr ?_⟩
+            rw [(G.op_id x (K.subset x hx)).2, inv_id_eq G, (G.op_id x (K.subset x hx)).1]
+      act_compat := by
+        intro g h K hg hh hK
+        rw [dif_pos hg, dif_pos hh, dif_pos (op_mem G hg hh)]
+        -- conjSubgroup G g hg (conjSubgroup G h hh K) = conjSubgroup G (g·h) (op_mem..) K
+        apply Subgroup.ext_carrier
+        apply FSet.eq_of_mem_iff'
+        intro x
+        constructor
+        · intro hx
+          -- x ∈ conj_g(conj_h(K)) means x = g·(h·k·h⁻¹)·g⁻¹ for some k ∈ K
+          obtain ⟨hx_mem, hx_any⟩ := List.mem_filter.mp hx
+          obtain ⟨y, hy, hy_eq⟩ := List.any_eq_true.mp hx_any
+          rw [decide_eq_true_eq] at hy_eq
+          -- y ∈ conj_h(K), so y = h·k·h⁻¹
+          obtain ⟨hy_mem, hy_any⟩ := List.mem_filter.mp hy
+          obtain ⟨k, hk, hk_eq⟩ := List.any_eq_true.mp hy_any
+          rw [decide_eq_true_eq] at hk_eq
+          -- x = g·(h·k·h⁻¹)·g⁻¹ = (g·h)·k·(g·h)⁻¹
+          apply List.mem_filter.mpr
+          constructor
+          · exact hx_mem
+          · apply List.any_eq_true.mpr
+            refine ⟨k, hk, decide_eq_true_eq.mpr ?_⟩
+            rw [hy_eq, hk_eq]
+            have hk_mem := K.subset k hk
+            have hg' := inv_mem G hg; have hh' := inv_mem G hh
+            -- g·(h·k·h⁻¹)·g⁻¹ = (g·h)·k·(h·g)⁻¹ ... note (g·h)⁻¹ = h⁻¹·g⁻¹
+            -- (g·h)·k·(g·h)⁻¹ = g·h·k·h⁻¹·g⁻¹
+            rw [inv_op_eq G hg hh]
+            calc G.op (G.op g (G.op (G.op h k) (G.inv h))) (G.inv g)
+                = G.op g (G.op (G.op (G.op h k) (G.inv h)) (G.inv g)) := by
+                  rw [← G.op_assoc g (G.op (G.op h k) (G.inv h)) (G.inv g) hg
+                        (op_mem G (op_mem G hh hk_mem) hh') hg']
+              _ = G.op (G.op g (G.op h k)) (G.op (G.inv h) (G.inv g)) := by
+                  rw [G.op_assoc (G.op h k) (G.inv h) (G.inv g) (op_mem G hh hk_mem) hh' hg',
+                      G.op_assoc g (G.op h k) (G.op (G.inv h) (G.inv g)) hg
+                        (op_mem G hh hk_mem) (op_mem G hh' hg')]
+              _ = G.op (G.op (G.op g h) k) (G.op (G.inv h) (G.inv g)) := by
+                  rw [← G.op_assoc g h k hg hh hk_mem]
+        · intro hx
+          -- x = (g·h)·k·(g·h)⁻¹ for some k ∈ K
+          obtain ⟨hx_mem, hx_any⟩ := List.mem_filter.mp hx
+          obtain ⟨k, hk, hk_eq⟩ := List.any_eq_true.mp hx_any
+          rw [decide_eq_true_eq] at hk_eq
+          have hk_mem := K.subset k hk
+          have hg' := inv_mem G hg; have hh' := inv_mem G hh
+          -- x = (g·h)·k·(g·h)⁻¹; (g·h)⁻¹ = h⁻¹·g⁻¹
+          -- So x = g·(h·k·h⁻¹)·g⁻¹, and h·k·h⁻¹ ∈ conj_h(K)
+          apply List.mem_filter.mpr; constructor; · exact hx_mem
+          apply List.any_eq_true.mpr
+          -- witness: y = h·k·h⁻¹ ∈ conj_h(K)
+          let y := G.op (G.op h k) (G.inv h)
+          have hy_in_conjhK : y ∈ (conjSubgroup G h hh K).carrier.elems := by
+            apply List.mem_filter.mpr; constructor
+            · exact op_mem G (op_mem G hh hk_mem) hh'
+            · apply List.any_eq_true.mpr
+              exact ⟨k, hk, decide_eq_true_eq.mpr rfl⟩
+          refine ⟨y, hy_in_conjhK, decide_eq_true_eq.mpr ?_⟩
+          rw [hk_eq, inv_op_eq G hg hh]
+          -- (g·h)·k·(h⁻¹·g⁻¹) = g·(h·k·h⁻¹)·g⁻¹
+          calc G.op (G.op (G.op g h) k) (G.op (G.inv h) (G.inv g))
+              = G.op g (G.op (G.op h k) (G.op (G.inv h) (G.inv g))) := by
+                rw [G.op_assoc g h k hg hh hk_mem]
+                rw [← G.op_assoc g (G.op h k) (G.op (G.inv h) (G.inv g)) hg
+                        (op_mem G hh hk_mem) (op_mem G hh' hg')]
+            _ = G.op g (G.op (G.op (G.op h k) (G.inv h)) (G.inv g)) := by
+                rw [← G.op_assoc (G.op h k) (G.inv h) (G.inv g) (op_mem G hh hk_mem) hh' hg']
+            _ = G.op (G.op g (G.op (G.op h k) (G.inv h))) (G.inv g) := by
+                rw [← G.op_assoc g (G.op (G.op h k) (G.inv h)) (G.inv g) hg
+                      (op_mem G (op_mem G hh hk_mem) hh') hg']
+
+    /-- Axioma: n_p ≡ 1 (mod p). -/
     private axiom sylow_third_mod
         (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
-        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows)
+        (h_nodup : sylows.Nodup) :
         ∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙
 
-    /-- Axioma: n_p | |G|.
-        La prueba estándar: G actúa sobre S por conjugación; la acción es transitiva
-        (Sylow II). Por órbita–estabilizador, n_p · |N_G(H)| = |G|, luego n_p | |G|.
-        Requiere: acción de G sobre Subgroup G (no ℕ₀FSet), normalizer N_G(H),
-        y teorema órbita–estabilizador aplicado a esta acción.
-        TODO: reemplazar por demostración completa. -/
-    private axiom sylow_third_dvd
+    /-- n_p | |G|.
+        Prueba: G actúa sobre los subgrupos de Sylow-p por conjugación (acción transitiva
+        por Sylow II). Por órbita–estabilizador, n_p · |Stab(H₀)| = |G|. -/
+    private theorem sylow_third_dvd
         (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
-        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
-        ∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows)
+        (h_nodup : sylows.Nodup) :
+        ∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card := by
+      -- Si sylows = [], la conclusión es vacuamente cierta
+      cases h_eq : sylows with
+      | nil =>
+        intro H hH
+        simp at hH
+      | cons H₀ rest =>
+        -- Sea S = FSet.ofList sylows y ψ la acción de conjugación de G sobre S
+        let S := FSet.ofList sylows
+        let ψ := conjAction G p sylows h_all_sylow h_all_included
+        -- H₀ ∈ S
+        have hH₀_in_S : H₀ ∈ S.elems :=
+          FSet.mem_ofList_iff.mpr (h_eq ▸ List.mem_cons_self)
+        -- Por Sylow II, toda K ∈ sylows es conjugada de H₀: K ∈ Orb(H₀)
+        have h_orbit_full : ∀ K ∈ S.elems, K ∈ (ψ.orb H₀).elems := by
+          intro K hK
+          -- K es un subgrupo de Sylow-p (por h_all_sylow)
+          have hKsylow : isSylowSubgroup G K p :=
+            h_all_sylow K (FSet.mem_ofList_iff.mp hK)
+          have hH₀sylow : isSylowSubgroup G H₀ p :=
+            h_all_sylow H₀ (FSet.mem_ofList_iff.mp hH₀_in_S)
+          -- Sylow II: ∃ g ∈ G, H₀ = { g·k·g⁻¹ | k ∈ K }
+          -- i.e., K = { g⁻¹·h₀·g | h₀ ∈ H₀ }  pero la forma dada por sylow_second es:
+          -- ∃ g, K = { g·h·g⁻¹ | h ∈ H₀ }, equivalentemente conjSubgroup G g H₀ = K
+          obtain ⟨g, hg, h_conj⟩ := sylow_second G p hp H₀ K hH₀sylow hKsylow
+          -- h_conj: ∀ x, x ∈ K ↔ ∃ h ∈ H₀, G.op (G.op g h) (G.inv g) = x
+          -- So K = conjSubgroup G g hg H₀
+          have h_K_eq_conj : K = conjSubgroup G g hg H₀ := by
+            apply Subgroup.ext_carrier
+            apply FSet.eq_of_mem_iff'
+            intro x
+            constructor
+            · intro hx
+              apply List.mem_filter.mpr
+              constructor
+              · exact K.subset x hx
+              · apply List.any_eq_true.mpr
+                obtain ⟨h, hh, heq⟩ := (h_conj x).mp hx
+                exact ⟨h, hh, decide_eq_true_eq.mpr heq.symm⟩
+            · intro hx
+              obtain ⟨_, hx_any⟩ := List.mem_filter.mp hx
+              obtain ⟨h, hh, hh_eq⟩ := List.any_eq_true.mp hx_any
+              rw [decide_eq_true_eq] at hh_eq
+              exact (h_conj x).mpr ⟨h, hh, hh_eq.symm⟩
+          -- ψ.act g H₀ = conjSubgroup G g hg H₀ = K ∈ Orb(H₀)
+          rw [mem_orb_iff ψ H₀ K hH₀_in_S]
+          refine ⟨g, hg, ?_⟩
+          -- ψ.act g H₀ = (if hg : g ∈ G.carrier.elems then conjSubgroup G g hg H₀ else H₀)
+          --             = conjSubgroup G g hg H₀ = K
+          have h_act_eq : ψ.act g H₀ = conjSubgroup G g hg H₀ := dif_pos hg
+          rw [h_act_eq]
+          exact h_K_eq_conj.symm
+        -- También Orb(H₀) ⊆ S (por act_closed)
+        have h_orbit_sub : ∀ K, K ∈ (ψ.orb H₀).elems → K ∈ S.elems := by
+          intro K hK
+          exact (List.mem_filter.mp hK).1
+        -- Luego Orb(H₀) = S
+        have h_orb_eq_S : ψ.orb H₀ = S := by
+          apply FSet.eq_of_mem_iff'
+          intro K
+          exact ⟨h_orbit_sub K, h_orbit_full K⟩
+        -- Por órbita–estabilizador: |Orb(H₀)| · |Stab(H₀)| = |G|
+        have h_os := orbit_stabilizer ψ H₀ hH₀_in_S
+        -- |Orb(H₀)| = |S| = lengthₚ sylows
+        have h_orb_card : (ψ.orb H₀).card = S.card := by
+          rw [h_orb_eq_S]
+        have h_S_card : S.card = lengthₚ sylows :=
+          length_ofList_eq_of_nodup sylows h_nodup
+        -- Testigo: k = |Stab(H₀)| para toda H ∈ sylows
+        intro H hH
+        refine ⟨(ψ.stab H₀ hH₀_in_S).carrier.card, ?_⟩
+        have : Mul.mul (lengthₚ sylows) (ψ.stab H₀ hH₀_in_S).carrier.card = G.carrier.card :=
+          h_S_card ▸ h_orb_card ▸ h_os
+        have h_len_eq : lengthₚ sylows = lengthₚ (H₀ :: rest) := congrArg lengthₚ h_eq
+        rw [← h_len_eq]; exact this
 
     /-- **Tercer Teorema de Sylow**: n_p ≡ 1 mod p y n_p | |G|.
-        Ambas conclusiones se derivan de los axiomas privados temporales
-        `sylow_third_mod` (acción de H sobre los subgrupos de Sylow, conteo mod p)
-        y `sylow_third_dvd` (acción de G por conjugación, órbita–estabilizador). -/
+        Se asume que `sylows` es una lista sin duplicados de todos los subgrupos de Sylow-p. -/
     theorem sylow_third (G : FinGroup ℕ₀) (p : ℕ₀)
         (hp : Prime p)
         (sylows : List (Subgroup G))
         (h_all_sylow : ∀ H ∈ sylows, isSylowSubgroup G H p)
-        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows) :
+        (h_all_included : ∀ H : Subgroup G, isSylowSubgroup G H p → H ∈ sylows)
+        (h_nodup : sylows.Nodup) :
         -- n_p ≡ 1 (mod p)
         (∃ k : ℕ₀, lengthₚ sylows = Peano.Add.add (Peano.Mul.mul p k) 𝟙) ∧
         -- n_p | |G|
         (∀ H ∈ sylows, ∃ k : ℕ₀, Mul.mul (lengthₚ sylows) k = G.carrier.card) :=
-      ⟨sylow_third_mod G p hp sylows h_all_sylow h_all_included,
-       sylow_third_dvd G p hp sylows h_all_sylow h_all_included⟩
+      ⟨sylow_third_mod G p hp sylows h_all_sylow h_all_included h_nodup,
+       sylow_third_dvd G p hp sylows h_all_sylow h_all_included h_nodup⟩
 
   end GroupTheory
 end Peano

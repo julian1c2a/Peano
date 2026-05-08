@@ -5208,12 +5208,21 @@ namespace Peano
               Λ_inj _ _ (by
                 show (ψ₀.orb K₀).card = Λ 1
                 rw [h_Λ1]; exact h_one)
-            obtain ⟨a, ha⟩ := List.length_eq_one.mp h_len1
-            have hK₀_eq_a : K₀ = a := by
-              rw [ha] at hK₀_in_orb; exact List.mem_singleton.mp hK₀_in_orb
-            have hact_eq_a : ψ₀.act h K₀ = a := by
-              rw [ha] at hact_in_orb; exact List.mem_singleton.mp hact_in_orb
-            rw [hact_eq_a, ← hK₀_eq_a]
+            cases h_orb_list : (ψ₀.orb K₀).elems with
+            | nil =>
+              rw [h_orb_list] at hK₀_in_orb
+              exact absurd hK₀_in_orb (List.not_mem_nil _)
+            | cons a rest_orb =>
+              cases rest_orb with
+              | cons b _ =>
+                simp only [List.length_cons] at h_len1; omega
+              | nil =>
+                have ha : (ψ₀.orb K₀).elems = [a] := h_orb_list
+                have hK₀_eq_a : K₀ = a := by
+                  rw [ha] at hK₀_in_orb; exact List.mem_singleton.mp hK₀_in_orb
+                have hact_eq_a : ψ₀.act h K₀ = a := by
+                  rw [ha] at hact_in_orb; exact List.mem_singleton.mp hact_in_orb
+                rw [hact_eq_a, ← hK₀_eq_a]
           -- p | |orb(K₀)|
           have h_p_dvd_orb : p ∣ (ψ₀.orb K₀).card :=
             h_prime_dvd_pow n₀ h_orbit_dvd h_orb_ne_one
@@ -5245,7 +5254,7 @@ namespace Peano
               h (K₀ :: rest_l) (fun K' => decide (K' ∈ (ψ₀.orb K₀).elems))
             intro ls q
             induction ls with
-            | nil => simp
+            | nil => rfl
             | cons a ls' ih_fs =>
               cases h_q : q a with
               | false =>
@@ -5369,9 +5378,10 @@ namespace Peano
       -- sylows.length = 1 + rest.length
       have h_filter_one : (sylows.filter (fun K => decide (K = H₀))).length = 1 := by
         apply Nat.le_antisymm
-        · apply nodup_sub_len (List.filter_sublist.nodup h_nodup)
-          intro x hx
-          exact List.mem_singleton.mpr (decide_eq_true_eq.mp (List.mem_filter.mp hx).2)
+        · calc (sylows.filter (fun K => decide (K = H₀))).length
+              ≤ [H₀].length := nodup_sub_len (List.filter_sublist.nodup h_nodup)
+                (fun x hx => List.mem_singleton.mpr (decide_eq_true_eq.mp (List.mem_filter.mp hx).2))
+            _ = 1 := rfl
         · have hmem : H₀ ∈ sylows.filter (fun K => decide (K = H₀)) :=
             List.mem_filter.mpr ⟨hH₀_in_sylows, decide_eq_true_eq.mpr rfl⟩
           cases h_nil : sylows.filter (fun K => decide (K = H₀)) with
@@ -5386,7 +5396,7 @@ namespace Peano
             h sylows (fun K => decide (K = H₀))
           intro ls q
           induction ls with
-          | nil => simp
+          | nil => rfl
           | cons a ls' ih_ls =>
             cases h_q : q a with
             | false =>

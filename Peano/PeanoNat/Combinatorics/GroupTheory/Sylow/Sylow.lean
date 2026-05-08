@@ -5298,21 +5298,24 @@ namespace Peano
             constructor
             · exact hl_closed K ((List.mem_filter.mp hK).1) h hh
             · -- goal: (!decide (ψ₀.act h K ∈ (ψ₀.orb K₀).elems)) = true
-              -- means: ψ₀.act h K ∉ (ψ₀.orb K₀).elems
               have hK_not_in_orb : K ∉ (ψ₀.orb K₀).elems := by
                 intro hK_in
                 have h2 := (List.mem_filter.mp hK).2
                 rw [decide_eq_true_eq.mpr hK_in] at h2
                 simp at h2
-              apply hK_not_in_orb
-              obtain ⟨g₀, hg₀, hg₀_eq⟩ := (mem_orb_iff ψ₀ K₀ _ hK₀_in_S).mp hact_in_orb
-              apply (mem_orb_iff ψ₀ K₀ K hK₀_in_S).mpr
-              refine ⟨H₀G.op (H₀G.inv h) g₀, op_mem H₀G (inv_mem H₀G hh) hg₀, ?_⟩
-              have hK_in_S' := hl_in_S K ((List.mem_filter.mp hK).1)
-              rw [← ψ₀.act_compat (H₀G.inv h) g₀ K₀ (inv_mem H₀G hh) hg₀ hK₀_in_S]
-              rw [hg₀_eq]
-              rw [ψ₀.act_compat (H₀G.inv h) h K (inv_mem H₀G hh) hh hK_in_S']
-              rw [(H₀G.op_inv h hh).2, ψ₀.act_id K hK_in_S']
+              have hact_not_in_orb : ψ₀.act h K ∉ (ψ₀.orb K₀).elems := by
+                intro hact_in_orb
+                apply hK_not_in_orb
+                obtain ⟨g₀, hg₀, hg₀_eq⟩ := (mem_orb_iff ψ₀ K₀ _ hK₀_in_S).mp hact_in_orb
+                apply (mem_orb_iff ψ₀ K₀ K hK₀_in_S).mpr
+                refine ⟨H₀G.op (H₀G.inv h) g₀, op_mem H₀G (inv_mem H₀G hh) hg₀, ?_⟩
+                have hK_in_S' := hl_in_S K ((List.mem_filter.mp hK).1)
+                rw [← ψ₀.act_compat (H₀G.inv h) g₀ K₀ (inv_mem H₀G hh) hg₀ hK₀_in_S]
+                rw [hg₀_eq]
+                rw [ψ₀.act_compat (H₀G.inv h) h K (inv_mem H₀G hh) hh hK_in_S']
+                rw [(H₀G.op_inv h hh).2, ψ₀.act_id K hK_in_S']
+              rw [show decide (ψ₀.act h K ∈ (ψ₀.orb K₀).elems) = false from
+                  decide_eq_false_iff_not.mpr hact_not_in_orb]
           -- Aplicar HI a rest'
           obtain ⟨k', hk'⟩ := ih (lengthₚ rest') h_rest'_lt_n rest' rfl
               h_rest'_nd h_rest'_in_S h_H₀_not_rest' h_rest'_closed
@@ -5387,32 +5390,42 @@ namespace Peano
         have h_split : (sylows.length : Nat) =
             ((sylows.filter (fun K => decide (K = H₀))).length +
             (sylows.filter (fun K => decide (K ≠ H₀))).length : Nat) := by
-          suffices h : ∀ (ls : List (Subgroup G)) (q : Subgroup G → Bool),
-              (ls.length : Nat) = ((ls.filter q).length + (ls.filter (fun x => !q x)).length : Nat) from
-            h sylows (fun K => decide (K = H₀))
-          intro ls q
+          suffices h : ∀ (ls : List (Subgroup G)),
+              (ls.length : Nat) = ((ls.filter (fun K => decide (K = H₀))).length +
+                                   (ls.filter (fun K => decide (K ≠ H₀))).length : Nat) from
+            h sylows
+          intro ls
           induction ls with
           | nil => rfl
           | cons a ls' ih_ls =>
-            cases h_q : q a with
+            cases h_eq : decide (a = H₀) with
             | false =>
-              have e1 : (a :: ls').filter q = ls'.filter q :=
-                List.filter_cons_of_neg (by simp [h_q])
-              have e2 : (a :: ls').filter (fun x => !q x) = a :: ls'.filter (fun x => !q x) := by
-                simp [h_q]
+              have ha_ne : a ≠ H₀ := decide_eq_false_iff_not.mp h_eq
+              have e1 : (a :: ls').filter (fun K => decide (K = H₀)) =
+                  ls'.filter (fun K => decide (K = H₀)) :=
+                List.filter_cons_of_neg h_eq
+              have e2 : (a :: ls').filter (fun K => decide (K ≠ H₀)) =
+                  a :: ls'.filter (fun K => decide (K ≠ H₀)) :=
+                List.filter_cons_of_pos (decide_eq_true_eq.mpr ha_ne)
               simp only [e1, e2, List.length_cons]; omega
             | true =>
-              have e1 : (a :: ls').filter q = a :: ls'.filter q :=
-                List.filter_cons_of_pos (by simp [h_q])
-              have e2 : (a :: ls').filter (fun x => !q x) = ls'.filter (fun x => !q x) := by
-                simp [h_q]
+              have ha_eq : a = H₀ := decide_eq_true_eq.mp h_eq
+              have e1 : (a :: ls').filter (fun K => decide (K = H₀)) =
+                  a :: ls'.filter (fun K => decide (K = H₀)) :=
+                List.filter_cons_of_pos h_eq
+              have e2 : (a :: ls').filter (fun K => decide (K ≠ H₀)) =
+                  ls'.filter (fun K => decide (K ≠ H₀)) :=
+                List.filter_cons_of_neg (decide_eq_false_iff_not.mpr (fun h : a ≠ H₀ => h ha_eq))
               simp only [e1, e2, List.length_cons]; omega
         rw [h_filter_one] at h_split
         omega
       have h_Λ1 : Λ 1 = 𝟙 := by change Λ 1 = σ 𝟘; rw [isomorph_σ_Λ, isomorph_0_Λ]
       simp only [lengthₚ]
-      rw [h_len_split, isomorph_Λ_add, h_Λ1, ← hk]
-      exact add_comm 𝟙 (lengthₚ rest)
+      have h_ls_nat : Nat.add 1 rest.length = sylows.length := by omega
+      rw [← h_ls_nat, isomorph_Λ_add, h_Λ1]
+      simp only [lengthₚ] at hk
+      rw [← hk]
+      exact add_comm 𝟙 (p*k)
 
     /-- n_p | |G|.
         Prueba: G actúa sobre los subgrupos de Sylow-p por conjugación (acción transitiva

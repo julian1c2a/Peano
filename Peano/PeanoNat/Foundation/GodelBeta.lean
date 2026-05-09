@@ -36,7 +36,6 @@ import Peano.PeanoNat.Combinatorics.Factorial
 import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.NumberTheory.ChineseRemainder
 import Peano.PeanoNat.Foundation.CantorPairing
-import Peano.Prelim.Classical
 
 set_option autoImplicit false
 
@@ -588,7 +587,7 @@ namespace Peano
            (Classical.choose (Classical.choose_spec (godel_beta_seq n a)))
 
   /-- Decodifica: dado el código z y la longitud n, reconstruye la lista. -/
-  noncomputable def decodeList (z : ℕ₀) : ℕ₀ → List ℕ₀
+  def decodeList (z : ℕ₀) : ℕ₀ → List ℕ₀
     | .zero   => []
     | .succ k => decodeList z k ++ [beta (fst z) (snd z) k]
 

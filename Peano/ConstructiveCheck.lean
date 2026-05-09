@@ -40,12 +40,14 @@ import Peano.PeanoNat.NumberTheory.ChineseRemainder
 
 -- Fundamentos
 import Peano.PeanoNat.Foundation.CantorPairing
+import Peano.PeanoNat.Foundation.GodelBeta
 
 -- ─────────────────────────────────────────────────────────────────
 -- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
 --
 --   Prelim/Classical.lean        — expone Classical.indefiniteDescription
---   Foundation/GodelBeta.lean    — usa Classical.choose (intencional)
+--   Foundation/GodelBeta.lean    — encodeList y encode_decode usan Classical.choose;
+--                                  beta, decodeList, godel_beta_seq SÍ son constructivos
 --   ListsAndSets/FSet.lean       — usa Classical.byContradiction
 --   ListsAndSets/FSetFunction.lean — usa Classical.byContradiction
 --   NumberTheory/Totient.lean    — importa FSet → Classical.byContradiction
@@ -224,3 +226,15 @@ end AssertConstructiveCmd
 #assert_constructive Peano.Foundation.pair_fst
 #assert_constructive Peano.Foundation.pair_snd
 #assert_constructive Peano.Foundation.pair_surj
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: GodelBeta.lean (parte constructiva)
+-- (encodeList y encode_decode usan Classical.choose — no se comprueban)
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Foundation.beta
+#assert_constructive Peano.Foundation.beta_lt
+#assert_constructive Peano.Foundation.beta_of_lt
+#assert_constructive Peano.Foundation.godel_beta_seq
+#assert_constructive Peano.Foundation.decodeList
+#assert_constructive Peano.Foundation.list_decode_length

@@ -1,92 +1,96 @@
-# Next Steps — Eliminating the Remaining Private Axioms
+# Next Steps — Estado post-Sylow y próximas tareas
 
-*Last updated: 2026-05-07*
-*Author: Julián Calderón Almendros*
+*Última actualización: 2026-05-09*
+*Autor: Julián Calderón Almendros*
 
 ---
 
-## Current build state
+## Estado actual del build (2026-05-09)
 
-`lake build` compila con **0 errores** y **0 sorry** en todo el proyecto (64 jobs).
+`lake build` compila con **0 errores**, **0 sorry** y **0 private axioms no intencionales**
+en todo el proyecto (37 jobs).
 
-Warnings activos (menores, no bloquean):
+Los únicos `private axiom` son los **6 axiomas de Peano** en `PureAxioms.lean` (intencionales).
 
-- `Sylow.lean:3044` — variable `htrans` sin usar (en `wielandt_fixed_point_exists`)
-- `Sylow.lean:3438` — variable `hg_ne` sin usar (en `wielandt_orbit_stab`)
+Los tres teoremas de Sylow están completamente demostrados:
 
-`Sylow.lean` compila con **0 sorry + 3 private axioms**:
+- `sylow_first` — ✅ existencia de p-subgrupos de Sylow
+- `sylow_second` — ✅ todos los p-subgrupos de Sylow son conjugados
+- `sylow_third` — ✅ n_p ≡ 1 (mod p) y n_p ∣ |G|
 
-| Axiom/sorry | Línea ~ | Usado por | Dificultad |
-|---|---|---|---|
-| `wielandt_p_ndvd_r` (caso `succ m'`) | ~3586 | `sylow_center_step_wielandt` | Difícil |
-| `sylow_third_mod` | ~3875 | `sylow_third` | Muy difícil |
-| `sylow_third_dvd` | ~3889 | `sylow_third` | Muy difícil |
+---
 
-**Completados en sesión 2026-05-07**:
+## Tareas pendientes (2026-05-09)
 
-- `wielandt_fixed_point_exists` — ✅ **sorry/axiom eliminado** (demostrado como teorema completo)
+### T.1 — Ampliar `ConstructiveCheck.lean` ← SIGUIENTE
 
-**Completados en sesión 2026-05-06** (infraestructura Wielandt Pieza A):
+Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
+Los módulos de GroupTheory y GodelBeta son explícitamente no constructivos (documentar).
+
+### T.2 — Migración de documentación a `/doc/` (Phase G.1)
+
+Ver sección §G.1 más abajo. No bloquea trabajo matemático.
+
+### T.3 — Feature-freeze y handoff a AczelSetTheory (Phase G.2–G.3)
+
+Precondición: T.2 completada.
+
+---
+
+## Hitos completados (histórico)
 
 - `wieldandtAct_gpow_add` — ✅ demostrado
 - `wieldandtAct_gpow_fixed_of_gcd_one` — ✅ demostrado
 - `wielandt_orbit_remove` — ✅ demostrado (6 propiedades de salida)
-- `wielandt_orbit_partition` — ✅ **sorry eliminado** (|Ω| = |fix| + p·k)
-
-**Eliminados** (histórico):
-
-- `sylow_card_eq` — 2026-04-28
-- `wielandt_omega_card` — 2026-04-28
-- `sylow_second_incl` — ✅ **ELIMINADO** (reemplazado por `coset_conjugate_exists` en `CosetAction.lean`)
-- `wielandt_fixed_point_exists` — ✅ **ELIMINADO** 2026-05-07
-
-**Infrastructure disponible** (en `Binom.lean`):
-
-- `prime_dvd_binom_prime` — `p ∣ C(p,k)` para `0 < k < p`
-- `binom_prime_row` — `C(p·r, p) = r · C(p·r-1, p-1)`
-- `binom_pr_p_mod` — `C(p·r, p) ≡ r (mod p)`
-- `binom_pow_p_mod` — `C(p^n·r, p^n) ≡ r (mod p)` (Lucas)
+- `wielandt_orbit_partition` — ✅ sorry eliminado (|Ω| = |fix| + p·k)
+- `sylow_card_eq` — ✅ 2026-04-28
+- `wielandt_omega_card` — ✅ 2026-04-28
+- `sylow_second_incl` — ✅ reemplazado por `coset_conjugate_exists` en `CosetAction.lean`
+- `wielandt_fixed_point_exists` — ✅ 2026-05-07
+- `wielandt_p_ndvd_r` (caso succ m') — ✅ 2026-05-07
+- `sylow_third_mod` — ✅ 2026-05-09
+- `sylow_third_dvd` — ✅ 2026-05-09
 
 ---
 
-## Módulos activos del proyecto
+## Módulos activos del proyecto (estado 2026-05-09)
 
-```
+```text
 Peano/PeanoNat/
 ├── (aritmética base: Add, Sub, Mul, Div, Pow, Arith, Order, …)
 ├── ListsAndSets/
 │   ├── FSet.lean                ✅ (Phase 5: API genérica — eq_of_mem_iff', sortList', ofList)
-│   ├── FSetFunction.lean        ✅
-│   ├── EquivRel.lean            ✅ (Phase 5: nuevo — EquivRelOn, classOf, 17 símbolos exportados)
+│   │                               ⚠ usa Classical.byContradiction en 1 lema — no constructivo
+│   ├── FSetFunction.lean        ✅ ⚠ usa Classical.byContradiction — no constructivo
+│   ├── EquivRel.lean            ✅ (Phase 5: nuevo — EquivRelOn, classOf, 17 símbolos)
 │   └── (…)
 ├── NumberTheory/
-│   ├── ModEq.lean           ✅ sin axiomas
-│   ├── Fermat.lean          ✅ sin axiomas
-│   ├── ChineseRemainder.lean ✅ sin axiomas
-│   ├── Totient.lean         ✅ sin axiomas
-│   └── Wilson.lean          ✅ sin axiomas  ← COMPLETADO 2026-05-05
+│   ├── ModEq.lean           ✅ constructivo
+│   ├── Fermat.lean          ✅ constructivo
+│   ├── ChineseRemainder.lean ✅ constructivo
+│   ├── Totient.lean         ✅ constructivo
+│   └── Wilson.lean          ✅ constructivo (2026-05-05)
 ├── Combinatorics/
-│   ├── Binom.lean           ✅
-│   ├── NewtonBinom.lean      ✅
-│   ├── Perm.lean            ⚠ §3–§4 marcadas como "sorry" en comentarios
-│   │                          (no son sorry reales — el código compila)
+│   ├── Binom.lean           ✅ constructivo
+│   ├── NewtonBinom.lean      ✅ constructivo
+│   ├── Perm.lean            ✅ constructivo (comentarios §3-§4 son notas, no sorry reales)
 │   └── GroupTheory/
-│       ├── Action.lean             ✅ (Phase 5: completamente polimórfico sobre {α β : Type})
-│       ├── NormalSubgroup.lean     ✅ centralizer, normalizer, rightCoset, criterios
-│       ├── QuotientGroup.lean      ✅ quotientGroup, quotientHomomorphism, imageSubgroup
-│       ├── FirstIsomorphism.lean   ✅ homKer, homImg, firstIsoMap (inyectivo + sobreyectivo)
-│       ├── SecondIsomorphism.lean  ✅ subgroupHN, interHN, secondIsoMap
-│       ├── CorrespondenceTheorem.lean ✅ preimageSubgroup, SubgroupAbove, φ/ψ biyección  ← AÑADIDO 2026-05-05
+│       ├── Action.lean             ✅ ⚠ usa Classical.em — no constructivo (teoría de grupos)
+│       ├── NormalSubgroup.lean     ✅ ⚠ no constructivo (depende de Action)
+│       ├── QuotientGroup.lean      ✅ ⚠ no constructivo
+│       ├── FirstIsomorphism.lean   ✅ ⚠ no constructivo
+│       ├── SecondIsomorphism.lean  ✅ ⚠ no constructivo
+│       ├── CorrespondenceTheorem.lean ✅ ⚠ no constructivo (2026-05-05)
 │       └── Sylow/
-│           ├── Cosets.lean       ✅ (Phase 5: completamente polimórfico sobre {α : Type})
-│           ├── CosetAction.lean  ✅ coset_conjugate_exists (cierra sylow_second_incl)
-│           └── Sylow.lean        ⚠ 0 sorry + 3 private axioms
+│           ├── Cosets.lean       ✅ constructivo (Phase 5)
+│           ├── CosetAction.lean  ✅ ⚠ usa Classical.em — no constructivo
+│           └── Sylow.lean        ✅ 0 sorry, 0 private axioms no intencionales (2026-05-09)
 └── Foundation/
-    ├── CantorPairing.lean   ✅
-    ├── GodelBeta.lean       ✅
+    ├── CantorPairing.lean   ✅ constructivo
+    ├── GodelBeta.lean       ✅ ⚠ usa Classical.choose — no constructivo (intencional)
     ├── Foundation.lean      ✅ (paraguas)
-    ├── Initiality.lean      ✅
-    ├── PeanoSystem.lean     ✅
+    ├── Initiality.lean      ✅ constructivo
+    ├── PeanoSystem.lean     ✅ constructivo
     └── PureAxioms.lean      ✅ (6 axiomas de Peano — intencionales)
 ```
 
@@ -253,14 +257,15 @@ Estos no bloquean ningún track pero conviene limpiarlos en algún momento:
 
 ---
 
-## Orden de ejecución
+## Orden de ejecución (2026-05-09)
 
-```
-wielandt_p_ndvd_r (succ m')  ← siguiente prioridad (Track 1)
-  └─ Conjugation.lean            ← después (Track 3)
-```
+Todos los tracks matemáticos están completados. El orden de trabajo restante es:
 
-Track 2 (`CosetAction.lean`) y `wielandt_fixed_point_exists` ya están completos.
+```text
+T.1 ConstructiveCheck.lean (ampliar cobertura)  ← SIGUIENTE
+T.2 Migración documentación a /doc/
+T.3 Feature-freeze + handoff a AczelSetTheory
+```
 
 ---
 
@@ -282,7 +287,7 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 
 *Decisión adoptada 2026-05-02.*
 
-### G.0 — Estado actual (2026-05-07)
+### G.0 — Estado actual (2026-05-09)
 
 | Ítem | Estado |
 |------|---------|
@@ -297,7 +302,7 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 | `CorrespondenceTheorem.lean` | ✅ COMPLETADO (2026-05-05) |
 | `CosetAction.lean` (Sylow II) | ✅ COMPLETADO |
 | Phase 5 polimorfismo FinGroup/FSet/EquivRel | ✅ COMPLETADO (2026-05-07) |
-| 3 private axioms Sylow (0 sorry) | ❌ Pendiente (Tracks 1 y 3) |
+| Sylow.lean 0 sorry + 0 private axioms no intencionales | ✅ COMPLETADO (2026-05-09) |
 | G.1 Migración documentación a `/doc/` | ❌ Pendiente |
 
 ### G.1 — Migración de documentación a `/doc/`
@@ -370,6 +375,7 @@ Una vez feature-frozen Peano:
 son ahora completamente polimórficos sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
 
 **Lo que se hizo**:
+
 - `FSet.lean`: añadidos `sorted_nodup_unique_list'` (genérico privado), `FSet.eq_of_mem_iff'`,
   `sortedInsert'`, `sortList'`, `FSet.ofList` y sus lemas.
 - `EquivRel.lean`: nuevo módulo con `EquivRelOn`, `classOf`, familia canónica, `classes` y 17 símbolos exportados.

@@ -12,11 +12,46 @@ License: MIT
 import Lean.Elab.Command
 import Lean.Util.CollectAxioms
 
--- Importar los módulos cuyos teoremas queremos vigilar
-import Peano.PeanoNat.Primes
+-- ─────────────────────────────────────────────────────────────────
+-- Módulos CONSTRUCTIVOS bajo vigilancia
+-- (ninguno importa FSet ni Classical directamente)
+-- ─────────────────────────────────────────────────────────────────
+
+-- Aritmética base
+import Peano.PeanoNat.Add
+import Peano.PeanoNat.Sub
+import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.WellFounded
+import Peano.PeanoNat.Primes
+
+-- Combinatoria pura
 import Peano.PeanoNat.Combinatorics.Pow
+import Peano.PeanoNat.Combinatorics.Factorial
+import Peano.PeanoNat.Combinatorics.Fibonacci
+import Peano.PeanoNat.Combinatorics.Summation
+import Peano.PeanoNat.Combinatorics.Binom
+import Peano.PeanoNat.Combinatorics.NewtonBinom
+
+-- Teoría de números (sin FSet en la cadena de importación)
+import Peano.PeanoNat.NumberTheory.ModEq
+import Peano.PeanoNat.NumberTheory.ChineseRemainder
+-- (Wilson/Fermat/Totient importan FSet → no constructivos)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
+--
+--   Prelim/Classical.lean        — expone Classical.indefiniteDescription
+--   Foundation/GodelBeta.lean    — usa Classical.choose (intencional)
+--   Foundation/CantorPairing.lean— usa Peano.choose → Classical.choice
+--   ListsAndSets/FSet.lean       — usa Classical.byContradiction
+--   ListsAndSets/FSetFunction.lean — usa Classical.byContradiction
+--   NumberTheory/Totient.lean    — importa FSet → Classical.byContradiction
+--   NumberTheory/Fermat.lean     — importa Totient → FSet
+--   NumberTheory/Wilson.lean     — importa Fermat → Totient → FSet
+--   Combinatorics/GroupTheory/*  — usa Classical.em (teoría de grupos)
+--   Sylow/*                      — usa Classical.em y byContradiction
+-- ─────────────────────────────────────────────────────────────────
 
 set_option autoImplicit false
 
@@ -71,3 +106,96 @@ end AssertConstructiveCmd
 
 -- TEST: descomentar para verificar que la guarda detecta Classical:
 -- #assert_constructive Peano.choose_spec
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Add.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Add.add_zero
+#assert_constructive Peano.Add.add_succ
+#assert_constructive Peano.Add.add_comm
+#assert_constructive Peano.Add.add_assoc
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Sub.lean  (namespace Peano.Sub)
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Sub.sub_zero
+#assert_constructive Peano.Sub.add_k_sub_k
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Mul.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Mul.mul_zero
+#assert_constructive Peano.Mul.mul_comm
+#assert_constructive Peano.Mul.mul_assoc
+#assert_constructive Peano.Mul.mul_add
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Factorial.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Factorial.factorial_zero
+#assert_constructive Peano.Factorial.factorial_succ
+#assert_constructive Peano.Factorial.factorial_pos
+#assert_constructive Peano.Factorial.factorial_ne_zero
+#assert_constructive Peano.Factorial.factorial_ge_one
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Fibonacci.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Fibonacci.fib_zero
+#assert_constructive Peano.Fibonacci.fib_one
+#assert_constructive Peano.Fibonacci.fib_succ_succ
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Summation.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Summation.finSum_zero
+#assert_constructive Peano.Summation.finSum_succ
+#assert_constructive Peano.Summation.finSum_add_fn
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Binom.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Binom.binom_pascal
+#assert_constructive Peano.Binom.binom_self
+#assert_constructive Peano.Binom.binom_pos
+#assert_constructive Peano.Binom.binom_mul_factorials
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: NewtonBinom.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.NewtonBinom.sum_binom_eq_pow_two
+#assert_constructive Peano.NewtonBinom.newton_binom
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: ModEq.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.ModEq.modEq_refl
+#assert_constructive Peano.ModEq.modEq_symm
+#assert_constructive Peano.ModEq.modEq_trans
+#assert_constructive Peano.ModEq.modEq_add
+#assert_constructive Peano.ModEq.modEq_mul
+#assert_constructive Peano.ModEq.modEq_pow
+#assert_constructive Peano.ModEq.mod_eq_zero_iff_dvd
+#assert_constructive Peano.ModEq.modEq_zero_iff_dvd
+
+-- ─────────────────────────────────────────────────────────────────
+-- Wilson.lean — NO constructivo:
+--   Wilson.lean → Fermat.lean → Totient.lean → FSet.lean
+--   → Classical.byContradiction → Classical.choice
+-- ─────────────────────────────────────────────────────────────────
+-- (sin comprobaciones para Wilson)
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: ChineseRemainder.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.CRT.chinese_remainder

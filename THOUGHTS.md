@@ -90,64 +90,25 @@ adyacentes.
 - REFERENCE.md must be self-sufficient for AI assistants
 - The "project" protocol (AI-GUIDE.md §12) prevents documentation drift
 
-### Isomorfismos Nat↔ℕ₀ (2026-04-09)
+### Como probar el lema de Zasenhauss
 
-- **`Coe Nat ℕ₀` causa ambigüedad de operadores**: `(Ψ x + 1) * Ψ y` es ambiguo entre
-  ops de Peano y ops de Nat. Solución: evitar `show` con aritmética infix; usar rewrites
-  explícitos (`Nat.add_mul`, `Nat.one_mul`) o calificadores (`Nat.div`).
-- **Patrón `congrArg Ψ` + rewrite en hipótesis**: Cuando `rw [isomorph_Ψ_add]` en el
-  objetivo reescribe al revés (por la coerción), transportar la hipótesis con
-  `congrArg Ψ h_eq` y luego `rw [...] at h_transported`.
-- **`isomorph_Ψ_mod` requiere `m ≠ 𝟘`**: Peano define `mod n 𝟘 = 𝟘` pero
-  Lean core define `Nat.mod n 0 = n`. No hay isomorfismo incondicionado.
-- **`omega` no resuelve div/mod no-lineales**: Hay que usar `Nat.div_eq_of_lt_le` explícitamente.
+Digamos que tenemos un grupo (notación multiplicativa) `G` y dos subgrupos `H` y `K` de `G`. Además tenemos un subgrupo normal de `H`, digamos `N`, y otros subgrupo normal de `K`, digamos `M`.
 
-### Foundation/GodelBeta.lean (2026-05-02)
+En símbolos:
 
-- **`List.map_congr` no existe en Lean 4 core**: el nombre correcto es `List.map_congr_left`.
-- **`isomorph_Λ_le i m : le₀ (Λ i) (Λ m) ↔ i ≤ m`**: la dirección `.mp` va de `i ≤ m` a
-  `le₀ (Λ i) (Λ m)`, no al revés. Confundir la dirección bloquea la prueba silenciosamente.
-- **`set` tactic no disponible**: en Lean 4 core sin Mathlib, usar `let`/`have` en su lugar.
-- **`List.range_succ_eq_map`**: existe en Lean 4 core; permite demostrar `list_map_getD_range`
-  por inducción con `simp [List.range_succ_eq_map]` (cierra automáticamente).
-- **`List.length_pos.mpr` no existe en este contexto**: usar `Nat.succ_pos xs.length`.
-- **`noncomputable def` + `Classical.choice`**: la no-computabilidad de `encodeList` es
-  inevitable; el `decodeList` sí es computable (puro `map` sobre `List.range`).
+- `G` es un grupo
+- `H ≤ G` y `K ≤ G`
+- `N ⊲ H` y `M ⊲ K`
 
-### Phase 5 — Polimorfismo completo de FinGroup/FSet (2026-05-07)
+El lema de Zasenhauss dice:
 
-Refactorización completa de `Action.lean`, `Cosets.lean`, `FSet.lean`, `Group.lean`
-y nuevo módulo `EquivRel.lean`. Lecciones:
-
-- **`sorted_nodup_unique_list'` debe ir ANTES de `namespace FSet`**: en Lean 4.29.0
-  sin Mathlib, las `private theorem` con pattern matching estilo ecuación no se ven
-  dentro del namespace si se definen después de abrirlo.
-- **`[DecidableEq α]` es obligatorio en lemas de unicidad de listas ordenadas**: la
-  prueba de igualdad por extensión requiere comparar elementos por igualdad.
-- **`FSet.eq_of_mem_iff'` vs `FSet.eq_of_mem_iff`**: la versión anterior era específica
-  para `ℕ₀`. Fue necesario añadir `eq_of_mem_iff'` genérico para el refactor polimórfico.
-- **Instancias de `Subgroup`**: para `FSet (Subgroup G)` hacen falta
-  `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup` en `Group.lean`.
-  La igualdad se basa en `carrier`; el orden lexicográfico sobre `elems` es suficiente.
-- **`▸`-chaining en `htail` causa type mismatch**: al reescribir con `▸` en cadena,
-  el tipo del goal puede quedar en forma reducida que no coincide con la siguiente reescritura.
-  Solución: usar `have h_lt : x < z := ...; rw [h_eq, hxy] at h_lt; exact absurd h_lt (slo.irrefl y)`.
-
-### Wielandt / Sylow (2026-05-06 – 2026-05-07)
-
-- **`well_founded_lt.induction`**: la forma correcta de hacer inducción bien fundada
-  sobre `ℕ₀` es via `well_founded_lt.induction`. El `ih` resultante tiene la forma
-  `∀ m, lt₀ m n → P m`, lo que requiere proporcionar la prueba de `lt₀` explícitamente.
-- **Rama no-fija con `wielandt_orbit_remove`**: extrae exactamente p elementos de Ω
-  (la p-órbita de S), reduciendo el tamaño de la lista. Garantiza terminación de la
-  inducción: en la rama no-fija, `lengthₚ Ω_rem = lengthₚ Ω − p < n`.
-- **`calc` con `← add_assoc` + `← mul_succ`**: cierre algebraico del caso no-fijo:
-  `add (mul p k') p = mul p (σ k')` via `← mul_succ`.
-- **6ª propiedad de `wielandt_orbit_remove`**: se necesita `∀ T, T ∈ Ω' → T ∈ Ω`
-  (inclusión) para propagar `hΩ_sorted`/`hΩ_mem` al IH de `wielandt_orbit_partition`.
-- **`bezout_natform`**: devuelve identidad de Bézout en forma `∃ bn bm, 𝟙 = sub (mul bn k) (mul bm p) ∨ ...`.
-  Para usar en `wieldandtAct_gpow_fixed_of_gcd_one` hay que tratar ambas ramas del `rcases`
-  simétricamente.
-- **Lean 4.29.0 trampas en inducción sobre listas**: `rcases h with rfl` sobre `a = x`
-  (variable de inducción) puede eliminar `x` en lugar de `a`; usar `cases` + `rw` explícito.
-  `congrArg σ` falla porque `σ` es notación; usar `rw [ih ...]` directamente.
+$$
+\begin{aligned}
+& N \cap K \quad ⊴ \quad H \cap K \\
+& H \cap M \quad ⊴ \quad H \cap K \\
+& (N \cap K)(H \cap M) \quad ⊴ \quad H \cap K \\
+& N (H ∩ M) \quad ⊴ \quad N (H ∩ K) \\
+& M (N ∩ K) \quad ⊴ \quad M (H ∩ K) \\
+& \frac {N (H ∩ K)} {N (H ∩ M)} \quad ≅ \quad \frac {H ∩ K} {(N \cap K)(H \cap M)}  \quad ≅ \quad \frac {M (H ∩ K)} {M (N ∩ K)}
+\end{aligned}
+$$

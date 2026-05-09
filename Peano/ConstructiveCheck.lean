@@ -42,6 +42,20 @@ import Peano.PeanoNat.NumberTheory.ChineseRemainder
 import Peano.PeanoNat.Foundation.CantorPairing
 import Peano.PeanoNat.Foundation.GodelBeta
 
+-- Orden y comparación
+import Peano.PeanoNat.StrictOrder
+import Peano.PeanoNat.Order
+import Peano.PeanoNat.Lattice
+
+-- Aritmética extendida
+import Peano.PeanoNat.Sqrt
+import Peano.PeanoNat.Log
+
+-- Estructuras de datos
+import Peano.PeanoNat.Digits
+import Peano.PeanoNat.Tuple
+import Peano.PeanoNat.Pairing
+
 -- ─────────────────────────────────────────────────────────────────
 -- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
 --
@@ -53,6 +67,11 @@ import Peano.PeanoNat.Foundation.GodelBeta
 --   NumberTheory/Totient.lean    — importa FSet → Classical.byContradiction
 --   NumberTheory/Fermat.lean     — importa Totient → FSet
 --   NumberTheory/Wilson.lean     — importa Fermat → Totient → FSet
+--   Combinatorics/Counting.lean  — importa FSet → Classical.byContradiction
+--   Combinatorics/Perm.lean      — importa FSet → Classical.byContradiction
+--   Combinatorics/Sign.lean      — importa FSet + Perm → Classical.byContradiction
+--   Combinatorics/Orbit.lean     — importa FSet + Group → Classical.em
+--   Combinatorics/Product.lean   — importa FSet → Classical.byContradiction
 --   Combinatorics/GroupTheory/*  — usa Classical.em (teoría de grupos)
 --   Sylow/*                      — usa Classical.em y byContradiction
 -- ─────────────────────────────────────────────────────────────────
@@ -238,3 +257,84 @@ end AssertConstructiveCmd
 #assert_constructive Peano.Foundation.godel_beta_seq
 #assert_constructive Peano.Foundation.decodeList
 #assert_constructive Peano.Foundation.list_decode_length
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: StrictOrder.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.StrictOrder.lt₀
+#assert_constructive Peano.StrictOrder.lt_trans
+#assert_constructive Peano.StrictOrder.lt_irrefl
+#assert_constructive Peano.StrictOrder.trichotomy
+#assert_constructive Peano.StrictOrder.lt_then_lt_succ
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Order.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Order.le₀
+#assert_constructive Peano.Order.le_refl
+#assert_constructive Peano.Order.le_trans
+#assert_constructive Peano.Order.le_antisymm
+#assert_constructive Peano.Order.le_total
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Lattice.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Lattice.max
+#assert_constructive Peano.Lattice.min
+#assert_constructive Peano.Lattice.max_comm
+#assert_constructive Peano.Lattice.min_comm
+#assert_constructive Peano.Lattice.le_max_left
+#assert_constructive Peano.Lattice.min_le_left
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Sqrt.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Sqrt.sqrtMod
+#assert_constructive Peano.Sqrt.sqrt
+#assert_constructive Peano.Sqrt.sqrtRem
+#assert_constructive Peano.Sqrt.sqrtMod_spec
+#assert_constructive Peano.Sqrt.sqrt_upper_bound
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Log.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Log.logMod
+#assert_constructive Peano.Log.log
+#assert_constructive Peano.Log.logRem
+#assert_constructive Peano.Log.logMod_spec
+#assert_constructive Peano.Log.log_upper_bound
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Digits.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Digits.digits
+#assert_constructive Peano.Digits.ofDigits
+#assert_constructive Peano.Digits.numDigits
+#assert_constructive Peano.Digits.ofDigitsFin_digits
+#assert_constructive Peano.Digits.digits_singleton_of_lt
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Tuple.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Tuple
+#assert_constructive Peano.emptyTuple
+#assert_constructive Peano.consTuple
+#assert_constructive Peano.headTuple
+#assert_constructive Peano.lexLt_trans
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: Pairing.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Pairing.tri
+#assert_constructive Peano.Pairing.cantorPair
+#assert_constructive Peano.Pairing.cantorUnpair
+#assert_constructive Peano.Pairing.cantorPair_cantorUnpair
+#assert_constructive Peano.Pairing.cantorUnpair_cantorPair

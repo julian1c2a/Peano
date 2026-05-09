@@ -28,10 +28,6 @@ three Sylow theorems.
 
 - [ ] Should export blocks in Peano.lean be migrated to individual leaf modules per §30?
 - [ ] Is the Peano/ vs Peano namespace mismatch worth resolving?
-- [ ] Should FSetFunction.lean (~1550 lines, ~92 declarations) be split into smaller modules?
-- [ ] How to approach `sylow_third_mod` and `sylow_third_dvd`? (requires constructing
-  `FinGroup (Subgroup G)` — infrastructure now available via Phase 5, but the concrete
-  `instance` still needs to be built)
 
 **Resolved questions:**
 
@@ -42,12 +38,6 @@ three Sylow theorems.
   sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]` en toda la infraestructura.
 - ~~Phase F Foundation (CantorPairing + GodelBeta)~~ → Phase F completamente terminada
   (2026-05-02): F.1 CantorPairing ✅, F.2 GodelBeta ✅, F.3 paraguas Foundation.lean ✅.
-
----
-
-- Gap 1: p_group_center_nontrivial (ecuación de clases) — hay que    probar en NormalSubgroup.lean — ✅ COMPLETADO (2026-05-07)
-- Gap 2: preimage_subgroup_card — ✅ COMPLETADO (2026-05-07): `CorrespondenceTheorem.lean` exporta `preimage_subgroup_card`
-- Gap 3: añadir parámetro HI (IH fuerte) a wielandt_p_ndvd_r : *HACIÉNDOSE* — requiere refactorización de Sylow.lean para pasar HI a través de sylow_center_step_wielandt → coset_conjugate_exists → wielandt_p_ndvd_r; el caso succ m' es bloqueado por la falta de soporte de grupos cociente en FinGroup (Phase 5).
 
 ---
 

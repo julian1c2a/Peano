@@ -115,9 +115,9 @@ namespace Peano
 
     /-- Recursión fuerte sobre ℕ₀: para construir `C n` podemos
         suponer que ya tenemos `C k` para todo `k < n`. -/
-    noncomputable def strongRecOn {C : ℕ₀ → Sort _} (n : ℕ₀)
+    def strongRecOn {C : ℕ₀ → Sort _} (n : ℕ₀)
         (h : ∀ m : ℕ₀, (∀ k : ℕ₀, lt₀ k m → C k) → C m) : C n :=
-      well_founded_lt.recursion n h
+      well_founded_lt.fix h n
 
     /-- Inducción fuerte sobre ℕ₀ (caso proposicional). -/
     theorem strongInductionOn {P : ℕ₀ → Prop} (n : ℕ₀)

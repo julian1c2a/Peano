@@ -120,6 +120,7 @@ end AssertConstructiveCmd
 -- ─────────────────────────────────────────────────────────────────
 
 #assert_constructive Peano.WellFounded.well_founded_lt
+#assert_constructive Peano.WellFounded.strongRecOn
 
 -- ─────────────────────────────────────────────────────────────────
 -- Comprobaciones: Pow.lean

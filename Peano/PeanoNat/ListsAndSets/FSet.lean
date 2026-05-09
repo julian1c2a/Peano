@@ -447,7 +447,7 @@ namespace Peano
           next hneq =>
             have hys := (List.pairwise_cons.mp hs).2
             have hyx : y < x :=
-              Classical.byContradiction (fun h => hneq (StrictLinearOrder.trich x y h_nlt h))
+              Decidable.byContradiction (fun h => hneq (StrictLinearOrder.trich x y h_nlt h))
             refine List.Pairwise.cons (fun z hz => ?_) (ih hys)
             rcases mem_sortedInsert_iff.mp hz with h | h
             · exact h ▸ hyx
@@ -1085,10 +1085,8 @@ namespace Peano
                 match mem_sortedInsert'_iff.mp hz with
                 | Or.inl hzx =>
                     hzx ▸
-                    by
-                      by_cases hyx : y < x
-                      · exact hyx
-                      · exact False.elim (hneq (slo.trich x y hnotlt hyx))
+                    have : Decidable (y < x) := slo.decLt y x
+                    Decidable.byContradiction (fun hyx => hneq (slo.trich x y hnotlt hyx))
                 | Or.inr hmem => List.rel_of_pairwise_cons hs hmem)
               (ih hys)
 

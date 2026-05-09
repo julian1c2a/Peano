@@ -518,44 +518,88 @@ namespace Peano
         rw [List.nodup_cons] at hn
         obtain ⟨hx, hxs⟩ := hn
         rw [List.count_cons]
-        by_cases hax : a = x
-        · subst hax
+        cases decEq a x with
+        | isTrue hax =>
+          subst hax
           have h0 : List.count a xs = 0 := List.count_eq_zero_of_not_mem hx
           simp [h0]
-        · have hne : x ≠ a := Ne.symm hax
+        | isFalse hax =>
+          have hne : x ≠ a := Ne.symm hax
           have hf : (x == a) = false := by simp [hne]
           simp [hf, ih hxs]
 
-    private theorem nodup_length_eq_of_same_elems {α : Type} [DecidableEq α]
-        {l₁ l₂ : List α}
-        (h1 : l₁.Nodup) (h2 : l₂.Nodup)
-        (hsub12 : ∀ x, x ∈ l₁ → x ∈ l₂)
-        (hsub21 : ∀ x, x ∈ l₂ → x ∈ l₁) :
-        l₁.length = l₂.length := by
-      apply List.Perm.length_eq
-      rw [List.perm_iff_count]
-      intro a
-      by_cases ha1 : a ∈ l₁
-      · have ha2 : a ∈ l₂ := hsub12 a ha1
-        have hc1 : List.count a l₁ = 1 := by
-          have := nodup_count_le_one a l₁ h1
-          have := List.count_pos_iff.mpr ha1
-          omega
-        have hc2 : List.count a l₂ = 1 := by
-          have := nodup_count_le_one a l₂ h2
-          have := List.count_pos_iff.mpr ha2
-          omega
-        omega
-      · have ha2 : a ∉ l₂ := fun h => ha1 (hsub21 a h)
-        rw [List.count_eq_zero_of_not_mem ha1, List.count_eq_zero_of_not_mem ha2]
+    /-- Constructiva: si `a ≠ b`, entonces `a ∈ l.erase b ↔ a ∈ l`. -/
+    private theorem peano_mem_erase_of_ne {α : Type} [DecidableEq α]
+        {a b : α} (h_ne : a ≠ b) : ∀ {l : List α}, a ∈ l.erase b ↔ a ∈ l
+      | [] => Iff.rfl
+      | x :: xs => by
+        cases decEq b x with
+        | isTrue hbx =>
+          subst hbx
+          simp only [List.erase_cons_head]
+          constructor
+          · intro h; exact List.mem_cons_of_mem _ h
+          · intro h
+            rcases List.mem_cons.mp h with rfl | h'
+            · exact absurd rfl h_ne
+            · exact h'
+        | isFalse hbx =>
+          have hbne : (x == b) = false := beq_eq_false_iff_ne.mpr (Ne.symm hbx)
+          rw [show (x :: xs).erase b = x :: xs.erase b from by
+                simp only [List.erase, hbne]]
+          simp only [List.mem_cons]
+          constructor
+          · rintro (rfl | h)
+            · left; rfl
+            · right; exact (peano_mem_erase_of_ne h_ne).mp h
+          · rintro (rfl | h)
+            · left; rfl
+            · right; exact (peano_mem_erase_of_ne h_ne).mpr h
 
-    /-- `lengthₚ` de una lista: `lengthₚ l = Λ l.length`. -/
-    private theorem lengthₚ_eq_Λ_length {α : Type} (l : List α) :
-        lengthₚ l = Λ l.length := rfl
+    /-- Constructiva: si `a ∈ l`, entonces `(l.erase a).length.succ = l.length`. -/
+    private theorem peano_length_erase_of_mem {α : Type} [DecidableEq α] {a : α} :
+        ∀ {l : List α}, a ∈ l → (l.erase a).length.succ = l.length
+      | [], h => absurd h List.not_mem_nil
+      | x :: xs, h => by
+        cases decEq a x with
+        | isTrue hax =>
+          subst hax
+          simp [List.erase_cons_head, List.length_cons]
+        | isFalse hax =>
+          have hbne : (x == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm hax)
+          rw [show (x :: xs).erase a = x :: xs.erase a from by
+                simp only [List.erase, hbne]]
+          simp only [List.length_cons]
+          have ha_xs : a ∈ xs := by
+            rcases List.mem_cons.mp h with rfl | h'
+            · exact absurd rfl hax
+            · exact h'
+          have h_ih := peano_length_erase_of_mem ha_xs
+          omega
 
-    /-- `Λ` es inyectiva (del proyecto). -/
-    private theorem Λ_inj_local (n m : Nat) : Λ n = Λ m → n = m :=
-      Peano.Axioms.Λ_inj n m
+    /-- Constructiva: si `a ∈ l`, entonces `(a :: l.erase a) ~ l`. -/
+    private theorem peano_perm_cons_erase {α : Type} [DecidableEq α] {a : α} :
+        ∀ {l : List α}, a ∈ l → List.Perm (a :: l.erase a) l
+      | [], h => absurd h List.not_mem_nil
+      | x :: xs, h => by
+        cases decEq a x with
+        | isTrue hax =>
+          subst hax
+          simp [List.erase_cons_head]
+        | isFalse hax =>
+          have hbne : (x == a) = false := beq_eq_false_iff_ne.mpr (Ne.symm hax)
+          rw [show (x :: xs).erase a = x :: xs.erase a from by
+                simp only [List.erase, hbne]]
+          have ha_xs : a ∈ xs := by
+            rcases List.mem_cons.mp h with rfl | h'
+            · exact absurd rfl hax
+            · exact h'
+          -- swap x a l : (a :: x :: l).Perm (x :: a :: l)  (orden Lean 4)
+          have hswap : List.Perm (a :: x :: xs.erase a) (x :: a :: xs.erase a) :=
+            List.Perm.swap x a (xs.erase a)
+          have hcons : List.Perm (x :: a :: xs.erase a) (x :: xs) :=
+            List.Perm.cons x (peano_perm_cons_erase ha_xs)
+          exact hswap.trans hcons
 
     /-- Lema auxiliar: lista nodup contenida (como conjunto) en otra → longitud ≤. -/
     private theorem nodup_subset_length_le {α : Type} [DecidableEq α] :
@@ -569,15 +613,29 @@ namespace Peano
         have hsub' : ∀ x, x ∈ l₁' → x ∈ l₂.erase a := by
           intro x hx
           have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx)
-          exact (List.mem_erase_of_ne hx_ne_a).mpr (hsub x (List.mem_cons_of_mem a hx))
+          exact (peano_mem_erase_of_ne hx_ne_a).mpr (hsub x (List.mem_cons_of_mem a hx))
         have h_ih := nodup_subset_length_le hnd' hsub'
         rw [List.length_cons]
-        have h_erase_len := List.length_erase_of_mem ha2
-        have h_pos : 0 < l₂.length := by
-          cases l₂ with
-          | nil => exact absurd ha2 List.not_mem_nil
-          | cons _ _ => exact Nat.zero_lt_succ _
+        have h_erase_len := peano_length_erase_of_mem ha2
         omega
+
+    private theorem nodup_length_eq_of_same_elems {α : Type} [DecidableEq α]
+        {l₁ l₂ : List α}
+        (h1 : l₁.Nodup) (h2 : l₂.Nodup)
+        (hsub12 : ∀ x, x ∈ l₁ → x ∈ l₂)
+        (hsub21 : ∀ x, x ∈ l₂ → x ∈ l₁) :
+        l₁.length = l₂.length :=
+      Nat.le_antisymm
+        (nodup_subset_length_le h1 hsub12)
+        (nodup_subset_length_le h2 hsub21)
+
+    /-- `lengthₚ` de una lista: `lengthₚ l = Λ l.length`. -/
+    private theorem lengthₚ_eq_Λ_length {α : Type} (l : List α) :
+        lengthₚ l = Λ l.length := rfl
+
+    /-- `Λ` es inyectiva (del proyecto). -/
+    private theorem Λ_inj_local (n m : Nat) : Λ n = Λ m → n = m :=
+      Peano.Axioms.Λ_inj n m
 
     /-- Lema auxiliar: si `l` es nodup, `a₁ ≠ a₂`, ambos en `l`, y `f a₁ = f a₂`,
         entonces `l.map f` no es nodup. -/
@@ -626,32 +684,32 @@ namespace Peano
             rcases List.mem_cons.mp hx with rfl | hx'
             · exact h_in_erase
             · have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx')
-              exact (List.mem_erase_of_ne hx_ne_a).mpr
+              exact (peano_mem_erase_of_ne hx_ne_a).mpr
                 (h12 x (List.mem_cons_of_mem a hx'))
           rw [List.length_cons] at h_le hlen
-          have h_erase := List.length_erase_of_mem ha2
+          have h_erase := peano_length_erase_of_mem ha2
           omega
         -- l₂.erase a has same elements as l₁' and same length
         have h12' : ∀ x, x ∈ l₁' → x ∈ l₂.erase a := by
           intro x hx
           have hx_ne_a : x ≠ a := fun heq => ha_nin (heq ▸ hx)
-          exact (List.mem_erase_of_ne hx_ne_a).mpr
+          exact (peano_mem_erase_of_ne hx_ne_a).mpr
             (h12 x (List.mem_cons_of_mem a hx))
         have h21' : ∀ x, x ∈ l₂.erase a → x ∈ l₁' := by
           intro x hx
           have hx_ne_a : x ≠ a := fun heq => ha_not_erase (heq ▸ hx)
-          have hx_l2 : x ∈ l₂ := (List.mem_erase_of_ne hx_ne_a).mp hx
+          have hx_l2 : x ∈ l₂ := (peano_mem_erase_of_ne hx_ne_a).mp hx
           rcases List.mem_cons.mp (h21 x hx_l2) with rfl | hx'
           · exact absurd hx ha_not_erase
           · exact hx'
         have hlen' : l₁'.length = (l₂.erase a).length := by
           rw [List.length_cons] at hlen
-          have := List.length_erase_of_mem ha2
+          have := peano_length_erase_of_mem ha2
           omega
         have hnd_erase : (l₂.erase a).Nodup :=
           nodup_of_nodup_same_elems_length_eq hnd' h12' h21' hlen'
         -- l₂ = Perm(a :: l₂.erase a), and a :: l₂.erase a is nodup
-        exact (List.perm_cons_erase ha2).nodup_iff.mpr
+        exact (peano_perm_cons_erase ha2).nodup_iff.mp
           (List.nodup_cons.mpr ⟨ha_not_erase, hnd_erase⟩)
 
     /-- Dos listas sin duplicados de la misma longitud donde una
@@ -662,33 +720,25 @@ namespace Peano
         (hsub : ∀ x, x ∈ l₁ → x ∈ l₂)
         (hlen : l₁.length = l₂.length) :
         List.Perm l₁ l₂ := by
-      rw [List.perm_iff_count]
-      intro a
-      by_cases ha₁ : a ∈ l₁
-      · have ha₂ : a ∈ l₂ := hsub a ha₁
-        have hc₁ := nodup_count_le_one a l₁ hnd₁
-        have hc₁_pos := List.count_pos_iff.mpr ha₁
-        have hc₂ := nodup_count_le_one a l₂ hnd₂
-        have hc₂_pos := List.count_pos_iff.mpr ha₂
-        omega
-      · by_cases ha₂ : a ∈ l₂
-        · exfalso
-          have hsub_erase : ∀ x, x ∈ l₁ → x ∈ l₂.erase a := by
-            intro x hx
-            have hx_ne : x ≠ a := fun h => ha₁ (h ▸ hx)
-            exact (List.mem_erase_of_ne hx_ne).mpr (hsub x hx)
-          have h_le := nodup_subset_length_le hnd₁ hsub_erase
-          have h_erase := List.length_erase_of_mem ha₂
-          -- (l₂.erase a).length = l₂.length - 1 < l₂.length = l₁.length
-          -- pero l₁.length ≤ (l₂.erase a).length — contradicción
-          have h_lt : (l₂.erase a).length < l₂.length := by
-            have : 0 < l₂.length := by
-              cases l₂ with | nil => exact absurd ha₂ List.not_mem_nil
-                            | cons _ _ => exact Nat.zero_lt_succ _
-            omega
+      induction l₁ generalizing l₂ with
+      | nil =>
+        have h_nil : l₂ = [] := List.eq_nil_of_length_eq_zero hlen.symm
+        subst h_nil; exact List.Perm.nil
+      | cons a l₁' ih =>
+        rw [List.nodup_cons] at hnd₁
+        obtain ⟨ha_nin, hnd₁'⟩ := hnd₁
+        have ha₂ : a ∈ l₂ := hsub a List.mem_cons_self
+        have hnd₂' : (l₂.erase a).Nodup := hnd₂.erase a
+        have hsub' : ∀ x, x ∈ l₁' → x ∈ l₂.erase a := by
+          intro x hx
+          have hx_ne : x ≠ a := fun h => ha_nin (h ▸ hx)
+          exact (peano_mem_erase_of_ne hx_ne).mpr (hsub x (List.mem_cons_of_mem _ hx))
+        have hlen' : l₁'.length = (l₂.erase a).length := by
+          rw [List.length_cons] at hlen
+          have h_er := peano_length_erase_of_mem ha₂
           omega
-        · rw [List.count_eq_zero_of_not_mem ha₁,
-               List.count_eq_zero_of_not_mem ha₂]
+        have ih_result := ih hnd₁' hnd₂' hsub' hlen'
+        exact (List.Perm.cons a ih_result).trans (peano_perm_cons_erase ha₂)
 
     /-- Si `f` mapea `l` a sí misma y es inyectiva en `l`,
         entonces `l.map f` es una permutación de `l`. -/
@@ -750,9 +800,11 @@ namespace Peano
           := by
       unfold MapOn.Injective InjectiveOn
       intro a₁ a₂ ha₁ ha₂ heq
-      by_cases h_eq : a₁ = a₂
-      · exact h_eq
-      · exfalso
+      cases decEq a₁ a₂ with
+      | isTrue h_eq =>
+        exact h_eq
+      | isFalse h_eq =>
+        exfalso
         have hnd_A : A.elems.Nodup := sorted_nodup A.sorted
         -- (A.elems.map f.toFun) no es nodup: a₁ ≠ a₂ en lista nodup y f a₁ = f a₂
         have h_not_nodup : ¬ (A.elems.map f.toFun).Nodup :=
@@ -818,9 +870,10 @@ namespace Peano
       have h_B_sub_Im : ∀ x, x ∈ B.elems → x ∈ f.Im.elems := by
         intro x hx
         -- Si x ∉ Im, entonces x :: Im.elems es nodup, ⊆ B, longitud |Im|+1 > |B|
-        by_cases hnx : x ∈ f.Im.elems
-        · exact hnx
-        · exfalso
+        cases decidableMemList x f.Im.elems with
+        | isTrue hnx => exact hnx
+        | isFalse hnx =>
+          exfalso
           have h_le : (x :: f.Im.elems).length ≤ B.elems.length := by
             apply nodup_subset_length_le (List.nodup_cons.mpr ⟨hnx, hnd_Im⟩)
             intro y hy
@@ -995,6 +1048,31 @@ namespace Peano
         ¬ f.Injective := fun h_inj =>
       absurd h_lt (nlt_of_le (card_le_of_injective f h_inj))
 
+    /-- Constructiva: extrae dos elementos distintos con la misma imagen de una lista
+        cuyo mapeado no es nodup. -/
+    private theorem find_dup_in_map {α β : Type} [DecidableEq α] [DecidableEq β]
+        {l : List α} (hnd : l.Nodup) (f : α → β) (h : ¬(l.map f).Nodup) :
+        ∃ a₁ a₂, a₁ ∈ l ∧ a₂ ∈ l ∧ a₁ ≠ a₂ ∧ f a₁ = f a₂ := by
+      induction l with
+      | nil => exact absurd List.nodup_nil h
+      | cons x xs ih =>
+        rw [List.nodup_cons] at hnd
+        obtain ⟨hx_nin, hxs_nd⟩ := hnd
+        rw [List.map_cons, List.nodup_cons] at h
+        cases decidableMemList (f x) (xs.map f) with
+        | isTrue h_mem =>
+          rw [List.mem_map] at h_mem
+          obtain ⟨y, hy_xs, hfy⟩ := h_mem
+          have hxy : x ≠ y := fun heq => hx_nin (heq ▸ hy_xs)
+          exact ⟨x, y, List.mem_cons_self, List.mem_cons_of_mem _ hy_xs,
+                 hxy, hfy.symm⟩
+        | isFalse h_nmem =>
+          have h_not_nodup : ¬(xs.map f).Nodup :=
+            fun hnd' => h ⟨h_nmem, hnd'⟩
+          obtain ⟨a₁, a₂, ha₁, ha₂, h_ne, h_eq⟩ := ih hxs_nd h_not_nodup
+          exact ⟨a₁, a₂, List.mem_cons_of_mem _ ha₁, List.mem_cons_of_mem _ ha₂,
+                 h_ne, h_eq⟩
+
     /-- Principio del Palomar (colisión explícita):
         si hay más elementos en `A` que en `B`, toda función `f : A → B`
         tiene dos elementos distintos con la misma imagen.
@@ -1009,11 +1087,23 @@ namespace Peano
       {A : FSet α} {B : FSet β}
       (f : MapOn A B) (h_lt : lt₀ B.card A.card) :
         ∃ a₁ a₂ : α, a₁ ∈ A.elems ∧ a₂ ∈ A.elems ∧ a₁ ≠ a₂ ∧
-          f.toFun a₁ = f.toFun a₂ :=
-      Classical.byContradiction fun h_no_collision =>
-        not_injective_of_card_lt f h_lt (fun a₁ a₂ ha₁ ha₂ heq =>
-          Classical.byContradiction fun h_ne =>
-            h_no_collision ⟨a₁, a₂, ha₁, ha₂, h_ne, heq⟩)
+          f.toFun a₁ = f.toFun a₂ := by
+      have hnd_A : A.elems.Nodup := sorted_nodup A.sorted
+      have h_not_nodup : ¬(A.elems.map f.toFun).Nodup := by
+        intro h_nodup_map
+        have h_sub : ∀ b, b ∈ A.elems.map f.toFun → b ∈ B.elems := by
+          intro b hb
+          rw [List.mem_map] at hb
+          obtain ⟨a, ha, rfl⟩ := hb
+          exact f.map_carrier a ha
+        have h_len_le : A.elems.length ≤ B.elems.length := by
+          have := nodup_subset_length_le h_nodup_map h_sub
+          rwa [List.length_map] at this
+        have h_card_le : A.card ≤ B.card := by
+          unfold FSet.card lengthₚ
+          exact (isomorph_Λ_le _ _).mp h_len_le
+        exact absurd h_lt (nlt_of_le h_card_le)
+      exact find_dup_in_map hnd_A f.toFun h_not_nodup
 
     /-!
     # § 3c. Teoremas de Igualdad de Cardinalidad
@@ -1356,9 +1446,10 @@ namespace Peano
         suffices h_tl : tl = [] by
           rw [h_tl, List.length_cons, List.length_nil]
           exact Or.inr rfl
-        by_cases h_tl : tl = []
-        · exact h_tl
-        · exfalso
+        cases decEq tl [] with
+        | isTrue h_tl => exact h_tl
+        | isFalse h_tl =>
+          exfalso
           obtain ⟨a₁, tl', h_tl_eq⟩ := List.exists_cons_of_ne_nil h_tl
           have ha₀ : a₀ ∈ (f.fiber b).elems := h_elems ▸ List.mem_cons_self
           have ha₁ : a₁ ∈ (f.fiber b).elems :=
@@ -1457,8 +1548,9 @@ namespace Peano
           have hb'_ne : b' ≠ b := fun heq => hb_nodup (heq ▸ hb')
           have hpred : ∀ a, (np a && decide (g a = b')) = decide (g a = b') := by
             intro a
-            by_cases hq : g a = b'
-            · have hpfalse : decide (g a = b) = false := by
+            cases decEq (g a) b' with
+            | isTrue hq =>
+              have hpfalse : decide (g a = b) = false := by
                 apply decide_eq_false_iff_not.mpr
                 intro hgb
                 exact hb'_ne (hq.symm.trans hgb)
@@ -1466,7 +1558,8 @@ namespace Peano
                 unfold np p
                 simp [hpfalse]
               simp [hq, hnp_true]
-            · simp [hq]
+            | isFalse hq =>
+              simp [hq]
           have hpred' : ∀ a, (decide (g a = b') && np a) = decide (g a = b') := by
             intro a
             rw [Bool.and_comm, hpred a]

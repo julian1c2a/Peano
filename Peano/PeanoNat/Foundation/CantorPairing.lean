@@ -26,7 +26,7 @@ import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.Arith
-import Peano.Prelim.Classical
+import Peano.PeanoNat.Sqrt
 
 namespace Peano
   open Peano
@@ -34,6 +34,7 @@ namespace Peano
   namespace Foundation
     open Foundation
     open Peano.Sub
+    open Peano.Sqrt
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- 1. Número triangular T(n) = n*(n+1)/2
@@ -183,27 +184,139 @@ namespace Peano
         (le_trans _ _ _ (triag_le_of_le h_sw_le_w') h_le')
         (gt_then_nle z (triag (σ w)) h_lt)
 
-  /-- La anti-diagonal de z: único w con T(w) ≤ z < T(w+1). -/
-  noncomputable def antidiag (z : ℕ₀) : ℕ₀ :=
-    choose_unique (antidiag_unique z)
+  -- ─────────────────────────────────────────────────────────────────────────
+  -- Auxiliares para antidiag computable
+  -- ─────────────────────────────────────────────────────────────────────────
+
+  -- 2·triag(s) = s·(s+1)
+  private theorem two_mul_triag (s : ℕ₀) : mul 𝟚 (triag s) = mul s (σ s) := by
+    unfold triag
+    have h_dvd := two_dvd_mul_succ s
+    obtain ⟨k, hk⟩ := h_dvd
+    -- hk : mul s (σ s) = mul 𝟚 k
+    -- triag s = mul s (σ s) / 𝟚 = mul 𝟚 k / 𝟚 = k
+    have htn : mul s (σ s) / 𝟚 = k := by rw [hk]; exact mul_two_div_two k
+    rw [htn, hk]
+
+  /-- La anti-diagonal de z: único w con T(w) ≤ z < T(w+1).
+      Definición computable: s = ⌊√(2z)⌋; si T(s) ≤ z entonces s, sino s-1. -/
+  def antidiag (z : ℕ₀) : ℕ₀ :=
+    let s := sqrt (mul 𝟚 z)
+    if Peano.Order.le₀ (triag s) z then s else sub s 𝟙
+
+  -- Helper: 2·a ≤ 2·b → a ≤ b
+  private theorem le_of_two_mul_le {a b : ℕ₀} (h : Peano.Order.le₀ (mul 𝟚 a) (mul 𝟚 b)) :
+      Peano.Order.le₀ a b := by
+    rcases trichotomy a b with h1 | h1 | h1
+    · exact lt_imp_le _ _ h1
+    · exact h1 ▸ le_self_of_eq_self _ rfl
+    · exfalso
+      -- b < a → mul 𝟚 b < mul 𝟚 a  (strict) → combined with h gives irrefl
+      have hba : Peano.Order.le₀ (mul 𝟚 b) (mul 𝟚 a) := by
+        rw [mul_comm 𝟚 b, mul_comm 𝟚 a]
+        exact mul_le_mono_right 𝟚 (lt_imp_le _ _ h1)
+      have hne : b ≠ a := ne_of_lt b a h1
+      have hne2 : mul 𝟚 b ≠ mul 𝟚 a := fun heq =>
+        absurd (mul_cancelation_left 𝟚 b a (by decide) heq) hne
+      exact lt_irrefl (mul 𝟚 b)
+        (lt_of_lt_of_le (lt_of_le_of_ne _ _ hba hne2) h)
+
+  -- Helper: σ(s-1) = s when s ≠ 0
+  private theorem succ_sub_one {s : ℕ₀} (hs : s ≠ 𝟘) : σ (sub s 𝟙) = s := by
+    cases s with
+    | zero => exact absurd rfl hs
+    | succ s' =>
+      have h_1_le : Peano.Order.le₀ 𝟙 (σ s') := by
+        cases s' with
+        | zero => simp [one, le₀, zero]
+        | succ s'' => simp [one, le₀, zero]; exact zero_lt_succ (σ s'')
+      -- sub_k_add_k (σ s') 𝟙 h_1_le : add (sub (σ s') 𝟙) 𝟙 = σ s'
+      have h := sub_k_add_k (σ s') 𝟙 h_1_le
+      -- h : add (sub (σ s') 𝟙) 𝟙 = σ s'
+      -- want : σ (sub (σ s') 𝟙) = σ s'
+      -- add n 𝟙 = σ n by add_one, so sub (σ s') 𝟙 + 1 = σ s' means σ(sub (σ s') 𝟙) = σ s'
+      rw [← add_one (sub (σ s') 𝟙)]; exact h
 
   theorem antidiag_spec (z : ℕ₀) :
       Peano.Order.le₀ (triag (antidiag z)) z ∧
-      Peano.StrictOrder.lt₀ z (triag (σ (antidiag z))) :=
-    choose_spec_unique (antidiag_unique z)
+      Peano.StrictOrder.lt₀ z (triag (σ (antidiag z))) := by
+    let s := sqrt (mul 𝟚 z)
+    -- (A) s·s ≤ 2z  (from sqrtMod_spec)
+    have h_sq_le : Peano.Order.le₀ (mul s s) (mul 𝟚 z) := by
+      have h := sqrtMod_spec (mul 𝟚 z)
+      rw [Peano.Pow.pow_two] at h; rw [h]; exact le_self_add _ _
+    -- (B) 2z < (σ s)·(σ s)  (from sqrt_upper_bound)
+    have h_lt_sq : Peano.StrictOrder.lt₀ (mul 𝟚 z) (mul (σ s) (σ s)) := by
+      have h := sqrt_upper_bound (mul 𝟚 z)
+      rwa [Peano.Pow.pow_two] at h
+    -- (C) (σ s)·(σ s) ≤ (σ s)·(σ(σ s))  (since σ s ≤ σ(σ s))
+    have h_ss_le : Peano.Order.le₀ (mul (σ s) (σ s)) (mul (σ s) (σ (σ s))) := by
+      rw [mul_comm (σ s) (σ s), mul_comm (σ s) (σ (σ s))]
+      exact mul_le_mono_right (σ s) (lt_imp_le _ _ (lt_succ_self (σ s)))
+    -- (D) 2·triag(σ s) = (σ s)·(σ(σ s))
+    have h_2tss : mul 𝟚 (triag (σ s)) = mul (σ s) (σ (σ s)) := two_mul_triag (σ s)
+    -- Therefore: 2z < 2·triag(σ s)
+    have h_2z_lt_tss : Peano.StrictOrder.lt₀ (mul 𝟚 z) (mul 𝟚 (triag (σ s))) := by
+      rw [h_2tss]; exact lt_of_lt_of_le h_lt_sq h_ss_le
+    -- Therefore: z < triag(σ s)  (cancel 2 from left)
+    have h_z_lt_tss : Peano.StrictOrder.lt₀ z (triag (σ s)) := by
+      rcases trichotomy z (triag (σ s)) with h | h | h
+      · exact h
+      · exfalso; rw [h] at h_2z_lt_tss; exact lt_irrefl _ h_2z_lt_tss
+      · exfalso
+        have hmono : Peano.Order.le₀ (mul 𝟚 (triag (σ s))) (mul 𝟚 z) := by
+          rw [mul_comm 𝟚 _, mul_comm 𝟚 z]
+          exact mul_le_mono_right 𝟚 (lt_imp_le _ _ h)
+        exact lt_irrefl _ (lt_of_lt_of_le h_2z_lt_tss hmono)
+    -- Now case-split on antidiag definition
+    unfold antidiag
+    rcases trichotomy (triag s) z with h_lt | h_eq | h_gt
+    · -- triag s < z
+      have h_le : Peano.Order.le₀ (triag s) z := lt_imp_le _ _ h_lt
+      rw [if_pos h_le]; exact ⟨h_le, h_z_lt_tss⟩
+    · -- triag s = z
+      have h_le : Peano.Order.le₀ (triag s) z := h_eq ▸ le_self_of_eq_self _ rfl
+      rw [if_pos h_le]; exact ⟨h_le, h_z_lt_tss⟩
+    · -- z < triag s → s ≠ 0, result is sub s 1
+      have h_nle : ¬ Peano.Order.le₀ (triag s) z := gt_then_nle _ _ h_gt
+      rw [if_neg h_nle]
+      have hs_ne : s ≠ 𝟘 := by
+        intro h; rw [h, triag_zero] at h_gt; exact absurd h_gt (nlt_n_0 z)
+      have h_ss : σ (sub s 𝟙) = s := succ_sub_one hs_ne
+      -- triag(s-1) ≤ z:  2·triag(s-1) = (s-1)·s ≤ s·s ≤ 2z
+      have h_part1 : Peano.Order.le₀ (triag (sub s 𝟙)) z := by
+        apply le_of_two_mul_le
+        rw [two_mul_triag (sub s 𝟙), h_ss]
+        exact le_trans _ _ _ (mul_le_mono_right s (sub_le_self s 𝟙)) h_sq_le
+      -- z < triag(σ(s-1)) = triag s
+      have h_part2 : Peano.StrictOrder.lt₀ z (triag (σ (sub s 𝟙))) := by
+        show lt₀ z (triag (σ (sub s 𝟙)))
+        rw [h_ss]; exact h_gt
+      exact ⟨h_part1, h_part2⟩
 
-  theorem antidiag_pair (m n : ℕ₀) : antidiag (pair m n) = add m n :=
-    (choose_uniq (antidiag_unique (pair m n)) ⟨triag_le_pair m n, pair_lt_triag_succ m n⟩).symm
+  theorem antidiag_pair (m n : ℕ₀) : antidiag (pair m n) = add m n := by
+    have h_spec := antidiag_spec (pair m n)
+    -- Both antidiag(pair m n) and add m n satisfy the spec; use uniqueness.
+    have h_mn_spec : Peano.Order.le₀ (triag (add m n)) (pair m n) ∧
+        Peano.StrictOrder.lt₀ (pair m n) (triag (σ (add m n))) :=
+      ⟨triag_le_pair m n, pair_lt_triag_succ m n⟩
+    -- antidiag_unique says the satisfier is unique
+    have huniq := antidiag_unique (pair m n)
+    obtain ⟨w, _hw, hw_uniq⟩ := huniq
+    have ha := hw_uniq (antidiag (pair m n)) h_spec
+    have hb := hw_uniq (add m n) h_mn_spec
+    rw [← hb] at ha
+    exact ha
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- 4. Proyecciones y biyectividad
   -- ─────────────────────────────────────────────────────────────────────────
 
   /-- Primera proyección (columna). -/
-  noncomputable def fst (z : ℕ₀) : ℕ₀ := sub z (triag (antidiag z))
+  def fst (z : ℕ₀) : ℕ₀ := sub z (triag (antidiag z))
 
   /-- Segunda proyección (fila - columna). -/
-  noncomputable def snd (z : ℕ₀) : ℕ₀ := sub (antidiag z) (fst z)
+  def snd (z : ℕ₀) : ℕ₀ := sub (antidiag z) (fst z)
 
   /-- fst(pair m n) = m. -/
   theorem pair_fst (m n : ℕ₀) : fst (pair m n) = m := by

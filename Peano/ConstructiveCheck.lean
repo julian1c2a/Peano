@@ -38,12 +38,14 @@ import Peano.PeanoNat.NumberTheory.ModEq
 import Peano.PeanoNat.NumberTheory.ChineseRemainder
 -- (Wilson/Fermat/Totient importan FSet → no constructivos)
 
+-- Fundamentos
+import Peano.PeanoNat.Foundation.CantorPairing
+
 -- ─────────────────────────────────────────────────────────────────
 -- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
 --
 --   Prelim/Classical.lean        — expone Classical.indefiniteDescription
 --   Foundation/GodelBeta.lean    — usa Classical.choose (intencional)
---   Foundation/CantorPairing.lean— usa Peano.choose → Classical.choice
 --   ListsAndSets/FSet.lean       — usa Classical.byContradiction
 --   ListsAndSets/FSetFunction.lean — usa Classical.byContradiction
 --   NumberTheory/Totient.lean    — importa FSet → Classical.byContradiction
@@ -199,3 +201,26 @@ end AssertConstructiveCmd
 -- ─────────────────────────────────────────────────────────────────
 
 #assert_constructive Peano.CRT.chinese_remainder
+
+-- ─────────────────────────────────────────────────────────────────
+-- Comprobaciones: CantorPairing.lean
+-- ─────────────────────────────────────────────────────────────────
+
+#assert_constructive Peano.Foundation.triag
+#assert_constructive Peano.Foundation.triag_zero
+#assert_constructive Peano.Foundation.triag_succ
+#assert_constructive Peano.Foundation.triag_strict_mono
+#assert_constructive Peano.Foundation.triag_le_of_le
+#assert_constructive Peano.Foundation.pair
+#assert_constructive Peano.Foundation.triag_le_pair
+#assert_constructive Peano.Foundation.pair_lt_triag_succ
+#assert_constructive Peano.Foundation.antidiag_exists
+#assert_constructive Peano.Foundation.antidiag_unique
+#assert_constructive Peano.Foundation.antidiag
+#assert_constructive Peano.Foundation.antidiag_spec
+#assert_constructive Peano.Foundation.antidiag_pair
+#assert_constructive Peano.Foundation.fst
+#assert_constructive Peano.Foundation.snd
+#assert_constructive Peano.Foundation.pair_fst
+#assert_constructive Peano.Foundation.pair_snd
+#assert_constructive Peano.Foundation.pair_surj

@@ -7,7 +7,8 @@
 > Documentación de los símbolos públicos del módulo
 > `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`.
 > Solo contiene lo completamente probado (requisito 8 del AI-GUIDE).
-> El placeholder `zassenhaus_bijection` **no se proyecta** por ser `True := trivial`.
+> **Actualización 2026-05-11**: `zassenhaus_bijection` completamente demostrado (tipo completo, 0 sorry).
+> `zassenhaus_bijection_symm` demostrado (one-liner). `zassenhaus_bijection_extremes` enunciado con `sorry`.
 
 ---
 
@@ -349,10 +350,108 @@
 | `prodN_HM` | `def` | ✅ | alta |
 | `prodN_HM_le_prodN_HK` | `theorem` | — | media |
 | `prodN_HM_normal_in_prodN_HK` | `theorem` | — | alta |
+| `zassenhaus_bijection` | `theorem` | — | alta |
+| `zassenhaus_bijection_symm` | `theorem` | — | alta |
+| `zassenhaus_bijection_extremes` | `theorem` (1 sorry) | — | alta |
 
 > **No proyectados** (privados): `mem_inter_iff`, `inter_subset_left_aux`, `inter_subset_right_aux`,  
-> `NormalIn`, `HK`, `NK`, `HM`, `N_normal_in_prodN_HK`.  
-> **No proyectado** (placeholder sin prueba): `zassenhaus_bijection` (`True := trivial`).
+> `NormalIn`, `HK`, `NK`, `HM`, `N_normal_in_prodN_HK`, `prodNKHM_in_HK`, `prodN_HM_in_prodN_HK`.
+
+---
+
+## §7. Lema de la Mariposa de Zassenhaus — biyecciones
+
+### `zassenhaus_bijection`
+
+- **Tipo:** `theorem` (0 sorry)
+- **Notación matemática:** Existe una biyección
+  $$(H \cap K) / [(N \cap K)(H \cap M)] \;\xrightarrow{\sim}\; N(H \cap K) / N(H \cap M)$$
+  dado $N \trianglelefteq H$ y $M \trianglelefteq K$.
+- **Firma Lean 4:**
+
+  ```lean
+  theorem zassenhaus_bijection
+      (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+      (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+      (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+      (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+      (hNN : NormalIn G N H)
+      (hMM : NormalIn G M K) :
+      ∃ (f : MapOn
+          (quotientCarrier (Subgroup.toFinGroup (H.inter K))
+                           (prodNKHM_in_HK G H K N M hNH hMK hNN hMM))
+          (quotientCarrier (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+                           (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN))),
+        f.Bijective
+  ```
+
+- **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
+- **Namespace:** `Peano.GroupTheory`
+- **Importancia:** `@importance: high`
+
+---
+
+### `zassenhaus_bijection_symm`
+
+- **Tipo:** `theorem` (0 sorry)
+- **Notación matemática:** Intercambiando los roles $(H, N) \leftrightarrow (K, M)$, existe una biyección
+  $$(K \cap H) / [(M \cap H)(K \cap N)] \;\xrightarrow{\sim}\; M(K \cap H) / M(K \cap N)$$
+  dado $N \trianglelefteq H$, $M \trianglelefteq K$ y la hipótesis extra $N \leq K$.
+- **Prueba:** Aplicación directa de `zassenhaus_bijection G K H M N hMK hNK hNH hMM hNN`.
+- **Firma Lean 4:**
+
+  ```lean
+  theorem zassenhaus_bijection_symm
+      (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+      (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+      (hNK : ∀ a, a ∈ N.carrier.elems → a ∈ K.carrier.elems)
+      (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+      (hNN : NormalIn G N H)
+      (hMM : NormalIn G M K) :
+      ∃ (f : MapOn
+          (quotientCarrier (Subgroup.toFinGroup (K.inter H))
+                           (prodNKHM_in_HK G K H M N hMK hNH hMM hNN))
+          (quotientCarrier (Subgroup.toFinGroup (prodN_HK G K H M hMK hMM))
+                           (prodN_HM_in_prodN_HK G K H N M hMK hNK hNH hMM))),
+        f.Bijective
+  ```
+
+- **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
+- **Namespace:** `Peano.GroupTheory`
+- **Importancia:** `@importance: high`
+
+---
+
+### `zassenhaus_bijection_extremes`
+
+- **Tipo:** `theorem` (1 sorry — pendiente)
+- **Notación matemática:** Existe una biyección
+  $$N(H \cap K) / N(H \cap M) \;\xrightarrow{\sim}\; M(K \cap H) / M(K \cap N)$$
+  dado $N \trianglelefteq H$, $M \trianglelefteq K$, $N \leq K$, $M \leq H$.
+- **Prueba pendiente:** Componer la inversa de `zassenhaus_bijection` con `zassenhaus_bijection_symm`
+  previa identificación de los cocientes intermedios vía `H.inter K = K.inter H`.
+- **Firma Lean 4:**
+
+  ```lean
+  theorem zassenhaus_bijection_extremes
+      (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+      (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+      (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+      (hNK : ∀ a, a ∈ N.carrier.elems → a ∈ K.carrier.elems)
+      (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+      (hNN : NormalIn G N H)
+      (hMM : NormalIn G M K) :
+      ∃ (f : MapOn
+          (quotientCarrier (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+                           (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN))
+          (quotientCarrier (Subgroup.toFinGroup (prodN_HK G K H M hMK hMM))
+                           (prodN_HM_in_prodN_HK G K H N M hMK hNK hNH hMM))),
+        f.Bijective
+  ```
+
+- **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
+- **Namespace:** `Peano.GroupTheory`
+- **Importancia:** `@importance: high`
 
 ---
 
@@ -1799,7 +1898,7 @@ Biyección entre subgrupos de $G/N$ y subgrupos de $G$ que contienen a $N$.
 
 | Módulo | Símbolos públicos |
 |---|---|
-| `Zassenhaus.lean` | 12 |
+| `Zassenhaus.lean` | 15 (12 sin sorry + 2 nuevos + 1 con sorry) |
 | `NormalSubgroup.lean` | 10 |
 | `Sylow/Cosets.lean` | 20 |
 | `QuotientGroup.lean` | 28 |

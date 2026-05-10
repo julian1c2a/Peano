@@ -916,21 +916,22 @@ namespace Peano
         hx_NHK
       -- k⁻¹ * x = k⁻¹ * (n * k) = (k⁻¹ * n) * k ∈ N ≤ prodN_HM
       unfold cosetRel
-      show G.op (G.inv k) x ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems
-      rw [← heq_x]
       have hk_H  := inter_subset_left_aux H K k hk_HK
       have hk_G  := H.subset k hk_H
       have hn_G  := N.subset n hn_N
-      -- k⁻¹*(n*k) = (k⁻¹*n)*k
-      rw [G.op_assoc (G.inv k) n k (inv_mem G hk_G) hn_G hk_G]
-      -- (k⁻¹*n)*k ∈ N via hNN (G.inv k) n
+      -- (k⁻¹*n)*k ∈ N via conjugación
       have hconj : G.op (G.op (G.inv k) n) (G.inv (G.inv k)) ∈ N.carrier.elems :=
         hNN (G.inv k) n (H.inv_closed k hk_H) hn_N
       rw [inv_inv_eq G hk_G] at hconj
-      -- hconj : G.op (G.op (G.inv k) n) k ∈ N
-      -- N ≤ prodN_HM via N_le_prodSubgroup
-      exact N_le_prodSubgroup G N (H.inter M) H hNH
-        (fun a ha => inter_subset_left_aux H M a ha) hNN _ hconj
+      -- Construimos: G.op (G.inv k) (G.op n k) ∈ prodN_HM
+      have hmem_NK : G.op (G.inv k) (G.op n k) ∈
+          (prodN_HM G H M N hNH hMH hNN).carrier.elems := by
+        rw [← G.op_assoc (G.inv k) n k (inv_mem G hk_G) hn_G hk_G]
+        exact N_le_prodSubgroup G N (H.inter M) H hNH
+          (fun a ha => inter_subset_left_aux H M a ha) hNN _ hconj
+      -- heq_x : G.op n k = x; sustituimos en hmem_NK para obtener el goal
+      rw [heq_x] at hmem_NK
+      exact hmem_NK
 
     /-- `zassenhaus_map` es biyectiva. -/
     private theorem zassenhaus_map_bijective
@@ -965,10 +966,48 @@ namespace Peano
        zassenhaus_map_bijective G H K N M hNH hMH hMK hNN hMM⟩
 
     /-- **Lema de la Mariposa de Zassenhaus** (enunciado simétrico):
-        Existe una biyección `(H∩K)/[(N∩K)(H∩M)] ↔ M(H∩K)/N(N∩K)`. -/
+        Intercambiando el papel de `(H, N)` y `(K, M)`, se obtiene una biyección
+        `(K∩H)/[(M∩H)(K∩N)] ↔ M(K∩H)/M(K∩N)`.
+        Requiere la hipótesis extra `hNK : N ≤ K`. -/
+    theorem zassenhaus_bijection_symm
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hNK : ∀ a, a ∈ N.carrier.elems → a ∈ K.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        ∃ (f : MapOn
+            (quotientCarrier
+              (Subgroup.toFinGroup (K.inter H))
+              (prodNKHM_in_HK G K H M N hMK hNH hMM hNN))
+            (quotientCarrier
+              (Subgroup.toFinGroup (prodN_HK G K H M hMK hMM))
+              (prodN_HM_in_prodN_HK G K H N M hMK hNK hNH hMM))),
+            f.Bijective :=
+        zassenhaus_bijection G K H M N hMK hNK hNH hMM hNN
 
     /-- **Lema de la Mariposa de Zassenhaus** (enunciado entre extremos):
-        Existe una biyección `N(H∩K)/N(H∩M) ↔ M(H∩K)/N(N∩K)`. -/
+        Existe una biyección `N(H∩K)/N(H∩M) ↔ M(K∩H)/M(K∩N)`.
+        Se obtiene componiendo la inversa de `zassenhaus_bijection` con
+        `zassenhaus_bijection_symm`, previa identificación de los cocientes intermedios
+        `(H∩K)/NKHM ≅ (K∩H)/MHKN` vía la conmutatividad de la intersección. -/
+    theorem zassenhaus_bijection_extremes
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hNK : ∀ a, a ∈ N.carrier.elems → a ∈ K.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        ∃ (f : MapOn
+            (quotientCarrier
+              (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+              (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN))
+            (quotientCarrier
+              (Subgroup.toFinGroup (prodN_HK G K H M hMK hMM))
+              (prodN_HM_in_prodN_HK G K H N M hMK hNK hNH hMM))),
+            f.Bijective := by
+      sorry
 
   end GroupTheory
 end Peano
@@ -987,4 +1026,6 @@ export Peano.GroupTheory (
   prodN_HM_le_prodN_HK
   prodN_HM_normal_in_prodN_HK
   zassenhaus_bijection
+  zassenhaus_bijection_symm
+  zassenhaus_bijection_extremes
 )

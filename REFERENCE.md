@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 64 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-07*
+> 66 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-10*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -77,8 +77,9 @@
 | `Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean` | `Peano.GroupTheory` | `Cosets`, `Group` | `QuotientGroup` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean` | `Peano.GroupTheory` | `NormalSubgroup`, `Cosets` | `FirstIsomorphism`, `SecondIsomorphism`, `CorrespondenceTheorem` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | `Zassenhaus` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `SecondIsomorphism` | — |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `CosetAction`, `Sylow` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | `Cosets`, `Action`, `Group` | `Sylow` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `CosetAction`, `Action` | — |
@@ -131,7 +132,7 @@
 | `Peano.Cosets` | `GroupTheory/Sylow/Cosets.lean` | `Peano` |
 | `Peano.CosetAction` | `GroupTheory/Sylow/CosetAction.lean` | `Peano` |
 | `Peano.Sylow` | `GroupTheory/Sylow/Sylow.lean` | `Peano` |
-| `Peano.GroupTheory` | `GroupTheory/NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `CorrespondenceTheorem.lean` | `Peano` |
+| `Peano.GroupTheory` | `GroupTheory/NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `CorrespondenceTheorem.lean`, `Zassenhaus.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 

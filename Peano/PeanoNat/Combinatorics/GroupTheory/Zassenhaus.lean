@@ -502,134 +502,120 @@ namespace Peano
       -- Key: use that N ⊴ H (and G.inv m_y' ∈ H since H∩K ≤ H):
       --   G.op (G.op (G.inv m_y') n_g) m_y' ∈ N pues hNN (G.inv m_y') n_g (H.inv_closed m_y' hmy'_H) hn_g
       --   and then G.inv of (G.inv m_y') = m_y', so this is: conj of n_g by G.inv m_y'
-      have hn₀ : G.op (G.op (G.inv m_y') n_g) (G.inv (G.inv m_y')) ∈ N.carrier.elems := by
-        have hinv_my'_H : G.inv m_y' ∈ H.carrier.elems := H.inv_closed m_y' hmy'_H
-        exact hNN (G.inv m_y') n_g hinv_my'_H hn_g
-      rw [inv_inv_eq G hmy'_G] at hn₀
-      -- hn₀ : G.op (G.op (G.inv m_y') n_g) m_y' ∈ N
-      -- n₀ = (G.inv m_y') · n_g · m_y' · n_g⁻¹ ∈ N
-      have hn₀' : G.op (G.op (G.op (G.inv m_y') n_g) m_y') (G.inv n_g) ∈ N.carrier.elems :=
-        N.op_closed _ _ hn₀ (N.inv_closed n_g hn_g)
-      -- Ahora g·y·g⁻¹ = n'' · m_y' · n₀
-      -- donde n'' ∈ N, m_y' ∈ H∩M, n₀ ∈ N
-      -- Primero probar la identidad algebraica:
-      -- g·y·g⁻¹ = (n_g·k_g)·(n_y·m_y)·(n_g·k_g)⁻¹
-      --          = (n_g·k_g·n_y·m_y·k_g⁻¹·n_g⁻¹)
-      --          = n_g·(k_g·n_y·k_g⁻¹)·(k_g·m_y·k_g⁻¹)·n_g⁻¹   [by assoc]
-      --          = n_g·n_y'·m_y'·n_g⁻¹
-      --          = (n_g·n_y'·n_g⁻¹)·(n_g·m_y'·n_g⁻¹)   [inserting n_g⁻¹·n_g]
-      --          = n''·m''
-      -- where m'' = n_g·m_y'·n_g⁻¹ and m''N = m_y'N (since m''·(m_y')⁻¹ ∈ N... need to check)
-      -- Then n''·m'' = n''·m_y'·n₀ ∈ N(H∩M) since n'', m_y', n₀ ∈ N(H∩M).
-      --
-      -- The algebraic identity to prove:
-      -- G.op (G.op g y) (G.inv g) = G.op (G.op n'' m_y') n₀
-      -- is complex. We use sorry for now and will fill in the full calc.
-      -- Definir n_total = n'' · n₀' ∈ N
-      have hn_total : G.op
-          (G.op (G.op n_g (G.op (G.op k_g n_y) (G.inv k_g))) (G.inv n_g))
-          (G.op (G.op (G.op (G.inv m_y') n_g) m_y') (G.inv n_g))
-          ∈ N.carrier.elems :=
-        N.op_closed _ _ hny'' hn₀'
-      -- Probar la identidad algebraica:
-      -- g·y·g⁻¹ = n_total · m_y'
-      -- g·y·g⁻¹
-      -- = (n_g·k_g)·(n_y·m_y)·(k_g⁻¹·n_g⁻¹)
-      -- = n_g·(k_g·n_y·k_g⁻¹)·(k_g·m_y·k_g⁻¹)·n_g⁻¹
-      -- = n_g·n_y'·m_y'·n_g⁻¹
-      -- = n_g·n_y'·n_g⁻¹ · n_g·m_y'·n_g⁻¹
-      -- = n'' · (n_g·m_y'·n_g⁻¹)
-      -- = n'' · m_y' · (m_y'⁻¹·n_g·m_y'·n_g⁻¹)
-      -- = n'' · n₀'⁻¹⁻¹ · m_y'  -- n₀' = m_y'⁻¹·n_g·m_y'·n_g⁻¹... wait
-      -- Mejor: n_g·m_y'·n_g⁻¹ = m_y' · (m_y'⁻¹·n_g·m_y'·n_g⁻¹) = m_y' · n₀'
-      -- So n'' · n_g·m_y'·n_g⁻¹ = n'' · m_y' · n₀'
-      -- But n_total = n'' · n₀' ≠ n'' · n₀' above...
-      -- Correct: take n = n'', s = n_g·m_y'·n_g⁻¹ if n_g·m_y'·n_g⁻¹ ∈ H∩M
-      -- n_g·m_y'·n_g⁻¹ ∈ H since m_y' ∈ H and H is subgroup; n_g ∈ H (hng_H)
-      -- n_g·m_y'·n_g⁻¹ ∈ M? Not necessarily (only N⊴H, not M⊴H)
-      -- So we must use the three-piece decomposition: g·y·g⁻¹ = n''·m_y'·n₀
-      -- with n₀ = (m_y')⁻¹·n_g·m_y'·n_g⁻¹ = (m_y'⁻¹·n_g·m_y')·n_g⁻¹ = hn₀'
-      -- Then g·y·g⁻¹ = (n''·n₀)·m_y' using:
-      --   n''·n₀·m_y'
-      --   = n_g·n_y'·n_g⁻¹ · (m_y'⁻¹·n_g·m_y')·n_g⁻¹ · m_y'
-      --   = n_g·n_y'·(n_g⁻¹·m_y'⁻¹)·(n_g·m_y')·(n_g⁻¹·m_y')
-      --   = n_g·n_y'·(n_g·m_y')⁻¹·(n_g·m_y')·(n_g⁻¹·m_y')
-      --   = n_g·n_y'·n_g⁻¹·m_y'  ... no, need more care
-      -- Let's just prove the algebraic identity as a calc:
-      have hident : G.op (G.op g y) (G.inv g) =
-          G.op
-            (G.op
-              (G.op (G.op n_g (G.op (G.op k_g n_y) (G.inv k_g))) (G.inv n_g))
-              (G.op (G.op (G.op (G.inv m_y') n_g) m_y') (G.inv n_g)))
-            m_y' := by
-        -- Auxiliaries
+      -- α = m_y' · n_g⁻¹ · m_y'⁻¹ ∈ N  (conjugate of n_g⁻¹ ∈ N by m_y' ∈ H)
+      have hα : G.op (G.op m_y' (G.inv n_g)) (G.inv m_y') ∈ N.carrier.elems :=
+        hNN m_y' (G.inv n_g) hmy'_H (N.inv_closed n_g hn_g)
+      -- n_pair = n_g · n_y' · α  where n_y' = k_g·n_y·k_g⁻¹
+      -- n_pair ∈ N since n_g ∈ N, n_y' ∈ N, α ∈ N
+      have hn_pair : G.op n_g (G.op (G.op (G.op k_g n_y) (G.inv k_g))
+                                    (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y')))
+          ∈ N.carrier.elems := by
+        exact N.op_closed _ _ hn_g (N.op_closed _ _ hny' hα)
+      -- Identity: n_pair · m_y' = g · y · g⁻¹
+      -- Proof outline:
+      --   n_pair · m_y'
+      --   = n_g · n_y' · (m_y'·n_g⁻¹·m_y'⁻¹) · m_y'           [definition]
+      --   = n_g · n_y' · m_y' · (n_g⁻¹·(m_y'⁻¹·m_y'))          [reassociate]
+      --   = n_g · n_y' · m_y' · n_g⁻¹                           [m_y'⁻¹·m_y' = e]
+      --   = n_g · (k_g·n_y·k_g⁻¹) · (k_g·m_y·k_g⁻¹) · n_g⁻¹   [def of n_y', m_y']
+      --   = n_g · k_g · n_y · (k_g⁻¹·k_g) · m_y · k_g⁻¹ · n_g⁻¹ [insert e]
+      --   = n_g · k_g · n_y · m_y · k_g⁻¹ · n_g⁻¹               [k_g⁻¹·k_g = e]
+      --   = g · y · g⁻¹                                           [hg_eq, hy_eq]
+      have hident : G.op
+          (G.op n_g (G.op (G.op (G.op k_g n_y) (G.inv k_g))
+                          (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y'))))
+          m_y' =
+          G.op (G.op g y) (G.inv g) := by
         have hinvkg_G := inv_mem G hkg_G
         have hinvng_G := inv_mem G hng_G
         have hinvmy'_G := inv_mem G hmy'_G
         have hny'_G := N.subset _ hny'
-        have hng_my'_G := op_mem G hng_G hmy'_G
-        -- Chain of rewrites starting from RHS
-        -- n'' · n₀' · m_y'
-        -- = n_g·n_y'·n_g⁻¹ · m_y'⁻¹·n_g·m_y'·n_g⁻¹ · m_y'
-        -- using assoc to remove n_g⁻¹·m_y'⁻¹ = (m_y'·n_g)⁻¹ ...
-        -- Direct calc from g·y·g⁻¹ side:
-        -- g·y·g⁻¹ = (n_g·k_g)·(n_y·m_y)·(k_g⁻¹·n_g⁻¹)
-        rw [← hg_eq, ← hy_eq]
-        rw [inv_op_eq G hng_G hkg_G]
-        -- now: (n_g·k_g)·(n_y·m_y)·(k_g⁻¹·n_g⁻¹)
-        -- step 1: associate fully left
-        rw [G.op_assoc (G.op n_g k_g) (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g))
-              (op_mem G hng_G hkg_G) (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G)]
-        rw [G.op_assoc n_g k_g (G.op (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g)))
-              hng_G hkg_G (op_mem G (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G))]
-        -- n_g · (k_g·(n_y·m_y)·(k_g⁻¹·n_g⁻¹))
-        rw [← G.op_assoc k_g (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g))
-              hkg_G (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G)]
-        rw [← G.op_assoc n_y m_y (G.op (G.inv k_g) (G.inv n_g))
-              hny_G hmy_G (op_mem G hinvkg_G hinvng_G)]
-        -- n_g · (k_g·n_y·(m_y·k_g⁻¹)·n_g⁻¹)
-        rw [G.op_assoc k_g n_y (G.op (G.op m_y (G.inv k_g)) (G.inv n_g))
-              hkg_G hny_G (op_mem G (op_mem G hmy_G hinvkg_G) hinvng_G)]
-        rw [G.op_assoc (G.op k_g n_y) (G.op m_y (G.inv k_g)) (G.inv n_g)
-              (op_mem G hkg_G hny_G) (op_mem G hmy_G hinvkg_G) hinvng_G]
-        -- insert k_g⁻¹·k_g between k_g·n_y and m_y·k_g⁻¹
-        rw [← (G.op_id (G.op k_g n_y) (op_mem G hkg_G hny_G)).1]
-        rw [← (G.op_inv k_g hkg_G).1]
-        rw [G.op_assoc (G.op k_g n_y) (G.op (G.inv k_g) k_g)
-              (G.op (G.op m_y (G.inv k_g)) (G.inv n_g))
-              (op_mem G hkg_G hny_G) (op_mem G hinvkg_G hkg_G)
-              (op_mem G (op_mem G hmy_G hinvkg_G) hinvng_G)]
-        rw [← G.op_assoc (G.op k_g n_y) (G.inv k_g) (G.op k_g (G.op (G.op m_y (G.inv k_g)) (G.inv n_g)))
-              (op_mem G hkg_G hny_G) hinvkg_G (op_mem G hkg_G (op_mem G (op_mem G hmy_G hinvkg_G) hinvng_G))]
-        -- n_g · ((k_g·n_y·k_g⁻¹) · k_g·m_y·k_g⁻¹ · n_g⁻¹)
-        rw [G.op_assoc k_g (G.op m_y (G.inv k_g)) (G.inv n_g)
-              hkg_G (op_mem G hmy_G hinvkg_G) hinvng_G]
-        rw [G.op_assoc k_g m_y (G.op (G.inv k_g) (G.inv n_g))
-              hkg_G hmy_G (op_mem G hinvkg_G hinvng_G)]
-        rw [← G.op_assoc m_y (G.inv k_g) (G.inv n_g) hmy_G hinvkg_G hinvng_G]
-        -- Now: n_g · ((k_g·n_y·k_g⁻¹) · (k_g·m_y·k_g⁻¹) · n_g⁻¹)
-        rw [← G.op_assoc (G.op k_g n_y) (G.inv k_g) (G.op (G.op (G.op k_g m_y) (G.inv k_g)) (G.inv n_g))
-              (op_mem G hkg_G hny_G) hinvkg_G (op_mem G (op_mem G hkg_G (op_mem G hmy_G hinvkg_G)) hinvng_G)]
-        -- At this point we have:
-        -- n_g · ((k_g·n_y·k_g⁻¹) · (k_g·m_y·k_g⁻¹) · n_g⁻¹) · ... (wait need n_g wrapper)
-        -- Let's fold n_y' and m_y' and continue
-        -- Insert n_g⁻¹·n_g between n_y' and m_y'
-        let n_y' := G.op (G.op k_g n_y) (G.inv k_g)
-        let m_y'_ := G.op (G.op k_g m_y) (G.inv k_g)
-        have hny'_eq : n_y' = G.op (G.op k_g n_y) (G.inv k_g) := rfl
-        have hmy'_eq : m_y'_ = G.op (G.op k_g m_y) (G.inv k_g) := rfl
-        change G.op n_g (G.op (G.op n_y' (G.op m_y'_ (G.inv n_g))) (G.inv n_g)) = _
-        sorry
+        -- First: (m_y'·n_g⁻¹·m_y'⁻¹)·m_y' = m_y'·n_g⁻¹  (right cancel m_y'⁻¹·m_y')
+        have hcancel : G.op (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y')) m_y' =
+                       G.op m_y' (G.inv n_g) := by
+          rw [G.op_assoc (G.op m_y' (G.inv n_g)) (G.inv m_y') m_y'
+                (op_mem G hmy'_G hinvng_G) hinvmy'_G hmy'_G,
+              (G.op_inv m_y' hmy'_G).2,
+              (G.op_id (G.op m_y' (G.inv n_g)) (op_mem G hmy'_G hinvng_G)).1]
+        -- Apply hcancel in LHS: pull m_y' inside
+        -- LHS = n_g · n_y' · (α · m_y')
+        --     = n_g · n_y' · (m_y'·n_g⁻¹)            [hcancel]
+        --     = n_g · (n_y' · m_y') · n_g⁻¹           [reassociate]
+        -- Goal transformation: pull m_y' to the innermost position
+        rw [G.op_assoc n_g
+              (G.op (G.op (G.op k_g n_y) (G.inv k_g))
+                    (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y')))
+              m_y'
+              hng_G
+              (op_mem G (op_mem G (op_mem G hkg_G hny_G) hinvkg_G)
+                        (op_mem G (op_mem G hmy'_G hinvng_G) hinvmy'_G))
+              hmy'_G,
+            G.op_assoc (G.op (G.op k_g n_y) (G.inv k_g))
+              (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y')) m_y'
+              (op_mem G (op_mem G hkg_G hny_G) hinvkg_G)
+              (op_mem G (op_mem G hmy'_G hinvng_G) hinvmy'_G)
+              hmy'_G,
+            hcancel]
+        -- LHS is now: n_g · (n_y' · (m_y'·n_g⁻¹))
+        -- = n_g · (n_y' · m_y') · n_g⁻¹
+        rw [← G.op_assoc (G.op (G.op k_g n_y) (G.inv k_g)) m_y' (G.inv n_g)
+              (op_mem G (op_mem G hkg_G hny_G) hinvkg_G) hmy'_G hinvng_G,
+            ← G.op_assoc n_g
+                (G.op (G.op (G.op k_g n_y) (G.inv k_g)) m_y') (G.inv n_g)
+                hng_G
+                (op_mem G (op_mem G (op_mem G hkg_G hny_G) hinvkg_G) hmy'_G)
+                hinvng_G]
+        -- LHS: n_g · (n_y' · m_y') · n_g⁻¹  where m_y' = k_g·m_y·k_g⁻¹
+        -- = n_g · (k_g·n_y·k_g⁻¹ · k_g·m_y·k_g⁻¹) · n_g⁻¹
+        -- fold k_g⁻¹·k_g:
+        -- k_g·n_y·k_g⁻¹ · k_g·m_y·k_g⁻¹
+        -- = k_g·n_y · (k_g⁻¹·k_g) · m_y · k_g⁻¹
+        -- = k_g·n_y · m_y · k_g⁻¹
+        -- = k_g · (n_y·m_y) · k_g⁻¹
+        -- Prove: (k_g·n_y·k_g⁻¹) · m_y' = k_g·(n_y·m_y)·k_g⁻¹
+        have hfold : G.op (G.op (G.op k_g n_y) (G.inv k_g)) m_y' =
+                     G.op (G.op k_g (G.op n_y m_y)) (G.inv k_g) := by
+          show G.op (G.op (G.op k_g n_y) (G.inv k_g)) (G.op (G.op k_g m_y) (G.inv k_g)) =
+               G.op (G.op k_g (G.op n_y m_y)) (G.inv k_g)
+          -- (k_g·n_y·k_g⁻¹)·(k_g·m_y·k_g⁻¹) = k_g·(n_y·m_y)·k_g⁻¹
+          -- Step: fold k_g⁻¹·k_g = e in the middle
+          -- Goal: (k_g·n_y·k_g⁻¹)·(k_g·m_y·k_g⁻¹) = k_g·(n_y·m_y)·k_g⁻¹
+          -- Reassociate LHS: k_g·n_y · (k_g⁻¹·k_g·m_y·k_g⁻¹)
+          rw [G.op_assoc (G.op k_g n_y) (G.inv k_g) (G.op (G.op k_g m_y) (G.inv k_g))
+                (op_mem G hkg_G hny_G) hinvkg_G (op_mem G (op_mem G hkg_G hmy_G) hinvkg_G)]
+          -- now: (k_g·n_y) · (k_g⁻¹·((k_g·m_y)·k_g⁻¹))
+          -- expand (k_g·m_y)·k_g⁻¹ → k_g·(m_y·k_g⁻¹), then fold k_g⁻¹·k_g
+          rw [G.op_assoc k_g m_y (G.inv k_g) hkg_G hmy_G hinvkg_G,
+              ← G.op_assoc (G.inv k_g) k_g (G.op m_y (G.inv k_g))
+                  hinvkg_G hkg_G (op_mem G hmy_G hinvkg_G),
+              (G.op_inv k_g hkg_G).2,
+              (G.op_id (G.op m_y (G.inv k_g)) (op_mem G hmy_G hinvkg_G)).2,
+              ← G.op_assoc (G.op k_g n_y) m_y (G.inv k_g)
+                  (op_mem G hkg_G hny_G) hmy_G hinvkg_G,
+              G.op_assoc k_g n_y m_y hkg_G hny_G hmy_G]
+        -- LHS: n_g · (k_g·(n_y·m_y)·k_g⁻¹) · n_g⁻¹
+        -- RHS: g·y·g⁻¹ = (n_g·k_g)·(n_y·m_y)·(k_g⁻¹·n_g⁻¹)
+        rw [hfold, ← hg_eq, ← hy_eq, inv_op_eq G hng_G hkg_G,
+            G.op_assoc n_g (G.op (G.op k_g (G.op n_y m_y)) (G.inv k_g)) (G.inv n_g)
+              hng_G (op_mem G (op_mem G hkg_G (op_mem G hny_G hmy_G)) hinvkg_G) hinvng_G,
+            G.op_assoc (G.op k_g (G.op n_y m_y)) (G.inv k_g) (G.inv n_g)
+              (op_mem G hkg_G (op_mem G hny_G hmy_G)) hinvkg_G hinvng_G,
+            G.op_assoc k_g (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g))
+                hkg_G (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G),
+            ← G.op_assoc n_g k_g (G.op (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g)))
+                hng_G hkg_G (op_mem G (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G)),
+            ← G.op_assoc (G.op n_g k_g) (G.op n_y m_y) (G.op (G.inv k_g) (G.inv n_g))
+                (op_mem G hng_G hkg_G) (op_mem G hny_G hmy_G) (op_mem G hinvkg_G hinvng_G)]
       rw [mem_prodSubgroup_iff]
       refine ⟨?_, ?_⟩
       · have hg_G' : g ∈ G.carrier.elems := hg_eq ▸ op_mem G hng_G hkg_G
         have hy_G' : y ∈ G.carrier.elems := hy_eq ▸ op_mem G hny_G hmy_G
         exact op_mem G (op_mem G hg_G' hy_G') (inv_mem G hg_G')
-      · exact ⟨G.op
-            (G.op (G.op n_g (G.op (G.op k_g n_y) (G.inv k_g))) (G.inv n_g))
-            (G.op (G.op (G.op (G.inv m_y') n_g) m_y') (G.inv n_g)),
-          hn_total, m_y', hmy'_HM, hident.symm⟩
-
+      · exact ⟨G.op n_g (G.op (G.op (G.op k_g n_y) (G.inv k_g))
+                                (G.op (G.op m_y' (G.inv n_g)) (G.inv m_y'))),
+               hn_pair, m_y', hmy'_HM, hident⟩
+      -- Identity: n_pair · m_y' = g · y · g⁻¹
+      -- n_g · (k_g·n_y·k_g⁻¹) · (m_y'·n_g⁻¹·m_y'⁻¹) · m_y'
     /-! ## § 7. Normalidad de `(N∩K)(H∩M)` en `H∩K`, y la biyección principal. -/
 
     -- TODO: Completar formalización de la biyección del lema de Zassenhaus.

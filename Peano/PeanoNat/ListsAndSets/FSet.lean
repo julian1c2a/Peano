@@ -175,6 +175,15 @@ namespace Peano
     instance : DecidableRel (@LT.lt ℕ₀ _) :=
       fun a b => Peano.StrictOrder.decidableLt a b
 
+    -- ─────────────────────────────────────────────────────────────────
+    -- Instancias nombradas de DecidableEq para los alias concretos.
+    -- La instancia genérica `DecidableEq (FSet α)` vive más arriba;
+    -- estos alias permiten al elaborador resolverlas sin búsqueda.
+    -- ─────────────────────────────────────────────────────────────────
+    instance instDecidableEqℕ₀FSet : DecidableEq ℕ₀FSet := inferInstance
+    instance instDecidableEqℕ₁FSet : DecidableEq ℕ₁FSet := inferInstance
+    instance instDecidableEqℕ₂FSet : DecidableEq ℕ₂FSet := inferInstance
+
     /-- Conjunto finito de naturales Nats. -/
     abbrev NatsFSet := FSet Nats
 

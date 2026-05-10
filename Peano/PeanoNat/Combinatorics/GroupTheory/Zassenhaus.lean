@@ -618,10 +618,334 @@ namespace Peano
       -- n_g · (k_g·n_y·k_g⁻¹) · (m_y'·n_g⁻¹·m_y'⁻¹) · m_y'
     /-! ## § 7. Normalidad de `(N∩K)(H∩M)` en `H∩K`, y la biyección principal. -/
 
-    -- TODO: Completar formalización de la biyección del lema de Zassenhaus.
+    /-! ### § 7.1. Subgrupos empaquetados para los cocientes -/
+
+    /-- Todos los elementos de `(N∩K)(H∩M)` pertenecen a `H∩K`. -/
+    private theorem prodNKHM_le_HK
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K)
+        (x : ℕ₀) :
+        x ∈ (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems →
+        x ∈ (H.inter K).carrier.elems := by
+      intro hx
+      simp only [prodNKHM] at hx
+      rw [mem_prodSubgroup_iff] at hx
+      obtain ⟨_, a, ha_NK, b, hb_HM, heq⟩ := hx
+      have ha_N := inter_subset_left_aux N K a ha_NK
+      have ha_K := inter_subset_right_aux N K a ha_NK
+      have ha_H := hNH a ha_N
+      have hb_H := inter_subset_left_aux H M b hb_HM
+      have hb_M := inter_subset_right_aux H M b hb_HM
+      have hb_K := hMK b hb_M
+      rw [mem_inter_iff H K, ← heq]
+      exact ⟨op_mem G (H.subset a ha_H) (H.subset b hb_H),
+             H.op_closed a b ha_H hb_H,
+             K.op_closed a b ha_K hb_K⟩
+
+    /-- `(N∩K)(H∩M)` como subgrupo del grupo finito `H∩K`. -/
+    private def prodNKHM_in_HK
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        Subgroup (Subgroup.toFinGroup (H.inter K)) where
+      carrier    := (prodNKHM G H K N M hNH hMK hNN hMM).carrier
+      nonempty   := (prodNKHM G H K N M hNH hMK hNN hMM).nonempty
+      subset     := fun a ha =>
+        prodNKHM_le_HK G H K N M hNH hMK hNN hMM a ha
+      op_closed  := fun a b ha hb =>
+        (prodNKHM G H K N M hNH hMK hNN hMM).op_closed a b ha hb
+      id_in      := (prodNKHM G H K N M hNH hMK hNN hMM).id_in
+      inv_closed := fun a ha =>
+        (prodNKHM G H K N M hNH hMK hNN hMM).inv_closed a ha
+
+    /-- `N(H∩M)` como subgrupo del grupo finito `N(H∩K)`. -/
+    private def prodN_HM_in_prodN_HK
+        (G : FinGroup ℕ₀) (H K M N : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H) :
+        Subgroup (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN)) where
+      carrier    := (prodN_HM G H M N hNH hMH hNN).carrier
+      nonempty   := (prodN_HM G H M N hNH hMH hNN).nonempty
+      subset     := fun a ha =>
+        prodN_HM_le_prodN_HK G H K M N hNH hMH hMK hNN a ha
+      op_closed  := fun a b ha hb =>
+        (prodN_HM G H M N hNH hMH hNN).op_closed a b ha hb
+      id_in      := (prodN_HM G H M N hNH hMH hNN).id_in
+      inv_closed := fun a ha =>
+        (prodN_HM G H M N hNH hMH hNN).inv_closed a ha
+
+    /-! ### § 7.2. Lemas algebraicos para la biyección -/
+
+    /-- `(N∩K)(H∩M) ≤ N(H∩M)` como subconjuntos de `G`. -/
+    private theorem prodNKHM_sub_prodN_HM
+        (G : FinGroup ℕ₀) (H K M N : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K)
+        (x : ℕ₀) :
+        x ∈ (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems →
+        x ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems := by
+      intro hx
+      simp only [prodNKHM, prodN_HM] at hx ⊢
+      rw [mem_prodSubgroup_iff] at hx ⊢
+      obtain ⟨hx_G, a, ha_NK, b, hb_HM, heq⟩ := hx
+      exact ⟨hx_G, a, inter_subset_left_aux N K a ha_NK, b, hb_HM, heq⟩
+
+    /-- **Lema clave**: `(H∩K) ∩ N(H∩M) ≤ (N∩K)(H∩M)`. -/
+    private theorem HK_inter_prodN_HM_le_prodNKHM
+        (G : FinGroup ℕ₀) (H K M N : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K)
+        (x : ℕ₀) :
+        x ∈ (H.inter K).carrier.elems →
+        x ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems →
+        x ∈ (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems := by
+      intro hx_HK hx_NHM
+      simp only [prodN_HM] at hx_NHM
+      rw [mem_prodSubgroup_iff] at hx_NHM
+      obtain ⟨_, n, hn_N, m, hm_HM, heq⟩ := hx_NHM
+      -- n = x · m⁻¹, y n ∈ N∩K
+      have hx_K  := inter_subset_right_aux H K x hx_HK
+      have hm_M  := inter_subset_right_aux H M m hm_HM
+      have hm_K  := hMK m hm_M
+      have hn_G  := N.subset n hn_N
+      have hm_G  := M.subset m hm_M
+      have hx_G  := (H.inter K).subset x hx_HK
+      -- n = x · m⁻¹
+      have hn_eq : n = G.op x (G.inv m) := by
+        rw [← heq,
+            G.op_assoc n m (G.inv m) hn_G hm_G (inv_mem G hm_G),
+            (G.op_inv m hm_G).1, (G.op_id n hn_G).1]
+      -- n ∈ K
+      have hn_K : n ∈ K.carrier.elems :=
+        hn_eq ▸ K.op_closed x (G.inv m) hx_K (K.inv_closed m hm_K)
+      -- n ∈ N∩K
+      have hn_NK : n ∈ (N.inter K).carrier.elems := by
+        rw [mem_inter_iff N K]
+        exact ⟨hn_G, hn_N, hn_K⟩
+      simp only [prodNKHM]
+      rw [mem_prodSubgroup_iff]
+      exact ⟨hx_G, n, hn_NK, m, hm_HM, heq⟩
+
+    /-- `H∩K ≤ N(H∩K)`. -/
+    private theorem HK_le_prodN_HK
+        (G : FinGroup ℕ₀) (H K N : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hNN : NormalIn G N H)
+        (x : ℕ₀) :
+        x ∈ (H.inter K).carrier.elems →
+        x ∈ (prodN_HK G H K N hNH hNN).carrier.elems :=
+      fun hx =>
+        S_le_prodSubgroup G N (H.inter K) H hNH
+          (fun a ha => inter_subset_left_aux H K a ha) hNN x hx
+
+    /-! ### § 7.3. La biyección de Zassenhaus -/
+
+    /-- La aplicación `(H∩K)/(N∩K)(H∩M) → N(H∩K)/N(H∩M)`:
+        `C ↦ (cosetRepOf C) · N(H∩M)`. -/
+    private noncomputable def zassenhaus_map
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        MapOn
+          (quotientCarrier
+            (Subgroup.toFinGroup (H.inter K))
+            (prodNKHM_in_HK G H K N M hNH hMK hNN hMM))
+          (quotientCarrier
+            (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+            (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN)) where
+      toFun := fun C =>
+        leftCoset
+          (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+          (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN)
+          (cosetRepOf
+            (Subgroup.toFinGroup (H.inter K))
+            (prodNKHM_in_HK G H K N M hNH hMK hNN hMM)
+            C)
+      map_carrier := fun C hC =>
+        leftCoset_mem_quotientCarrier
+          (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+          (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN)
+          _
+          (HK_le_prodN_HK G H K N hNH hNN _
+            (cosetRepOf_mem_G
+              (Subgroup.toFinGroup (H.inter K))
+              (prodNKHM_in_HK G H K N M hNH hMK hNN hMM)
+              C hC))
+
+    /-- Bien-definición: `zassenhaus_map(k · B) = k · N(H∩M)` para `k ∈ H∩K`. -/
+    private theorem zassenhaus_map_welldefined
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K)
+        (k : ℕ₀) (hk : k ∈ (H.inter K).carrier.elems) :
+        (zassenhaus_map G H K N M hNH hMH hMK hNN hMM).toFun
+          (leftCoset
+            (Subgroup.toFinGroup (H.inter K))
+            (prodNKHM_in_HK G H K N M hNH hMK hNN hMM)
+            k) =
+          leftCoset
+            (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+            (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN)
+            k := by
+      simp only [zassenhaus_map]
+      let HKg     := Subgroup.toFinGroup (H.inter K)
+      let NKHM    := prodNKHM_in_HK G H K N M hNH hMK hNN hMM
+      let NHKg    := Subgroup.toFinGroup (prodN_HK G H K N hNH hNN)
+      let NHM_sub := prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN
+      have hk_in : leftCoset HKg NKHM k ∈ (quotientCarrier HKg NKHM).elems :=
+        leftCoset_mem_quotientCarrier HKg NKHM k hk
+      let r := cosetRepOf HKg NKHM (leftCoset HKg NKHM k)
+      have hr_HK : r ∈ (H.inter K).carrier.elems :=
+        cosetRepOf_mem_G HKg NKHM _ hk_in
+      have hrel : cosetRel HKg NKHM r k :=
+        cosetRel_of_leftCoset_eq HKg NKHM r k hr_HK hk
+          (cosetRepOf_leftCoset_eq HKg NKHM _ hk_in)
+      -- r⁻¹*k ∈ prodNKHM → ∈ prodN_HM
+      unfold cosetRel at hrel
+      have hrel_NHM : G.op (G.inv r) k ∈
+          (prodN_HM G H M N hNH hMH hNN).carrier.elems :=
+        prodNKHM_sub_prodN_HM G H K M N hNH hMH hMK hNN hMM _ hrel
+      -- cosetRel NHKg NHM_sub r k
+      have hrel2 : cosetRel NHKg NHM_sub r k := by
+        unfold cosetRel
+        exact hrel_NHM
+      exact leftCoset_eq_of_rel NHKg NHM_sub r k
+        (HK_le_prodN_HK G H K N hNH hNN r hr_HK)
+        (HK_le_prodN_HK G H K N hNH hNN k hk)
+        hrel2
+
+    /-- `zassenhaus_map` es inyectiva. -/
+    private theorem zassenhaus_map_injective
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        (zassenhaus_map G H K N M hNH hMH hMK hNN hMM).Injective := by
+      intro C₁ C₂ hC₁ hC₂ hφ
+      simp only [zassenhaus_map] at hφ
+      let HKg     := Subgroup.toFinGroup (H.inter K)
+      let NKHM    := prodNKHM_in_HK G H K N M hNH hMK hNN hMM
+      let NHKg    := Subgroup.toFinGroup (prodN_HK G H K N hNH hNN)
+      let NHM_sub := prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN
+      rw [← cosetRepOf_leftCoset_eq HKg NKHM C₁ hC₁,
+          ← cosetRepOf_leftCoset_eq HKg NKHM C₂ hC₂]
+      let r₁ := cosetRepOf HKg NKHM C₁
+      let r₂ := cosetRepOf HKg NKHM C₂
+      have hr₁_HK := cosetRepOf_mem_G HKg NKHM C₁ hC₁
+      have hr₂_HK := cosetRepOf_mem_G HKg NKHM C₂ hC₂
+      -- φ(C₁) = φ(C₂) ⟹ cosetRel NHKg NHM_sub r₁ r₂
+      have hrel_NHM : cosetRel NHKg NHM_sub r₁ r₂ :=
+        cosetRel_of_leftCoset_eq NHKg NHM_sub r₁ r₂
+          (HK_le_prodN_HK G H K N hNH hNN r₁ hr₁_HK)
+          (HK_le_prodN_HK G H K N hNH hNN r₂ hr₂_HK)
+          hφ
+      unfold cosetRel at hrel_NHM
+      -- r₁⁻¹*r₂ ∈ H∩K (ya que r₁, r₂ ∈ H∩K)
+      have hr₁_H := inter_subset_left_aux H K r₁ hr₁_HK
+      have hr₂_H := inter_subset_left_aux H K r₂ hr₂_HK
+      have hr₁_K := inter_subset_right_aux H K r₁ hr₁_HK
+      have hr₂_K := inter_subset_right_aux H K r₂ hr₂_HK
+      have hr₁_G := H.subset r₁ hr₁_H
+      have hr₂_G := H.subset r₂ hr₂_H
+      have hinvr₁_r₂_HK : G.op (G.inv r₁) r₂ ∈ (H.inter K).carrier.elems := by
+        rw [mem_inter_iff H K]
+        exact ⟨op_mem G (inv_mem G hr₁_G) hr₂_G,
+               H.op_closed (G.inv r₁) r₂ (H.inv_closed r₁ hr₁_H) hr₂_H,
+               K.op_closed (G.inv r₁) r₂ (K.inv_closed r₁ hr₁_K) hr₂_K⟩
+      -- Lema clave: r₁⁻¹*r₂ ∈ H∩K ∩ prodN_HM ⟹ ∈ prodNKHM
+      have hrel_NKHM : G.op (G.inv r₁) r₂ ∈
+          (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems :=
+        HK_inter_prodN_HM_le_prodNKHM G H K M N hNH hMH hMK hNN hMM _
+          hinvr₁_r₂_HK hrel_NHM
+      -- cosetRel HKg NKHM r₁ r₂
+      apply (leftCoset_eq_iff_cosetRel HKg NKHM r₁ r₂ hr₁_HK hr₂_HK).mpr
+      unfold cosetRel
+      exact hrel_NKHM
+
+    /-- `zassenhaus_map` es sobreyectiva. -/
+    private theorem zassenhaus_map_surjective
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        (zassenhaus_map G H K N M hNH hMH hMK hNN hMM).Surjective := by
+      intro D hD
+      let HKg     := Subgroup.toFinGroup (H.inter K)
+      let NKHM    := prodNKHM_in_HK G H K N M hNH hMK hNN hMM
+      let NHKg    := Subgroup.toFinGroup (prodN_HK G H K N hNH hNN)
+      let NHM_sub := prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN
+      -- D = leftCoset NHKg NHM_sub x para x ∈ prodN_HK
+      obtain ⟨x, hx_NHK, rfl⟩ :=
+        mem_quotientCarrier_is_leftCoset NHKg NHM_sub _ hD
+      -- x = n * k con n ∈ N, k ∈ H∩K
+      have hx_in : x ∈ (prodN_HK G H K N hNH hNN).carrier.elems := hx_NHK
+      simp only [prodN_HK] at hx_in
+      rw [mem_prodSubgroup_iff] at hx_in
+      obtain ⟨_, n, hn_N, k, hk_HK, heq_x⟩ := hx_in
+      -- El preimagen es leftCoset HKg NKHM k
+      refine ⟨leftCoset HKg NKHM k,
+              leftCoset_mem_quotientCarrier HKg NKHM k hk_HK, ?_⟩
+      rw [zassenhaus_map_welldefined G H K N M hNH hMH hMK hNN hMM k hk_HK]
+      -- Basta: leftCoset NHKg NHM_sub k = leftCoset NHKg NHM_sub x
+      -- i.e., cosetRel NHKg NHM_sub k x, i.e., k⁻¹ * x ∈ prodN_HM
+      apply leftCoset_eq_of_rel NHKg NHM_sub k x
+        (HK_le_prodN_HK G H K N hNH hNN k hk_HK)
+        hx_NHK
+      -- k⁻¹ * x = k⁻¹ * (n * k) = (k⁻¹ * n) * k ∈ N ≤ prodN_HM
+      unfold cosetRel
+      show G.op (G.inv k) x ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems
+      rw [← heq_x]
+      have hk_H  := inter_subset_left_aux H K k hk_HK
+      have hk_G  := H.subset k hk_H
+      have hn_G  := N.subset n hn_N
+      -- k⁻¹*(n*k) = (k⁻¹*n)*k
+      rw [G.op_assoc (G.inv k) n k (inv_mem G hk_G) hn_G hk_G]
+      -- (k⁻¹*n)*k ∈ N via hNN (G.inv k) n
+      have hconj : G.op (G.op (G.inv k) n) (G.inv (G.inv k)) ∈ N.carrier.elems :=
+        hNN (G.inv k) n (H.inv_closed k hk_H) hn_N
+      rw [inv_inv_eq G hk_G] at hconj
+      -- hconj : G.op (G.op (G.inv k) n) k ∈ N
+      -- N ≤ prodN_HM via N_le_prodSubgroup
+      exact N_le_prodSubgroup G N (H.inter M) H hNH
+        (fun a ha => inter_subset_left_aux H M a ha) hNN _ hconj
+
+    /-- `zassenhaus_map` es biyectiva. -/
+    private theorem zassenhaus_map_bijective
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMH : ∀ a, a ∈ M.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        (zassenhaus_map G H K N M hNH hMH hMK hNN hMM).Bijective :=
+      ⟨zassenhaus_map_injective G H K N M hNH hMH hMK hNN hMM,
+       zassenhaus_map_surjective G H K N M hNH hMH hMK hNN hMM⟩
 
     /-- **Lema de la Mariposa de Zassenhaus** (enunciado principal):
-        La biyección `(H∩K)/[(N∩K)(H∩M)] ↔ N(H∩K)/N(H∩M)` es biyectiva. -/
+        Existe una biyección `(H∩K)/[(N∩K)(H∩M)] ↔ N(H∩K)/N(H∩M)`. -/
     theorem zassenhaus_bijection
         (G : FinGroup ℕ₀) (H K N M : Subgroup G)
         (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
@@ -629,10 +953,38 @@ namespace Peano
         (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
         (hNN : NormalIn G N H)
         (hMM : NormalIn G M K) :
-        True := by
-      -- Placeholder: el enunciado completo requiere formalizar el tipo del isomorfismo
-      -- entre cocientes de distintos FinGroup.
-      trivial
+        ∃ (f : MapOn
+            (quotientCarrier
+              (Subgroup.toFinGroup (H.inter K))
+              (prodNKHM_in_HK G H K N M hNH hMK hNN hMM))
+            (quotientCarrier
+              (Subgroup.toFinGroup (prodN_HK G H K N hNH hNN))
+              (prodN_HM_in_prodN_HK G H K M N hNH hMH hMK hNN))),
+          f.Bijective :=
+      ⟨zassenhaus_map G H K N M hNH hMH hMK hNN hMM,
+       zassenhaus_map_bijective G H K N M hNH hMH hMK hNN hMM⟩
+
+    /-- **Lema de la Mariposa de Zassenhaus** (enunciado simétrico):
+        Existe una biyección `(H∩K)/[(N∩K)(H∩M)] ↔ M(H∩K)/N(N∩K)`. -/
+
+    /-- **Lema de la Mariposa de Zassenhaus** (enunciado entre extremos):
+        Existe una biyección `N(H∩K)/N(H∩M) ↔ M(H∩K)/N(N∩K)`. -/
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  prodSubgroup
+  mem_prodSubgroup_iff
+  N_le_prodSubgroup
+  S_le_prodSubgroup
+  inter_N_K_normal_in_inter_H_K
+  inter_H_M_normal_in_inter_H_K
+  prodNKHM
+  prodNKHM_normal
+  prodN_HK
+  prodN_HM
+  prodN_HM_le_prodN_HK
+  prodN_HM_normal_in_prodN_HK
+  zassenhaus_bijection
+)

@@ -60,3 +60,10 @@ instance : DecidableRel (@LT.lt ℕ₀ _) := fun a b =>
 
 instance : DecidableRel (@LE.le ℕ₀ _) := fun a b =>
   Peano.Order.decidableLe a b
+
+-- ─────────────────────────────────────────────────────────────────
+-- DecidableEq para List ℕ₀
+-- Lean 4 proporciona List.instDecidableEq genérico; este alias
+-- nombrado garantiza que el elaborador lo encuentre sin ambigüedad.
+-- ─────────────────────────────────────────────────────────────────
+instance instDecidableEqListℕ₀ : DecidableEq (List ℕ₀) := inferInstance

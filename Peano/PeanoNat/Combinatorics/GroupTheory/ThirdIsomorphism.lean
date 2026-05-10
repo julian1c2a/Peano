@@ -131,7 +131,7 @@ namespace Peano
     /-- El mapa canónico `φ : G/N → G/K` definido por `φ(C) = leftCoset G K (cosetRepOf G N C)`. -/
     noncomputable def thirdIsoMap (G : FinGroup ℕ₀) (N K : Subgroup G)
         (_hn_N : N.IsNormal) (_hn_K : K.IsNormal)
-        (hNK : ∀ n, n ∈ N.carrier.elems → n ∈ K.carrier.elems) :
+        (_hNK : ∀ n, n ∈ N.carrier.elems → n ∈ K.carrier.elems) :
         MapOn (quotientCarrier G N) (quotientCarrier G K) where
       toFun := fun C => leftCoset G K (cosetRepOf G N C)
       map_carrier := fun C hC =>

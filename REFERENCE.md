@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 66 build jobs · 0 sorry (4 axiomas privados en Sylow.lean) · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-10*
+> 66 build jobs · 0 sorry · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-10*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -68,7 +68,7 @@
 | `Peano/PeanoNat/NumberTheory/ChineseRemainder.lean` | `Peano.CRT` | `ModEq`, `Arith` | — |
 | `Peano/PeanoNat/NumberTheory/Fermat.lean` | `Peano.Fermat` | `ModEq`, `Totient`, `Primes` | — |
 | `Peano/PeanoNat/NumberTheory/Wilson.lean` | `Peano.Wilson` | `ModEq`, `Fermat`, `Factorial`, `Pow`, `Primes` | — |
-| **Teoría de grupos finitos** *(4 axiomas privados en Sylow.lean)* | | | |
+| **Teoría de grupos finitos** | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
 | `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
@@ -3397,7 +3397,7 @@ structure GroupAction
 
 *Dependencias: `Action`, `Cosets`, `Totient`, `Group`, `Arith`, `Primes`*
 
-**Estado:** ✅ Sin sorry (5 axiomas privados). *Última actualización: 2026-04-27.*
+**Estado:** ✅ Sin sorry, sin axiomas privados no intencionales. *Última actualización: 2026-05-10.*
 
 ### 44.1. Definiciones base [D]
 

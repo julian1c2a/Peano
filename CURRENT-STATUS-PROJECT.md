@@ -21,17 +21,17 @@ warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne si
 errors          →  0
 ```
 
-### Desglose de axiomas privados (Sylow.lean)
+### Axiomas privados — estado final (2026-05-10)
 
-| Axioma privado | Línea ~ | Usado por | Dificultad | Ruta |
-|---|---|---|---|---|
-| `wielandt_p_ndvd_r` (caso `succ m'`) | ~3586 | `sylow_center_step_wielandt` | Difícil | Inducción fuerte sobre \|G\| + cociente G/Z |
-| `sylow_third_mod` | ~3875 | `sylow_third` | Muy difícil | Normalizador + conteo mod p |
-| `sylow_third_dvd` | ~3889 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
+Los únicos `private axiom` son los **6 axiomas intencionales de Peano** en `PureAxioms.lean`.
+No hay ningún `private axiom` ni `sorry` en `Sylow.lean` ni en ningún otro módulo.
 
-**Completados (2026-05-07)**:
-
-- `wielandt_fixed_point_exists` — ✅ **axioma privado eliminado** (demostrado como `private theorem`)
+| Símbolo | Módulo | Tipo | Notas |
+|---|---|---|---|
+| `wielandt_p_ndvd_r` | `Sylow.lean` | `private theorem` ✅ | demostrado (línea ~3755) |
+| `sylow_third_mod` | `Sylow.lean` | `private theorem` ✅ | demostrado (línea ~4955) |
+| `sylow_third_dvd` | `Sylow.lean` | `private theorem` ✅ | demostrado (línea ~5434) |
+| `wielandt_fixed_point_exists` | `Sylow.lean` | `private theorem` ✅ | demostrado (2026-05-07) |
 
 ---
 
@@ -104,7 +104,7 @@ errors          →  0
 | `GroupTheory/Action.lean` | `Peano.Action` | `GroupAction` polimórfico, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `leftCoset`, `cosetRel`, `cosetEquivRel`, `lagrange`, `cosetClasses` — polimórfico | ✅ |
 | `GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | Acción de G sobre coclases, `coset_conjugate_exists` (cierra Sylow II) | ✅ |
-| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — formalmente cerrados (0 sorry, 3 axiomas privados) | ⚠ 3 axiomas privados |
+| `GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | Teoremas de Sylow I/II/III — completamente demostrados (0 sorry, 0 axiomas privados) | ✅ |
 
 ---
 
@@ -116,7 +116,7 @@ errors          →  0
 - `EquivRel.lean`: nuevo módulo — `EquivRelOn`, `classOf`, `classes`, `ClassFamily`, `canonicalClassFamily`, 17 símbolos exportados.
 - `Group.lean`: instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup` para `FSet (Subgroup G)`.
 - `Cosets.lean` y `Action.lean`: completamente refactorizados a polimorfismo pleno sobre `{α β : Type}`.
-- **Build**: 64 jobs, 0 sorry, 3 axiomas privados en Sylow.lean.
+- **Build**: 64 jobs, 0 sorry.
 
 ### wielandt_fixed_point_exists — ✅ axioma eliminado (2026-05-07)
 
@@ -137,9 +137,9 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
   `N_le_prodSubgroup`, `S_le_prodSubgroup`, `inter_N_K_normal_in_inter_H_K`,
   `inter_H_M_normal_in_inter_H_K`, `prodNKHM`, `prodNKHM_normal`,
   `prodN_HK`, `prodN_HM`, `prodN_HM_le_prodN_HK`, `prodN_HM_normal_in_prodN_HK`.
-- 0 sorry. Placeholder `zassenhaus_bijection` excluido (pendiente de formalizar cocientes).
-- **Build**: 66 jobs, 0 sorry, 3 axiomas privados en Sylow.lean.
-- Documentación proyectada: `doc/REFERENCE-GroupTheory.md` (nuevo directorio `doc/`).
+- 0 sorry. `zassenhaus_bijection` incluido con enunciado placeholder `True` (trivial); el isomorfismo real requiere cocientes de FinGroup.
+- **Build**: 66 jobs, 0 sorry, 0 axiomas privados no intencionales.
+- Documentación proyectada: `doc/REFERENCE-GroupTheory.md`.
 
 ### Phase F — Foundation: cadena Peano → Aczel → ZFC ✅ (2026-05-02)
 
@@ -148,11 +148,11 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 ---
 
-## Próximos objetivos (sprint final)
+## Próximos objetivos
 
-1. **`wielandt_p_ndvd_r` (caso `succ m'`)** — Track 1: inducción fuerte sobre |G|, cociente G/Z.
-2. **`sylow_third_mod` + `sylow_third_dvd`** — Track 3: acción de conjugación sobre {subgrupos de Sylow}.
-3. **`zassenhaus_bijection`** — Formalizar el isomorfismo `(H∩K)/[(N∩K)(H∩M)] ≅ N(H∩K)/N(H∩M)` como tipo completo (requiere cocientes de FinGroup).
+1. **`zassenhaus_bijection`** — Formalizar el isomorfismo `(H∩K)/[(N∩K)(H∩M)] ≅ N(H∩K)/N(H∩M)` como tipo completo. Actualmente el enunciado es `True` (placeholder `trivial`). Requiere cocientes de `FinGroup` formalizados.
+2. **`ConstructiveCheck.lean`** — Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
+3. **Feature-freeze + handoff a `AczelSetTheory`** — Precondición: los dos anteriores.
 
 ---
 

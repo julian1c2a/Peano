@@ -27,9 +27,10 @@ Los tres teoremas de Sylow están completamente demostrados:
 Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
 Los módulos de GroupTheory y GodelBeta son explícitamente no constructivos (documentar).
 
-### T.2 — Migración de documentación a `/doc/` (Phase G.1)
+### T.2 — Migración de documentación a `/doc/` (Phase G.1) ✅ COMPLETADO (2026-05-10)
 
-Ver sección §G.1 más abajo. No bloquea trabajo matemático.
+Seis archivos `doc/REFERENCE-*.md` creados y pusheados en commit `85c8742`.
+Ver §G.1 para los detalles. No bloquea trabajo matemático.
 
 ### T.3 — Feature-freeze y handoff a AczelSetTheory (Phase G.2–G.3)
 
@@ -96,92 +97,15 @@ Peano/PeanoNat/
 
 ---
 
-## Track 1 — `Sylow.lean` (cierra `wielandt_p_ndvd_r` caso `succ m'`)
+## Track 1 — `Sylow.lean` ✅ COMPLETADO (2026-05-07)
 
-### Estado actual (2026-05-07)
+`wielandt_p_ndvd_r` (incluido el caso `succ m'`) está completamente demostrado como `private theorem`.
+Ver «Hitos completados» arriba.
 
-`wielandt_fixed_point_exists` está **completamente demostrado** como `private theorem`
-(0 sorry, 0 axiom privado). El único pendiente del Track 1 es el caso `succ m'` del
-teorema `wielandt_p_ndvd_r`.
+### Historial (referencia)
 
-### Argumento matemático
-
-Sea `|G| = p^(m+1) · r`. Define `Ω = { S ⊆ G.carrier.elems : |S| = p^(m+1) }`.
-
-- `|Ω| = C(|G|, p^(m+1)) ≡ r (mod p)` por `binom_pow_p_mod` ✅
-- `wielandt_p_ndvd_r`: p ∤ r — vía inducción fuerte sobre `|G|`.
-- `wielandt_fixed_point_exists`: G actúa sobre Ω por traslación; p∤|Ω| →
-  `wielandt_exists_nondvd_orbit_aux` da punto fijo → el estabilizador tiene orden `p^(m+1)`. ✅
-
-### Infraestructura ya disponible
-
-- `sublistsOfLength` con propiedades `_mem_len`, `_mem_sub`, `_mem_sorted`,
-  `_nodup_result`, `_complete`, `_card` ✅
-- `wieldandtOmega (G : FinGroup ℕ₀) (N : ℕ₀) : List (List ℕ₀)` ✅
-- `wielandt_omega_card` — `|Ω| = C(|G|, N)` ✅ (demostrado 2026-04-28)
-- `binom_pow_p_mod` — `C(p^n·r, p^n) ≡ r (mod p)` ✅
-- `mckay_orbit_count` ✅
-- `cauchy_minimal` — `∃ K ≤ G, |K| = p` cuando `p ∣ |G|` ✅ (Sylow.lean:1641, 0 sorry)
-- `wieldandtAct_gpow_add` ✅
-- `wieldandtAct_gpow_fixed_of_gcd_one` ✅
-- `wielandt_orbit_remove` ✅
-- `wielandt_orbit_partition` ✅ (|Ω| = |fix| + p·k)
-- `wielandt_exists_nondvd_orbit_aux` ✅ (inducción estructural sobre |Ω|)
-- `wielandt_fixed_point_exists` ✅ **COMPLETADO 2026-05-07**
-
-### Pendiente: `wielandt_p_ndvd_r` caso `succ m'`
-
-El teorema `wielandt_p_ndvd_r` prueba que si `|G| = p^(m+1) · r` y ningún
-subgrupo propio de `G` es divisible por `p^(m+1)`, entonces `p ∤ r`.
-
-El **caso `m = 0`** ya está demostrado: `cauchy_minimal` da `K : Subgroup G` con
-`|K| = p`; `K` es propio y contradice `h_no_proper`.
-
-El **caso `m' ≥ 1`** (succ m') tiene un `sorry`. El obstáculo es la circularidad:
-la prueba del caso inductivo necesita aplicar Sylow a un grupo más pequeño `G'`
-(un cociente `G/Z` donde `Z ≤ center(G)`, `|Z| = p`), pero eso requiere:
-
-1. Construir el grupo cociente `G/Z` como `FinGroup ℕ₀` — disponible en `QuotientGroup.lean`.
-2. Verificar `|G/Z| = p^m · r < |G|` — aritmética directa.
-3. Aplicar la hipótesis inductiva fuerte sobre `|G'|` para obtener `H' ≤ G'` con `|H'| = p^(m+1)`.
-4. Levantar `H'` a subgrupo de `G` — vía `FirstIsomorphism.lean` o preimagen.
-
-**Bloqueador principal**: la inducción fuerte sobre `|G|` no está disponible directamente
-en este contexto (Lean 4.29.0 sin Mathlib); requiere `Nat.strong_rec_on` o equivalente.
-Además, el paso 3 introduce una circularidad si se llama recursivamente a `sylow_first` —
-hay que pasar la hipótesis inductiva explícitamente como parámetro de `sylow_center_step_wielandt`.
-
-### Plan de acción
-
-#### Paso A — Modificar firma de `sylow_center_step_wielandt`
-
-Añadir un parámetro explícito `HI` (hipótesis inductiva de Sylow para grupos más pequeños):
-
-```lean
-private theorem sylow_center_step_wielandt
-    (HI : ∀ (G' : FinGroup ℕ₀),
-          G'.carrier.card < G.carrier.card →
-          ∀ (p' : ℕ₀), Prime p' → (∃ t, Mul.mul p' t = G'.carrier.card) →
-          ∃ K : Subgroup G', K.carrier.card = p')
-    (G : FinGroup ℕ₀) ...
-```
-
-#### Paso B — Reescribir el caso `succ m'` con inducción fuerte
-
-```lean
-| succ m' =>
-  -- Sylow centrado: ∃ Z ≤ center(G), |Z| = p (por cauchy_minimal sobre center(G))
-  -- G' := G / Z,  |G'| = p^m' · r  <  |G|
-  -- HI aplicada a G' da H' ≤ G' con |H'| = p^(m+1)
-  -- Preimagen de H' en G tiene orden p^(m+1) · |Z| = p^(m+2)... (revisar aritmética)
-```
-
-**Nota**: el argumento de Wielandt clásico construye el subgrupo de Sylow directamente
-sobre `G` usando el punto fijo de la acción sobre `Ω`; no pasa por un cociente.
-La alternativa más limpia puede ser demostrar `wielandt_p_ndvd_r` para `m = 0` (caso base)
-y observar que el caso `succ m'` se reduce (por hipótesis `h_no_proper`) al caso en que
-`G` mismo no tiene subgrupos propios de orden `p^(m+1)`, lo que —combinado con el argumento
-de Wielandt sobre la acción de `G` sobre `Ω`— puede dar la contradicción directamente.
+`wielandt_fixed_point_exists` fue el último obstáculo: G actúa sobre Ω por traslación;
+p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador de orden p^(m+1). ✅
 
 ---
 
@@ -193,39 +117,10 @@ de Wielandt sobre la acción de `G` sobre `Ω`— puede dar la contradicción di
 
 ---
 
-## Track 3 — `Conjugation.lean` (cierra `sylow_third_mod` + `sylow_third_dvd`)
+## Track 3 — `sylow_third_mod` + `sylow_third_dvd` ✅ COMPLETADO (2026-05-09)
 
-### Esquema de prueba
-
-**`sylow_third_mod`**: H (subgrupo de Sylow) actúa sobre `{subgrupos de Sylow}` por
-conjugación. El único punto fijo es H. Por `mckay_orbit_count`, n_p ≡ 1 (mod p).
-
-**`sylow_third_dvd`**: G actúa sobre `{subgrupos de Sylow}` por conjugación.
-Por Sylow II (transitividad), acción transitiva: una sola órbita.
-Por órbita-estabilizador, `n_p · |Stab_G(K)| = |G|`. Estabilizador = N_G(K) ⊇ K,
-luego n_p ∣ |G|/|K|.
-
-### Infraestructura necesaria
-
-1. `normalizer (G : FinGroup ℕ₀) (K : Subgroup G) : ℕ₀FSet` — `N_G(K) = { g ∈ G | g⁻¹Kg = K }`.
-2. `normalizer_is_subgroup`.
-3. Codificación `List (Subgroup G) → ℕ₀FSet` via inyección de índices.
-4. Acción de conjugación sobre `{subgrupos de Sylow}`.
-5. Transitividad de la acción de conjugación (usa `sylow_second`).
-
-### Bloqueador
-
-`List (Subgroup G)` no es `FSet α` genérico sin instancias adecuadas.
-
-**Camino corto** (sin Phase 5): inyectar cada `Subgroup G` en `sylows` a su índice
-de lista (`ℕ₀`). Construir `ℕ₀FSet` de índices; mantener la biyección índice↔subgrupo
-como lema auxiliar.
-
-**Camino largo** (Phase 5 — ✅ INFRAESTRUCTURA DISPONIBLE 2026-05-07):
-instanciar `FinGroup (Subgroup G)` — ahora factible porque `FinGroup` es polimórfico
-sobre `{α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]` y `Subgroup G`
-tiene las instancias `instDecidableEqSubgroup`, `instLTSubgroup`, `instStrictLinearOrderSubgroup`.
-La construcción concreta de `FinGroup (Subgroup G)` sigue pendiente.
+`sylow_third_mod` y `sylow_third_dvd` están demostrados como `private theorem` (0 sorry).
+`sylow_third` usa ambos para concluir n_p ≡ 1 (mod p) y n_p ∣ |G|.
 
 ---
 
@@ -257,13 +152,13 @@ Estos no bloquean ningún track pero conviene limpiarlos en algún momento:
 
 ---
 
-## Orden de ejecución (2026-05-09)
+## Orden de ejecución (2026-05-10)
 
-Todos los tracks matemáticos están completados. El orden de trabajo restante es:
+Todos los tracks matemáticos están completados. Documentación migrada a `/doc/`. El orden restante es:
 
 ```text
 T.1 ConstructiveCheck.lean (ampliar cobertura)  ← SIGUIENTE
-T.2 Migración documentación a /doc/
+T.2 Migración documentación a /doc/             ✅ COMPLETADO 2026-05-10
 T.3 Feature-freeze + handoff a AczelSetTheory
 ```
 
@@ -303,7 +198,7 @@ importar `Peano.PeanoNat.Foundation.GodelBeta` y fundamentar formalmente
 | `CosetAction.lean` (Sylow II) | ✅ COMPLETADO |
 | Phase 5 polimorfismo FinGroup/FSet/EquivRel | ✅ COMPLETADO (2026-05-07) |
 | Sylow.lean 0 sorry + 0 private axioms no intencionales | ✅ COMPLETADO (2026-05-09) |
-| G.1 Migración documentación a `/doc/` | ❌ Pendiente |
+| G.1 Migración documentación a `/doc/` | ✅ COMPLETADO (2026-05-10) |
 
 ### G.1 — Migración de documentación a `/doc/`
 
@@ -336,7 +231,7 @@ Peano se declara **feature-frozen** cuando:
 - [x] F.1 `CantorPairing.lean` ✅ (2026-05-02)
 - [x] F.2 `GodelBeta.lean` sin sorry ✅ (2026-05-02)
 - [x] F.3 `Foundation.lean` paraguas compilando ✅ (2026-05-02)
-- [ ] G.1 Documentación migrada a `/doc/`
+- [x] G.1 Documentación migrada a `/doc/` ✅ (2026-05-10)
 
 A partir del feature-freeze:
 

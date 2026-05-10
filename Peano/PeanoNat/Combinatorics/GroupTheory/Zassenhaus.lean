@@ -17,7 +17,8 @@ Este módulo prueba:
 3. `(N ∩ K)(H ∩ M) ⊴ H ∩ K`
 4. `N(H ∩ M) ⊴ N(H ∩ K)` y `M(N ∩ K) ⊴ M(H ∩ K)`
 5. Existe una biyección `(H ∩ K) / (N ∩ K)(H ∩ M) ≅ N(H ∩ K) / N(H ∩ M)`
-6. (Por simetría) también `≅ M(H ∩ K) / M(N ∩ K)`
+6. (Por simetría) también `(H ∩ K) / (N ∩ K)(H ∩ M) ≅ M(H ∩ K) / M(N ∩ K)`
+7. (Entre los extremos) también `N(H ∩ K) / N(H ∩ M) ≅ M(H ∩ K) / M(N ∩ K)`
 
 ## Hipótesis
 

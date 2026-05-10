@@ -28,6 +28,7 @@
 - **Notación matemática:** $N \cdot S = \{n \cdot s \mid n \in N,\; s \in S\}$ como subgrupo de $G$,  
   válido cuando $N, S \leq H \leq G$ y $N \trianglelefteq H$.
 - **Firma Lean 4:**
+
   ```lean
   def prodSubgroup
       (G : FinGroup ℕ₀) (N S H : Subgroup G)
@@ -37,6 +38,7 @@
              G.op (G.op g n) (G.inv g) ∈ N.carrier.elems) :
       Subgroup G
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -48,6 +50,7 @@
 - **Tipo:** `theorem`
 - **Notación matemática:** $x \in N \cdot S \iff x \in G \;\land\; \exists n \in N,\; \exists s \in S,\; n \cdot s = x$
 - **Firma Lean 4:**
+
   ```lean
   theorem mem_prodSubgroup_iff
       (G : FinGroup ℕ₀) (N S H : Subgroup G)
@@ -60,6 +63,7 @@
       x ∈ G.carrier.elems ∧
       ∃ n ∈ N.carrier.elems, ∃ s ∈ S.carrier.elems, G.op n s = x
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 
@@ -71,6 +75,7 @@
 - **Notación matemática:** $N \leq N \cdot S$ (inclusión del primer factor).  
   $n \in N \Rightarrow n \in N \cdot S$.
 - **Firma Lean 4:**
+
   ```lean
   theorem N_le_prodSubgroup
       (G : FinGroup ℕ₀) (N S H : Subgroup G)
@@ -81,6 +86,7 @@
       (n : ℕ₀) (hn : n ∈ N.carrier.elems) :
       n ∈ (prodSubgroup G N S H hNH hSH hNN).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 
@@ -92,6 +98,7 @@
 - **Notación matemática:** $S \leq N \cdot S$ (inclusión del segundo factor).  
   $s \in S \Rightarrow s \in N \cdot S$.
 - **Firma Lean 4:**
+
   ```lean
   theorem S_le_prodSubgroup
       (G : FinGroup ℕ₀) (N S H : Subgroup G)
@@ -102,6 +109,7 @@
       (s : ℕ₀) (hs : s ∈ S.carrier.elems) :
       s ∈ (prodSubgroup G N S H hNH hSH hNN).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 
@@ -115,6 +123,7 @@
 - **Notación matemática:** Si $N \trianglelefteq H$ y $K \leq G$, entonces $N \cap K \trianglelefteq H \cap K$.  
   Formalmente: $\forall g \in H \cap K,\; \forall x \in N \cap K,\quad g x g^{-1} \in N \cap K$.
 - **Firma Lean 4:**
+
   ```lean
   theorem inter_N_K_normal_in_inter_H_K
       (G : FinGroup ℕ₀) (H K N : Subgroup G)
@@ -126,6 +135,7 @@
         x ∈ (N.inter K).carrier.elems →
         G.op (G.op g x) (G.inv g) ∈ (N.inter K).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -140,6 +150,7 @@
 - **Notación matemática:** Si $M \trianglelefteq K$ y $H \leq G$, entonces $H \cap M \trianglelefteq H \cap K$.  
   Formalmente: $\forall g \in H \cap K,\; \forall x \in H \cap M,\quad g x g^{-1} \in H \cap M$.
 - **Firma Lean 4:**
+
   ```lean
   theorem inter_H_M_normal_in_inter_H_K
       (G : FinGroup ℕ₀) (H K M : Subgroup G)
@@ -150,6 +161,7 @@
         x ∈ (H.inter M).carrier.elems →
         G.op (G.op g x) (G.inv g) ∈ (H.inter M).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -164,6 +176,7 @@
 - **Notación matemática:** El subgrupo $(N \cap K)(H \cap M) \leq H \cap K$,  
   definido como `prodSubgroup G (N∩K) (H∩M) (H∩K) …`, dado $N \trianglelefteq H$ y $M \trianglelefteq K$.
 - **Firma Lean 4:**
+
   ```lean
   def prodNKHM
       (G : FinGroup ℕ₀) (H K N M : Subgroup G)
@@ -175,6 +188,7 @@
              G.op (G.op g m) (G.inv g) ∈ M.carrier.elems) :
       Subgroup G
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -187,6 +201,7 @@
 - **Notación matemática:** $(N \cap K)(H \cap M) \trianglelefteq H \cap K$.  
   $\forall g \in H \cap K,\; \forall x \in (N \cap K)(H \cap M),\quad g x g^{-1} \in (N \cap K)(H \cap M)$.
 - **Firma Lean 4:**
+
   ```lean
   theorem prodNKHM_normal
       (G : FinGroup ℕ₀) (H K N M : Subgroup G)
@@ -201,6 +216,7 @@
         x ∈ (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems →
         G.op (G.op g x) (G.inv g) ∈ (prodNKHM G H K N M hNH hMK hNN hMM).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -215,6 +231,7 @@
 - **Notación matemática:** $N(H \cap K)$ = subgrupo producto de $N$ con $H \cap K$,  
   dado $N \leq H$ y $N \trianglelefteq H$.
 - **Firma Lean 4:**
+
   ```lean
   def prodN_HK
       (G : FinGroup ℕ₀) (H K N : Subgroup G)
@@ -223,6 +240,7 @@
              G.op (G.op g n) (G.inv g) ∈ N.carrier.elems) :
       Subgroup G
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -235,6 +253,7 @@
 - **Notación matemática:** $N(H \cap M)$ = subgrupo producto de $N$ con $H \cap M$,  
   dado $N \leq H$, $M \leq H$ y $N \trianglelefteq H$.
 - **Firma Lean 4:**
+
   ```lean
   def prodN_HM
       (G : FinGroup ℕ₀) (H M N : Subgroup G)
@@ -244,6 +263,7 @@
              G.op (G.op g n) (G.inv g) ∈ N.carrier.elems) :
       Subgroup G
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`
@@ -258,6 +278,7 @@
 - **Notación matemática:** $N(H \cap M) \leq N(H \cap K)$, dado $M \leq K$.  
   $x \in N(H \cap M) \Rightarrow x \in N(H \cap K)$.
 - **Firma Lean 4:**
+
   ```lean
   theorem prodN_HM_le_prodN_HK
       (G : FinGroup ℕ₀) (H K M N : Subgroup G)
@@ -270,6 +291,7 @@
       x ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems →
       x ∈ (prodN_HK G H K N hNH hNN).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 
@@ -288,6 +310,7 @@
   Entonces $n_{\mathrm{pair}} = n_g \cdot (k_g n_y k_g^{-1}) \cdot \alpha \in N$,  
   y la identidad $n_{\mathrm{pair}} \cdot m_y' = g y g^{-1}$ da la membresía en $N(H \cap M)$.
 - **Firma Lean 4:**
+
   ```lean
   theorem prodN_HM_normal_in_prodN_HK
       (G : FinGroup ℕ₀) (H K M N : Subgroup G)
@@ -303,6 +326,7 @@
         y ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems →
         G.op (G.op g y) (G.inv g) ∈ (prodN_HM G H M N hNH hMH hNN).carrier.elems
   ```
+
 - **Módulo:** `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`
 - **Namespace:** `Peano.GroupTheory`
 - **Importancia:** `@importance: high`

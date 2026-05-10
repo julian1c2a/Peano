@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 64 jobs · 0 errores · 0 sorry (3 axiomas privados en Sylow.lean)
+> **Build:** 66 jobs · 0 errores · 0 sorry (3 axiomas privados en Sylow.lean)
 > **Licencia:** MIT
 
 ---
@@ -81,7 +81,13 @@ Peano.lean                                        ← entrada; importa toda la l
          ├─ Orbit.lean                            Peano.Orbit        — órbitas de permutaciones
          ├─ Group.lean                            Peano.Group        — FinGroup (α) polimórfico, Subgroup, gpow, subgrupos especiales
          └─ GroupTheory/
-            ├─ Action.lean                        Peano.Action       — acciones de grupo (polimórfico)
+            ├─ NormalSubgroup.lean               Peano.GroupTheory  — centralizer, normalizer, rightCoset
+            ├─ QuotientGroup.lean                Peano.GroupTheory  — quotientGroup, quotientHomomorphism (29 exports)
+            ├─ FirstIsomorphism.lean             Peano.GroupTheory  — homKer, homImg, firstIsoMap — G/ker≅Im
+            ├─ SecondIsomorphism.lean            Peano.GroupTheory  — subgroupHN, interHN, secondIsoMap — H/(H∩N)≅HN/N
+            ├─ CorrespondenceTheorem.lean        Peano.GroupTheory  — correspondencePhi/Psi (12 exports)
+            ├─ Zassenhaus.lean                   Peano.GroupTheory  — prodSubgroup, prodNKHM, prodN_HK/HM, normalidad (12 exports)
+            ├─ Action.lean                       Peano.Action       — acciones de grupo (polimórfico)
             └─ Sylow/
                ├─ Cosets.lean                     Peano.Cosets       — coclases (polimórfico)
                ├─ CosetAction.lean                Peano.CosetAction  — acción de coclases (coset_conjugate_exists)

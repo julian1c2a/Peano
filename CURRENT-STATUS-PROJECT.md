@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-05-07
+**Última actualización:** 2026-05-10
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (64 jobs)   [2026-05-07]
+lake build      →  Build completed successfully (66 jobs)   [2026-05-10]
 sorry count     →  0
 warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne sin usar en wielandt_orbit_stab)
 errors          →  0
@@ -30,6 +30,7 @@ errors          →  0
 | `sylow_third_dvd` | ~3889 | `sylow_third` | Muy difícil | G-acción + orbit-stabilizer |
 
 **Completados (2026-05-07)**:
+
 - `wielandt_fixed_point_exists` — ✅ **axioma privado eliminado** (demostrado como `private theorem`)
 
 ---
@@ -99,6 +100,7 @@ errors          →  0
 | `GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `homKer`, `homImg`, `firstIsoMap` — G/ker≅Im | ✅ |
 | `GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `subgroupHN`, `interHN`, `secondIsoMap` — H/(H∩N)≅HN/N | ✅ |
 | `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
+| `GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `prodSubgroup`, `prodNKHM`, `prodN_HK`, `prodN_HM`, normalidad (12 exports) | ✅ |
 | `GroupTheory/Action.lean` | `Peano.Action` | `GroupAction` polimórfico, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `leftCoset`, `cosetRel`, `cosetEquivRel`, `lagrange`, `cosetClasses` — polimórfico | ✅ |
 | `GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | Acción de G sobre coclases, `coset_conjugate_exists` (cierra Sylow II) | ✅ |
@@ -129,6 +131,16 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 `correspondencePhi`/`correspondencePsi` — biyección entre subgrupos sobre N y subgrupos de G/N.
 
+### Phase 6 — Lema de la Mariposa de Zassenhaus ✅ (2026-05-10)
+
+- `Zassenhaus.lean` — 12 símbolos públicos: `prodSubgroup`, `mem_prodSubgroup_iff`,
+  `N_le_prodSubgroup`, `S_le_prodSubgroup`, `inter_N_K_normal_in_inter_H_K`,
+  `inter_H_M_normal_in_inter_H_K`, `prodNKHM`, `prodNKHM_normal`,
+  `prodN_HK`, `prodN_HM`, `prodN_HM_le_prodN_HK`, `prodN_HM_normal_in_prodN_HK`.
+- 0 sorry. Placeholder `zassenhaus_bijection` excluido (pendiente de formalizar cocientes).
+- **Build**: 66 jobs, 0 sorry, 3 axiomas privados en Sylow.lean.
+- Documentación proyectada: `doc/REFERENCE-GroupTheory.md` (nuevo directorio `doc/`).
+
 ### Phase F — Foundation: cadena Peano → Aczel → ZFC ✅ (2026-05-02)
 
 - `CantorPairing.lean` — biyección ℕ₀×ℕ₀ ≅ ℕ₀
@@ -140,7 +152,7 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 1. **`wielandt_p_ndvd_r` (caso `succ m'`)** — Track 1: inducción fuerte sobre |G|, cociente G/Z.
 2. **`sylow_third_mod` + `sylow_third_dvd`** — Track 3: acción de conjugación sobre {subgrupos de Sylow}.
-3. **Migración documentación a `/doc/`** — G.1: sistema de REFERENCE-{Tema}.md.
+3. **`zassenhaus_bijection`** — Formalizar el isomorfismo `(H∩K)/[(N∩K)(H∩M)] ≅ N(H∩K)/N(H∩M)` como tipo completo (requiere cocientes de FinGroup).
 
 ---
 

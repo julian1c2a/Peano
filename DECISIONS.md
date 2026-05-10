@@ -160,10 +160,24 @@ Previously `FinGroup` was hardwired to `ℕ₀` (carrier was `ℕ₀FSet`, id wa
 **Rationale**: The hardwired-ℕ₀ approach blocked key developments: (1) `FinGroup (Subgroup G)` for the conjugation action needed by Sylow III, (2) quotient groups for future use. Making `FinGroup` polymorphic over `α` with `StrictLinearOrder α` unblocks both. The `abbrev ℕ₀FinGroup := FinGroup ℕ₀` alias preserves backward compatibility with all existing Sylow/Cosets/Action code.
 
 **Consequences**:
+
 - `Action.lean`, `Cosets.lean`, `Sylow.lean` use `(G : FinGroup ℕ₀)` (explicit type annotation) — mechanical change, proofs unaffected.
 - `Group.lean` theorems now quantify over `{α} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
 - `FSet (Tuple ℕ₀ n)` works automatically via `instStrictLinearOrderTuple`.
 - Build: 51 jobs (ListList.lean and FSetFSet.lean eliminated, merged into List.lean and FSet.lean).
+
+---
+
+## ADR-011: Árbol de documentación `doc/REFERENCE-{tema}.md`
+
+**Date**: 2026-05-10
+**Status**: Accepted
+
+**Decision**: La documentación técnica de exports se organiza en dos niveles: `REFERENCE.md` como índice raíz (tabla de módulos, namespaces, métricas de build) y `doc/REFERENCE-{tema}.md` como nodos temáticos (12 secciones por símbolo: tipo, firma, módulo, importancia). El directorio `doc/` fue creado en esta fecha con `REFERENCE-GroupTheory.md` como primer nodo.
+
+**Rationale**: `REFERENCE.md` como monolito crecía inmanejable (>1000 líneas). La arquitectura en árbol permite navegación enfocada, independencia por dominio matemático y actualización incremental por módulo. Cada nodo temático es autosuficiente para revisión de código dentro de su dominio.
+
+**Consequences**: Todo `.lean` nuevo debe proyectarse en el nodo temático correspondiente (`doc/REFERENCE-{tema}.md`). Si el nodo no existe, se crea. La proyección sigue el protocolo "proyectar" (AI-GUIDE.md §11–14). `REFERENCE.md` índice se actualiza con la nueva fila de módulo y el conteo de jobs. El directorio `doc/` es parte del repositorio y se versiona como el resto de la documentación.
 
 ---
 

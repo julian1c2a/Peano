@@ -1,6 +1,6 @@
 # Dependencias del Proyecto Peano
 
-**Última actualización:** 2026-04-17
+**Última actualización:** 2026-05-10
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -59,6 +59,13 @@ graph TD;
         Cosets --> Group;
         Sylow --> Cosets;
         Sylow --> Action;
+
+        NormalSubgroup --> Group;
+        QuotientGroup --> NormalSubgroup;
+        FirstIsomorphism --> QuotientGroup;
+        SecondIsomorphism --> QuotientGroup;
+        CorrespondenceTheorem --> QuotientGroup;
+        Zassenhaus --> SecondIsomorphism;
 
         NewtonBinom --> Binom;
         NewtonBinom --> Factorial;
@@ -136,6 +143,12 @@ graph TD;
 | `Orbit` | `Combinatorics/Orbit.lean` | `…Perm` |
 | `Group` | `Combinatorics/Group.lean` | `…Perm` |
 | `Action` | `GroupTheory/Action.lean` | `…Group` |
+| `NormalSubgroup` | `GroupTheory/NormalSubgroup.lean` | `…Group` |
+| `QuotientGroup` | `GroupTheory/QuotientGroup.lean` | `…NormalSubgroup` |
+| `FirstIsomorphism` | `GroupTheory/FirstIsomorphism.lean` | `…QuotientGroup` |
+| `SecondIsomorphism` | `GroupTheory/SecondIsomorphism.lean` | `…QuotientGroup` |
+| `CorrespondenceTheorem` | `GroupTheory/CorrespondenceTheorem.lean` | `…QuotientGroup` |
+| `Zassenhaus` | `GroupTheory/Zassenhaus.lean` | `…SecondIsomorphism` |
 | `Cosets` | `GroupTheory/Sylow/Cosets.lean` | `…Group` |
 | `Sylow` | `GroupTheory/Sylow/Sylow.lean` | `…Cosets`, `…Action` |
 | `List` | `ListsAndSets/List.lean` | `…Arith` |
@@ -155,16 +168,13 @@ graph TD;
 | `Isomorph` | `PeanoNat/Isomorph.lean` | `…Sub` (reexport) |
 | `Peano.lean` | `Peano.lean` | todos los anteriores |
 
-<!-- AUTO-UPDATE-2026-04-17-START -->
-## Actualizacion de estado - 2026-04-17
+<!-- AUTO-UPDATE-2026-05-10-START -->
+## Actualizacion de estado - 2026-05-10
 
-- Estado del build: compila en el estado actual de la rama makingdecidable.
-- Lagrange: cerrado en Sylow/Cosets con conteo por fibras y clases de cosets.
-- GroupAction: sorries cerrados en orbit_stabilizer y orbits_partition.
-- Sylow I: caso base n=0 cerrado; estructura separada en paso de Cauchy y paso de elevacion.
-- Nota temporal: cauchy_minimal se apoya en un axioma explicito cauchy_minimal_axiom para continuar el desarrollo.
-- Pendientes activos en Sylow: sylow_lift_from_cauchy, sylow_second, sylow_third.
-- Objetivo proximo: reemplazar cauchy_minimal_axiom por demostracion interna y completar Sylow I.
+- Build: 66 jobs, 0 sorry, 3 axiomas privados (Sylow.lean). 0 errores.
+- **Zassenhaus.lean** añadido: importa `SecondIsomorphism`. 12 exports públicos.
+- Creado directorio `doc/` con `REFERENCE-GroupTheory.md`.
+- Modúlos GroupTheory añadidos al grafo: NormalSubgroup, QuotientGroup,
+  FirstIsomorphism, SecondIsomorphism, CorrespondenceTheorem, Zassenhaus.
 
-<!-- AUTO-UPDATE-2026-04-17-END -->
-
+<!-- AUTO-UPDATE-2026-05-10-END -->

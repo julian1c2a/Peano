@@ -7,8 +7,11 @@
 > Documentación de los símbolos públicos del módulo
 > `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean`.
 > Solo contiene lo completamente probado (requisito 8 del AI-GUIDE).
-> **Actualización 2026-05-11**: `zassenhaus_bijection` completamente demostrado (tipo completo, 0 sorry).
-> `zassenhaus_bijection_symm` demostrado (one-liner). `zassenhaus_bijection_extremes` enunciado con `sorry`.
+> **Actualización 2026-05-10**: `zassenhaus_bijection` completamente demostrado (tipo completo, 0 sorry).
+> `zassenhaus_bijection_symm` demostrado (one-liner).
+> **Actualización 2026-05-10 (sesión 2)**: `zassenhaus_bijection_extremes` demostrado — 0 sorry.
+> Técnica: lema puente `mapOn_bijective_cast` (privado) permite `subst` sobre variable libre,
+> evitando el bloqueo de eliminación dependiente sobre términos concretos de tipo `FSet (FSet ℕ₀)`.
 
 ---
 
@@ -352,10 +355,12 @@
 | `prodN_HM_normal_in_prodN_HK` | `theorem` | — | alta |
 | `zassenhaus_bijection` | `theorem` | — | alta |
 | `zassenhaus_bijection_symm` | `theorem` | — | alta |
-| `zassenhaus_bijection_extremes` | `theorem` (1 sorry) | — | alta |
+| `zassenhaus_bijection_extremes` | `theorem` (0 sorry) | — | alta |
 
-> **No proyectados** (privados): `mem_inter_iff`, `inter_subset_left_aux`, `inter_subset_right_aux`,  
-> `NormalIn`, `HK`, `NK`, `HM`, `N_normal_in_prodN_HK`, `prodNKHM_in_HK`, `prodN_HM_in_prodN_HK`.
+> **No proyectados** (privados): `mem_inter_iff`, `inter_subset_left_aux`, `inter_subset_right_aux`,
+> `NormalIn`, `HK`, `NK`, `HM`, `N_normal_in_prodN_HK`, `prodNKHM_in_HK`, `prodN_HM_in_prodN_HK`,
+> `mapOn_bijective_cast` (lema puente para transporte de biyectividad, ver §7),
+> `inter_comm_lem`, `prodNKHM_carrier_eq`, `quotientCarrier_inter_eq`.
 
 ---
 
@@ -424,12 +429,19 @@
 
 ### `zassenhaus_bijection_extremes`
 
-- **Tipo:** `theorem` (1 sorry — pendiente)
+- **Tipo:** `theorem` (0 sorry)
 - **Notación matemática:** Existe una biyección
   $$N(H \cap K) / N(H \cap M) \;\xrightarrow{\sim}\; M(K \cap H) / M(K \cap N)$$
   dado $N \trianglelefteq H$, $M \trianglelefteq K$, $N \leq K$, $M \leq H$.
-- **Prueba pendiente:** Componer la inversa de `zassenhaus_bijection` con `zassenhaus_bijection_symm`
-  previa identificación de los cocientes intermedios vía `H.inter K = K.inter H`.
+- **Estrategia de prueba:**
+  1. `f₁` = biyección de `zassenhaus_bijection` con dominio $(H\cap K)/[(N\cap K)(H\cap M)]$.
+  2. `f₁_inv` = `MapOn.inverse f₁ hf₁ dflt` — inversa de `f₁` con codominio $(H\cap K)/[\ldots]$.
+  3. `hquo_eq` = `quotientCarrier_inter_eq` — igualdad $(H\cap K)/[\ldots] = (K\cap H)/[\ldots]$.
+  4. Lema puente `mapOn_bijective_cast` (privado): transporta `f₁_inv.Bijective` a través de `hquo_eq`
+     usando `subst heq` (posible porque la variable `B : FSet β` es libre en el enunciado general,
+     aunque en el sitio de uso sea un término concreto `FSet (FSet ℕ₀)`).
+  5. `f₂` = biyección de `zassenhaus_bijection_symm`; dominio = codominio de `hquo_eq ▸ f₁_inv`.
+  6. Resultado: `f₂.comp (hquo_eq ▸ f₁_inv)` con `MapOn.comp_bijective`.
 - **Firma Lean 4:**
 
   ```lean

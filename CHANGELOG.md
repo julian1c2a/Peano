@@ -2,7 +2,18 @@
 
 ## [Unreleased]
 
-### Added (2026-05-07)
+### Added (2026-05-10)
+
+- **Phase 6 — `zassenhaus_bijection_extremes` demostrado (0 sorry)**:
+  - `GroupTheory/Zassenhaus.lean` — último teorema público del fichero: biyección
+    $N(H\cap K)/N(H\cap M) \cong M(K\cap H)/M(K\cap N)$.
+  - **Técnica clave**: lema privado `mapOn_bijective_cast` permite `subst heq` sobre una hipótesis
+    de igualdad de codominio (`B = C`) cuando `B` es una variable libre en el enunciado.
+    En el sitio de uso, ambos lados eran términos concretos de tipo `FSet (FSet ℕ₀)` construidos
+    via `sortFSetList`; allí `cases`/`subst` fallan por eliminación dependiente. Extraer a un lema
+    con variable libre resuelve el bloqueo.
+  - **Prueba**: `f₂.comp (hquo_eq ▸ f₁_inv)` con `MapOn.comp_bijective` y `mapOn_bijective_cast`.
+  - Build: **27 jobs · 0 sorry · 0 errores**.
 
 - **Phase 5 — Polimorfismo completo de FinGroup/FSet/EquivRel**:
   - `ListsAndSets/EquivRel.lean` — nuevo módulo: `EquivRelOn`, `classOf`, `classOf_eq_of_mem_classOf`, `classOf_eq_or_disjoint`, `ClassFamily`, `canonicalClassFamily`, `classes`, `classes_cover`; 17 símbolos exportados.
@@ -70,7 +81,6 @@
   - `subgroupHN` — subgrupo `HN = { h*n | h ∈ H, n ∈ N }`.
   - `interHN_as_subgroup_H`, `interHN_as_subgroup_H_isNormal` — `H ∩ N ⊴ H`.
   - `secondIsoMap` — isomorfismo `H/(H∩N) ≅ HN/N`, bijective.
-
 
 ### Added (2026-05-02)
 

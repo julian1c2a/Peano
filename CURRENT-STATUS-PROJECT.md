@@ -15,7 +15,7 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 
 ```
 lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (66 jobs)   [2026-05-10]
+lake build      →  Build completed successfully (27 jobs)   [2026-05-10]
 sorry count     →  0
 warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne sin usar en wielandt_orbit_stab)
 errors          →  0
@@ -100,7 +100,7 @@ No hay ningún `private axiom` ni `sorry` en `Sylow.lean` ni en ningún otro mó
 | `GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `homKer`, `homImg`, `firstIsoMap` — G/ker≅Im | ✅ |
 | `GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `subgroupHN`, `interHN`, `secondIsoMap` — H/(H∩N)≅HN/N | ✅ |
 | `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
-| `GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `prodSubgroup`, `prodNKHM`, `prodN_HK`, `prodN_HM`, `zassenhaus_bijection`, `zassenhaus_bijection_symm` (15 exports) | ✅ (1 sorry en `zassenhaus_bijection_extremes`) |
+| `GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `prodSubgroup`, `prodNKHM`, `prodN_HK`, `prodN_HM`, `zassenhaus_bijection`, `zassenhaus_bijection_symm`, `zassenhaus_bijection_extremes` (15 exports) | ✅ |
 | `GroupTheory/Action.lean` | `Peano.Action` | `GroupAction` polimórfico, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `leftCoset`, `cosetRel`, `cosetEquivRel`, `lagrange`, `cosetClasses` — polimórfico | ✅ |
 | `GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | Acción de G sobre coclases, `coset_conjugate_exists` (cierra Sylow II) | ✅ |
@@ -131,7 +131,7 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 `correspondencePhi`/`correspondencePsi` — biyección entre subgrupos sobre N y subgrupos de G/N.
 
-### Phase 6 — Lema de la Mariposa de Zassenhaus ✅ completo (2026-05-11)
+### Phase 6 — Lema de la Mariposa de Zassenhaus ✅ completo (2026-05-10)
 
 - `Zassenhaus.lean` — **15 símbolos públicos**: `prodSubgroup`, `mem_prodSubgroup_iff`,
   `N_le_prodSubgroup`, `S_le_prodSubgroup`, `inter_N_K_normal_in_inter_H_K`,
@@ -141,9 +141,11 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 - **`zassenhaus_bijection`** demostrado con tipo completo: biyección
   $(H\cap K)/[(N\cap K)(H\cap M)] \cong N(H\cap K)/N(H\cap M)$.
 - **`zassenhaus_bijection_symm`**: enunciado simétrico (roles intercambiados), prueba en una línea.
-- **`zassenhaus_bijection_extremes`**: enunciado $N(H\cap K)/N(H\cap M) \cong M(K\cap H)/M(K\cap N)$,
-  prueba pendiente con 1 `sorry`.
-- **Build**: 27 jobs, 1 sorry, 0 axiomas privados no intencionales.
+- **`zassenhaus_bijection_extremes`**: $N(H\cap K)/N(H\cap M) \cong M(K\cap H)/M(K\cap N)$,
+  demostrado vía lema puente privado `mapOn_bijective_cast` + composición `f₂ ∘ (hquo_eq ▸ f₁⁻¹)`.
+  Técnica: `subst heq` funciona en un enunciado con variable libre `B : FSet β` aunque falle sobre
+  términos concretos `FSet (FSet ℕ₀)` en el sitio de uso.
+- **Build**: 27 jobs, **0 sorry**, 0 axiomas privados no intencionales.
 - Documentación proyectada: `doc/REFERENCE-GroupTheory.md`.
 
 ### Phase F — Foundation: cadena Peano → Aczel → ZFC ✅ (2026-05-02)
@@ -155,11 +157,8 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 ## Próximos objetivos
 
-1. **`zassenhaus_bijection_extremes`** — Completar la prueba del enunciado entre extremos
-   $N(H\cap K)/N(H\cap M) \cong M(K\cap H)/M(K\cap N)$. Requiere `inter_comm_lem` y composición
-   de la inversa de `zassenhaus_bijection` con `zassenhaus_bijection_symm`.
-2. **`ConstructiveCheck.lean`** — Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
-3. **Feature-freeze + handoff a `AczelSetTheory`** — Precondición: los dos anteriores.
+1. **`ConstructiveCheck.lean`** — Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
+2. **Feature-freeze + handoff a `AczelSetTheory`** — Precondición: el punto anterior.
 
 ---
 

@@ -181,6 +181,27 @@ Previously `FinGroup` was hardwired to `ℕ₀` (carrier was `ℕ₀FSet`, id wa
 
 ---
 
+## ADR-012: Transporte de biyectividad por igualdad de codominio — lema puente con variable libre
+
+**Date**: 2026-05-10
+**Status**: Accepted
+
+**Decision**: Cuando `▸` (transporte por igualdad) sobre un `MapOn` falla en el sitio de uso porque ambos lados de la igualdad son términos concretos de tipo `FSet (FSet ℕ₀)` (construidos via `sortFSetList`), extraer un lema privado general con variables libres `{B C : FSet β}` donde `subst heq` sí funciona:
+
+```lean
+private theorem mapOn_bijective_cast
+    {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+    {A : FSet α} {B C : FSet β} (f : MapOn A B) (h : f.Bijective) (heq : B = C) :
+    (heq ▸ f).Bijective := by
+  subst heq; exact h
+```
+
+**Rationale**: Lean 4 no puede descargar `sortFSetList (...) = sortFSetList (...)` automáticamente para `cases`/`subst`/`rcases rfl` en un sitio de uso concreto. El motivo es que la eliminación dependiente necesita que la variable sea libre (metavariable) en el contexto local. Al extraer a un lema donde `B : FSet β` es genuinamente libre, `subst heq` sustituye `C := B` sin problemas. El sitio de uso simplemente llama al lema como caja negra.
+
+**Consequences**: Patrón reutilizable cada vez que se necesita transportar `f.Bijective : (heq ▸ f).Bijective` o similar cuando `heq` conecta tipos concretos. En esos casos, la solución directa (`cases heq`, `subst heq`, `rcases rfl`, `▸` en modo término) siempre fallará; es necesario el lema puente.
+
+---
+
 ## Template for new decisions
 
 ## ADR-NNN: [Title]

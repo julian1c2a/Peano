@@ -987,11 +987,217 @@ namespace Peano
             f.Bijective :=
         zassenhaus_bijection G K H M N hMK hNK hNH hMM hNN
 
+    -- Lema auxiliar: H∩K = K∩H como subgrupos
+    private theorem inter_comm_lem {G : FinGroup ℕ₀} (H K : Subgroup G) :
+        H.inter K = K.inter H := by
+      apply Subgroup.ext_carrier
+      apply FSet.eq_of_mem_iff
+      intro z
+      constructor
+      · intro hz
+        obtain ⟨hzG, hzH, hzK⟩ := (mem_inter_iff H K z).mp hz
+        exact (mem_inter_iff K H z).mpr ⟨hzG, hzK, hzH⟩
+      · intro hz
+        obtain ⟨hzG, hzK, hzH⟩ := (mem_inter_iff K H z).mp hz
+        exact (mem_inter_iff H K z).mpr ⟨hzG, hzH, hzK⟩
+
+    -- Lema auxiliar: los carriers de prodNKHM son iguales (N∩K)(H∩M) = (M∩H)(K∩N)
+    private theorem prodNKHM_carrier_eq
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        (prodNKHM G H K N M hNH hMK hNN hMM).carrier =
+        (prodNKHM G K H M N hMK hNH hMM hNN).carrier := by
+      apply FSet.eq_of_mem_iff
+      intro x
+      -- Abreviatura: A = N∩K, B = H∩M, AB = A·B en H∩K
+      --              A'= M∩H, B'= K∩N, A'B'= A'·B' en K∩H
+      -- LHS: x ∈ (N∩K)(H∩M)  iff  x ∈ G ∧ ∃ a ∈ N∩K, ∃ b ∈ H∩M, a*b = x
+      -- RHS: x ∈ (M∩H)(K∩N)  iff  x ∈ G ∧ ∃ a ∈ M∩H, ∃ b ∈ K∩N, a*b = x
+      rw [show (prodNKHM G H K N M hNH hMK hNN hMM).carrier =
+              (prodSubgroup G (N.inter K) (H.inter M) (H.inter K)
+                (fun a ha => by
+                  rw [mem_inter_iff H K]
+                  exact ⟨H.subset a (hNH a (inter_subset_left_aux N K a ha)),
+                         hNH a (inter_subset_left_aux N K a ha),
+                         inter_subset_right_aux N K a ha⟩)
+                (fun a ha => by
+                  rw [mem_inter_iff H K]
+                  exact ⟨H.subset a (inter_subset_left_aux H M a ha),
+                         inter_subset_left_aux H M a ha,
+                         hMK a (inter_subset_right_aux H M a ha)⟩)
+                (inter_N_K_normal_in_inter_H_K G H K N hNH hNN)).carrier from rfl]
+      rw [show (prodNKHM G K H M N hMK hNH hMM hNN).carrier =
+              (prodSubgroup G (M.inter H) (K.inter N) (K.inter H)
+                (fun a ha => by
+                  rw [mem_inter_iff K H]
+                  exact ⟨K.subset a (hMK a (inter_subset_left_aux M H a ha)),
+                         hMK a (inter_subset_left_aux M H a ha),
+                         inter_subset_right_aux M H a ha⟩)
+                (fun a ha => by
+                  rw [mem_inter_iff K H]
+                  exact ⟨K.subset a (inter_subset_left_aux K N a ha),
+                         inter_subset_left_aux K N a ha,
+                         hNH a (inter_subset_right_aux K N a ha)⟩)
+                (inter_N_K_normal_in_inter_H_K G K H M hMK hMM)).carrier from rfl]
+      rw [mem_prodSubgroup_iff G (N.inter K) (H.inter M) (H.inter K)
+            (fun a ha => by
+              rw [mem_inter_iff H K]
+              exact ⟨H.subset a (hNH a (inter_subset_left_aux N K a ha)),
+                     hNH a (inter_subset_left_aux N K a ha),
+                     inter_subset_right_aux N K a ha⟩)
+            (fun a ha => by
+              rw [mem_inter_iff H K]
+              exact ⟨H.subset a (inter_subset_left_aux H M a ha),
+                     inter_subset_left_aux H M a ha,
+                     hMK a (inter_subset_right_aux H M a ha)⟩)
+            (inter_N_K_normal_in_inter_H_K G H K N hNH hNN)]
+      rw [mem_prodSubgroup_iff G (M.inter H) (K.inter N) (K.inter H)
+            (fun a ha => by
+              rw [mem_inter_iff K H]
+              exact ⟨K.subset a (hMK a (inter_subset_left_aux M H a ha)),
+                     hMK a (inter_subset_left_aux M H a ha),
+                     inter_subset_right_aux M H a ha⟩)
+            (fun a ha => by
+              rw [mem_inter_iff K H]
+              exact ⟨K.subset a (inter_subset_left_aux K N a ha),
+                     inter_subset_left_aux K N a ha,
+                     hNH a (inter_subset_right_aux K N a ha)⟩)
+            (inter_N_K_normal_in_inter_H_K G K H M hMK hMM)]
+      constructor
+      · intro ⟨hxG, n, hn_NK, s, hs_HM, heq⟩
+        have hn_N  := inter_subset_left_aux N K n hn_NK
+        have hn_K  := inter_subset_right_aux N K n hn_NK
+        have hs_H  := inter_subset_left_aux H M s hs_HM
+        have hs_M  := inter_subset_right_aux H M s hs_HM
+        have hn_G  := N.subset n hn_N
+        have hs_G  := H.subset s hs_H
+        have hs_K  := hMK s hs_M
+        -- n' = (inv s)*n*s ∈ N∩K por normalidad
+        have hinvs_HK : G.inv s ∈ (H.inter K).carrier.elems := by
+          rw [mem_inter_iff]
+          exact ⟨inv_mem G hs_G, H.inv_closed s hs_H, K.inv_closed s hs_K⟩
+        have hn'_NK := inter_N_K_normal_in_inter_H_K G H K N hNH hNN (G.inv s) n hinvs_HK hn_NK
+        rw [inv_inv_eq G hs_G] at hn'_NK
+        -- n' = (inv s) * n * s
+        have hn'_def : G.op (G.op (G.inv s) n) s ∈ (N.inter K).carrier.elems := hn'_NK
+        -- x = s * n'
+        have hxeq : x = G.op s (G.op (G.op (G.inv s) n) s) := by
+          rw [← heq]
+          rw [← G.op_assoc s (G.op (G.inv s) n) s hs_G (op_mem G (inv_mem G hs_G) hn_G) hs_G,
+              ← G.op_assoc s (G.inv s) n hs_G (inv_mem G hs_G) hn_G,
+              (G.op_inv s hs_G).1,
+              (G.op_id n hn_G).2]
+        have hs_MH : s ∈ (M.inter H).carrier.elems := by
+          rw [mem_inter_iff]; exact ⟨M.subset s hs_M, hs_M, hs_H⟩
+        have hn'_KN : (G.op (G.op (G.inv s) n) s) ∈ (K.inter N).carrier.elems := by
+          rw [mem_inter_iff]
+          exact ⟨K.subset _ (inter_subset_right_aux N K _ hn'_NK),
+                 inter_subset_right_aux N K _ hn'_NK,
+                 inter_subset_left_aux N K _ hn'_NK⟩
+        exact ⟨hxeq ▸ op_mem G hs_G (K.subset _ (inter_subset_right_aux N K _ hn'_NK)),
+               s, hs_MH, G.op (G.op (G.inv s) n) s, hn'_KN, hxeq.symm⟩
+      · intro ⟨hxG, m, hm_MH, k, hk_KN, heq⟩
+        have hm_M  := inter_subset_left_aux M H m hm_MH
+        have hm_H  := inter_subset_right_aux M H m hm_MH
+        have hk_K  := inter_subset_left_aux K N k hk_KN
+        have hk_N  := inter_subset_right_aux K N k hk_KN
+        have hm_G  := M.subset m hm_M
+        have hk_G  := K.subset k hk_K
+        have hm_K  := hMK m hm_M
+        -- k' = m*k*(inv m) ∈ K∩N por normalidad
+        have hm_KH : m ∈ (K.inter H).carrier.elems := by
+          rw [mem_inter_iff]; exact ⟨K.subset m hm_K, hm_K, hm_H⟩
+        have hk'_KN := inter_H_M_normal_in_inter_H_K G K H N hNN m k hm_KH hk_KN
+        -- k' = m * k * (inv m)
+        have hk'_def : G.op (G.op m k) (G.inv m) ∈ (K.inter N).carrier.elems := hk'_KN
+        -- x = k' * m
+        have hxeq : x = G.op (G.op (G.op m k) (G.inv m)) m := by
+          rw [← heq]
+          rw [G.op_assoc (G.op m k) (G.inv m) m (op_mem G hm_G hk_G) (inv_mem G hm_G) hm_G,
+              (G.op_inv m hm_G).2,
+              (G.op_id (G.op m k) (op_mem G hm_G hk_G)).1]
+        have hk'_NK : G.op (G.op m k) (G.inv m) ∈ (N.inter K).carrier.elems := by
+          rw [mem_inter_iff]
+          exact ⟨N.subset _ (inter_subset_right_aux K N _ hk'_KN),
+                 inter_subset_right_aux K N _ hk'_KN,
+                 inter_subset_left_aux K N _ hk'_KN⟩
+        have hm_HM : m ∈ (H.inter M).carrier.elems := by
+          rw [mem_inter_iff]; exact ⟨H.subset m hm_H, hm_H, hm_M⟩
+        exact ⟨hxeq ▸ op_mem G (N.subset _ (inter_subset_right_aux K N _ hk'_KN)) hm_G,
+               G.op (G.op m k) (G.inv m), hk'_NK, m, hm_HM, hxeq.symm⟩
+
+    -- Lema auxiliar: los quotientCarriers intermedios (H∩K y K∩H) son iguales
+    private theorem quotientCarrier_inter_eq
+        (G : FinGroup ℕ₀) (H K N M : Subgroup G)
+        (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
+        (hMK : ∀ a, a ∈ M.carrier.elems → a ∈ K.carrier.elems)
+        (hNN : NormalIn G N H)
+        (hMM : NormalIn G M K) :
+        quotientCarrier
+          (Subgroup.toFinGroup (H.inter K))
+          (prodNKHM_in_HK G H K N M hNH hMK hNN hMM) =
+        quotientCarrier
+          (Subgroup.toFinGroup (K.inter H))
+          (prodNKHM_in_HK G K H M N hMK hNH hMM hNN) := by
+      -- Los carriers de (H∩K) y (K∩H) son iguales (como FSet ℕ₀)
+      have hHK_car : (H.inter K).carrier.elems = (K.inter H).carrier.elems :=
+        congrArg FSet.elems (congrArg Subgroup.carrier (inter_comm_lem H K))
+      -- Los carriers del subgrupo son iguales
+      have hprod_car : (prodNKHM_in_HK G H K N M hNH hMK hNN hMM).carrier.elems =
+                       (prodNKHM_in_HK G K H M N hMK hNH hMM hNN).carrier.elems :=
+        congrArg FSet.elems (prodNKHM_carrier_eq G H K N M hNH hMK hNN hMM)
+      -- Probamos igualdad de FSet (FSet ℕ₀) por extensionalidad
+      apply FSet.eq_of_mem_iff'
+      intro C
+      constructor
+      · intro hC
+        obtain ⟨g, hg, rfl⟩ := mem_quotientCarrier_is_leftCoset _ _ C hC
+        have hg' : g ∈ (Subgroup.toFinGroup (K.inter H)).carrier.elems :=
+          hHK_car ▸ hg
+        have hleq : leftCoset (Subgroup.toFinGroup (H.inter K))
+                      (prodNKHM_in_HK G H K N M hNH hMK hNN hMM) g =
+                    leftCoset (Subgroup.toFinGroup (K.inter H))
+                      (prodNKHM_in_HK G K H M N hMK hNH hMM hNN) g := by
+          apply FSet.eq_of_mem_iff; intro z
+          rw [mem_leftCoset_iff _ _ _ _ hg, mem_leftCoset_iff _ _ _ _ hg']
+          constructor
+          · rintro ⟨h, hh, heq⟩; exact ⟨h, hprod_car ▸ hh, heq⟩
+          · rintro ⟨h, hh, heq⟩; exact ⟨h, hprod_car.symm ▸ hh, heq⟩
+        rw [hleq]
+        exact leftCoset_mem_quotientCarrier _ _ g hg'
+      · intro hC
+        obtain ⟨g, hg, rfl⟩ := mem_quotientCarrier_is_leftCoset _ _ C hC
+        have hg' : g ∈ (Subgroup.toFinGroup (H.inter K)).carrier.elems :=
+          hHK_car.symm ▸ hg
+        have hleq : leftCoset (Subgroup.toFinGroup (K.inter H))
+                      (prodNKHM_in_HK G K H M N hMK hNH hMM hNN) g =
+                    leftCoset (Subgroup.toFinGroup (H.inter K))
+                      (prodNKHM_in_HK G H K N M hNH hMK hNN hMM) g := by
+          apply FSet.eq_of_mem_iff; intro z
+          rw [mem_leftCoset_iff _ _ _ _ hg, mem_leftCoset_iff _ _ _ _ hg']
+          constructor
+          · rintro ⟨h, hh, heq⟩; exact ⟨h, hprod_car.symm ▸ hh, heq⟩
+          · rintro ⟨h, hh, heq⟩; exact ⟨h, hprod_car ▸ hh, heq⟩
+        rw [hleq]
+        exact leftCoset_mem_quotientCarrier _ _ g hg'
+
+    /-- Transporte de biyectividad a lo largo de igualdad del codominio.
+        La variable `B` es libre en el enunciado, por lo que `subst heq` sí funciona
+        (a diferencia del sitio de uso, donde `B` y `C` son términos concretos). -/
+    private theorem mapOn_bijective_cast
+        {α β : Type} [DecidableEq α] [LT α] [DecidableEq β] [LT β]
+        {A : FSet α} {B C : FSet β} (f : MapOn A B) (h : f.Bijective) (heq : B = C) :
+        (heq ▸ f).Bijective := by
+      subst heq; exact h
+
     /-- **Lema de la Mariposa de Zassenhaus** (enunciado entre extremos):
         Existe una biyección `N(H∩K)/N(H∩M) ↔ M(K∩H)/M(K∩N)`.
         Se obtiene componiendo la inversa de `zassenhaus_bijection` con
         `zassenhaus_bijection_symm`, previa identificación de los cocientes intermedios
-        `(H∩K)/NKHM ≅ (K∩H)/MHKN` vía la conmutatividad de la intersección. -/
+        `M(K∩H)/M(K∩N)↔ N(H∩K)/N(H∩M)` vía la transitividad de la equivalencia. -/
     theorem zassenhaus_bijection_extremes
         (G : FinGroup ℕ₀) (H K N M : Subgroup G)
         (hNH : ∀ a, a ∈ N.carrier.elems → a ∈ H.carrier.elems)
@@ -1008,7 +1214,32 @@ namespace Peano
               (Subgroup.toFinGroup (prodN_HK G K H M hMK hMM))
               (prodN_HM_in_prodN_HK G K H N M hMK hNK hNH hMM))),
             f.Bijective := by
-      sorry
+      -- f₁ : (H∩K)/prodNKHM → prodN_HK(H,K)/prodN_HM  (enunciado principal)
+      obtain ⟨f₁, hf₁⟩ := zassenhaus_bijection G H K N M hNH hMH hMK hNN hMM
+      -- f₂ : (K∩H)/prodNKHM' → prodN_HK(K,H)/prodN_HM'  (enunciado simétrico)
+      obtain ⟨f₂, hf₂⟩ := zassenhaus_bijection_symm G H K N M hNH hNK hMK hNN hMM
+      -- Elemento por defecto para construir f₁⁻¹: el coseto identidad en el dominio de f₁
+      let dflt := leftCoset (Subgroup.toFinGroup (H.inter K))
+                    (prodNKHM_in_HK G H K N M hNH hMK hNN hMM)
+                    (Subgroup.toFinGroup (H.inter K)).id
+      have hdflt_mem : dflt ∈ (quotientCarrier
+          (Subgroup.toFinGroup (H.inter K))
+          (prodNKHM_in_HK G H K N M hNH hMK hNN hMM)).elems :=
+        leftCoset_id_mem_quotientCarrier _ _
+      let f₁_inv := f₁.inverse hf₁ dflt hdflt_mem
+      -- Los quotientCarriers intermedios coinciden: (H∩K)/prodNKHM = (K∩H)/prodNKHM'
+      have hquo_eq := quotientCarrier_inter_eq G H K N M hNH hMK hNN hMM
+      -- Reindexamos f₁_inv con hquo_eq para que su codomain coincida con el dominio de f₂
+      -- f₁_inv : MapOn (quotientCarrier prodN_HK prodN_HM) (quotientCarrier (H∩K) prodNKHM)
+      -- hquo_eq : quotientCarrier (H∩K) prodNKHM = quotientCarrier (K∩H) prodNKHM'
+      -- f₂ : MapOn (quotientCarrier (K∩H) prodNKHM') (quotientCarrier prodN_HK' prodN_HM')
+      -- Calculamos la inversa de f₁ y su biyectividad
+      have hbij_inv : f₁_inv.Bijective := f₁.inverse_bijective hf₁ dflt hdflt_mem
+      -- Transportamos la biyectividad de f₁_inv a través de hquo_eq
+      -- (usando mapOn_bijective_cast, donde subst funciona porque las variables son libres)
+      -- y componemos: h = f₂ ∘ (hquo_eq ▸ f₁_inv) es la biyección deseada
+      exact ⟨f₂.comp (hquo_eq ▸ f₁_inv),
+             MapOn.comp_bijective (mapOn_bijective_cast f₁_inv hbij_inv hquo_eq) hf₂⟩
 
   end GroupTheory
 end Peano

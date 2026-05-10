@@ -165,6 +165,19 @@
 | `{[a, b, c]}` | macro FSet literal | — | `Peano.FSet` | `ListsAndSets/FSet.lean` |
 | `{[x \| p]}` | macro FSet comprensión | — | `Peano.FSet` | `ListsAndSets/FSet.lean` |
 
+### 0.4. Nodos temáticos (`doc/REFERENCE-*.md`)
+
+Documentación detallada de exports por área temática. Cada archivo contiene firmas exactas Lean 4, importancia, computabilidad, notación matemática y dependencias.
+
+| Nodo temático | Módulos cubiertos | Símbolos | Actualizado |
+|---|---|---|---|
+| [doc/REFERENCE-Prelim.md](doc/REFERENCE-Prelim.md) | `Prelim/ExistsUnique.lean`, `Prelim/Classical.lean` | ~15 | 2026-05-10 |
+| [doc/REFERENCE-NumberTheory.md](doc/REFERENCE-NumberTheory.md) | `NumberTheory/ModEq.lean`, `Totient.lean`, `ChineseRemainder.lean`, `Fermat.lean`, `Wilson.lean` | ~80 | 2026-05-10 |
+| [doc/REFERENCE-Foundation.md](doc/REFERENCE-Foundation.md) | `Foundation/PureAxioms.lean`, `PeanoSystem.lean`, `Initiality.lean`, `CantorPairing.lean`, `GodelBeta.lean` | ~50 | 2026-05-10 |
+| [doc/REFERENCE-ListsAndSets.md](doc/REFERENCE-ListsAndSets.md) | `ListsAndSets/List.lean`, `FSet.lean`, `FSetFunction.lean`, `EquivRel.lean` | ~120 | 2026-05-10 |
+| [doc/REFERENCE-Combinatorics.md](doc/REFERENCE-Combinatorics.md) | `Combinatorics/Pow.lean`, `Factorial.lean`, `Binom.lean`, `NewtonBinom.lean`, `Summation.lean`, `Product.lean`, `Fibonacci.lean`, `Counting.lean`, `Perm.lean`, `Sign.lean`, `Group.lean`, `Orbit.lean` | ~200 | 2026-05-10 |
+| [doc/REFERENCE-GroupTheory.md](doc/REFERENCE-GroupTheory.md) | `GroupTheory/NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `ThirdIsomorphism.lean`, `CorrespondenceTheorem.lean`, `Zassenhaus.lean`, `Action.lean`, `Sylow/Cosets.lean`, `Sylow/CosetAction.lean`, `Sylow/Sylow.lean` | ~138 | 2026-05-10 |
+
 ---
 
 ## 1. Prelim.lean — `namespace Peano`

@@ -362,7 +362,8 @@ namespace Peano
 
     -- ── 8.1. Lemas puente: dividesb ↔ divisibilidad ────────────────
 
-    private theorem dividesb_true_imp_dvd {d n : ℕ₀} (hd : d ≠ 𝟘) :
+    /-- Si `dividesb d n = true` (y `d ≠ 0`), entonces `d ∣ n`. -/
+    theorem dividesb_true_imp_dvd {d n : ℕ₀} (hd : d ≠ 𝟘) :
         dividesb d n = true → d ∣ n := by
       intro h
       have hmod : (n % d) = 𝟘 := of_decide_eq_true h
@@ -370,7 +371,8 @@ namespace Peano
       rw [hmod, add_zero] at h_spec
       exact ⟨n / d, h_spec.trans (mul_comm _ _)⟩
 
-    private theorem dvd_imp_dividesb_true {d n : ℕ₀} (hd : d ≠ 𝟘) :
+    /-- Si `d ∣ n` (y `d ≠ 0`), entonces `dividesb d n = true`. -/
+    theorem dvd_imp_dividesb_true {d n : ℕ₀} (hd : d ≠ 𝟘) :
         d ∣ n → dividesb d n = true := by
       intro hdvd
       show decide ((n % d) = 𝟘) = true
@@ -384,6 +386,24 @@ namespace Peano
     private theorem dividesb_self {n : ℕ₀} (hn : n ≠ 𝟘) :
         dividesb n n = true :=
       dvd_imp_dividesb_true hn (divides_refl n)
+
+    /-- `dividesb d n = true ↔ d ∣ n`, para `d ≠ 0`. -/
+    theorem dividesb_iff_dvd {d n : ℕ₀} (hd : d ≠ 𝟘) :
+        dividesb d n = true ↔ d ∣ n :=
+      ⟨dividesb_true_imp_dvd hd, dvd_imp_dividesb_true hd⟩
+
+    /-- `d ∣ n` es decidible computacionalmente mediante `dividesb`. -/
+    instance decidableDvd (d n : ℕ₀) : Decidable (d ∣ n) :=
+      if hd : d = 𝟘 then
+        if hn : n = 𝟘 then
+          isTrue (by subst hd; subst hn; exact divides_refl 𝟘)
+        else
+          isFalse (by intro h; subst hd; exact hn ((zero_divides_iff n).mp h))
+      else
+        if h : dividesb d n = true then
+          isTrue (dividesb_true_imp_dvd hd h)
+        else
+          isFalse (fun hdvd => h (dvd_imp_dividesb_true hd hdvd))
 
     -- ── 8.2. Especificación de smallestDivisorAux ──────────────────
 
@@ -1011,4 +1031,8 @@ export Peano.Primes (
     isPrimeb
     isPrimeb_iff
     decidablePrime
+    dividesb_true_imp_dvd
+    dvd_imp_dividesb_true
+    dividesb_iff_dvd
+    decidableDvd
 )

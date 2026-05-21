@@ -337,6 +337,11 @@ namespace Peano
         · exact Or.inl h_pq
         · exact Or.inr (ih h_pqs)
 
+    /-- Un número primo que divide a un producto divide a alguno de los factores. -/
+    theorem prime_dvd_mul {p a b : ℕ₀} (hp : Prime p) (hdvd : p ∣ mul a b) :
+        p ∣ a ∨ p ∣ b :=
+      hp.2.2 a b hdvd
+
     -- ══════════════════════════════════════════════════════════════════
     -- § 5. Factorización computable
     -- ══════════════════════════════════════════════════════════════════
@@ -471,6 +476,76 @@ namespace Peano
           (le_of_eq_wp (add_comm n 𝟚))
       obtain ⟨_, _, h_le, _⟩ := smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
       exact h_le
+
+    /-- `smallestDivisor n` es el *menor* divisor ≥ 2 de `n`:
+        ningún `e` con `2 ≤ e < smallestDivisor n` divide a `n`. -/
+    theorem smallestDivisor_not_dvd_of_lt {n e : ℕ₀} (hn : le₀ 𝟚 n)
+        (he2 : le₀ 𝟚 e) (hlt : lt₀ e (smallestDivisor n)) : ¬(e ∣ n) := by
+      have hfuel : le₀ n (add 𝟚 n) :=
+        le_trans n (add n 𝟚) (add 𝟚 n)
+          (Or.inl (lt_self_add_r n 𝟚 (succ_neq_zero 𝟙)))
+          (le_of_eq_wp (add_comm n 𝟚))
+      obtain ⟨_, _, _, h_min⟩ :=
+        smallestDivisorAux_spec n hn 𝟚 n (le_refl 𝟚) hn hfuel
+      intro hdvd
+      have he_ne0 : e ≠ 𝟘 := by
+        intro h0; rw [h0] at he2
+        exact lt_zero 𝟚 (Or.resolve_right he2 (succ_neq_zero 𝟙))
+      have h_false := h_min e he2 hlt
+      exact absurd (dvd_imp_dividesb_true he_ne0 hdvd)
+        (Bool.eq_false_iff.mp h_false)
+
+    /-- Si `p` es primo y `p ∣ n` con `n ≥ 2`, entonces `smallestDivisor n ≤ p`. -/
+    theorem smallestDivisor_le_of_prime_dvd {n p : ℕ₀} (hn : le₀ 𝟚 n)
+        (hp : Prime p) (hdvd : p ∣ n) : le₀ (smallestDivisor n) p := by
+      rcases le_or_lt (smallestDivisor n) p with h | h_lt
+      · exact h
+      · exact absurd hdvd (smallestDivisor_not_dvd_of_lt hn (prime_ge_two hp) h_lt)
+
+    /-- `smallestDivisor n` es primo para todo `n ≥ 2`. -/
+    theorem smallestDivisor_prime {n : ℕ₀} (hn : le₀ 𝟚 n) :
+        Prime (smallestDivisor n) := by
+      have hge2 := smallestDivisor_ge_two hn
+      have hdvd := smallestDivisor_dvd hn
+      have hne0 : smallestDivisor n ≠ 𝟘 := by
+        intro h0; rw [h0] at hge2
+        exact lt_zero 𝟚 (Or.resolve_right hge2 (succ_neq_zero 𝟙))
+      apply irreducible_imp_prime hne0
+      refine ⟨?_, fun a b hab => ?_⟩
+      · -- smallestDivisor n ≠ 1
+        intro h1; rw [h1] at hge2
+        exact le_then_ngt 𝟚 𝟙 hge2 (lt_succ_self 𝟙)
+      · -- Si mul a b = smallestDivisor n, entonces a = 1 ó b = 1.
+        by_cases ha1 : a = 𝟙
+        · exact Or.inl ha1
+        · by_cases hb1 : b = 𝟙
+          · exact Or.inr hb1
+          · exfalso
+            have ha0 : a ≠ 𝟘 := by
+              intro h0; rw [h0, zero_mul] at hab; exact hne0 hab.symm
+            have hb0 : b ≠ 𝟘 := by
+              intro h0; rw [h0, mul_zero] at hab; exact hne0 hab.symm
+            have ha2 : le₀ 𝟚 a := by
+              rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 ha0) with h | h
+              · exact lt_then_le_succ_wp h
+              · exact absurd h.symm ha1
+            have hb2 : le₀ 𝟚 b := by
+              rcases lt_0n_then_le_1n_wp (neq_0_then_lt_0 hb0) with h | h
+              · exact lt_then_le_succ_wp h
+              · exact absurd h.symm hb1
+            -- a < smallestDivisor n: a * b = sd(n) y b ≥ 2 → a < sd(n)
+            have ha_lt : lt₀ a (smallestDivisor n) := by
+              rw [← hab]
+              exact lt_of_lt_of_le
+                (by have := mul_lt_right a 𝟚 ha0 (lt_succ_self 𝟙)
+                    rwa [mul_comm 𝟚 a] at this)
+                (by have := mul_le_mono_right a hb2
+                    rwa [mul_comm 𝟚 a, mul_comm b a] at this)
+            -- a ∣ smallestDivisor n ∣ n → a ∣ n
+            have ha_dvd_sd : a ∣ smallestDivisor n := ⟨b, hab.symm⟩
+            have ha_dvd_n  : a ∣ n := divides_trans ha_dvd_sd hdvd
+            -- Contradice smallestDivisor_not_dvd_of_lt
+            exact smallestDivisor_not_dvd_of_lt hn ha2 ha_lt ha_dvd_n
 
     /-- Si `smallestDivisor n = n` y `n ≥ 2`, entonces `n` es irreducible. -/
     theorem smallestDivisor_eq_self_imp_irreducible {n : ℕ₀} (hn : le₀ 𝟚 n)
@@ -924,10 +999,14 @@ export Peano.Primes (
     PrimeList
     product_list_pos
     prime_dvd_product_list
+    prime_dvd_mul
     exists_prime_divisor
     exists_prime_factorization
     unique_prime_factorization
     smallestDivisor
+    smallestDivisor_not_dvd_of_lt
+    smallestDivisor_le_of_prime_dvd
+    smallestDivisor_prime
     factorize
     isPrimeb
     isPrimeb_iff

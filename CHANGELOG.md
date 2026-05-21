@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Added (2026-05-21)
+
+- **Primes.lean — 4 nuevos teoremas sobre divisor mínimo y primalidad (0 sorry)**:
+  - `prime_dvd_mul` — p primo y p ∣ a·b ⇒ p ∣ a ∨ p ∣ b (lema de Gauss, forma binaria).
+  - `smallestDivisor_not_dvd_of_lt` — n ≥ 2 ∧ 2 ≤ e < smallestDivisor(n) ⇒ e ∤ n.
+  - `smallestDivisor_le_of_prime_dvd` — p primo y p ∣ n ⇒ smallestDivisor(n) ≤ p.
+  - `smallestDivisor_prime` — n ≥ 2 ⇒ smallestDivisor(n) es primo.
+  - Dependencias: `smallestDivisor_not_dvd_of_lt` apoya a `smallestDivisor_le_of_prime_dvd`; `smallestDivisor_le_of_prime_dvd` apoya a `smallestDivisor_prime`.
+  - Build: **19 jobs · 0 sorry · 0 errores**.
+
+- **Arith.lean — 1 nuevo teorema sobre división (0 sorry)**:
+  - `mul_div_of_dvd_left` — c ∣ a ∧ c ≠ 0 ⇒ (a·b)/c = (a/c)·b.
+  - Build: incluido en los 19 jobs anteriores.
+
+- **doc/REFERENCE-Arithmetic.md — proyección completa (7 símbolos)**:
+  - `[T12.35a] mul_div_of_dvd_left` (§12 Arith.lean)
+  - `[T13.17a] prime_dvd_mul` (§13 Primes.lean)
+  - `[D13.6b] smallestDivisor`, `[D13.6c] factorize` (nueva sección §13.6b)
+  - `[T13.21b] smallestDivisor_not_dvd_of_lt`
+  - `[T13.21c] smallestDivisor_le_of_prime_dvd`
+  - `[T13.21d] smallestDivisor_prime`
+
 ### Added (2026-05-10)
 
 - **Phase 6 — `zassenhaus_bijection_extremes` demostrado (0 sorry)**:

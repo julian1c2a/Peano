@@ -2,7 +2,7 @@
 
 > **Proyecto**: Peano
 > **Rama**: `migracion_de_REFERENCE`
-> **Fecha**: 2026-05-10
+> **Fecha**: 2026-05-21
 > **Nodo**: `doc/REFERENCE-Arithmetic.md`
 > **Volver al índice**: [REFERENCE.md](../REFERENCE.md)
 > **Nodos relacionados**: [REFERENCE-Prelim.md](REFERENCE-Prelim.md) · [REFERENCE-NumberTheory.md](REFERENCE-NumberTheory.md) · [REFERENCE-Combinatorics.md](REFERENCE-Combinatorics.md)
@@ -32,6 +32,7 @@
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | Raíz cuadrada entera |
 
 ---
+
 ## 2. PeanoNat.lean — `namespace Peano`
 
 *Dependencias: `Prelim`*
@@ -1643,6 +1644,11 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem div_mul_cancel {a b : ℕ₀} (hb : b ≠ 𝟘) (h : b ∣ a) : mul (a / b) b = a`
 
+**[T12.35a]** `mul_div_of_dvd_left`
+
+- **Lean4:** `theorem mul_div_of_dvd_left {a c : ℕ₀} (hc : c ≠ 𝟘) (hdvd : c ∣ a) (b : ℕ₀) : mul a b / c = mul (a / c) b`
+- **Matemática:** c ∣ a ∧ c ≠ 0 ⇒ (a·b)/c = (a/c)·b
+
 **[T12.36]** `gcd_mul_lcm`
 
 - **Lean4:** `theorem gcd_mul_lcm (a b : ℕ₀) : mul (gcd a b) (lcm a b) = mul a b`
@@ -1866,6 +1872,11 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem prime_dvd_product_list {p : ℕ₀} {ps : DList ℕ₀} (hp : Prime p) (hpl : PrimeList ps) (hd : p ∣ product_list ps) : ∃ q, q ∈ ps ∧ p = q`
 
+**[T13.17a]** `prime_dvd_mul`
+
+- **Lean4:** `theorem prime_dvd_mul {p a b : ℕ₀} (hp : Prime p) (hdvd : p ∣ mul a b) : p ∣ a ∨ p ∣ b`
+- **Matemática:** p primo y p ∣ a·b ⇒ p ∣ a ∨ p ∣ b
+
 **[T13.18]** `mem_dvd_product`
 
 - **Lean4:** `theorem mem_dvd_product {a : ℕ₀} {l : DList ℕ₀} (h : a ∈ l) : a ∣ product_list l`
@@ -1886,6 +1897,35 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem unique_prime_factorization ...`
 - **Matemática:** La factorización en primos es única salvo permutación
+
+### 13.6b. Divisor mínimo (`smallestDivisor`)
+
+**[D13.6b]** `smallestDivisor`
+
+- **Lean4:** `def smallestDivisor (n : ℕ₀) : ℕ₀ := smallestDivisorAux n 𝟚 n`
+- **Matemática:** Menor divisor ≥ 2 de n (para n ≥ 2).
+- **Computable:** Sí. **Bien-fundado:** Sí (`termination_by`)
+
+**[D13.6c]** `factorize`
+
+- **Lean4:** `def factorize (n : ℕ₂) : FactFSet := factorizeAux n.val.val n.val.val FactFSet.empty`
+- **Matemática:** Factorización prima computable de n ∈ ℕ₂; devuelve `FactFSet` (lista ordenada de pares primo–exponente).
+- **Computable:** Sí
+
+**[T13.21b]** `smallestDivisor_not_dvd_of_lt`
+
+- **Lean4:** `theorem smallestDivisor_not_dvd_of_lt {n e : ℕ₀} (hn : le₀ 𝟚 n) (he : le₀ 𝟚 e) (hlt : lt₀ e (smallestDivisor n)) : ¬ e ∣ n`
+- **Matemática:** n ≥ 2 ∧ 2 ≤ e < smallestDivisor(n) ⇒ e ∤ n
+
+**[T13.21c]** `smallestDivisor_le_of_prime_dvd`
+
+- **Lean4:** `theorem smallestDivisor_le_of_prime_dvd {n p : ℕ₀} (hn : le₀ 𝟚 n) (hp : Prime p) (hdvd : p ∣ n) : le₀ (smallestDivisor n) p`
+- **Matemática:** p primo y p ∣ n ⇒ smallestDivisor(n) ≤ p
+
+**[T13.21d]** `smallestDivisor_prime`
+
+- **Lean4:** `theorem smallestDivisor_prime {n : ℕ₀} (hn : le₀ 𝟚 n) : Prime (smallestDivisor n)`
+- **Matemática:** n ≥ 2 ⇒ smallestDivisor(n) es primo
 
 ### 13.7. Decidabilidad de `Prime`
 
@@ -1910,9 +1950,6 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `instance decidablePrime (n : ℕ₀) : Decidable (Prime n)`
 - **Descripción:** Decidabilidad de la primalidad vía `isPrimeb`
-
----
-
 
 ---
 
@@ -2057,5 +2094,3 @@ Cota del resto: $r < 2k + 1$.
 Cota superior: $n < (k+1)^2$. Se deriva de [T21.5] + [T21.6] + la identidad $(k+1)^2 = k^2 + (2k+1)$.
 
 ---
-
-

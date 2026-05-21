@@ -11,7 +11,6 @@ Peano/Prelim.lean
 Peano/Prelim/Classical.lean
 Peano/Prelim/ExistsUnique.lean
 Peano/PeanoNat/Add.lean
-Peano/PeanoNat/Arith.lean
 Peano/PeanoNat/Axioms.lean
 Peano/PeanoNat/Decidable.lean
 Peano/PeanoNat/Digits.lean
@@ -23,7 +22,6 @@ Peano/PeanoNat/Mul.lean
 Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Order.lean
 Peano/PeanoNat/Pairing.lean
-Peano/PeanoNat/Primes.lean
 Peano/PeanoNat/Sqrt.lean
 Peano/PeanoNat/StrictOrder.lean
 Peano/PeanoNat/Sub.lean

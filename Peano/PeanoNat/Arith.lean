@@ -809,6 +809,20 @@ namespace Peano
       rw [h_mod_zero, add_zero] at h_spec
       exact h_spec.symm
 
+    /-- Si `c ∣ a` y `c ≠ 0`, entonces `(a * b) / c = (a / c) * b`. -/
+    theorem mul_div_of_dvd_left {a c : ℕ₀} (hc : c ≠ 𝟘) (hdvd : c ∣ a) (b : ℕ₀) :
+        mul a b / c = mul (a / c) b := by
+      apply mul_cancelation_right _ _ c hc
+      have h1 : mul (mul a b / c) c = mul a b :=
+        div_mul_cancel hc (divides_mul_right hdvd)
+      have h2 : mul (mul (a / c) b) c = mul a b :=
+        calc mul (mul (a / c) b) c
+            = mul (a / c) (mul b c) := mul_assoc _ _ _
+          _ = mul (a / c) (mul c b) := by rw [mul_comm b c]
+          _ = mul (mul (a / c) c) b := (mul_assoc _ _ _).symm
+          _ = mul a b               := by rw [div_mul_cancel hc hdvd]
+      rw [h1, h2]
+
     -- ── 8.6 LCM — propiedades básicas ─────────────────────────────
 
     theorem gcd_mul_lcm (a b : ℕ₀) : mul (gcd a b) (lcm a b) = mul a b := by
@@ -1044,6 +1058,7 @@ export Peano.Arith (
   gcd_assoc
   IsGCD_gcd
   div_mul_cancel
+  mul_div_of_dvd_left
   -- § 8 extensiones Mathlib — LCM
   gcd_mul_lcm
   lcm_comm

@@ -65,3 +65,5 @@ Peano/PeanoNat/NumberTheory/Fermat.lean
 Peano/PeanoNat/NumberTheory/ModEq.lean
 Peano/PeanoNat/NumberTheory/Totient.lean
 Peano/PeanoNat/NumberTheory/Wilson.lean
+Peano/PeanoNat/Arith.lean
+Peano/PeanoNat/Primes.lean

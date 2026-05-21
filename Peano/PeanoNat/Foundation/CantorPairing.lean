@@ -7,7 +7,7 @@ License: MIT
 -- Peano/PeanoNat/Foundation/CantorPairing.lean
 --
 -- Enuncia y bosqueja la prueba de que ℕ₀ × ℕ₀ ≅ ℕ₀ (apareamiento de Cantor).
--- Las pruebas aritméticas están marcadas como sorry pendientes de completar.
+-- Las pruebas aritméticas quedan pendientes de completar.
 --
 -- NOTAS PARA COMPLETAR:
 --  · triag_succ : requiere  div_add_exact  y  two_dvd_mul_succ

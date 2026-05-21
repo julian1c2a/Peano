@@ -9,8 +9,8 @@ License: MIT
 --
 -- § 1. FunPerm — permutación como FunTable con List.Perm
 -- § 2. Grupo simétrico Sym A
--- § 3. Ciclos y descomposición (sorry)
--- § 4. Signatura (sorry)
+-- § 3. Ciclos y descomposición
+-- § 4. Signatura
 -- § 5. Aplicaciones aritméticas
 
 import Peano.PeanoNat

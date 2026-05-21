@@ -1,1 +1,0 @@
-theorem test : False := sorryAx _ true

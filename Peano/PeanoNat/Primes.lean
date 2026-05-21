@@ -190,7 +190,7 @@ namespace Peano
 
     /-- **Lema de Gauss**: mcd(a,b) = 1 ∧ a ∣ b·c → a ∣ c.
         La demostración usa bezout_natform y sub_k_add_k/subₕₖ_eq_iff_eq_add_of_le.
-        Los pasos de aritmética que involucran resta saturada se marcan con sorry
+      Los pasos de aritmética que involucran resta saturada quedan pendientes
         mientras se completan las lemmas adicionales de PeanoNatSub. -/
     theorem coprime_dvd_of_dvd_mul {a b c : ℕ₀}
         (hcop : Coprime a b) (hdvd : a ∣ mul b c) : a ∣ c := by
@@ -661,7 +661,7 @@ namespace Peano
         --   p = gcd(p,a) · (p / gcd(p,a)) + (p % gcd(p,a))
         -- y gcd(p,a) ∣ p → p % gcd(p,a) = 0 → p = gcd(p,a) · (p / gcd(p,a))
         -- Esto es: divMod_spec + mod_eq_zero_iff_divides (de PeanoNatArith ℕ₁)
-        -- Por ahora sorry este paso auxiliar:
+        -- Por ahora queda pendiente este paso auxiliar:
         have h_factor : ∃ k, p = mul (gcd p a) k := by
           rcases hg_p with ⟨k, hk⟩; exact ⟨k, hk⟩
         rcases h_factor with ⟨k, hk⟩

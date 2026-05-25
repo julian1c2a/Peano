@@ -1900,6 +1900,12 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 ### 13.6b. Divisor mínimo (`smallestDivisor`)
 
+**[T13.21a-aux]** `smallestDivisorAux_spec`
+
+- **Lean4:** `theorem smallestDivisorAux_spec (n : ℕ₀) (hn : le₀ 𝟚 n) : ∀ (c fuel : ℕ₀), le₀ 𝟚 c → le₀ c n → le₀ n (add c fuel) → dividesb (smallestDivisorAux n c fuel) n = true ∧ le₀ c (smallestDivisorAux n c fuel) ∧ le₀ (smallestDivisorAux n c fuel) n ∧ (∀ e, le₀ c e → lt₀ e (smallestDivisorAux n c fuel) → dividesb e n = false)`
+- **Matemática:** Especificación completa de `smallestDivisorAux`: dado n ≥ 2 y c ≥ 2 con c ≤ n ≤ c + fuel, el resultado divide a n, está entre c y n, y ningún candidato entre c y el resultado divide a n.
+- **Importancia:** Alta — lema maestro que fundamenta todas las propiedades de `smallestDivisor`.
+
 **[D13.6b]** `smallestDivisor`
 
 - **Lean4:** `def smallestDivisor (n : ℕ₀) : ℕ₀ := smallestDivisorAux n 𝟚 n`

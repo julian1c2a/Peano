@@ -411,7 +411,7 @@ namespace Peano
         `d ≥ c` que divide a `n` (y `d ≤ n`),
         siempre que `c ≤ n` y `fuel` sea suficiente (`n ≤ c + fuel`).
         El cuarto componente dice que todo candidato entre `c` y `d` no divide. -/
-    private theorem smallestDivisorAux_spec (n : ℕ₀) (hn : le₀ 𝟚 n) :
+    theorem smallestDivisorAux_spec (n : ℕ₀) (hn : le₀ 𝟚 n) :
         ∀ (c fuel : ℕ₀), le₀ 𝟚 c → le₀ c n → le₀ n (add c fuel) →
         dividesb (smallestDivisorAux n c fuel) n = true ∧
         le₀ c (smallestDivisorAux n c fuel) ∧
@@ -1023,6 +1023,7 @@ export Peano.Primes (
     exists_prime_divisor
     exists_prime_factorization
     unique_prime_factorization
+    smallestDivisorAux_spec
     smallestDivisor
     smallestDivisor_not_dvd_of_lt
     smallestDivisor_le_of_prime_dvd

@@ -174,7 +174,7 @@ namespace Peano
 
     @[simp] theorem lengthₚ_cons {α : Type} (x : α) (xs : List α) :
         lengthₚ (x :: xs) = σ (lengthₚ xs) := by
-      simp [lengthₚ, List.length_cons, Λ]
+      simp [lengthₚ, Λ]
 
     /-- Si `i < lengthₚ l`, entonces `getDₚ dflt l i ∈ l`. -/
     theorem getDₚ_mem {α : Type} (dflt : α) (l : List α) (i : ℕ₀)

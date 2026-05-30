@@ -88,9 +88,9 @@ open Lean Elab Command
 /-- Falla en tiempo de compilación si la declaración usa `Classical.choice`. -/
 elab "#assert_constructive " id:ident : command => do
   let name ← resolveGlobalConstNoOverload id
-  let env ← getEnv
-  let (_, s) := ((CollectAxioms.collect name).run env).run {}
-  if s.axioms.contains ``Classical.choice then
+  -- API pública estable (Lean 4.30.0): `collectAxioms` devuelve `Array Name`.
+  let axioms ← Lean.collectAxioms name
+  if axioms.contains ``Classical.choice then
     throwError "'{name}' depende de Classical.choice — reescribir constructivamente"
 
 end AssertConstructiveCmd

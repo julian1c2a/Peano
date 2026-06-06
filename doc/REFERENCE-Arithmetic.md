@@ -1538,6 +1538,13 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - **Lean4:** `theorem gcd_greatest (a b c : ℕ₀) : (c ∣ a ∧ c ∣ b) → c ∣ gcd a b`
 
+**[T12.13b]** `gcd_step`
+
+- **Lean4:** `theorem gcd_step (a b : ℕ₀) (hb : b ≠ 𝟘) : gcd a b = gcd b (a % b)`
+- **Matemática:** Si b ≠ 0: mcd(a, b) = mcd(b, a mod b)
+- **Importancia:** `@importance: high` — lema de reducción euclídea, usado en `gcd_comm`, `bezout_natform` y múltiples teoremas de isomorfismo
+- **Módulo:** `Peano/PeanoNat/Arith.lean` · `namespace Peano.Arith`
+
 **[T12.14]** `gcd_divides_linear_combo`
 
 - **Lean4:** `theorem gcd_divides_linear_combo (a b n m : ℕ₀) : gcd a b ∣ (add (mul a n) (mul b m))`

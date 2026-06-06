@@ -378,7 +378,7 @@ namespace Peano
       exact divides_add h_an h_bm
 
     -- Lema auxiliar: reducción de gcd cuando b ≠ 0
-    private theorem gcd_step (a b : ℕ₀) (hb : b ≠ 𝟘) : gcd a b = gcd b (a % b) := by
+    theorem gcd_step (a b : ℕ₀) (hb : b ≠ 𝟘) : gcd a b = gcd b (a % b) := by
       apply antisymm_divides
       · -- gcd a b ∣ gcd b (a%b): usa gcd_greatest b (a%b) (gcd a b)
         apply gcd_greatest
@@ -1035,6 +1035,7 @@ export Peano.Arith (
   divides_sub
   divides_mod
   gcd_greatest
+  gcd_step
   gcd_divides_linear_combo
   bezout_natform
   gcd_divides_max

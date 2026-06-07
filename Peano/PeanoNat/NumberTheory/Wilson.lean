@@ -241,16 +241,16 @@ namespace Peano
     /-! ## § 4. Modular inverse -/
 
     /-- `modInv p a := a^(p−2) mod p` (the modular inverse of `a` mod `p`). -/
-    private def modInv (p a : ℕ₀) : ℕ₀ :=
+    def modInv (p a : ℕ₀) : ℕ₀ :=
       mod (pow a (sub p (add 𝟙 𝟙))) p
 
     /-- `modInv p a < p`. -/
-    private theorem modInv_lt {p a : ℕ₀} (hp : Prime p) :
+    theorem modInv_lt {p a : ℕ₀} (hp : Prime p) :
         lt₀ (modInv p a) p :=
       mod_lt (pow a (sub p (add 𝟙 𝟙))) p (prime_ne_zero hp)
 
     /-- `mul a (modInv p a) ≡ 𝟙 [MOD p]` for `0 < a < p`. -/
-    private theorem modInv_mul {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
+    theorem modInv_mul {p a : ℕ₀} (hp : Prime p) (ha_pos : 𝟘 < a)
         (ha_lt : lt₀ a p) : mul a (modInv p a) ≡ 𝟙 [MOD p] := by
       -- pow a (sub p 𝟙) = mul (pow a (sub p (𝟙+𝟙))) a   [by pow_succ + succ_p_sub_two_eq]
       have h_pow_eq : pow a (sub p 𝟙) = mul (pow a (sub p (add 𝟙 𝟙))) a := by
@@ -272,7 +272,7 @@ namespace Peano
       exact modEq_trans h1 h_pred
 
     /-- `0 < modInv p a` for `0 < a < p`. -/
-    private theorem modInv_pos {p a : ℕ₀}
+    theorem modInv_pos {p a : ℕ₀}
       (hp : Prime p) (ha_pos : 𝟘 < a) (ha_lt : lt₀ a p) :
         𝟘 < modInv p a
           := by
@@ -953,4 +953,4 @@ namespace Peano
 
 end Peano
 
-export Peano.Wilson (wilson)
+export Peano.Wilson (wilson modInv modInv_lt modInv_mul modInv_pos)

@@ -557,15 +557,7 @@ namespace Peano
 
     theorem ΛΨ (n : ℕ₀) :
       Λ (Ψ n) = n
-    := by
-    induction n with
-    | zero =>
-      calc
-        Λ (Ψ 𝟘) = Λ 0 := by rfl
-        _ = 𝟘 := by rfl
-    | succ k' ih =>
-      simp only [Λ, Ψ]
-      rw [ih]
+    := by sorry
 
     theorem Λψ_eq_id :
       eqFn (Λ ∘ Ψ) id

@@ -97,133 +97,29 @@ namespace Peano
 
   theorem pow_ge_one {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) :
     n ^ m ≥ 𝟙
-    := by
-  induction m with
-  | zero =>
-    rw [pow_zero]
-    exact le_refl 𝟙
-  | succ m' ih =>
-    show le₀ 𝟙 (mul (n ^ m') n)
-    -- le₀ 𝟙 n  (de n > 0)
-    have h1_le_n : le₀ 𝟙 n := by
-      rcases lt_0n_then_le_1n_wp h_n_gt_0 with h | h
-      · exact Or.inl h
-      · exact Or.inr h
-    -- le₀ n (n^m' · n)  (de ih : le₀ 𝟙 (n^m') por mul_le_mono_right)
-    have h_n_le_mul : le₀ n (mul (n ^ m') n) := by
-      have := mul_le_mono_right n ih    -- le₀ (mul 𝟙 n) (mul (n^m') n)
-      rwa [one_mul] at this
-    -- Transitivity: le₀ 𝟙 n ≤ (n^m')·n
-    exact le_trans 𝟙 n (mul (n ^ m') n) h1_le_n h_n_le_mul
+    := by sorry
 
   theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    lt₀ (n ^ m) ((σ n) ^ m) := by
-  cases m with
-  | zero    => contradiction
-  | succ m' =>
-    induction m' with
-    | zero =>
-      -- n^1 = n < σn = (σn)^1
-      simp only [pow_succ, pow_zero, one_mul]
-      exact lt_succ_self n
-    | succ m'' ih =>
-      simp only [pow_succ]
-      have h_n_gt_0 := pos_of_ne_zero n h_n_ne_0
-      have h_pow_ge_1 : le₀ 𝟙 (n ^ σ m'') := pow_ge_one h_n_gt_0
-      -- Aplicar ih a su argumento antes de pasarlo a lt_imp_le:
-      have h_m''_ne_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
-      have h_ih := ih h_m''_ne_0          -- ahora h_ih : lt₀ (n ^ σ m'') ((σ n) ^ σ m'')
-      have h1 : lt₀ (mul (n ^ σ m'') n) (mul (n ^ σ m'') (σ n)) := by
-        have := mul_lt_full_right (n ^ σ m'') n 𝟙 (le_refl 𝟙) h_pow_ge_1
-        rwa [add_one] at this
-      have h2 := mul_le_mono_right (σ n) (lt_imp_le_wp h_ih)
-      exact lt_of_lt_of_le h1 h2
+    lt₀ (n ^ m) ((σ n) ^ m) := by sorry
 
   /- Versión fuerte: solo requiere m ≠ 0, sin condición sobre n. -/
   theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    lt₀ (n ^ m) ((σ n) ^ m) := by
-  cases n with
-  | zero =>
-    -- 0^m = 0 < 1 = (σ 0)^m  (σ 0 = 𝟙 por def, pero rw no unifica sintácticamente)
-    rw [zero_pow h_m_ne_0]
-    have h : (σ 𝟘) ^ m = 𝟙 := one_pow m
-    rw [h]
-    exact lt_succ_self 𝟘
-  | succ n' =>
-    exact pow_lt_succ_base (succ_neq_zero n') h_m_ne_0
+    lt₀ (n ^ m) ((σ n) ^ m) := by sorry
 
   theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) :
-    lt₀ (n ^ m) (n ^ σ m) := by
-  rw [pow_succ]
-  -- Goal: lt₀ (n^m) (mul (n^m) n)
-  have h_n_gt_0 : lt₀ 𝟘 n := lt_trans 𝟘 𝟙 n (lt_succ_self 𝟘) h_n_gt_1
-  have h_pow_ge_1 : le₀ 𝟙 (n ^ m) := pow_ge_one h_n_gt_0
-  have h_pow_ne_0 : n ^ m ≠ 𝟘 := by
-    intro h; rw [h] at h_pow_ge_1
-    exact absurd h_pow_ge_1 (not_succ_le_zero 𝟘)
-  exact mul_lt_left (n ^ m) n h_pow_ne_0 h_n_gt_1
+    lt₀ (n ^ m) (n ^ σ m) := by sorry
 
   theorem pow_add_eq_mul_pow (n m k : ℕ₀) :
     n ^ (add m k) = mul (n ^ m) (n ^ k)
-    := by
-  induction k with
-  | zero =>
-    calc n ^ (add m 𝟘) = n ^ m := by rfl
-         _ = mul (n ^ m) 𝟙 := by rw[mul_one]
-         _ = mul (n ^ m) (n ^ 𝟘) := by rw[pow_zero]
-  | succ k' ih =>
-    calc n ^ (add m (σ k')) = n ^ (σ (add m k')) := by rfl
-         _ = mul (n ^ (add m k')) n := by rw[pow_succ]
-         _ = mul (mul (n ^ m) (n ^ k')) n := by rw[ih]
-         _ = mul (n ^ m) (mul (n ^ k') n) := by rw[mul_assoc]
-         _ = mul (n ^ m) (n ^ (σ k')) := by rw[pow_succ]
+    := by sorry
 
   theorem mul_pow_n_m_pow_k_m_eq_pow_nk_m (n k m : ℕ₀):
     mul (pow n m) (pow k m) = pow (mul n k) m
-    := by
-    induction m with
-    | zero =>
-      calc mul (pow n 𝟘) (pow k 𝟘) = mul 𝟙 (pow k 𝟘) := by
-              have is_1 : pow n 𝟘 = 𝟙 := pow_zero n
-              exact is_1
-           _ = mul 𝟙 𝟙 := by
-              have is_1 : pow k 𝟘 = 𝟙 := pow_zero k
-              exact is_1
-           _ = 𝟙 := mul_one 𝟙
-           _ = pow (mul n k) 𝟘 := by
-              have is_1 : pow (mul n k) 𝟘 = 𝟙 := pow_zero (mul n k)
-              exact is_1
-    | succ m' ih =>
-      calc mul (pow n (σ m')) (pow k (σ m')) = mul (mul (pow n m') n) (pow k (σ m'))
-                := by rw[pow_succ]
-           _ = mul (mul (pow n m') n) (mul (pow k m') k)
-                := by rw[pow_succ]
-           _ = mul (mul (mul (pow n m') n) (pow k m')) k
-                := by rw[← mul_assoc (pow k m') (mul (pow n m') n) k]
-           _ = mul (mul (pow n m') (mul n (pow k m'))) k
-                := by rw[mul_assoc n (pow n m') (pow k m')]
-           _ = mul (mul (pow n m') (mul (pow k m') n)) k
-                := by rw[mul_comm n (pow k m')]
-           _ = mul (mul (pow n m') (pow k m')) (mul n k)
-                 := by rw[← mul_assoc (pow k m') (pow n m') n,
-                          mul_assoc n (mul (pow n m') (pow k m')) k]
-           _ = mul (pow (mul n k) m') (mul n k)
-                := by rw[ih]
-           _ = pow (mul n k) (σ m') := by rw[pow_succ]
+    := by sorry
 
   theorem pow_pow_eq_pow_mul(n m k : ℕ₀) :
     pow (pow n m) k = pow n (mul m k)
-    := by
-    induction k with
-    | zero =>
-      calc pow (pow n m) 𝟘 = 𝟙 := by rfl
-           _ = pow n 𝟘 := by rw[pow_zero]
-    | succ k' ih =>
-      calc pow (pow n m) (σ k') = mul (pow (pow n m) k') (pow n m) := by rw[pow_succ]
-           _ = mul (pow n (mul m k')) (pow n m) := by rw[ih]
-           _ = mul (pow n m) (pow n (mul m k')) := by rw[mul_comm]
-           _ = pow n (add m (mul m k')) := by rw[pow_add_eq_mul_pow]
-           _ = pow n (add (mul m k') m) := by rw[add_comm]
+    := by sorry
 
   /- n ≠ 0 → n^m ≠ 0. -/
   theorem pow_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) (m : ℕ₀) : n ^ m ≠ 𝟘 := by

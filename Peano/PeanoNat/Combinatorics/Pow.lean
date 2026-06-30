@@ -97,29 +97,14 @@ namespace Peano
 
   theorem pow_ge_one {n m : ℕ₀} (h_n_gt_0 : n > 𝟘) :
     n ^ m ≥ 𝟙
-    := by sorry
-
-  theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    lt₀ (n ^ m) ((σ n) ^ m) := by sorry
-
-  /- Versión fuerte: solo requiere m ≠ 0, sin condición sobre n. -/
-  theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
-    lt₀ (n ^ m) ((σ n) ^ m) := by sorry
-
-  theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) :
-    lt₀ (n ^ m) (n ^ σ m) := by sorry
-
-  theorem pow_add_eq_mul_pow (n m k : ℕ₀) :
-    n ^ (add m k) = mul (n ^ m) (n ^ k)
-    := by sorry
-
-  theorem mul_pow_n_m_pow_k_m_eq_pow_nk_m (n k m : ℕ₀):
-    mul (pow n m) (pow k m) = pow (mul n k) m
-    := by sorry
-
-  theorem pow_pow_eq_pow_mul(n m k : ℕ₀) :
-    pow (pow n m) k = pow n (mul m k)
-    := by sorry
+    := by
+    induction m with
+    | zero =>
+      rw [pow_zero]
+      exact le_refl 𝟙
+    | succ m' ih =>
+      rw [pow_succ]
+      exact le_le_mul_le_compat ih (lt_0n_then_le_1n_wp h_n_gt_0)
 
   /- n ≠ 0 → n^m ≠ 0. -/
   theorem pow_ne_zero {n : ℕ₀} (h : n ≠ 𝟘) (m : ℕ₀) : n ^ m ≠ 𝟘 := by
@@ -130,6 +115,82 @@ namespace Peano
       intro heq
       rw [heq] at h_gt
       exact lt_zero 𝟘 h_gt
+
+  /- Versión fuerte: solo requiere m ≠ 0, sin condición sobre n. -/
+  theorem pow_lt_succ_base_strong {n m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
+    lt₀ (n ^ m) ((σ n) ^ m) := by
+    have h0 : n = 𝟘 ∨ n ≠ 𝟘 := Decidable.em (n = 𝟘)
+    cases h0 with
+    | inl h_eq_0 =>
+      rw [h_eq_0]
+      change lt₀ (𝟘 ^ m) (𝟙 ^ m)
+      have h_0_pow : 𝟘 ^ m = 𝟘 := zero_pow h_m_ne_0
+      have h_1_pow : 𝟙 ^ m = 𝟙 := one_pow m
+      rw [h_0_pow, h_1_pow]
+      exact lt_succ_self 𝟘
+    | inr h_neq_0 =>
+      induction m with
+      | zero => contradiction
+      | succ m' ih =>
+        cases m' with
+        | zero =>
+          change lt₀ (n ^ 𝟙) ((σ n) ^ 𝟙)
+          rw [pow_one, pow_one]
+          exact lt_succ_self n
+        | succ m'' =>
+          have hm'_ne_0 : σ m'' ≠ 𝟘 := succ_neq_zero m''
+          have h_ih := ih hm'_ne_0
+          rw [pow_succ, pow_succ]
+          have h_n_pow_ne_0 : n ^ (σ m'') ≠ 𝟘 := pow_ne_zero h_neq_0 (σ m'')
+          exact lt_lt_mul_lt_compat h_ih (lt_succ_self n) h_neq_0 h_n_pow_ne_0
+
+  theorem pow_lt_succ_base {n : ℕ₀} (h_n_ne_0 : n ≠ 𝟘) {m : ℕ₀} (h_m_ne_0 : m ≠ 𝟘) :
+    lt₀ (n ^ m) ((σ n) ^ m) := by
+    exact pow_lt_succ_base_strong h_m_ne_0
+
+  theorem pow_lt_succ_exp {n m : ℕ₀} (h_n_gt_1 : lt₀ 𝟙 n) :
+    lt₀ (n ^ m) (n ^ σ m) := by
+    rw [pow_succ]
+    have h_n_ne_0 : n ≠ 𝟘 := by
+      intro h
+      rw [h] at h_n_gt_1
+      exact nlt_n_0_false 𝟙 h_n_gt_1
+    have h_n_pow_ne_0 : n ^ m ≠ 𝟘 := pow_ne_zero h_n_ne_0 m
+    exact mul_lt_left (n ^ m) n h_n_pow_ne_0 h_n_gt_1
+
+  theorem pow_add_eq_mul_pow (n m k : ℕ₀) :
+    n ^ (add m k) = mul (n ^ m) (n ^ k)
+    := by
+    induction k with
+    | zero => rw [add_zero, pow_zero, mul_one]
+    | succ k' ih => rw [add_succ, pow_succ, ih, pow_succ, mul_assoc]
+
+  theorem mul_pow_n_m_pow_k_m_eq_pow_nk_m (n k m : ℕ₀):
+    mul (n ^ m) (k ^ m) = (mul n k) ^ m
+    := by
+    induction m with
+    | zero => rw [pow_zero, pow_zero, pow_zero, mul_one]
+    | succ m' ih =>
+      rw [pow_succ, pow_succ, pow_succ, ←ih]
+      have h1 : mul (mul (n ^ m') n) (mul (k ^ m') k) = mul (mul (n ^ m') (k ^ m')) (mul n k) := by
+        rw [mul_assoc n (n^m') (mul (k^m') k)]
+        have h2 : mul n (mul (k ^ m') k) = mul (mul n (k ^ m')) k := Eq.symm (mul_assoc (k^m') n k)
+        rw [h2]
+        have h3 : mul n (k ^ m') = mul (k ^ m') n := mul_comm n (k ^ m')
+        rw [h3]
+        have h4 : mul (mul (k ^ m') n) k = mul (k ^ m') (mul n k) := mul_assoc n (k^m') k
+        rw [h4]
+        exact Eq.symm (mul_assoc (k^m') (n^m') (mul n k))
+      exact h1
+
+  theorem pow_pow_eq_pow_mul(n m k : ℕ₀) :
+    (n ^ m) ^ k = n ^ (mul m k)
+    := by
+    induction k with
+    | zero => rw [pow_zero, mul_zero, pow_zero]
+    | succ k' ih => rw [pow_succ, ih, mul_succ, pow_add_eq_mul_pow]
+
+
 
   /- n^2 = n · n. -/
   theorem pow_two (n : ℕ₀) : n ^ 𝟚 = mul n n := by

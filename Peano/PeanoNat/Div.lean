@@ -502,6 +502,91 @@ namespace Peano
       rw [←h_div_eq'] at h_sub'
       simpa [r] using h_sub'
 
+    /--
+      Teorema 1: Unicidad del cociente y resto.
+    -/
+    theorem div_mod_unique (a b q1 r1 q2 r2 : ℕ₀) (hb : b ≠ 𝟘)
+      (h1 : a = add (mul q1 b) r1) (hr1 : lt₀ r1 b)
+      (h2 : a = add (mul q2 b) r2) (hr2 : lt₀ r2 b) : q1 = q2 := by
+      have h_tri := trichotomy q1 q2
+      cases h_tri with
+      | inl h_lt12 =>
+        have hr1_add : lt₀ (add (mul q1 b) r1) (add (mul q1 b) b) := (add_lt_add_left_iff (mul q1 b) r1 b).mpr hr1
+        have h_le_q2 : le₀ (σ q1) q2 := lt_then_le_succ_wp h_lt12
+        have h_mul_le : le₀ (mul (σ q1) b) (mul q2 b) := mul_le_mono_right b h_le_q2
+        rw [succ_mul] at h_mul_le
+        have h_add_le : le₀ (add (mul q1 b) b) (add (mul q2 b) r2) :=
+          le_trans (add (mul q1 b) b) (mul q2 b) (add (mul q2 b) r2) h_mul_le (le_self_add_r _ _)
+        have h_lt_a : lt₀ (add (mul q1 b) r1) (add (mul q2 b) r2) := lt_of_lt_of_le hr1_add h_add_le
+        rw [← h1, ← h2] at h_lt_a
+        exact False.elim (lt_irrefl a h_lt_a)
+      | inr h_or =>
+        cases h_or with
+        | inl h_eq => exact h_eq
+        | inr h_lt21 =>
+          have hr2_add : lt₀ (add (mul q2 b) r2) (add (mul q2 b) b) := (add_lt_add_left_iff (mul q2 b) r2 b).mpr hr2
+          have h_le_q1 : le₀ (σ q2) q1 := lt_then_le_succ_wp h_lt21
+          have h_mul_le : le₀ (mul (σ q2) b) (mul q1 b) := mul_le_mono_right b h_le_q1
+          rw [succ_mul] at h_mul_le
+          have h_add_le : le₀ (add (mul q2 b) b) (add (mul q1 b) r1) :=
+            le_trans (add (mul q2 b) b) (mul q1 b) (add (mul q1 b) r1) h_mul_le (le_self_add_r _ _)
+          have h_lt_a : lt₀ (add (mul q2 b) r2) (add (mul q1 b) r1) := lt_of_lt_of_le hr2_add h_add_le
+          rw [← h2, ← h1] at h_lt_a
+          exact False.elim (lt_irrefl a h_lt_a)
+
+    /--
+      Teorema 2: Igualdad de cocientes por igualdad de productos cruzados.
+    -/
+    theorem div_eq_of_mul_eq (a b c d : ℕ₀) (hb : b ≠ 𝟘) (hd : d ≠ 𝟘)
+      (h : mul a d = mul c b) : a / b = c / d := by
+      let qa := a / b
+      let ra := a % b
+      let qc := c / d
+      let rc := c % d
+      have ha : a = add (mul qa b) ra := divMod_spec a b hb
+      have hc : c = add (mul qc d) rc := divMod_spec c d hd
+      have hra : lt₀ ra b := mod_lt a b hb
+      have hrc : lt₀ rc d := mod_lt c d hd
+      have h_bd_neq_0 : mul b d ≠ 𝟘 := eq_zero_of_mul_eq_zero hb hd
+
+      have h_ad_expanded : mul c b = add (mul qa (mul b d)) (mul ra d) := by
+        rw [← h, ha, add_mul, mul_assoc]
+
+      have h_cb_expanded : mul c b = add (mul qc (mul b d)) (mul rc b) := by
+        rw [hc, add_mul, mul_assoc, mul_comm d b]
+
+      have h_rad_lt : lt₀ (mul ra d) (mul b d) := by
+        have h_or : ra = 𝟘 ∨ ra ≠ 𝟘 := by
+          cases ra
+          · exact Or.inl rfl
+          · exact Or.inr (succ_neq_zero _)
+        cases h_or with
+        | inl h_zero =>
+          rw [h_zero, zero_mul]
+          exact neq_0_then_lt_0 h_bd_neq_0
+        | inr h_neq =>
+          have h_lt : lt₀ (mul d ra) (mul d b) := le_lt_mul_lt_compat (le_refl d) hra h_neq hd
+          rw [mul_comm d ra, mul_comm d b] at h_lt
+          exact h_lt
+
+      have h_rcb_lt : lt₀ (mul rc b) (mul b d) := by
+        rw [mul_comm b d]
+        have h_or : rc = 𝟘 ∨ rc ≠ 𝟘 := by
+          cases rc
+          · exact Or.inl rfl
+          · exact Or.inr (succ_neq_zero _)
+        cases h_or with
+        | inl h_zero =>
+          rw [h_zero, zero_mul]
+          have h_db_neq_0 : mul d b ≠ 𝟘 := eq_zero_of_mul_eq_zero hd hb
+          exact neq_0_then_lt_0 h_db_neq_0
+        | inr h_neq =>
+          have h_lt : lt₀ (mul b rc) (mul b d) := le_lt_mul_lt_compat (le_refl b) hrc h_neq hb
+          rw [mul_comm b rc, mul_comm b d] at h_lt
+          exact h_lt
+
+      exact div_mod_unique (mul c b) (mul b d) qa (mul ra d) qc (mul rc b) h_bd_neq_0 h_ad_expanded h_rad_lt h_cb_expanded h_rcb_lt
+
     -- ═══════════════════════════════════════════════════════════
     -- § Isomorfismo Ψ/Λ para div y mod
     -- ═══════════════════════════════════════════════════════════
@@ -576,6 +661,8 @@ export Peano.Div (
   mod_of_lt_snd_interval
   div_of_lt_nth_interval
   mod_of_lt_nth_interval
+  div_mod_unique
+  div_eq_of_mul_eq
   isomorph_Ψ_div
   isomorph_Ψ_mod
   isomorph_Λ_div

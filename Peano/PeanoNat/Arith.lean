@@ -225,60 +225,60 @@ namespace Peano
       gcd₁ a b = ⟨𝟙, by decide⟩
 
   private theorem gcd_divides_first (a b : ℕ₀) : (gcd a b) ∣ a := by
-  have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
-    intro b_arg
-    induction b_arg using well_founded_lt.induction
-    rename_i b ih
-    intro a
-    unfold gcd
-    by_cases h_b_is_zero : b = 𝟘
-    · rw [h_b_is_zero]
-      simp
-      exact ⟨divides_refl a, divides_zero a⟩
-    · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
-      let ih_call := ih (a % b) h_mod_lt_b
-      let ih_specific := ih_call b
-      rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
-      have h_gcd_div_a : gcd b (a % b) ∣ a := by
-        have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
-          divides_mul_left h_gcd_div_b
-        have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
-          divides_add h_div_prod h_gcd_div_mod
-        simp only [div_def, mod_def] at h_div_sum
-        unfold div mod at h_div_sum
-        rw [← divMod_spec a b h_b_is_zero] at h_div_sum
-        exact h_div_sum
-      exact ⟨h_gcd_div_a, h_gcd_div_b⟩
-  exact (H b a).1
+    have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
+      intro b_arg
+      induction b_arg using well_founded_lt.induction
+      rename_i b ih
+      intro a
+      unfold gcd
+      by_cases h_b_is_zero : b = 𝟘
+      · rw [h_b_is_zero]
+        simp
+        exact ⟨divides_refl a, divides_zero a⟩
+      · simp [if_neg h_b_is_zero]
+        have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
+        let ih_call := ih (a % b) h_mod_lt_b
+        let ih_specific := ih_call b
+        rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
+        have h_gcd_div_a : gcd b (a % b) ∣ a := by
+          have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
+            divides_mul_left h_gcd_div_b
+          have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
+            divides_add h_div_prod h_gcd_div_mod
+          simp only [div_def, mod_def] at h_div_sum
+          unfold div mod at h_div_sum
+          rw [← divMod_spec a b h_b_is_zero] at h_div_sum
+          exact h_div_sum
+        exact ⟨h_gcd_div_a, h_gcd_div_b⟩
+    exact (H b a).1
 
   private theorem gcd_divides_second (a b : ℕ₀) : (gcd a b) ∣ b := by
-  have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
-    intro b_arg
-    induction b_arg using well_founded_lt.induction
-    rename_i b ih
-    intro a
-    unfold gcd
-    by_cases h_b_is_zero : b = 𝟘
-    · rw [h_b_is_zero]
-      simp
-      exact ⟨divides_refl a, divides_zero a⟩
-    · simp [if_neg h_b_is_zero]
-      have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
-      let ih_call := ih (a % b) h_mod_lt_b
-      let ih_specific := ih_call b
-      rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
-      have h_gcd_div_a : gcd b (a % b) ∣ a := by
-        have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
-          divides_mul_left h_gcd_div_b
-        have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
-          divides_add h_div_prod h_gcd_div_mod
-        simp only [div_def, mod_def] at h_div_sum
-        unfold div mod at h_div_sum
-        rw [← divMod_spec a b h_b_is_zero] at h_div_sum
-        exact h_div_sum
-      exact ⟨h_gcd_div_a, h_gcd_div_b⟩
-  exact (H b a).2
+    have H : ∀ (b a : ℕ₀), (gcd a b ∣ a) ∧ (gcd a b ∣ b) := by
+      intro b_arg
+      induction b_arg using well_founded_lt.induction
+      rename_i b ih
+      intro a
+      unfold gcd
+      by_cases h_b_is_zero : b = 𝟘
+      · rw [h_b_is_zero]
+        simp
+        exact ⟨divides_refl a, divides_zero a⟩
+      · simp [if_neg h_b_is_zero]
+        have h_mod_lt_b : lt₀ (a % b) b := mod_lt a b h_b_is_zero
+        let ih_call := ih (a % b) h_mod_lt_b
+        let ih_specific := ih_call b
+        rcases ih_specific with ⟨h_gcd_div_b, h_gcd_div_mod⟩
+        have h_gcd_div_a : gcd b (a % b) ∣ a := by
+          have h_div_prod : gcd b (a % b) ∣ mul (a / b) b :=
+            divides_mul_left h_gcd_div_b
+          have h_div_sum : gcd b (a % b) ∣ add (mul (a / b) b) (a % b) :=
+            divides_add h_div_prod h_gcd_div_mod
+          simp only [div_def, mod_def] at h_div_sum
+          unfold div mod at h_div_sum
+          rw [← divMod_spec a b h_b_is_zero] at h_div_sum
+          exact h_div_sum
+        exact ⟨h_gcd_div_a, h_gcd_div_b⟩
+    exact (H b a).2
 
   private theorem gcd_divides_both (a b : ℕ₀) : (gcd a b) ∣ a ∧ (gcd a b) ∣ b := by
     constructor

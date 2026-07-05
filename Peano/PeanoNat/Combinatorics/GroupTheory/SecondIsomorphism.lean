@@ -272,7 +272,7 @@ namespace Peano
         Subgroup.inter_subset_right H N hrel
       have hrel_HN : cosetRel (HNg G H N hn) (NK G H N hn) r h := by
         unfold cosetRel
-        simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup]
+        simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup]
         exact hrel_N
       exact leftCoset_eq_of_rel (HNg G H N hn) (NK G H N hn) r h
         (H_le_subgroupHN G H N hn r hr_H)
@@ -298,7 +298,7 @@ namespace Peano
           (H_le_subgroupHN G H N hn r₂ hr₂_H)
           hφ
       unfold cosetRel at hrel_HN
-      simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup] at hrel_HN
+      simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup] at hrel_HN
       have hir₁_H : G.inv r₁ ∈ H.carrier.elems := H.inv_closed r₁ hr₁_H
       have hrel_H : G.op (G.inv r₁) r₂ ∈ H.carrier.elems :=
         H.op_closed _ r₂ hir₁_H hr₂_H
@@ -320,7 +320,7 @@ namespace Peano
       have hx_HN2 : x ∈ (HNg G H N hn).carrier.elems := hx_HN
       have hrel : cosetRel (HNg G H N hn) (NK G H N hn) h x := by
         unfold cosetRel
-        simp only [NK, N_in_subgroupHN, Subgroup.toFinGroup]
+        simp only [NK, N_in_subgroupHN, HNg, Subgroup.toFinGroup]
         rw [← heq, ← G.op_assoc (G.inv h) h n
               (inv_mem G (H.subset h hh)) (H.subset h hh) (N.subset n hn_mem),
             (G.op_inv h (H.subset h hh)).2, (G.op_id n (N.subset n hn_mem)).2]

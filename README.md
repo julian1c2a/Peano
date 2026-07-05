@@ -6,7 +6,7 @@ Formalización de la aritmética de Peano en **Lean 4**, construida desde los ax
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 66 jobs · 0 errores · 0 sorry (3 axiomas privados en Sylow.lean)
+> **Build:** 66 jobs · 0 errores · 0 sorry · 0 axiomas privados
 > **Licencia:** MIT
 
 ---
@@ -91,7 +91,7 @@ Peano.lean                                        ← entrada; importa toda la l
             └─ Sylow/
                ├─ Cosets.lean                     Peano.Cosets       — coclases (polimórfico)
                ├─ CosetAction.lean                Peano.CosetAction  — acción de coclases (coset_conjugate_exists)
-               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 3 axiomas privados)
+               └─ Sylow.lean                      Peano.Sylow        — teoremas de Sylow (0 sorry, 0 axiomas privados)
 ```
 
 ---

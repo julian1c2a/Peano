@@ -931,6 +931,8 @@ Los axiomas de Peano se demuestran como teoremas a partir de la estructura induc
 
 - `theorem max_succ_succ (a b : ℕ₀) : max (σ a) (σ b) = σ (max a b)`
 - `theorem min_succ_succ (a b : ℕ₀) : min (σ a) (σ b) = σ (min a b)`
+- `theorem min_add_add_right (n m k : ℕ₀) : min (Add.add n k) (Add.add m k) = Add.add (min n m) k`
+- `theorem min_add_add_left (k n m : ℕ₀) : min (Add.add k n) (Add.add k m) = Add.add k (min n m)`
 
 ### 6.7. Export block completo (74 símbolos)
 

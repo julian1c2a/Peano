@@ -89,6 +89,7 @@ Los módulos GroupTheory (First/Second/ThirdIsomorphism, QuotientGroup, Correspo
 | `pow_le_pow_right` | `a ≤ b → a ^ n ≤ b ^ n` |
 | `pow_lt_mono_base` | `n ≠ 𝟘 ∧ a < b → a ^ n < b ^ n` |
 | `pow_le_pow_left` | `m ≤ n ∧ 1 ≤ a → a ^ m ≤ a ^ n` |
+| `n_le_two_pow_n` | `n ≤ 2 ^ n` |
 
 ---
 

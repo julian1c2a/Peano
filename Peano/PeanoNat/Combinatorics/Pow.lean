@@ -321,6 +321,30 @@ namespace Peano
           _ = pow (Λ n) (σ (Λ m')) := by rw [pow_succ]
           _ = pow (Λ n) (Λ (Nat.succ m')) := by rw [← Λ_σ_eq_σ_Ψ]
 
+    theorem n_le_two_pow_n (n : ℕ₀) :
+        le₀ n ((σ (σ 𝟘)) ^ n) := by
+      induction n with
+      | zero =>
+        rw [pow_zero]
+        exact zero_le 𝟙
+      | succ n' ih =>
+        have h_base_gt_0 : lt₀ 𝟘 (σ (σ 𝟘)) := le_0_succ_then_lt_0_succ_wp (zero_le (σ (σ 𝟘)))
+        have h1 : le₀ 𝟙 ((σ (σ 𝟘)) ^ n') := pow_ge_one h_base_gt_0
+        have h2 : le₀ (Add.add n' 𝟙) (Add.add ((σ (σ 𝟘)) ^ n') 𝟙) := by
+          rw [add_comm n' 𝟙, add_comm ((σ (σ 𝟘)) ^ n') 𝟙]
+          exact add_le_add_left n' ((σ (σ 𝟘)) ^ n') 𝟙 ih
+        have h3 : le₀ (Add.add ((σ (σ 𝟘)) ^ n') 𝟙) (Add.add ((σ (σ 𝟘)) ^ n') ((σ (σ 𝟘)) ^ n')) := add_le_add_left 𝟙 ((σ (σ 𝟘)) ^ n') ((σ (σ 𝟘)) ^ n') h1
+        have h4 : le₀ (Add.add n' 𝟙) (Add.add ((σ (σ 𝟘)) ^ n') ((σ (σ 𝟘)) ^ n')) := le_trans (Add.add n' 𝟙) (Add.add ((σ (σ 𝟘)) ^ n') 𝟙) (Add.add ((σ (σ 𝟘)) ^ n') ((σ (σ 𝟘)) ^ n')) h2 h3
+        have h5 : Add.add n' 𝟙 = σ n' := add_one n'
+        have h6 : Add.add ((σ (σ 𝟘)) ^ n') ((σ (σ 𝟘)) ^ n') = mul ((σ (σ 𝟘)) ^ n') (σ (σ 𝟘)) := by
+          exact (mul_two ((σ (σ 𝟘)) ^ n')).symm
+        have h7 : mul ((σ (σ 𝟘)) ^ n') (σ (σ 𝟘)) = (σ (σ 𝟘)) ^ (σ n') := by
+          exact pow_succ (σ (σ 𝟘)) n'
+        rw [h5] at h4
+        rw [h6] at h4
+        rw [h7] at h4
+        exact h4
+
   end Pow
 end Peano
 
@@ -351,6 +375,7 @@ export Peano.Pow (
   pow_mul_comm
   isomorph_Ψ_pow
   isomorph_Λ_pow
+  n_le_two_pow_n
 )
 
 instance : Pow ℕ₀ ℕ₀ where

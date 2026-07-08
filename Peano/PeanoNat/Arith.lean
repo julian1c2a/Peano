@@ -995,6 +995,108 @@ namespace Peano
       · intro he ho
         exact not_even_and_odd ⟨he, ho⟩
 
+/- Helper -/
+
+
+
+theorem divides_of_add_eq {a b c d : ℕ₀} (h_add : add a b = c) (h_dvd_b : d ∣ b) (h_dvd_c : d ∣ c) : d ∣ a := by
+  by_cases ha0 : a = 𝟘
+  · rw [ha0]
+    exact divides_zero d
+  · have h_lt : lt₀ b c := by
+      rw [← h_add]
+      have h1 : add a b = add b a := add_comm a b
+      rw [h1]
+      exact lt_add_pos ha0
+    have h_sub : a = sub c b := by
+      rw [← h_add]
+      have h1 : add a b = add b a := add_comm a b
+      rw [h1]
+      exact (add_k_sub_k a b).symm
+    rw [h_sub]
+    exact divides_sub h_lt h_dvd_c h_dvd_b
+
+theorem euclid_lemma {a b c : ℕ₀} (h_coprime : gcd a b = 𝟙) (h_dvd : a ∣ mul b c) : a ∣ c := by
+  have h_min : a ∣ mul c (min a b) := by
+    rcases min_is_any a b with h1 | h2
+    · rw [h1]
+      exact ⟨c, mul_comm c a⟩
+    · rw [h2]
+      have h_cb : mul c b = mul b c := mul_comm c b
+      rw [h_cb]
+      exact h_dvd
+  have h_max : a ∣ mul c (max a b) := by
+    rcases max_is_any a b with h1 | h2
+    · rw [h1]
+      exact ⟨c, mul_comm c a⟩
+    · rw [h2]
+      have h_cb : mul c b = mul b c := mul_comm c b
+      rw [h_cb]
+      exact h_dvd
+  rcases bezout_additive a b with ⟨n, m, h_bezout⟩
+  rcases h_bezout with h_bezout1 | h_bezout2
+  · -- add (gcd a b) (mul n (min a b)) = mul m (max a b)
+    -- add 1 (mul n (min a b)) = mul m (max a b)
+    -- multiply by c
+    -- add c (mul c (mul n (min a b))) = mul c (mul m (max a b))
+    have h_add_1 : add 𝟙 (mul n (min a b)) = mul m (max a b) := by
+      rw [← h_coprime]
+      exact h_bezout1
+    have h_mul_c : mul c (add 𝟙 (mul n (min a b))) = mul c (mul m (max a b)) := by
+      rw [h_add_1]
+    have h_dist : mul c (add 𝟙 (mul n (min a b))) = add c (mul c (mul n (min a b))) := by
+      rw [mul_add c 𝟙 (mul n (min a b)), mul_one]
+    rw [h_dist] at h_mul_c
+    -- h_mul_c : add c (mul c (mul n (min a b))) = mul c (mul m (max a b))
+    have h_dvd_left : a ∣ mul c (mul n (min a b)) := by
+      have h_assoc : mul c (mul n (min a b)) = mul (mul c (min a b)) n := by
+        have h1 : mul c (mul n (min a b)) = mul (mul c n) (min a b) := (mul_assoc n c (min a b)).symm
+        have h2 : mul c n = mul n c := mul_comm c n
+        have h3 : mul (mul n c) (min a b) = mul n (mul c (min a b)) := mul_assoc c n (min a b)
+        have h4 : mul n (mul c (min a b)) = mul (mul c (min a b)) n := mul_comm n (mul c (min a b))
+        rw [h1, h2, h3, h4]
+      rw [h_assoc]
+      exact divides_mul_right h_min
+    have h_dvd_right : a ∣ mul c (mul m (max a b)) := by
+      have h_assoc : mul c (mul m (max a b)) = mul (mul c (max a b)) m := by
+        have h1 : mul c (mul m (max a b)) = mul (mul c m) (max a b) := (mul_assoc m c (max a b)).symm
+        have h2 : mul c m = mul m c := mul_comm c m
+        have h3 : mul (mul m c) (max a b) = mul m (mul c (max a b)) := mul_assoc c m (max a b)
+        have h4 : mul m (mul c (max a b)) = mul (mul c (max a b)) m := mul_comm m (mul c (max a b))
+        rw [h1, h2, h3, h4]
+      rw [h_assoc]
+      exact divides_mul_right h_max
+    exact divides_of_add_eq h_mul_c h_dvd_left h_dvd_right
+  · -- add 1 (mul n (max a b)) = mul m (min a b)
+    have h_add_1 : add 𝟙 (mul n (max a b)) = mul m (min a b) := by
+      rw [← h_coprime]
+      exact h_bezout2
+    have h_mul_c : mul c (add 𝟙 (mul n (max a b))) = mul c (mul m (min a b)) := by
+      rw [h_add_1]
+    have h_dist : mul c (add 𝟙 (mul n (max a b))) = add c (mul c (mul n (max a b))) := by
+      rw [mul_add c 𝟙 (mul n (max a b)), mul_one]
+    rw [h_dist] at h_mul_c
+    -- h_mul_c : add c (mul c (mul n (max a b))) = mul c (mul m (min a b))
+    have h_dvd_left : a ∣ mul c (mul n (max a b)) := by
+      have h_assoc : mul c (mul n (max a b)) = mul (mul c (max a b)) n := by
+        have h1 : mul c (mul n (max a b)) = mul (mul c n) (max a b) := (mul_assoc n c (max a b)).symm
+        have h2 : mul c n = mul n c := mul_comm c n
+        have h3 : mul (mul n c) (max a b) = mul n (mul c (max a b)) := mul_assoc c n (max a b)
+        have h4 : mul n (mul c (max a b)) = mul (mul c (max a b)) n := mul_comm n (mul c (max a b))
+        rw [h1, h2, h3, h4]
+      rw [h_assoc]
+      exact divides_mul_right h_max
+    have h_dvd_right : a ∣ mul c (mul m (min a b)) := by
+      have h_assoc : mul c (mul m (min a b)) = mul (mul c (min a b)) m := by
+        have h1 : mul c (mul m (min a b)) = mul (mul c m) (min a b) := (mul_assoc m c (min a b)).symm
+        have h2 : mul c m = mul m c := mul_comm c m
+        have h3 : mul (mul m c) (min a b) = mul m (mul c (min a b)) := mul_assoc c m (min a b)
+        have h4 : mul m (mul c (min a b)) = mul (mul c (min a b)) m := mul_comm m (mul c (min a b))
+        rw [h1, h2, h3, h4]
+      rw [h_assoc]
+      exact divides_mul_right h_min
+    exact divides_of_add_eq h_mul_c h_dvd_left h_dvd_right
+
   end Arith
 
 end Peano
@@ -1054,6 +1156,8 @@ export Peano.Arith (
   gcd_self
   gcd_eq_zero_iff
   gcd_ne_zero_left
+  divides_of_add_eq
+  euclid_lemma
   gcd_ne_zero_right
   dvd_gcd_iff
   gcd_assoc

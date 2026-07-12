@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 66 build jobs · 0 sorry · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-05-10*
+> 66 build jobs · 0 sorry · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-07-12*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|
@@ -35,6 +35,7 @@
 | `Peano/PeanoNat/Mul.lean` | `Peano.Mul` | `…Sub` | `Div` y descendientes |
 | `Peano/PeanoNat/Div.lean` | `Peano.Div` | `…Mul` | `Arith`, `Pow` y descendientes |
 | `Peano/PeanoNat/Arith.lean` | `Peano.Arith` | todos los anteriores | `Primes`, `NumberTheory/*` |
+| `Peano/PeanoNat/Fractions.lean` | `Peano.Arith` | `Arith`, `Lattice` | — |
 | `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | `Arith` | `NumberTheory/*` |
 | `Peano/PeanoNat/NumberSets.lean` | `Peano` | `PeanoNat` | — |
 | `Peano/PeanoNat/Decidable.lean` | — (reexport) | `Order` | — |
@@ -56,7 +57,7 @@
 | `Peano/PeanoNat/Combinatorics/Summation.lean` | `Peano.Summation` | `Add`, `Mul` | `NewtonBinom`, `Product` |
 | `Peano/PeanoNat/Combinatorics/Product.lean` | `Peano.Product` | `Mul`, `Summation` | `Totient` |
 | `Peano/PeanoNat/Combinatorics/Fibonacci.lean` | `Peano.Fibonacci` | `Add` | — |
-| `Peano/PeanoNat/Combinatorics/Counting.lean` | `Peano.Counting` | `FSet`, `Primes` | — |
+| `Peano/PeanoNat/Combinatorics/Counting.lean` | `— (stub)` | `FSet`, `Primes` | — |
 | **Listas y conjuntos finitos** | | | |
 | `Peano/PeanoNat/ListsAndSets/List.lean` | `Peano.List` | `PeanoNat` | `FSet` |
 | `Peano/PeanoNat/ListsAndSets/FSet.lean` | `Peano.FSet` | `List`, `Add` | `FSetFunction`, `EquivRel`, `Counting`, `Group` |
@@ -71,18 +72,19 @@
 | **Teoría de grupos finitos** | | | |
 | `Peano/PeanoNat/Combinatorics/Perm.lean` | `Peano.Perm` | `FSetFunction` | `Group`, `Sign` |
 | `Peano/PeanoNat/Combinatorics/Group.lean` | `Peano.Group` | `FSet`, `Perm` | `Orbit`, `Action` |
-| `Peano/PeanoNat/Combinatorics/Sign.lean` | `Peano.Sign` | `Perm` | — |
-| `Peano/PeanoNat/Combinatorics/Orbit.lean` | `Peano.Orbit` | `Group`, `FSet` | `Action` |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean` | `Peano.Action` | `Group`, `Orbit` | `Cosets`, `Sylow` |
+| `Peano/PeanoNat/Combinatorics/Sign.lean` | `— (stub)` | `Perm` | — |
+| `Peano/PeanoNat/Combinatorics/Orbit.lean` | `— (stub)` | `Group`, `FSet` | `Action` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean` | `Peano.GroupTheory` | `Group`, `Orbit` | `Cosets`, `Sylow` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean` | `Peano.GroupTheory` | `Cosets`, `Group` | `QuotientGroup` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean` | `Peano.GroupTheory` | `NormalSubgroup`, `Cosets` | `FirstIsomorphism`, `SecondIsomorphism`, `CorrespondenceTheorem` |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | `Zassenhaus` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/ThirdIsomorphism.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `QuotientGroup` | — |
 | `Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `SecondIsomorphism` | — |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `Action`, `Group` | `CosetAction`, `Sylow` |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean` | `Peano.CosetAction` | `Cosets`, `Action`, `Group` | `Sylow` |
-| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.Sylow` | `Cosets`, `CosetAction`, `Action` | — |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean` | `Peano.GroupTheory` | `Action`, `Group` | `CosetAction`, `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean` | `Peano.GroupTheory` | `Cosets`, `Action`, `Group` | `Sylow` |
+| `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` | `Peano.GroupTheory` | `Cosets`, `CosetAction`, `Action` | — |
 | **Verificación** | | | |
 | `Peano/ConstructiveCheck.lean` | — | `Prelim` | — |
 
@@ -113,7 +115,7 @@
 | `Peano.Summation` | `Combinatorics/Summation.lean` | `Peano` |
 | `Peano.Product` | `Combinatorics/Product.lean` | `Peano` |
 | `Peano.Fibonacci` | `Combinatorics/Fibonacci.lean` | `Peano` |
-| `Peano.Counting` | `Combinatorics/Counting.lean` | `Peano` |
+| `Peano.Counting` | `Combinatorics/Counting.lean` (stub, sin API) | `Peano` |
 | `Peano.List` | `ListsAndSets/List.lean` | `Peano` |
 | `Peano.FSet` | `ListsAndSets/FSet.lean` | `Peano` |
 | `Peano.FSetFunction` | `ListsAndSets/FSetFunction.lean` | `Peano` |
@@ -126,13 +128,9 @@
 | `Peano.Foundation` | `PeanoNat/Foundation/CantorPairing.lean` | `Peano` |
 | `Peano.Perm` | `Combinatorics/Perm.lean` | `Peano` |
 | `Peano.Group` | `Combinatorics/Group.lean` | `Peano` |
-| `Peano.Sign` | `Combinatorics/Sign.lean` | `Peano` |
-| `Peano.Orbit` | `Combinatorics/Orbit.lean` | `Peano` |
-| `Peano.Action` | `GroupTheory/Action.lean` | `Peano` |
-| `Peano.Cosets` | `GroupTheory/Sylow/Cosets.lean` | `Peano` |
-| `Peano.CosetAction` | `GroupTheory/Sylow/CosetAction.lean` | `Peano` |
-| `Peano.Sylow` | `GroupTheory/Sylow/Sylow.lean` | `Peano` |
-| `Peano.GroupTheory` | `GroupTheory/NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `CorrespondenceTheorem.lean`, `Zassenhaus.lean` | `Peano` |
+| `Peano.Sign` | `Combinatorics/Sign.lean` (stub, sin API) | `Peano` |
+| `Peano.Orbit` | `Combinatorics/Orbit.lean` (stub, sin API) | `Peano` |
+| `Peano.GroupTheory` | `GroupTheory/Action.lean`, `NormalSubgroup.lean`, `QuotientGroup.lean`, `FirstIsomorphism.lean`, `SecondIsomorphism.lean`, `ThirdIsomorphism.lean`, `CorrespondenceTheorem.lean`, `Zassenhaus.lean`, `Sylow/Cosets.lean`, `Sylow/CosetAction.lean`, `Sylow/Sylow.lean` | `Peano` |
 
 ### 0.3. Notaciones registradas (requisito 4.4)
 

@@ -513,3 +513,7 @@ namespace Peano
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  coset_conjugate_exists
+)

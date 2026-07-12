@@ -32,3 +32,5 @@ namespace Peano
 
   end Sign
 end Peano
+
+-- No exports: módulo pendiente de implementación (namespace Peano.Sign está reservado)

@@ -581,3 +581,15 @@ namespace Peano
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  GroupAction
+  GroupAction.orb
+  mem_orb_iff
+  GroupAction.stab
+  orbit_stabilizer
+  orbits_partition
+  conjugAction
+  class_equation_split
+  class_equation
+)

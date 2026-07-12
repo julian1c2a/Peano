@@ -338,3 +338,19 @@ namespace Peano
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  centralizer
+  mem_centralizer_iff
+  center
+  mem_center_iff
+  center_isNormal
+  central_subgroup_isNormal
+  normalizer
+  mem_normalizer_iff
+  H_subset_normalizer
+  isNormal_iff_normalizer_eq_G
+  rightCoset
+  mem_rightCoset_iff
+  isNormal_iff_leftCoset_eq_rightCoset
+)

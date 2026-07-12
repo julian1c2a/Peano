@@ -85,6 +85,7 @@ Peano.lean                                        ← entrada; importa toda la l
             ├─ QuotientGroup.lean                Peano.GroupTheory  — quotientGroup, quotientHomomorphism (29 exports)
             ├─ FirstIsomorphism.lean             Peano.GroupTheory  — homKer, homImg, firstIsoMap — G/ker≅Im
             ├─ SecondIsomorphism.lean            Peano.GroupTheory  — subgroupHN, interHN, secondIsoMap — H/(H∩N)≅HN/N
+            ├─ ThirdIsomorphism.lean             Peano.GroupTheory  — thirdIsoMap, KmodN_normal — (G/N)/(K/N)≅G/K (10 exports)
             ├─ CorrespondenceTheorem.lean        Peano.GroupTheory  — correspondencePhi/Psi (12 exports)
             ├─ Zassenhaus.lean                   Peano.GroupTheory  — prodSubgroup, prodNKHM, prodN_HK/HM, normalidad (12 exports)
             ├─ Action.lean                       Peano.Action       — acciones de grupo (polimórfico)

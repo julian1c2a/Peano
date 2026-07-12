@@ -72,8 +72,9 @@ multiplataforma (Windows Git Bash + Linux/macOS), a diferencia del `.bat` anteri
 `AI-GUIDE.md` §20-21). **Nota de auditoría (2026-07-12)**: `frozen_files.txt` listaba
 17 ficheros con rutas obsoletas (estilo plano previo a la reorganización en
 subdirectorios, p. ej. `Peano/PeanoNatAxioms.lean`, hoy `Peano/PeanoNat/Axioms.lean`)
-— el sistema de freeze estaba desincronizado con la estructura real. Se corrige aquí
-también un bug real en `git-lock.bash` (`unlock`/`thaw` no vaciaban la lista al
+— el sistema de freeze estaba desincronizado con la estructura real. **Corregido
+(2026-07-12)**: `frozen_files.txt` reescrito con las 17 rutas actualizadas. También
+se corrige un bug real en `git-lock.bash` (`unlock`/`thaw` no vaciaban la lista al
 quitar el último fichero, por el exit code 1 de `grep -Fv` cortocircuitando el `&&`
 previo al `mv`). El `chmod a-w` de este script tampoco protege nada en NTFS/Windows —
 verificado (`IsReadOnly = False` en un fichero listado como bloqueado); el lock es un
@@ -92,14 +93,13 @@ Mathlib4, documentadas en `NAMING-CONVENTIONS.md`.
 **Justificación**: consistencia con el ecosistema Lean 4 más amplio.
 
 **Consecuencias**: ver `NAMING-CONVENTIONS.md` para el diccionario completo. **Nota de
-auditoría (2026-07-12, corregida)**: `Peano/PeanoNat/Add.lean` declara `add_l`, una
+auditoría (2026-07-12, resuelta en ADR-015)**: `Peano/PeanoNat/Add.lean` declara `add_l`, una
 definición **alternativa** de la suma que recursa sobre el argumento izquierdo `n` (en
 vez de sobre `m`, como `add`), usada solo como andamiaje para demostrar
 `add_zero_eq_add_l_zero` y equivalencias similares. El sufijo `_l` aquí **no** es el
 `_left` de la Regla 11 (variante lateral de una relación) — denota "definición
-alternativa/legado", un uso no documentado en ningún sitio. Pendiente de revisión más
-amplia sobre disciplina de namespaces/exports en este proyecto (ver conversación de
-sesión) para decidir si `add_l` y compañía deberían ser `private` en vez de públicos.
+alternativa con recursión sobre argumento izquierdo". Resuelto en **ADR-015**: `add_l`
+permanece pública.
 
 ---
 
@@ -351,3 +351,31 @@ en ese caso; hace falta el lema puente.
 **Justificación**: [¿Por qué esta opción frente a las alternativas?]
 
 **Consecuencias**: [¿Cuáles son las contrapartidas?]
+
+---
+
+## ADR-015: `add_l` permanece pública en `Peano.Add`
+
+**Fecha**: 2026-07-12
+**Estado**: Aceptado
+
+**Contexto**: `Add.lean` expone `add_l` (suma con recursión sobre el argumento
+izquierdo) y sus lemas asociados (`add_zero_l`, `zero_add_l`, `add_one_l`,
+`one_add_l`, `add_succ_l`, `succ_add_l`, `add_one_eq_add_l_one`,
+`add_zero_eq_add_l_zero`). Dado que `add_l` no seguía ningún sufijo axiomático
+documentado, se planteó hacerla `private` en ADR-004.
+
+**Decisión**: `add_l` y sus lemas asociados **permanecen públicos** en el namespace
+`Peano.Add` y en el export de `Peano.lean`.
+
+**Justificación**:
+1. Consumidores externos (p. ej. `AczelSetTheory`) pueden necesitar la definición
+   alternativa para pruebas que se benefician de recursar sobre el argumento izquierdo.
+2. Hacer `private` una definición ya exportada en el barrel raíz requiere desbloquear
+   `Add.lean` (módulo congelado) y forzar una recompilación completa sin beneficio real.
+3. El sufijo `_l` queda ahora documentado en `NAMING-CONVENTIONS.md` §9 con su
+   semántica exacta, eliminando la ambigüedad original.
+
+**Consecuencias**: el sufijo `_l` denota oficialmente "definición alternativa con
+recursión sobre argumento izquierdo" en este proyecto. No generaliza a otras
+operaciones salvo que se documente explícitamente en §9 de `NAMING-CONVENTIONS.md`.

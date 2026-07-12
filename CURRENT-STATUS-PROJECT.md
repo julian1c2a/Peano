@@ -14,8 +14,9 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ## Estado de compilación
 
 ```
-lean-toolchain  →  leanprover/lean4:v4.29.0
-lake build      →  Build completed successfully (19 jobs)   [2026-05-21]
+lean-toolchain  →  leanprover/lean4:v4.30.0
+lake build      →  Build completed successfully
+                   full build: ~66 jobs · último rebuild incremental: 19 jobs [2026-05-21]
 sorry count     →  0
 warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne sin usar en wielandt_orbit_stab)
 errors          →  0
@@ -58,6 +59,7 @@ No hay ningún `private axiom` ni `sorry` en `Sylow.lean` ni en ningún otro mó
 | `Peano/PeanoNat/Decidable.lean` | `Peano.Decidable` | `DecidableRel` LT/LE, `Ord`, booleanos | ✅ |
 | `Peano/PeanoNat/Isomorph.lean` | `Peano.Isomorph` | 14 isomorfismos Nat↔ℕ₀ (add, sub, mul, div, mod, pow, gcd, lcm) | ✅ |
 | `Peano/PeanoNat/Primes.lean` | `Peano.Primes` | Primos, TFA, Gauss, `Decidable (Prime n)` | ✅ |
+| `Peano/PeanoNat/Fractions.lean` | `Peano.Arith` | `dvd_of_mul_dvd`, `gcd_div_self`, `cross_mul_eq_imp_reduced_eq` — fracciones reducidas | ✅ |
 | `Peano/PeanoNat/NumberSets.lean` | `Peano.NumberSets` | `DivisorsOf`, `CoprimesOf`, `PrimesUpTo` | ✅ |
 | `Peano/PeanoNat/Log.lean` | `Peano.Log` | Logaritmo entero con resto | ✅ |
 | `Peano/PeanoNat/Sqrt.lean` | `Peano.Sqrt` | Raíz cuadrada entera con resto | ✅ |
@@ -100,6 +102,7 @@ No hay ningún `private axiom` ni `sorry` en `Sylow.lean` ni en ningún otro mó
 | `GroupTheory/FirstIsomorphism.lean` | `Peano.GroupTheory` | `homKer`, `homImg`, `firstIsoMap` — G/ker≅Im | ✅ |
 | `GroupTheory/SecondIsomorphism.lean` | `Peano.GroupTheory` | `subgroupHN`, `interHN`, `secondIsoMap` — H/(H∩N)≅HN/N | ✅ |
 | `GroupTheory/CorrespondenceTheorem.lean` | `Peano.GroupTheory` | `preimageSubgroup`, `SubgroupAbove`, `correspondencePhi`/`Psi` (12 exports) | ✅ |
+| `GroupTheory/ThirdIsomorphism.lean` | `Peano.GroupTheory` | `thirdIsoMap`, `KmodN_normal`, `thirdIsoMap_surjective`, `thirdIsoMap_kernel` — (G/N)/(K/N)≅G/K (10 exports) | ✅ |
 | `GroupTheory/Zassenhaus.lean` | `Peano.GroupTheory` | `prodSubgroup`, `prodNKHM`, `prodN_HK`, `prodN_HM`, `zassenhaus_bijection`, `zassenhaus_bijection_symm`, `zassenhaus_bijection_extremes` (15 exports) | ✅ |
 | `GroupTheory/Action.lean` | `Peano.Action` | `GroupAction` polimórfico, `orb`, `stab`, `orbit_stabilizer`, `orbits_partition` | ✅ |
 | `GroupTheory/Sylow/Cosets.lean` | `Peano.Cosets` | `leftCoset`, `cosetRel`, `cosetEquivRel`, `lagrange`, `cosetClasses` — polimórfico | ✅ |

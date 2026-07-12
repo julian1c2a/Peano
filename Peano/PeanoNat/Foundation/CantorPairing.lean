@@ -362,3 +362,24 @@ namespace Peano
   end Foundation
 
 end Peano
+
+export Peano.Foundation (
+  triag
+  pair
+  antidiag
+  fst
+  snd
+  triag_zero
+  triag_succ
+  triag_strict_mono
+  triag_le_of_le
+  triag_le_pair
+  pair_lt_triag_succ
+  antidiag_exists
+  antidiag_unique
+  antidiag_spec
+  antidiag_pair
+  pair_fst
+  pair_snd
+  pair_surj
+)

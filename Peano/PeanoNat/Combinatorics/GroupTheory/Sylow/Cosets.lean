@@ -367,3 +367,26 @@ namespace Peano
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  leftCoset
+  mem_leftCoset_iff
+  coset_card_eq_subgroup_card
+  cosetRel
+  cosetRel_refl
+  cosetRel_symm
+  cosetRel_trans
+  cosetEquivRel
+  mem_classOf_cosetEquivRel_iff_leftCoset
+  classOf_cosetEquivRel_eq_leftCoset
+  classOf_cosetEquivRel_card_eq_subgroup_card
+  cosetClassFamily
+  mem_some_cosetClassFamily_class
+  cosetClasses
+  card_eq_subgroup_card_of_mem_cosetClasses
+  mem_some_cosetClasses
+  cosetClass_eq_classOf_of_mem
+  leftCoset_subset_of_rel
+  leftCoset_eq_of_rel
+  lagrange
+)

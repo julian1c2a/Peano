@@ -5531,3 +5531,11 @@ namespace Peano
 
   end GroupTheory
 end Peano
+
+export Peano.GroupTheory (
+  cauchy_minimal
+  sylow_lift_from_cauchy
+  sylow_first
+  sylow_second
+  sylow_third
+)

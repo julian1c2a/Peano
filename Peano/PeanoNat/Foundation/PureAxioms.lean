@@ -253,3 +253,8 @@ namespace Peano
   end Foundation
 
 end Peano
+
+export Peano.Foundation (
+  PurePA
+  pa_parity
+)

@@ -176,3 +176,22 @@ namespace Peano
   end Foundation
 
 end Peano
+
+export Peano.Foundation (
+  ℕ₀_prim_rec
+  ℕ₀_PeanoSystem
+  ℕ₀_to
+  ℕ₀_to_zero
+  ℕ₀_to_succ
+  ℕ₀_to_morph
+  ℕ₀_initial
+  ℕ₀_morph_unique
+  morph_fn
+  morph_fn_zero
+  morph_fn_succ
+  morph_fn_unique
+  morph_as_morph
+  morph_fn_comp_id
+  peano_unique
+  ℕ₀_rec_principle
+)

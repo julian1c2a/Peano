@@ -3,35 +3,26 @@ import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
+import Peano.PeanoNat.Tuple
 import Peano.PeanoNat.Lattice
 import Peano.PeanoNat.WellFounded
 import Peano.PeanoNat.Add
 import Peano.PeanoNat.Sub
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
-import Peano.PeanoNat.ListsAndSets.List
-import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.ListsAndSets.EquivRel
 import Peano.PeanoNat.Arith
 import Peano.PeanoNat.Fractions
 import Peano.PeanoNat.Primes
 import Peano.PeanoNat.NumberSets
-import Peano.PeanoNat.Combinatorics.Pow
-import Peano.PeanoNat.Combinatorics.Factorial
-import Peano.PeanoNat.Combinatorics.Binom
-import Peano.PeanoNat.Combinatorics.Summation
-import Peano.PeanoNat.Combinatorics.Product
-import Peano.PeanoNat.Combinatorics.Fibonacci
-import Peano.PeanoNat.Combinatorics.NewtonBinom
 import Peano.PeanoNat.Isomorph
 import Peano.PeanoNat.Decidable
 import Peano.PeanoNat.Log
 import Peano.PeanoNat.Sqrt
 import Peano.PeanoNat.Digits
 import Peano.PeanoNat.Pairing
-import Peano.PeanoNat.NumberTheory.ChineseRemainder
-import Peano.PeanoNat.NumberTheory.ModEq
-import Peano.PeanoNat.NumberTheory.Totient
+import Peano.PeanoNat.ListsAndSets
+import Peano.PeanoNat.Combinatorics
+import Peano.PeanoNat.NumberTheory
 import Peano.PeanoNat.Foundation.Foundation
 
 /-!
@@ -768,6 +759,15 @@ export Peano.Arith (
 )
 
 -- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Arith  (PeanoNat/Fractions.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Arith (
+  dvd_of_mul_dvd
+  gcd_div_self
+  cross_mul_eq_imp_reduced_eq
+)
+
+-- ─────────────────────────────────────────────────────────────────
 -- namespace Peano.Primes  (PeanoNatPrimes.lean)
 -- ─────────────────────────────────────────────────────────────────
 export Peano.Primes (
@@ -995,4 +995,675 @@ export Peano.Sqrt (
   sqrtMod_spec
   sqrtRem_lt
   sqrt_upper_bound
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano  (PeanoNat/Tuple.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano (
+  Tuple
+  NatsTuple
+  HTuple
+  emptyTuple
+  consTuple
+  headTuple
+  tailTuple
+  mkTuple
+  tupleDecEq
+  tupleRepr
+  emptyNatsTuple
+  consNatsTuple
+  headNatsTuple
+  tailNatsTuple
+  mkNatsTuple
+  instDecidableEqNatsType
+  instReprNatsType
+  natsTupleDecEq
+  natsTupleRepr
+  emptyHTuple
+  consHTuple
+  headHTuple
+  tailHTuple
+  mkHTuple
+  HTupleRepr
+  instHTupleReprNil
+  instHTupleReprCons
+  htupleRepr
+  lexLt
+  lexLe
+  instLTTuple
+  instLETuple
+  instDecidableRelLtTuple
+  instDecidableRelLeTuple
+  instDecidableRelLeTuple'
+  instDecidableEqTuple
+  lexLt_irrefl
+  lexLt_trans
+  lexLt_trich
+  instStrictLinearOrderTuple
+  instIrreflTuple
+  instAsymmTuple
+  instTransTuple
+  instTrichotomousTuple
+  instIrreflLTTuple
+  natsVal
+  natsLexLt
+  natsLexLe
+  instLTNatsTuple
+  instLENatsTuple
+  instDecidableRelLtNatsTuple
+  instDecidableRelLeNatsTuple
+  HTupleDecidableEq
+  instHTupleDecEqNil
+  instHTupleDecEqCons
+  htupleDecEq
+  HTupleLT
+  instHTupleLTNil
+  instHTupleLTCons
+  instLTHTuple
+  HTupleLE
+  instHTupleLENil
+  instHTupleLECons
+  instLEHTuple
+  hlexLt
+  hlexLe
+  HTupleDecidableLT
+  instHTupleDecLTNil
+  instHTupleDecLTCons
+  instDecidableRelLtHTuple
+  HTupleDecidableLE
+  instHTupleDecLENil
+  instHTupleDecLECons
+  instDecidableRelLeHTuple
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Digits  (PeanoNat/Digits.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Digits (
+  digits
+  ofDigits
+  toValues
+  ofDigitsFin
+  numDigits
+  digits_zero
+  ofDigits_nil
+  ofDigits_cons
+  toValues_nil
+  toValues_cons
+  numDigits_zero
+  ofDigitsFin_digits
+  digits_singleton_of_lt
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Pairing  (PeanoNat/Pairing.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Pairing (
+  tri
+  cantorPair
+  pairAux
+  cantorUnpair
+  tri_zero
+  tri_succ
+  cantorPair_zero_zero
+  cantorUnpair_zero
+  pairAux_spec
+  pairAux_bound
+  cantorPair_cantorUnpair
+  cantorUnpair_cantorPair
+  cantorPair_injective
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.FSetFunction  (ListsAndSets/FSetFunction.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.FSetFunction (
+  card_eq_mul_of_uniform_fibers
+  MapOn
+  MapOn.comp
+  InjectiveOn
+  SurjectiveOn
+  MapOn.Injective
+  MapOn.Surjective
+  MapOn.Bijective
+  MapOn.comp_injective
+  MapOn.comp_surjective
+  MapOn.comp_bijective
+  MapOn.comp_assoc
+  MapOn.id
+  MapOn.id_injective
+  MapOn.id_surjective
+  MapOn.id_bijective
+  MapOn.comp_id
+  MapOn.id_comp
+  MapOn.injective_of_comp_injective
+  MapOn.surjective_of_comp_surjective
+  MapOn.Im
+  MapOn.rightInverse
+  MapOn.rightInverse_prop
+  MapOn.rightInverse_injective
+  MapOn.leftInverse
+  MapOn.leftInverse_prop
+  MapOn.leftInverse_surjective
+  MapOn.injective_of_has_leftInverse
+  MapOn.injective_iff_has_leftInverse
+  MapOn.surjective_of_has_rightInverse
+  MapOn.surjective_iff_has_rightInverse
+  MapOn.bijective_of_injective_leftInverse_injective
+  MapOn.bijective_of_surjective_rightInverse_surjective
+  MapOn.inverse
+  MapOn.inverse_left_prop
+  MapOn.inverse_right_prop
+  MapOn.inverse_injective
+  MapOn.inverse_surjective
+  MapOn.inverse_bijective
+  MapOn.inverse_inverse
+  MapOn.comp_inverse_left
+  MapOn.comp_inverse_right
+  card_image_of_injective
+  injective_of_card_image
+  card_image_of_surjective
+  surjective_of_card_image
+  MapOn.injective_iff_surjective_of_card_eq
+  MapOn.injective_iff_bijective_of_card_eq
+  MapOn.surjective_iff_bijective_of_card_eq
+  MapOn.leftInverse_eq_inverse_of_card_eq
+  MapOn.leftInverse_right_prop_of_card_eq
+  MapOn.rightInverse_eq_inverse_of_card_eq
+  MapOn.rightInverse_left_prop_of_card_eq
+  card_le_of_injective
+  card_le_of_surjective
+  not_injective_of_card_lt
+  collision_of_card_lt
+  card_eq_of_injections
+  card_eq_of_surjections
+  MapOn.Bijective.card_eq
+  MapOn.endo_injective_iff_surjective
+  MapOn.endo_injective_iff_bijective
+  MapOn.endo_surjective_iff_bijective
+  MapOn.endo_bijective_of_injective
+  MapOn.endo_bijective_of_surjective
+  MapOn.endo_leftInverse_eq_inverse
+  MapOn.endo_leftInverse_right_prop
+  MapOn.endo_rightInverse_eq_inverse
+  MapOn.endo_rightInverse_left_prop
+  Perm
+  Perm.injective
+  Perm.surjective
+  Perm.id
+  Perm.comp
+  Perm.comp_id_fn
+  Perm.id_comp_fn
+  Perm.inv
+  Perm.inv_left
+  Perm.inv_right
+  Perm.inv_inv
+  Perm.comp_inv_left
+  Perm.comp_inv_right
+  Perm.comp_assoc
+  MapOn.PreIm
+  MapOn.mem_PreIm_iff
+  MapOn.PreIm_full
+  MapOn.card_PreIm_le
+  MapOn.fiber
+  MapOn.mem_fiber_iff
+  MapOn.card_fiber_le_one_of_injective
+  MapOn.restrict
+  MapOn.restrict_injective
+  MapOn.mem_Im_restrict
+  BinOpOn
+  FunTable
+  FunTable.apply
+  FunTable.applyElem
+  FunTable.applyElem_mem
+  FunTable.id
+  FunTable.comp
+  FunPerm
+  FunPerm.id
+  FunPerm.applyElem_injective
+  sorted_nodup
+  nodup_map_of_inj_on
+  perm_of_nodup_subset_same_length
+  perm_map_of_injective_on_nodup
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.EquivRel  (ListsAndSets/EquivRel.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.EquivRel (
+  EquivRelOn
+  EquivRelOn.classOf
+  EquivRelOn.mem_classOf_iff
+  EquivRelOn.classOf_nonempty_of_mem
+  EquivRelOn.classOf_subset_domain
+  EquivRelOn.rel_of_mem_classOf
+  EquivRelOn.mem_classOf_of_rel
+  EquivRelOn.classOf_eq_of_mem_classOf
+  EquivRelOn.mem_classOf_iff_of_rel
+  EquivRelOn.classOf_eq_or_disjoint
+  EquivRelOn.ClassFamily
+  EquivRelOn.canonicalClassFamily
+  EquivRelOn.classes
+  EquivRelOn.mem_classes_iff
+  EquivRelOn.classOf_mem_classes_of_mem
+  EquivRelOn.mem_classes_elim
+  EquivRelOn.classes_cover
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.ModEq  (NumberTheory/ModEq.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.ModEq (
+  mod_zero_right
+  mod_zero_left
+  mod_self
+  mod_mod
+  add_mod
+  mul_mod
+  ModEq
+  modEq_refl
+  modEq_symm
+  modEq_trans
+  modEq_add
+  modEq_mul
+  modEq_pow
+  mod_eq_zero_iff_dvd
+  modEq_zero_iff_dvd
+  modEq_zero_of_dvd
+  modEq_mod
+  modEq_one
+  modEq_add_right
+  instDecidableModEq
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Totient  (NumberTheory/Totient.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Totient (
+  lengthₚ_append
+  lengthₚ_singleton
+  lengthₚ_range_from_one
+  lengthₚ_filter_le
+  filter_append_singleton
+  filter_all_true
+  mem_range_from_one_pos
+  mem_range_from_one_le
+  totient
+  totient_zero
+  totient_one
+  totient_two
+  totient_le
+  totient_pos
+  totient_prime
+  instDecidableEqTotient
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.CRT  (NumberTheory/ChineseRemainder.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.CRT (
+  chinese_remainder
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Fermat  (NumberTheory/Fermat.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Fermat (
+  fermat_little_theorem
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Wilson  (NumberTheory/Wilson.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Wilson (
+  wilson
+  modInv
+  modInv_lt
+  modInv_mul
+  modInv_pos
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Foundation  (Foundation/GodelBeta.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Foundation (
+  beta
+  beta_lt
+  beta_of_lt
+  godel_beta_seq
+  encodeList
+  decodeList
+  list_decode_length
+  encode_decode
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/QuotientGroup.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  quotientCarrier
+  mem_quotientCarrier_iff
+  mem_quotientCarrier_is_leftCoset
+  coset_nonempty_of_mem_quotientCarrier
+  leftCoset_mem_cosetClasses
+  leftCoset_mem_quotientCarrier
+  leftCoset_id_mem_quotientCarrier
+  cosetRel_of_leftCoset_eq
+  leftCoset_eq_iff_cosetRel
+  cosetRepOf
+  cosetRepOf_eq_head
+  cosetRepOf_mem_C
+  cosetRepOf_mem_G
+  cosetRepOf_leftCoset_eq
+  quotientOp_welldefined
+  quotientOp
+  quotientInv
+  quotientId
+  quotientId_mem
+  quotientOp_assoc
+  quotientOp_id
+  quotientOp_inv
+  quotientGroup
+  quotient_card
+  quotientHomomorphism
+  quotientHomomorphism_op
+  quotientHomomorphism_kernel
+  imageSubgroup
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/FirstIsomorphism.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  homKer
+  mem_homKer_iff
+  homImg
+  mem_homImg_iff
+  homKer_isNormal
+  quotientHomomorphism_surjective
+  homImgInclusion
+  homImgInclusion_injective
+  firstIsoMap
+  firstIsoMap_welldefined
+  firstIsoMap_op
+  firstIsoMap_injective
+  firstIsoMap_surjective
+  firstIsoMap_bijective
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/SecondIsomorphism.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  subgroupHN
+  mem_subgroupHN_iff
+  H_le_subgroupHN
+  N_le_subgroupHN
+  N_in_subgroupHN
+  N_normal_in_subgroupHN
+  interHN_as_subgroup_H
+  interHN_as_subgroup_H_isNormal
+  secondIsoMap
+  secondIsoMap_welldefined
+  secondIsoMap_injective
+  secondIsoMap_surjective
+  secondIsoMap_bijective
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/ThirdIsomorphism.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  cosetRel_N_imp_K
+  KmodN_normal
+  thirdIsoMap
+  thirdIsoMap_welldefined
+  thirdIsoMap_op
+  thirdIsoMap_id
+  thirdIsoMap_inv
+  thirdIsoGroupHom
+  thirdIsoMap_surjective
+  thirdIsoMap_kernel
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/CorrespondenceTheorem.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  preimageSubgroup
+  mem_preimageSubgroup_iff
+  N_le_preimageSubgroup
+  imageSubgroup_preimage
+  preimageSubgroup_image
+  SubgroupAbove
+  correspondencePhi
+  correspondencePsi
+  correspondencePhi_psi
+  correspondencePsi_phi
+  correspondenceInjective
+  correspondenceSurjective
+  preimage_subgroup_card
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/Zassenhaus.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  prodSubgroup
+  mem_prodSubgroup_iff
+  N_le_prodSubgroup
+  S_le_prodSubgroup
+  inter_N_K_normal_in_inter_H_K
+  inter_H_M_normal_in_inter_H_K
+  prodNKHM
+  prodNKHM_normal
+  prodN_HK
+  prodN_HM
+  prodN_HM_le_prodN_HK
+  prodN_HM_normal_in_prodN_HK
+  zassenhaus_bijection
+  zassenhaus_bijection_symm
+  zassenhaus_bijection_extremes
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Group  (Combinatorics/Group.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Group (
+  FinGroup
+  ℕ₀FinGroup
+  id_unique
+  inv_mem
+  op_mem
+  op_cancel_left
+  op_cancel_right
+  inv_inv_eq
+  inv_id_eq
+  inv_op_eq
+  inv_unique
+  gpow
+  gpow_zero
+  gpow_succ
+  gpow_one
+  gpow_mem
+  gpow_add
+  gpow_comm_single
+  gpow_inv
+  order
+  order_pos
+  gpow_order_eq_id
+  order_ne_zero
+  order_minimal
+  order_le_card
+  gpow_mul_order_eq_id
+  gpow_mod_order
+  Subgroup
+  Subgroup.op_inv_closed
+  subgroup_of_op_inv_closed
+  trivialSubgroup
+  improperSubgroup
+  Subgroup.IsTrivial
+  Subgroup.IsProper
+  cyclicCarrier
+  cyclicCarrier_id_in
+  cyclicCarrier_mem_iff
+  cyclicSubgroup
+  cyclicSubgroup'
+  Subgroup.IsNormal
+  trivialSubgroup_normal
+  improperSubgroup_normal
+  Subgroup.inter
+  Subgroup.inter_subset_left
+  Subgroup.inter_subset_right
+  Subgroup.inter_normal_of_normal
+  GroupHom
+  Subgroup.ext_carrier
+  Subgroup.carrier_inj
+  instDecidableEqSubgroup
+  instLTSubgroup
+  instStrictLinearOrderSubgroup
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/Action.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  GroupAction
+  GroupAction.orb
+  mem_orb_iff
+  GroupAction.stab
+  orbit_stabilizer
+  orbits_partition
+  conjugAction
+  class_equation_split
+  class_equation
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (GroupTheory/NormalSubgroup.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  centralizer
+  mem_centralizer_iff
+  center
+  mem_center_iff
+  center_isNormal
+  central_subgroup_isNormal
+  normalizer
+  mem_normalizer_iff
+  H_subset_normalizer
+  isNormal_iff_normalizer_eq_G
+  rightCoset
+  mem_rightCoset_iff
+  isNormal_iff_leftCoset_eq_rightCoset
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (Sylow/Cosets.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  leftCoset
+  mem_leftCoset_iff
+  coset_card_eq_subgroup_card
+  cosetRel
+  cosetRel_refl
+  cosetRel_symm
+  cosetRel_trans
+  cosetEquivRel
+  mem_classOf_cosetEquivRel_iff_leftCoset
+  classOf_cosetEquivRel_eq_leftCoset
+  classOf_cosetEquivRel_card_eq_subgroup_card
+  cosetClassFamily
+  mem_some_cosetClassFamily_class
+  cosetClasses
+  card_eq_subgroup_card_of_mem_cosetClasses
+  mem_some_cosetClasses
+  cosetClass_eq_classOf_of_mem
+  leftCoset_subset_of_rel
+  leftCoset_eq_of_rel
+  lagrange
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (Sylow/CosetAction.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  coset_conjugate_exists
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.GroupTheory  (Sylow/Sylow.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.GroupTheory (
+  cauchy_minimal
+  sylow_lift_from_cauchy
+  sylow_first
+  sylow_second
+  sylow_third
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Foundation  (Foundation/PeanoSystem.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Foundation (
+  PeanoSystem
+  PeanoMorphism
+  isPeanoIso
+  compMorph
+  idMorph
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Foundation  (Foundation/Initiality.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Foundation (
+  ℕ₀_prim_rec
+  ℕ₀_PeanoSystem
+  ℕ₀_to
+  ℕ₀_to_zero
+  ℕ₀_to_succ
+  ℕ₀_to_morph
+  ℕ₀_initial
+  ℕ₀_morph_unique
+  morph_fn
+  morph_fn_zero
+  morph_fn_succ
+  morph_fn_unique
+  morph_as_morph
+  morph_fn_comp_id
+  peano_unique
+  ℕ₀_rec_principle
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Foundation  (Foundation/CantorPairing.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Foundation (
+  triag
+  pair
+  antidiag
+  fst
+  snd
+  triag_zero
+  triag_succ
+  triag_strict_mono
+  triag_le_of_le
+  triag_le_pair
+  pair_lt_triag_succ
+  antidiag_exists
+  antidiag_unique
+  antidiag_spec
+  antidiag_pair
+  pair_fst
+  pair_snd
+  pair_surj
+)
+
+-- ─────────────────────────────────────────────────────────────────
+-- namespace Peano.Foundation  (Foundation/PureAxioms.lean)
+-- ─────────────────────────────────────────────────────────────────
+export Peano.Foundation (
+  PurePA
+  pa_parity
 )

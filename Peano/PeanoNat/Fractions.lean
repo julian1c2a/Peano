@@ -69,7 +69,7 @@ theorem gcd_div_self (a b : ℕ₀) (h : a ≠ 𝟘 ∨ b ≠ 𝟘) : gcd (div a
 
 
 theorem cross_mul_eq_imp_reduced_eq {a b c d : ℕ₀}
-  (hb : b ≠ 𝟘) (hd : d ≠ 𝟘)
+  (_ : b ≠ 𝟘) (_ : d ≠ 𝟘)
   (h_cross : mul a d = mul b c)
   (hab : gcd a b = 𝟙) (hcd : gcd c d = 𝟙) :
   a = c ∧ b = d := by
@@ -108,3 +108,9 @@ theorem cross_mul_eq_imp_reduced_eq {a b c d : ℕ₀}
 
 end Arith
 end Peano
+
+export Peano.Arith (
+  dvd_of_mul_dvd
+  gcd_div_self
+  cross_mul_eq_imp_reduced_eq
+)

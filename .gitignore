@@ -32,6 +32,15 @@ wdIn.txt
 .aider*
 .env
 
+# Ficheros scratch/temp de sesión (AI-GUIDE.md §16b — nunca se commitean)
+scratch_*.lean
+temp_*.lean
+fix_*.py
+fix_*.ps1
+
+# Directorios huérfanos de sesión
+/PeanoNat/
+
 # LSP logs
 LSP_2026*.log
 .claude/settings.local.json

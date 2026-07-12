@@ -2109,3 +2109,42 @@ Cota del resto: $r < 2k + 1$.
 Cota superior: $n < (k+1)^2$. Se deriva de [T21.5] + [T21.6] + la identidad $(k+1)^2 = k^2 + (2k+1)$.
 
 ---
+
+## 22. Fractions.lean — `namespace Peano.Arith`
+
+*Dependencias: `Arith`, `Lattice`*
+*Módulo: `Peano/PeanoNat/Fractions.lean` · Proyectado: 2026-07-12*
+
+Lemas de aritmética de fracciones reducidas sobre `ℕ₀`. Extiende `Peano.Arith`
+con propiedades sobre divisibilidad que sustentan la reducción canónica de fracciones
+(numerador/denominador sin factor común).
+
+### 22.1. Teoremas [T]
+
+**[T22.1]** `dvd_of_mul_dvd {a b c : ℕ₀} (hc : c ≠ 𝟘) (h : a·c ∣ b·c) : a ∣ b`
+Cancelación en divisibilidad por productos: si $c \neq 0$ y $ac \mid bc$, entonces $a \mid b$.
+
+```lean
+theorem dvd_of_mul_dvd {a b c : ℕ₀} (hc : c ≠ 𝟘) (h : mul a c ∣ mul b c) : a ∣ b
+```
+
+**[T22.2]** `gcd_div_self (a b : ℕ₀) (h : a ≠ 𝟘 ∨ b ≠ 𝟘) : gcd (a/gcd(a,b)) (b/gcd(a,b)) = 𝟙`
+Reducción canónica: dividir numerador y denominador por su MCD produce una fracción irreducible.
+
+```lean
+theorem gcd_div_self (a b : ℕ₀) (h : a ≠ 𝟘 ∨ b ≠ 𝟘) :
+    gcd (div a (gcd a b)) (div b (gcd a b)) = 𝟙
+```
+
+**[T22.3]** `cross_mul_eq_imp_reduced_eq {a b c d : ℕ₀} (_ : b ≠ 𝟘) (_ : d ≠ 𝟘) (h : a·d = b·c) (hab : gcd a b = 𝟙) (hcd : gcd c d = 𝟙) : a = c ∧ b = d`
+Unicidad de la representación reducida: si $a/b = c/d$ en sentido multiplicativo cruzado
+y ambas fracciones son irreducibles, entonces $a = c$ y $b = d$.
+
+```lean
+theorem cross_mul_eq_imp_reduced_eq {a b c d : ℕ₀}
+    (_ : b ≠ 𝟘) (_ : d ≠ 𝟘)
+    (h_cross : mul a d = mul b c)
+    (hab : gcd a b = 𝟙) (hcd : gcd c d = 𝟙) : a = c ∧ b = d
+```
+
+---

@@ -89,3 +89,16 @@ namespace Peano
   end NumberSets
 
 end Peano
+
+export Peano.NumberSets (
+  IsPrime
+  CoprimesOf
+  DivisorsOf
+  MultiplesOf
+  isPrimeb
+  coprimeb
+  divisorsFSet
+  primesFSet
+  coprimesFSet
+  multiplesFSet
+)

@@ -272,3 +272,7 @@ namespace Peano
 
    end Fermat
 end Peano
+
+export Peano.Fermat (
+  fermat_little_theorem
+)

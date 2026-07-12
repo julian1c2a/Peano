@@ -39,3 +39,11 @@ namespace Peano
     y_eq_x.trans cu_eq_x.symm
 
 end Peano
+
+export Peano (
+  choose
+  choose_spec
+  choose_unique
+  choose_spec_unique
+  choose_uniq
+)

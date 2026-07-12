@@ -30,3 +30,8 @@ namespace Peano
       exact ⟨x, hx.left⟩
 
 end Peano
+
+export Peano (
+  ExistsUnique
+  ExistsUnique.exists
+)

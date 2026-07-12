@@ -32,3 +32,5 @@ namespace Peano
 
   end Orbit
 end Peano
+
+-- No exports: módulo pendiente de implementación (namespace Peano.Orbit está reservado)

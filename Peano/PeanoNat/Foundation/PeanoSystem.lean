@@ -68,3 +68,11 @@ namespace Peano
   end Foundation
 
 end Peano
+
+export Peano.Foundation (
+  PeanoSystem
+  PeanoMorphism
+  isPeanoIso
+  compMorph
+  idMorph
+)

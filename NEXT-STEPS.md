@@ -1,14 +1,14 @@
 # Next Steps — Estado post-Sylow y próximas tareas
 
-*Última actualización: 2026-05-09*
+*Última actualización: 2026-07-12 (actualización de estado; contenido matemático desde 2026-05-09)*
 *Autor: Julián Calderón Almendros*
 
 ---
 
-## Estado actual del build (2026-05-09)
+## Estado actual del build (2026-07-12)
 
 `lake build` compila con **0 errores**, **0 sorry** y **0 private axioms no intencionales**
-en todo el proyecto (37 jobs).
+en todo el proyecto (~66 jobs full build).
 
 Los únicos `private axiom` son los **6 axiomas de Peano** en `PureAxioms.lean` (intencionales).
 
@@ -17,6 +17,10 @@ Los tres teoremas de Sylow están completamente demostrados:
 - `sylow_first` — ✅ existencia de p-subgrupos de Sylow
 - `sylow_second` — ✅ todos los p-subgrupos de Sylow son conjugados
 - `sylow_third` — ✅ n_p ≡ 1 (mod p) y n_p ∣ |G|
+
+Módulos añadidos tras 2026-05-09:
+- `ThirdIsomorphism.lean` — ✅ (G/N)/(K/N)≅G/K, 10 exports, 0 sorry
+- `Fractions.lean` — 🟡 en disco e importado en barrel, sin export block ni documentación
 
 ---
 

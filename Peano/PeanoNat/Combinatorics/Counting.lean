@@ -31,3 +31,5 @@ namespace Peano
 
   end Counting
 end Peano
+
+-- No exports: módulo pendiente de implementación (namespace Peano.Counting está reservado)

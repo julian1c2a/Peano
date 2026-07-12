@@ -185,7 +185,7 @@ namespace Peano
 end Peano
 
 -- ============================================================
--- Exports (AI-GUIDE.md §30–31)
+-- Exports (AI-GUIDE.md §17)
 -- ============================================================
 export Peano.CRT (
   chinese_remainder

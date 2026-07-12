@@ -1,7 +1,16 @@
 # Dependencias del Proyecto Peano
 
-**Última actualización:** 2026-05-10
+**Última actualización:** 2026-07-12 (corrección de fantasmas; el grafo de fondo
+sigue fechado 2026-05-10 — no se ha regenerado módulo a módulo desde entonces)
 **Autor**: Julián Calderón Almendros
+
+> **Nota de auditoría (2026-07-12)**: se eliminaron `FSetFSet`/`ListList` del grafo y
+> la tabla — no existen en disco (fusionados en `FSet.lean`/`List.lean`, documentado
+> ya en `README.md` pero no reflejado aquí hasta ahora). Se añadieron `EquivRel`,
+> `Fractions` y `ThirdIsomorphism` — módulos reales ausentes del grafo. No se ha
+> verificado el resto de aristas exhaustivamente; tratar como orientativo hasta la
+> próxima regeneración completa (candidato para adoptar el ADR-007 de
+> `DECISIONS.md` con nodos temáticos en `doc/` en vez de un único grafo plano).
 
 ---
 
@@ -19,8 +28,8 @@ graph TD;
         Peano --> ModEq;
         Peano --> Totient;
         Peano --> FSetFunction;
-        Peano --> FSetFSet;
-        Peano --> ListList;
+        Peano --> EquivRel;
+        Peano --> Fractions;
         Peano --> NewtonBinom;
         Peano --> Binom;
         Peano --> Factorial;
@@ -43,8 +52,9 @@ graph TD;
         ModEq --> Div;
 
         FSetFunction --> FSet;
-        FSetFSet --> FSet;
-        ListList --> List;
+        EquivRel --> FSet;
+        Fractions --> Arith;
+        Fractions --> Lattice;
         FSet --> List;
         List --> Arith;
 
@@ -65,6 +75,7 @@ graph TD;
         FirstIsomorphism --> QuotientGroup;
         SecondIsomorphism --> QuotientGroup;
         CorrespondenceTheorem --> QuotientGroup;
+        ThirdIsomorphism --> QuotientGroup;
         Zassenhaus --> SecondIsomorphism;
 
         NewtonBinom --> Binom;
@@ -148,14 +159,15 @@ graph TD;
 | `FirstIsomorphism` | `GroupTheory/FirstIsomorphism.lean` | `…QuotientGroup` |
 | `SecondIsomorphism` | `GroupTheory/SecondIsomorphism.lean` | `…QuotientGroup` |
 | `CorrespondenceTheorem` | `GroupTheory/CorrespondenceTheorem.lean` | `…QuotientGroup` |
+| `ThirdIsomorphism` | `GroupTheory/ThirdIsomorphism.lean` | `…QuotientGroup` |
 | `Zassenhaus` | `GroupTheory/Zassenhaus.lean` | `…SecondIsomorphism` |
 | `Cosets` | `GroupTheory/Sylow/Cosets.lean` | `…Group` |
 | `Sylow` | `GroupTheory/Sylow/Sylow.lean` | `…Cosets`, `…Action` |
 | `List` | `ListsAndSets/List.lean` | `…Arith` |
-| `ListList` | `ListsAndSets/ListList.lean` | `…List` |
 | `FSet` | `ListsAndSets/FSet.lean` | `…List` |
-| `FSetFSet` | `ListsAndSets/FSetFSet.lean` | `…FSet` |
+| `EquivRel` | `ListsAndSets/EquivRel.lean` | `…FSet` |
 | `FSetFunction` | `ListsAndSets/FSetFunction.lean` | `…FSet` |
+| `Fractions` | `PeanoNat/Fractions.lean` | `…Arith`, `…Lattice` |
 | `ModEq` | `NumberTheory/ModEq.lean` | `…Div` |
 | `Totient` | `NumberTheory/Totient.lean` | `…NumberSets` |
 | `ChineseRemainder` | `NumberTheory/ChineseRemainder.lean` | `…ModEq`, `…Arith` |

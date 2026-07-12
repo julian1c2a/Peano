@@ -40,7 +40,7 @@ namespace Peano.ModuleName
 --         Use .mp/.mpr for iff directions
 
 -- ============================================================
--- Section 4: Exports (AI-GUIDE.md §30–31)
+-- Section 4: Exports (AI-GUIDE.md §17)
 -- ============================================================
 -- List ALL public (non-private) declarations alphabetically.
 -- This block goes AFTER end namespace, at top level.

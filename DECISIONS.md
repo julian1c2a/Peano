@@ -1,97 +1,231 @@
-# Design Decisions — Peano
+# Decisiones de Diseño — Peano
 
-**Last updated:** 2026-04-27
-**Author**: Julián Calderón Almendros
+**Última actualización:** 2026-07-12
+**Autor**: Julián Calderón Almendros
 
-Architectural Decision Records (ADR) for this project.
-Each entry records *what* was decided and *why*, for future reference.
+Registro de decisiones arquitectónicas (ADR) de este proyecto. Cada entrada documenta
+*qué* se decidió y *por qué*, para referencia futura.
 
----
-
-## ADR-001: No Mathlib dependency
-
-**Date**: 2025-01-01
-**Status**: Accepted
-
-**Decision**: This project does not depend on Mathlib.
-
-**Rationale**: Educational goal — formalize Peano arithmetic from scratch using only Lean 4's core. Building all infrastructure (induction, recursion, arithmetic) from the inductive type ℕ₀ is the entire purpose of the project.
-
-**Consequences**: All necessary infrastructure (ExistsUnique, recursion principles, div/mod, etc.) must be built from scratch.
+> Este fichero adopta el esqueleto unificado de `lean4-project-template`
+> (ADR-001–009, traducidos) y **preserva íntegras**, renumeradas a partir de
+> ADR-010, las decisiones reales específicas de Peano que ya existían aquí (FSet
+> como lista ordenada, ℕ₀ inductivo, FinGroup polimórfico, el lema puente
+> `mapOn_bijective_cast`, etc.) — son, junto con las de ROBINSON_PlusPlus, las de
+> mejor calidad entre los proyectos hermanos.
 
 ---
 
-## ADR-002: autoImplicit = false
+## ⚠️ MANDATORIES (reglas vinculantes de este proyecto)
 
-**Date**: 2025-01-01
-**Status**: Accepted
-
-**Decision**: `moreServerArgs := #["-DautoImplicit=false"]` is set in `lakefile.lean`.
-
-**Rationale**: Explicit type annotations prevent accidental universe polymorphism issues and make code easier to read and maintain.
-
-**Consequences**: All variables must be explicitly declared or annotated.
+**Sin MANDATORIES declaradas** — este proyecto no prohíbe `Classical.*` (se usa con
+normalidad, p. ej. `Classical.byContradiction` como sustituto de `by_contra`, no
+disponible sin Mathlib). AczelSetTheory (proyecto sucesor que consume `peanolib`)
+**sí** tiene esa directiva — ver su propio `DECISIONS.md` §MANDATORIES — pero no
+aplica retroactivamente a Peano.
 
 ---
 
-## ADR-003: File locking system
+## ADR-001: Sin dependencia de Mathlib
 
-**Date**: 2026-04-08
-**Status**: Accepted
+**Fecha**: 2025-01-01
+**Estado**: Aceptado
 
-**Decision**: Use `git-lock.bash` + `locked_files.txt` + pre-commit hook to prevent accidental edits to completed modules. Replaces the old `.bat`-based freeze system.
+**Decisión**: este proyecto no depende de Mathlib.
 
-**Rationale**: Lean 4 proofs are fragile — small changes to completed modules can break dependent proofs. The locking system makes this explicit. Bash scripts are cross-platform (Windows Git Bash + Linux/macOS).
+**Justificación**: objetivo educativo — formalizar la aritmética de Peano desde cero
+usando solo el núcleo de Lean 4. Construir toda la infraestructura (inducción,
+recursión, aritmética) desde el tipo inductivo `ℕ₀` es el propósito íntegro del
+proyecto.
 
-**Consequences**: Workflow requires locking/unlocking files. See AI-GUIDE.md §20.
-
----
-
-## ADR-004: Mathlib naming conventions
-
-**Date**: 2026-04-08
-**Status**: Accepted
-
-**Decision**: All identifiers follow Mathlib4 naming conventions as documented in NAMING-CONVENTIONS.md.
-
-**Rationale**: Consistency with the broader Lean 4 ecosystem. Makes theorems discoverable by name pattern (`subject_predicate`). Facilitates future Mathlib integration if desired.
-
-**Consequences**: Existing names may need migration. See NAMING-CONVENTIONS.md for the full dictionary and 12 formation rules.
+**Consecuencias**: toda la infraestructura necesaria (`ExistsUnique`, principios de
+recursión, div/mod, etc.) se construye desde cero.
 
 ---
 
-## ADR-005: Module directory = Peano
+## ADR-002: `autoImplicit = false`
 
-**Date**: 2025-01-01
-**Status**: Accepted
+**Fecha**: 2025-01-01
+**Estado**: Aceptado
 
-**Decision**: Source modules live in `Peano/` while the lean_lib name is `Peano` and the root file is `Peano.lean`. Imports use `Peano.` prefix. Namespaces use `Peano.` prefix.
+**Decisión**: `moreServerArgs := #["-DautoImplicit=false"]` en `lakefile.lean`.
 
-**Rationale**: Historical architecture from the project's inception. The `Peano` directory name reflects the library's content, while `Peano` is the public-facing namespace.
+**Justificación**: las anotaciones de tipo explícitas evitan problemas accidentales
+de polimorfismo de universos y hacen el código más legible y mantenible.
 
-**Consequences**: Scripts (gen-root.bash, new-module.bash) detect the module directory from `Glob.submodules` in lakefile.lean. The namespace/import prefix mismatch requires awareness.
-
----
-
-## ADR-006: Inductive type ℕ₀ as foundation
-
-**Date**: 2025-01-01
-**Status**: Accepted
-
-**Decision**: All Peano axioms are derived as theorems from the inductive type `ℕ₀`, not postulated as axioms.
-
-**Rationale**: Maximum rigor — the 8 Peano axioms are proven, not assumed. This gives a constructive foundation where every property is traceable to the inductive type definition.
-
-**Consequences**: The module `PeanoNatAxioms.lean` contains theorems (not axioms).
+**Consecuencias**: todas las variables deben declararse o anotarse explícitamente.
 
 ---
 
-## ADR-007: FSet as sorted-list structure (not Quotient)
+## ADR-003: Sistema de bloqueo de archivos
 
-**Date**: 2026-04 (revised 2026-04-27)
-**Status**: Accepted
+**Fecha**: 2026-04-08
+**Estado**: Aceptado
 
-**Decision**: `FSet α` is defined as a `structure` with a sorted list and a `Sorted` invariant:
+**Decisión**: usar `git-lock.bash` + `locked_files.txt`/`frozen_files.txt` + hook
+`pre-commit` para prevenir ediciones accidentales de módulos terminados. Sustituye
+al antiguo sistema de congelado basado en `.bat` (no portable).
+
+**Justificación**: las pruebas de Lean 4 son frágiles. Los scripts bash son
+multiplataforma (Windows Git Bash + Linux/macOS), a diferencia del `.bat` anterior.
+
+**Consecuencias**: el flujo de trabajo exige bloquear/desbloquear ficheros (ver
+`AI-GUIDE.md` §20-21). **Nota de auditoría (2026-07-12)**: `frozen_files.txt` listaba
+17 ficheros con rutas obsoletas (estilo plano previo a la reorganización en
+subdirectorios, p. ej. `Peano/PeanoNatAxioms.lean`, hoy `Peano/PeanoNat/Axioms.lean`)
+— el sistema de freeze estaba desincronizado con la estructura real. Se corrige aquí
+también un bug real en `git-lock.bash` (`unlock`/`thaw` no vaciaban la lista al
+quitar el último fichero, por el exit code 1 de `grep -Fv` cortocircuitando el `&&`
+previo al `mv`). El `chmod a-w` de este script tampoco protege nada en NTFS/Windows —
+verificado (`IsReadOnly = False` en un fichero listado como bloqueado); el lock es un
+contrato social + hook `pre-commit`, no una protección real del sistema de ficheros.
+
+---
+
+## ADR-004: Convenciones de nombres Mathlib
+
+**Fecha**: 2026-04-08
+**Estado**: Aceptado
+
+**Decisión**: todos los identificadores siguen las convenciones de nombres de
+Mathlib4, documentadas en `NAMING-CONVENTIONS.md`.
+
+**Justificación**: consistencia con el ecosistema Lean 4 más amplio.
+
+**Consecuencias**: ver `NAMING-CONVENTIONS.md` para el diccionario completo. **Nota de
+auditoría (2026-07-12, corregida)**: `Peano/PeanoNat/Add.lean` declara `add_l`, una
+definición **alternativa** de la suma que recursa sobre el argumento izquierdo `n` (en
+vez de sobre `m`, como `add`), usada solo como andamiaje para demostrar
+`add_zero_eq_add_l_zero` y equivalencias similares. El sufijo `_l` aquí **no** es el
+`_left` de la Regla 11 (variante lateral de una relación) — denota "definición
+alternativa/legado", un uso no documentado en ningún sitio. Pendiente de revisión más
+amplia sobre disciplina de namespaces/exports en este proyecto (ver conversación de
+sesión) para decidir si `add_l` y compañía deberían ser `private` en vez de públicos.
+
+---
+
+## ADR-005: Namespaces alineados con directorios
+
+**Fecha**: 2025-01-01
+**Estado**: Aceptado (con excepción histórica documentada — ver ADR-010)
+
+**Decisión**: cada subdirectorio corresponde a un sub-namespace.
+
+**Justificación**: mapeo 1:1 claro entre sistema de ficheros y jerarquía de
+namespaces.
+
+**Consecuencias**: `new-module.bash`/`gen-root.bash` escanean recursivamente. Ver
+ADR-010 sobre la excepción histórica de este proyecto (directorio `Peano/` vs.
+namespace `Peano` con mismatch heredado).
+
+---
+
+## ADR-006: Subdirectorios temáticos para la organización de módulos
+
+**Fecha**: 2026-04
+**Estado**: Aceptado
+
+**Decisión**: agrupar módulos en subdirectorios temáticos: `Combinatorics/`,
+`ListsAndSets/`, `NumberTheory/`, `Combinatorics/GroupTheory/`,
+`Combinatorics/GroupTheory/Sylow/`, `Prelim/`.
+
+**Justificación**: con 49+ módulos, la organización plana se volvió inmanejable.
+
+**Consecuencias**: los imports usan rutas completas (`Peano.PeanoNat.Combinatorics.Pow`).
+
+---
+
+## ADR-007: Árbol de documentación `doc/REFERENCE-{tema}.md`
+
+**Fecha**: 2026-05-10
+**Estado**: Aceptado e **implementado** (el más avanzado de los proyectos hermanos en
+este punto)
+
+**Decisión**: `REFERENCE.md` es el índice raíz; `doc/REFERENCE-{tema}.md` son los
+nodos temáticos (12 secciones por símbolo: tipo, firma, módulo, importancia). El
+directorio `doc/` se creó el 2026-05-10 con `REFERENCE-GroupTheory.md` como primer
+nodo.
+
+**Justificación**: `REFERENCE.md` como monolito crecía inmanejable (>1000 líneas) —
+exactamente el síntoma que `AI-GUIDE.md` §0.5 advierte evitar.
+
+**Consecuencias**: todo `.lean` nuevo se proyecta en su nodo temático
+correspondiente; si no existe, se crea. `REFERENCE.md` se actualiza con la fila de
+módulo y el conteo de jobs.
+
+---
+
+## ADR-008: Sistema de anotaciones en REFERENCE.md
+
+**Fecha**: 2026-04
+**Estado**: Aceptado
+
+**Decisión**: las entradas de REFERENCE.md incluyen anotaciones `@axiom_system` y
+`@importance`.
+
+**Justificación**: ayuda a los asistentes de IA a priorizar qué módulos/teoremas
+cargar como contexto.
+
+**Consecuencias**: las anotaciones deben mantenerse al actualizar módulos.
+
+---
+
+## ADR-009: `NAMING-CONVENTIONS.md` como fichero separado
+
+**Fecha**: 2026-04-08
+**Estado**: Aceptado
+
+**Decisión**: las convenciones de nombres viven en un `NAMING-CONVENTIONS.md`
+dedicado, con un resumen en `AI-GUIDE.md`.
+
+**Justificación**: el diccionario completo con 12 reglas es demasiado extenso para
+`AI-GUIDE.md` solo.
+
+**Consecuencias**: si divergen, `NAMING-CONVENTIONS.md` es autoritativo.
+
+---
+
+## ADR-010: Directorio `Peano/` vs. namespace `Peano` — mismatch heredado
+
+**Fecha**: 2025-01-01
+**Estado**: Aceptado (deuda arquitectónica reconocida, no se corrige retroactivamente)
+
+**Decisión**: los módulos fuente viven en `Peano/`, el `lean_lib` se llama `Peano`, el
+fichero raíz es `Peano.lean`. Los imports y namespaces usan el prefijo `Peano.`.
+
+**Justificación**: arquitectura histórica desde el inicio del proyecto — el nombre de
+directorio `Peano` refleja el contenido de la librería, mientras que `Peano` es
+también el namespace de cara al público.
+
+**Consecuencias**: los scripts (`gen-root.bash`, `new-module.bash`) detectan el
+directorio de módulos a partir de `Glob.submodules` en `lakefile.lean`. Requiere estar
+al tanto del desajuste namespace/import-prefix al escribir scripts de scaffolding
+nuevos.
+
+---
+
+## ADR-011: Tipo inductivo `ℕ₀` como fundamento — axiomas de Peano demostrados, no postulados
+
+**Fecha**: 2025-01-01
+**Estado**: Aceptado
+
+**Decisión**: los 8 axiomas de Peano se derivan como teoremas a partir del tipo
+inductivo `ℕ₀`, no se postulan como `axiom`.
+
+**Justificación**: máximo rigor — los axiomas se demuestran, no se asumen. Da un
+fundamento constructivo donde toda propiedad es trazable a la definición del tipo
+inductivo.
+
+**Consecuencias**: el módulo `PeanoNat/Axioms.lean` contiene teoremas, no axiomas.
+
+---
+
+## ADR-012: `FSet` como estructura de lista ordenada (no `Quotient`)
+
+**Fecha**: 2026-04 (revisado 2026-04-27)
+**Estado**: Aceptado
+
+**Decisión**: `FSet α` se define como una `structure` con una lista ordenada y un
+invariante `Sorted`:
 
 ```lean
 structure FSet (α : Type) [LT α] [StrictLinearOrder α] where
@@ -100,46 +234,44 @@ structure FSet (α : Type) [LT α] [StrictLinearOrder α] where
   nodup  : elems.Nodup
 ```
 
-Not as `Quotient (Perm.setoid α)`.
+No como `Quotient (Perm.setoid α)`.
 
-**Rationale**: The sorted-list approach keeps all operations computable (no `noncomputable` needed), gives canonical representatives for equality (`FSet.eq_of_mem_iff`), and is directly amenable to decidable equality via `DecidableEq (List α)`. It requires `LT α` with `StrictLinearOrder α` on element types — already available for all types used in this project (ℕ₀, Tuple, List, FSet itself). The Quotient approach would make `DecidableEq FSet` noncomputable and block universe-computable proofs.
+**Justificación**: el enfoque de lista ordenada mantiene todas las operaciones
+computables (sin `noncomputable`), da representantes canónicos para la igualdad
+(`FSet.eq_of_mem_iff`), y es directamente compatible con `DecidableEq (List α)`.
+Requiere `LT α` con `StrictLinearOrder α` en el tipo de elemento — ya disponible para
+todos los tipos usados en el proyecto (`ℕ₀`, `Tuple`, `List`, `FSet` mismo). El
+enfoque `Quotient` haría `DecidableEq FSet` no computable.
 
-**Consequences**: `FSet α` requires `[StrictLinearOrder α]` on the element type. All current element types (`ℕ₀`, `Tuple ℕ₀ n`, `List α`, `FSet α`) have this instance. `sortedInsert` is the core insertion primitive. Two FSets are equal iff they have the same elements (extensionality via `FSet.eq_of_mem_iff`).
-
----
-
-## ADR-008: Thematic subdirectories for module organization
-
-**Date**: 2026-04
-**Status**: Accepted
-
-**Decision**: Group modules into thematic subdirectories: `Combinatorics/`, `ListsAndSets/`, `NumberTheory/`, `Combinatorics/GroupTheory/`, `Combinatorics/GroupTheory/Sylow/`, `Prelim/`.
-
-**Rationale**: With 49+ modules, flat organization became unmanageable. Subdirectories mirror mathematical domains and enable focused navigation.
-
-**Consequences**: Imports use full paths (`Peano.PeanoNat.Combinatorics.Pow`). `Peano.lean` barrel file imports all sub-modules.
+**Consecuencias**: `FSet α` requiere `[StrictLinearOrder α]` en el tipo de elemento.
+`sortedInsert` es la primitiva de inserción central. Dos `FSet` son iguales sii tienen
+los mismos elementos (extensionalidad vía `FSet.eq_of_mem_iff`).
 
 ---
 
-## ADR-009: No custom algebraic typeclasses
+## ADR-013: Sin typeclasses algebraicas propias
 
-**Date**: 2026-05
-**Status**: Accepted
+**Fecha**: 2026-05
+**Estado**: Aceptado
 
-**Decision**: Do not define custom typeclasses like `CommMonoid ℕ₀` or `OrderedCommSemiring ℕ₀`. Instead, prove the properties as standalone lemmas.
+**Decisión**: no definir typeclasses propias como `CommMonoid ℕ₀` u
+`OrderedCommSemiring ℕ₀`. En su lugar, probar las propiedades como lemas sueltos.
 
-**Rationale**: Without Mathlib, custom typeclasses would duplicate Mathlib's hierarchy poorly. Standalone lemmas suffice for current needs and avoid a premature abstraction.
+**Justificación**: sin Mathlib, las typeclasses propias duplicarían pobremente la
+jerarquía de Mathlib. Los lemas sueltos bastan para las necesidades actuales y evitan
+una abstracción prematura.
 
-**Consequences**: No `instance : CommMonoid ℕ₀` etc. Properties like commutativity and associativity exist as named theorems.
+**Consecuencias**: no hay `instance : CommMonoid ℕ₀` etc. Propiedades como
+conmutatividad/asociatividad existen como teoremas nombrados.
 
 ---
 
-## ADR-010: FinGroup polymorphic over arbitrary type with StrictLinearOrder
+## ADR-014: `FinGroup` polimórfico sobre un tipo arbitrario con `StrictLinearOrder`
 
-**Date**: 2026-04-27
-**Status**: Accepted
+**Fecha**: 2026-04-27
+**Estado**: Aceptado
 
-**Decision**: `FinGroup` is parameterized over an arbitrary element type `α`:
+**Decisión**: `FinGroup` se parametriza sobre un tipo de elemento arbitrario `α`:
 
 ```lean
 structure FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α] where
@@ -155,38 +287,34 @@ structure FinGroup (α : Type) [DecidableEq α] [LT α] [StrictLinearOrder α] w
 abbrev ℕ₀FinGroup := FinGroup ℕ₀
 ```
 
-Previously `FinGroup` was hardwired to `ℕ₀` (carrier was `ℕ₀FSet`, id was `ℕ₀`).
+Antes, `FinGroup` estaba fijado a `ℕ₀` (carrier era `ℕ₀FSet`, id era `ℕ₀`).
 
-**Rationale**: The hardwired-ℕ₀ approach blocked key developments: (1) `FinGroup (Subgroup G)` for the conjugation action needed by Sylow III, (2) quotient groups for future use. Making `FinGroup` polymorphic over `α` with `StrictLinearOrder α` unblocks both. The `abbrev ℕ₀FinGroup := FinGroup ℕ₀` alias preserves backward compatibility with all existing Sylow/Cosets/Action code.
+**Justificación**: el enfoque fijado a ℕ₀ bloqueaba desarrollos clave: (1)
+`FinGroup (Subgroup G)` para la acción de conjugación que necesita Sylow III, (2)
+grupos cociente para uso futuro. Hacer `FinGroup` polimórfico sobre `α` con
+`StrictLinearOrder α` desbloquea ambos. El alias `abbrev ℕ₀FinGroup := FinGroup ℕ₀`
+preserva la compatibilidad con todo el código existente de Sylow/Cosets/Action.
 
-**Consequences**:
+**Consecuencias**:
 
-- `Action.lean`, `Cosets.lean`, `Sylow.lean` use `(G : FinGroup ℕ₀)` (explicit type annotation) — mechanical change, proofs unaffected.
-- `Group.lean` theorems now quantify over `{α} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
-- `FSet (Tuple ℕ₀ n)` works automatically via `instStrictLinearOrderTuple`.
-- Build: 51 jobs (ListList.lean and FSetFSet.lean eliminated, merged into List.lean and FSet.lean).
-
----
-
-## ADR-011: Árbol de documentación `doc/REFERENCE-{tema}.md`
-
-**Date**: 2026-05-10
-**Status**: Accepted
-
-**Decision**: La documentación técnica de exports se organiza en dos niveles: `REFERENCE.md` como índice raíz (tabla de módulos, namespaces, métricas de build) y `doc/REFERENCE-{tema}.md` como nodos temáticos (12 secciones por símbolo: tipo, firma, módulo, importancia). El directorio `doc/` fue creado en esta fecha con `REFERENCE-GroupTheory.md` como primer nodo.
-
-**Rationale**: `REFERENCE.md` como monolito crecía inmanejable (>1000 líneas). La arquitectura en árbol permite navegación enfocada, independencia por dominio matemático y actualización incremental por módulo. Cada nodo temático es autosuficiente para revisión de código dentro de su dominio.
-
-**Consequences**: Todo `.lean` nuevo debe proyectarse en el nodo temático correspondiente (`doc/REFERENCE-{tema}.md`). Si el nodo no existe, se crea. La proyección sigue el protocolo "proyectar" (AI-GUIDE.md §11–14). `REFERENCE.md` índice se actualiza con la nueva fila de módulo y el conteo de jobs. El directorio `doc/` es parte del repositorio y se versiona como el resto de la documentación.
+- `Action.lean`, `Cosets.lean`, `Sylow.lean` usan `(G : FinGroup ℕ₀)` (anotación de
+  tipo explícita) — cambio mecánico, pruebas no afectadas.
+- `Group.lean` cuantifica ahora sobre `{α} [DecidableEq α] [LT α] [StrictLinearOrder α]`.
+- `FSet (Tuple ℕ₀ n)` funciona automáticamente vía `instStrictLinearOrderTuple`.
+- Build: 51 jobs (`ListList.lean` y `FSetFSet.lean` eliminados, fusionados en
+  `List.lean` y `FSet.lean`).
 
 ---
 
-## ADR-012: Transporte de biyectividad por igualdad de codominio — lema puente con variable libre
+## ADR-015: Lema puente `mapOn_bijective_cast` — transporte de biyectividad por igualdad de codominio
 
-**Date**: 2026-05-10
-**Status**: Accepted
+**Fecha**: 2026-05-10
+**Estado**: Aceptado
 
-**Decision**: Cuando `▸` (transporte por igualdad) sobre un `MapOn` falla en el sitio de uso porque ambos lados de la igualdad son términos concretos de tipo `FSet (FSet ℕ₀)` (construidos via `sortFSetList`), extraer un lema privado general con variables libres `{B C : FSet β}` donde `subst heq` sí funciona:
+**Decisión**: cuando `▸` (transporte por igualdad) sobre un `MapOn` falla en el sitio
+de uso porque ambos lados de la igualdad son términos concretos de tipo
+`FSet (FSet ℕ₀)` (construidos vía `sortFSetList`), extraer un lema privado general
+con variables libres `{B C : FSet β}` donde `subst heq` sí funciona:
 
 ```lean
 private theorem mapOn_bijective_cast
@@ -196,23 +324,30 @@ private theorem mapOn_bijective_cast
   subst heq; exact h
 ```
 
-**Rationale**: Lean 4 no puede descargar `sortFSetList (...) = sortFSetList (...)` automáticamente para `cases`/`subst`/`rcases rfl` en un sitio de uso concreto. El motivo es que la eliminación dependiente necesita que la variable sea libre (metavariable) en el contexto local. Al extraer a un lema donde `B : FSet β` es genuinamente libre, `subst heq` sustituye `C := B` sin problemas. El sitio de uso simplemente llama al lema como caja negra.
+**Justificación**: Lean 4 no puede descargar `sortFSetList (...) = sortFSetList (...)`
+automáticamente para `cases`/`subst`/`rcases rfl` en un sitio de uso concreto — la
+eliminación dependiente necesita que la variable sea libre (metavariable) en el
+contexto local. Al extraer a un lema donde `B : FSet β` es genuinamente libre,
+`subst heq` sustituye `C := B` sin problemas.
 
-**Consequences**: Patrón reutilizable cada vez que se necesita transportar `f.Bijective : (heq ▸ f).Bijective` o similar cuando `heq` conecta tipos concretos. En esos casos, la solución directa (`cases heq`, `subst heq`, `rcases rfl`, `▸` en modo término) siempre fallará; es necesario el lema puente.
+**Consecuencias**: patrón reutilizable cada vez que se necesita transportar
+`f.Bijective : (heq ▸ f).Bijective` cuando `heq` conecta tipos concretos. La solución
+directa (`cases heq`, `subst heq`, `rcases rfl`, `▸` en modo término) siempre fallará
+en ese caso; hace falta el lema puente.
 
 ---
 
-## Template for new decisions
+## Plantilla para nuevas decisiones
 
-## ADR-NNN: [Title]
+## ADR-NNN: [Título]
 
-**Date**: YYYY-MM-DD
-**Status**: [Proposed | Accepted | Deprecated | Superseded by ADR-XXX]
+**Fecha**: YYYY-MM-DD
+**Estado**: [Propuesto | Aceptado | Obsoleto | Sustituido por ADR-XXX]
 
-**Context**: [Why is this decision needed?]
+**Contexto**: [¿Por qué hace falta esta decisión?]
 
-**Decision**: [What was decided?]
+**Decisión**: [¿Qué se decidió?]
 
-**Rationale**: [Why this choice over alternatives?]
+**Justificación**: [¿Por qué esta opción frente a las alternativas?]
 
-**Consequences**: [What are the trade-offs?]
+**Consecuencias**: [¿Cuáles son las contrapartidas?]

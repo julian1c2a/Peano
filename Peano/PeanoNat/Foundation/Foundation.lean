@@ -9,5 +9,6 @@ License: MIT
 
 import Peano.PeanoNat.Foundation.PeanoSystem
 import Peano.PeanoNat.Foundation.Initiality
+import Peano.PeanoNat.Foundation.PureAxioms
 import Peano.PeanoNat.Foundation.CantorPairing
 import Peano.PeanoNat.Foundation.GodelBeta

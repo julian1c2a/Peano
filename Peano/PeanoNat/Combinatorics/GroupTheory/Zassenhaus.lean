@@ -30,8 +30,10 @@ set_option autoImplicit false
 set_option linter.unusedVariables false
 
 namespace Peano
-  namespace GroupTheory
+  namespace Zassenhaus
     open Peano.FSet Peano.FSetFunction Peano.Group Peano.Mul
+    open Peano.Cosets Peano.NormalSubgroup Peano.QuotientGroup
+    open Peano.FirstIsomorphism Peano.SecondIsomorphism
 
     /-! ## § 0. Lemas auxiliares de membresía en intersecciones -/
 
@@ -1241,10 +1243,10 @@ namespace Peano
       exact ⟨f₂.comp (hquo_eq ▸ f₁_inv),
              MapOn.comp_bijective (mapOn_bijective_cast f₁_inv hbij_inv hquo_eq) hf₂⟩
 
-  end GroupTheory
+  end Zassenhaus
 end Peano
 
-export Peano.GroupTheory (
+export Peano.Zassenhaus (
   prodSubgroup
   mem_prodSubgroup_iff
   N_le_prodSubgroup

@@ -157,8 +157,9 @@ private theorem nat_godel_coprime (b_n i_n j_n : Nat)
 namespace Peano
   open Peano
 
-  namespace Foundation
-    open Foundation
+  namespace GodelBeta
+    open GodelBeta
+    open Peano.CantorPairing
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- Ahora sí abrimos los namespaces de ℕ₀
@@ -657,13 +658,13 @@ namespace Peano
       rw [h_map_eq]
       exact list_map_getD_range (x :: xs)
 
-  end Foundation
+  end GodelBeta
 end Peano
 
 -- ============================================================
 -- Exports (AI-GUIDE.md §17)
 -- ============================================================
-export Peano.Foundation (
+export Peano.GodelBeta (
   beta
   beta_lt
   beta_of_lt

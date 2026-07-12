@@ -35,8 +35,8 @@ Esto constituye el **Primer Teorema de Isomorfía**: `G/Ker h ≅ Im h`.
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
-    open Peano.FSet Peano.FSetFunction Peano.Group
+  namespace FirstIsomorphism
+    open Peano.FSet Peano.FSetFunction Peano.Group Peano.QuotientGroup
 
     /-!
     ## § 0. Subgrupo inducido como grupo
@@ -341,10 +341,10 @@ namespace Peano
         (firstIsoMap G J h).Bijective :=
       ⟨firstIsoMap_injective G J h, firstIsoMap_surjective G J h⟩
 
-  end GroupTheory
+  end FirstIsomorphism
 end Peano
 
-export Peano.GroupTheory (
+export Peano.FirstIsomorphism (
   -- § 0. Subgrupo como grupo
   Subgroup.toFinGroup
   -- § 1. Núcleo

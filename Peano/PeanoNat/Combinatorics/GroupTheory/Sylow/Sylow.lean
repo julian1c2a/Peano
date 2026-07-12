@@ -35,7 +35,7 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.CorrespondenceTheorem
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace Sylow
 
     open Peano.FSet
     open Peano.FSetFunction
@@ -48,6 +48,12 @@ namespace Peano
     open Peano.StrictOrder
     open Peano.Order
     open Peano.Totient
+    open Peano.Cosets
+    open Peano.CosetAction
+    open Peano.Action
+    open Peano.NormalSubgroup
+    open Peano.QuotientGroup
+    open Peano.CorrespondenceTheorem
 
     -- Desambiguación: Prime se refiere a Peano.Primes.Prime
     private abbrev Prime := Peano.Primes.Prime
@@ -3955,7 +3961,9 @@ namespace Peano
                 apply mul_cancelation_right (conjAct.orb x).card 𝟙 G.carrier.card hGne
                 rw [one_mul]; exact h_eq ▸ h_os
               have hlen : (conjAct.orb x).elems.length = 1 := by
+                have h_one_eq : (𝟙 : ℕ₀) = Λ 1 := rfl
                 have hcard : Λ (conjAct.orb x).elems.length = Λ 1 := by
+                  rw [← h_one_eq]
                   simpa [FSet.card, lengthₚ] using h_orb_one
                 exact Λ_inj _ _ hcard
               obtain ⟨y, hy_eq⟩ : ∃ y, (conjAct.orb x).elems = [y] := by
@@ -5529,10 +5537,10 @@ namespace Peano
       ⟨sylow_third_mod G p hp sylows h_all_sylow h_all_included h_nodup,
        sylow_third_dvd G p hp sylows h_all_sylow h_all_included h_nodup⟩
 
-  end GroupTheory
+  end Sylow
 end Peano
 
-export Peano.GroupTheory (
+export Peano.Sylow (
   cauchy_minimal
   sylow_lift_from_cauchy
   sylow_first

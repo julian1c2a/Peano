@@ -21,7 +21,7 @@ import Peano.PeanoNat.Combinatorics.Group
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace Cosets
 
     open Peano.FSet
     open Peano.EquivRel
@@ -365,10 +365,10 @@ namespace Peano
 
       exact ⟨classesFSet.card, Eq.symm h_card⟩
 
-  end GroupTheory
+  end Cosets
 end Peano
 
-export Peano.GroupTheory (
+export Peano.Cosets (
   leftCoset
   mem_leftCoset_iff
   coset_card_eq_subgroup_card

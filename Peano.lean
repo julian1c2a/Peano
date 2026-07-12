@@ -1325,9 +1325,9 @@ export Peano.Wilson (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Foundation  (Foundation/GodelBeta.lean)
+-- namespace Peano.GodelBeta  (Foundation/GodelBeta.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Foundation (
+export Peano.GodelBeta (
   beta
   beta_lt
   beta_of_lt
@@ -1339,9 +1339,9 @@ export Peano.Foundation (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/QuotientGroup.lean)
+-- namespace Peano.QuotientGroup  (GroupTheory/QuotientGroup.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.QuotientGroup (
   quotientCarrier
   mem_quotientCarrier_iff
   mem_quotientCarrier_is_leftCoset
@@ -1373,9 +1373,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/FirstIsomorphism.lean)
+-- namespace Peano.FirstIsomorphism  (GroupTheory/FirstIsomorphism.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.FirstIsomorphism (
   homKer
   mem_homKer_iff
   homImg
@@ -1393,9 +1393,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/SecondIsomorphism.lean)
+-- namespace Peano.SecondIsomorphism  (GroupTheory/SecondIsomorphism.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.SecondIsomorphism (
   subgroupHN
   mem_subgroupHN_iff
   H_le_subgroupHN
@@ -1412,9 +1412,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/ThirdIsomorphism.lean)
+-- namespace Peano.ThirdIsomorphism  (GroupTheory/ThirdIsomorphism.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.ThirdIsomorphism (
   cosetRel_N_imp_K
   KmodN_normal
   thirdIsoMap
@@ -1428,9 +1428,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/CorrespondenceTheorem.lean)
+-- namespace Peano.CorrespondenceTheorem  (GroupTheory/CorrespondenceTheorem.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.CorrespondenceTheorem (
   preimageSubgroup
   mem_preimageSubgroup_iff
   N_le_preimageSubgroup
@@ -1447,9 +1447,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/Zassenhaus.lean)
+-- namespace Peano.Zassenhaus  (GroupTheory/Zassenhaus.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.Zassenhaus (
   prodSubgroup
   mem_prodSubgroup_iff
   N_le_prodSubgroup
@@ -1526,9 +1526,9 @@ export Peano.Group (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/Action.lean)
+-- namespace Peano.Action  (GroupTheory/Action.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.Action (
   GroupAction
   GroupAction.orb
   mem_orb_iff
@@ -1541,9 +1541,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (GroupTheory/NormalSubgroup.lean)
+-- namespace Peano.NormalSubgroup  (GroupTheory/NormalSubgroup.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.NormalSubgroup (
   centralizer
   mem_centralizer_iff
   center
@@ -1560,9 +1560,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (Sylow/Cosets.lean)
+-- namespace Peano.Cosets  (Sylow/Cosets.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.Cosets (
   leftCoset
   mem_leftCoset_iff
   coset_card_eq_subgroup_card
@@ -1586,16 +1586,16 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (Sylow/CosetAction.lean)
+-- namespace Peano.CosetAction  (Sylow/CosetAction.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.CosetAction (
   coset_conjugate_exists
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.GroupTheory  (Sylow/Sylow.lean)
+-- namespace Peano.Sylow  (Sylow/Sylow.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.GroupTheory (
+export Peano.Sylow (
   cauchy_minimal
   sylow_lift_from_cauchy
   sylow_first
@@ -1604,9 +1604,9 @@ export Peano.GroupTheory (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Foundation  (Foundation/PeanoSystem.lean)
+-- namespace Peano.PeanoSystem  (Foundation/PeanoSystem.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Foundation (
+export Peano.PeanoSystem (
   PeanoSystem
   PeanoMorphism
   isPeanoIso
@@ -1615,9 +1615,9 @@ export Peano.Foundation (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Foundation  (Foundation/Initiality.lean)
+-- namespace Peano.Initiality  (Foundation/Initiality.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Foundation (
+export Peano.Initiality (
   ℕ₀_prim_rec
   ℕ₀_PeanoSystem
   ℕ₀_to
@@ -1637,9 +1637,9 @@ export Peano.Foundation (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Foundation  (Foundation/CantorPairing.lean)
+-- namespace Peano.CantorPairing  (Foundation/CantorPairing.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Foundation (
+export Peano.CantorPairing (
   triag
   pair
   antidiag
@@ -1661,9 +1661,9 @@ export Peano.Foundation (
 )
 
 -- ─────────────────────────────────────────────────────────────────
--- namespace Peano.Foundation  (Foundation/PureAxioms.lean)
+-- namespace Peano.PureAxioms  (Foundation/PureAxioms.lean)
 -- ─────────────────────────────────────────────────────────────────
-export Peano.Foundation (
+export Peano.PureAxioms (
   PurePA
   pa_parity
 )

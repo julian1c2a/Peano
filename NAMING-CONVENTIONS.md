@@ -260,6 +260,20 @@ predecible.
 ## 6. Espacios de Nombres (Namespaces)
 
 - Convención: `UpperCamelCase` (`Peano`, `ZFC`, `Polynomial`).
+- **Namespace plano, un nivel por fichero** (ver `DECISIONS.md` ADR-005): el
+  namespace de un fichero es `Peano.<Concepto>` — normalmente el nombre del fichero —
+  **no** la ruta completa de directorio. `Combinatorics/GroupTheory/Sylow/Sylow.lean`
+  → `namespace Sylow` (dentro de `namespace Peano`), no
+  `namespace Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Sylow`. Los directorios
+  agrupan ficheros por tema para navegación humana; no anidan namespaces.
+- **Un namespace, un fichero — nunca compartido**: si dos ficheros distintos
+  necesitan el mismo namespace interno porque tratan "el mismo tema" (ocurría en
+  `GroupTheory/*.lean` y `Foundation/*.lean` antes de corregirse el 2026-07-12), es
+  casi siempre síntoma de que deberían tener cada uno el suyo (`Action`,
+  `NormalSubgroup`, `QuotientGroup`, …) y usar `open` entre ellos.
+- **Grano más fino permitido dentro de un fichero**: un fichero puede declarar
+  sub-namespaces internos para distinguir sub-conceptos — legítimo si se documenta en
+  el propio fichero (ver `DECISIONS.md` ADR-005).
 - **Regla de no redundancia (crítica)**: nunca repetir el nombre del namespace dentro
   de los teoremas/definiciones que contiene — Lean ya añade el prefijo al usarlo desde
   fuera.
@@ -359,7 +373,7 @@ como andamiaje para demostrar `add_zero_eq_add_l_zero` y equivalencias similares
 sufijo `_l` denota **"definición alternativa con recursión sobre el argumento
 izquierdo"**, **no** la variante lateral `_left` de la Regla 11 — no confundir ambos
 usos. `add_l` y sus lemas asociados son **API pública** de `Peano.Add` (ver
-`DECISIONS.md` ADR-015 para la justificación). Este patrón no generaliza a otras
+`DECISIONS.md` ADR-016 para la justificación). Este patrón no generaliza a otras
 operaciones salvo que se documente aquí explícitamente.
 
 ---

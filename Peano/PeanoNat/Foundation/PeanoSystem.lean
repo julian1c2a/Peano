@@ -14,8 +14,8 @@ import Peano.PeanoNat
 namespace Peano
   open Peano
 
-  namespace Foundation
-    open Foundation
+  namespace PeanoSystem
+    open PeanoSystem
 
   /-- Un sistema de Peano (NNO — Natural Numbers Object): un tipo `N` con una constante
       `zero`, una función `succ`, los tres axiomas de Peano (inyectividad, discriminación,
@@ -65,11 +65,11 @@ namespace Peano
     pres_zero := rfl
     pres_succ := fun _ => rfl
 
-  end Foundation
+  end PeanoSystem
 
 end Peano
 
-export Peano.Foundation (
+export Peano.PeanoSystem (
   PeanoSystem
   PeanoMorphism
   isPeanoIso

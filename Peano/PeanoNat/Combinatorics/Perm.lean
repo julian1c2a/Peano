@@ -86,3 +86,9 @@ namespace Peano
 
   end Perm
 end Peano
+
+export Peano.Perm (
+  FunPerm.comp
+  Sym
+  card_Sym
+)

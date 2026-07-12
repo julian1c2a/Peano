@@ -26,7 +26,7 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.Action
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace CosetAction
 
     open Peano.FSet
     open Peano.EquivRel
@@ -35,6 +35,8 @@ namespace Peano
     open Peano.Mul
     open Peano.Pow
     open Peano.Arith
+    open Peano.Cosets
+    open Peano.Action
     open Peano.Primes
 
     private abbrev Prime := Peano.Primes.Prime
@@ -511,9 +513,9 @@ namespace Peano
       -- cosetRel G K r (G.op h r) → G.inv r · G.op h r ∈ K
       exact (cosetEquivRel G K).rel_of_mem_classOf r (G.op h r) hhr_in_r
 
-  end GroupTheory
+  end CosetAction
 end Peano
 
-export Peano.GroupTheory (
+export Peano.CosetAction (
   coset_conjugate_exists
 )

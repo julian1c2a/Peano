@@ -25,12 +25,14 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.NormalSubgroup
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace Action
 
     open Peano.FSet
     open Peano.FSetFunction
     open Peano.Group
     open Peano.Mul
+    open Peano.Cosets
+    open Peano.NormalSubgroup
 
     /-!
     # § 1. GroupAction — acción (izquierda) de un FinGroup sobre un FSet
@@ -579,10 +581,10 @@ namespace Peano
       · -- |G| = |Z(G)| + sum
         rw [class_equation_split, hrsum]
 
-  end GroupTheory
+  end Action
 end Peano
 
-export Peano.GroupTheory (
+export Peano.Action (
   GroupAction
   GroupAction.orb
   mem_orb_iff

@@ -20,8 +20,9 @@ namespace Peano
   open Peano
   open Peano.Axioms
 
-  namespace Foundation
-    open Foundation
+  namespace Initiality
+    open Initiality
+    open Peano.PeanoSystem
 
   -- ──────────────────────────────────────────────────���──────────────────────
   -- 1. ℕ₀ satisface el principio de recursión primitiva
@@ -173,11 +174,11 @@ namespace Peano
       ExistsUnique (fun h : ℕ₀ → A => h 𝟘 = a ∧ ∀ n, h (σ n) = f (h n)) :=
     ℕ₀_prim_rec a f
 
-  end Foundation
+  end Initiality
 
 end Peano
 
-export Peano.Foundation (
+export Peano.Initiality (
   ℕ₀_prim_rec
   ℕ₀_PeanoSystem
   ℕ₀_to

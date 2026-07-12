@@ -27,8 +27,8 @@ De ello se deduce el **Tercer Teorema de Isomorfía**: `(G/N) / (K/N) ≅ G/K`.
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
-    open Peano.FSet Peano.FSetFunction Peano.Group
+  namespace ThirdIsomorphism
+    open Peano.FSet Peano.FSetFunction Peano.Group Peano.Cosets Peano.QuotientGroup
 
     /-! ## § 0. Lemas auxiliares -/
 
@@ -362,10 +362,10 @@ namespace Peano
         rw [(G.op_id (G.inv _) (inv_mem G h_rep_G)).1]
         exact K.inv_closed _ hrep_K
 
-  end GroupTheory
+  end ThirdIsomorphism
 end Peano
 
-export Peano.GroupTheory (
+export Peano.ThirdIsomorphism (
   cosetRel_N_imp_K
   KmodN_normal
   thirdIsoMap

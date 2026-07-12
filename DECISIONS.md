@@ -93,29 +93,56 @@ Mathlib4, documentadas en `NAMING-CONVENTIONS.md`.
 **Justificación**: consistencia con el ecosistema Lean 4 más amplio.
 
 **Consecuencias**: ver `NAMING-CONVENTIONS.md` para el diccionario completo. **Nota de
-auditoría (2026-07-12, resuelta en ADR-015)**: `Peano/PeanoNat/Add.lean` declara `add_l`, una
+auditoría (2026-07-12, resuelta en ADR-016)**: `Peano/PeanoNat/Add.lean` declara `add_l`, una
 definición **alternativa** de la suma que recursa sobre el argumento izquierdo `n` (en
 vez de sobre `m`, como `add`), usada solo como andamiaje para demostrar
 `add_zero_eq_add_l_zero` y equivalencias similares. El sufijo `_l` aquí **no** es el
 `_left` de la Regla 11 (variante lateral de una relación) — denota "definición
-alternativa con recursión sobre argumento izquierdo". Resuelto en **ADR-015**: `add_l`
+alternativa con recursión sobre argumento izquierdo". Resuelto en **ADR-016**: `add_l`
 permanece pública.
 
 ---
 
-## ADR-005: Namespaces alineados con directorios
+## ADR-005: Namespace plano por fichero — los directorios organizan, no anidan namespaces
 
-**Fecha**: 2025-01-01
-**Estado**: Aceptado (con excepción histórica documentada — ver ADR-010)
+**Fecha**: 2025-01-01 (corregido 2026-07-12 tras auditoría — la versión anterior de
+este ADR describía mirroring completo de directorio, que **nunca** fue la práctica
+real del proyecto)
+**Estado**: Aceptado
 
-**Decisión**: cada subdirectorio corresponde a un sub-namespace.
+**Decisión**: cada fichero `.lean` recibe un namespace propio de un solo nivel bajo
+`Peano`: `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean` →
+`namespace Peano.Sylow`, **no** `Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Sylow`.
+Los subdirectorios (`Combinatorics/`, `GroupTheory/`, `Sylow/`, `Foundation/`, …) son
+puramente organizativos. Un fichero puede declarar sub-namespaces internos más finos
+para sub-conceptos (p. ej. dentro de `FSet.lean`), documentado localmente.
 
-**Justificación**: mapeo 1:1 claro entre sistema de ficheros y jerarquía de
-namespaces.
+**Corrección de auditoría (2026-07-12)**: se encontró que 11 ficheros de
+`Combinatorics/GroupTheory/` (incluyendo `Sylow/`) y 5 ficheros de `Foundation/`
+**compartían literalmente el mismo namespace interno** (`namespace GroupTheory` /
+`namespace Foundation`) en vez de tener cada uno el suyo — violación real de "un
+namespace por fichero", no del mirroring de directorio (que nunca fue la regla
+seguida). Corregido: cada fichero recibió su propio namespace
+(`Action`, `NormalSubgroup`, `QuotientGroup`, `FirstIsomorphism`, `SecondIsomorphism`,
+`ThirdIsomorphism`, `CorrespondenceTheorem`, `Zassenhaus`, `Cosets`, `CosetAction`,
+`Sylow` / `PeanoSystem`, `Initiality`, `PureAxioms`, `CantorPairing`, `GodelBeta`),
+añadiendo los `open Peano.<Dependencia>` necesarios para preservar las referencias
+cruzadas sin cualificar entre estos ficheros. De paso se descubrió y corrigió un bug
+de wiring preexistente y no relacionado: `Foundation/Foundation.lean` (el barrel)
+nunca importaba `PureAxioms.lean`, dejando su `export` en `Peano.lean` como código
+muerto nunca verificado por un build limpio.
 
-**Consecuencias**: `new-module.bash`/`gen-root.bash` escanean recursivamente. Ver
-ADR-010 sobre la excepción histórica de este proyecto (directorio `Peano/` vs.
-namespace `Peano` con mismatch heredado).
+**Justificación**: es la convención que el código ya seguía de facto en el resto del
+proyecto (verificado por auditoría exhaustiva: 57/57 ficheros de producción fuera de
+`GroupTheory/`/`Foundation/` ya usaban `Peano.<Concepto>` plano). Un mapeo 1:1
+directorio↔namespace se vuelve verboso y frágil pasados 3-4 niveles de anidamiento
+temático.
+
+**Consecuencias**: `new-module.bash` crea el fichero en el subdirectorio indicado
+pero declara el namespace con el nombre del fichero, no la ruta completa.
+`gen-root.bash` sigue escaneando subdirectorios recursivamente para los `import`
+(independiente del namespace). Ver ADR-010 sobre el mismatch, distinto y no
+relacionado, entre el directorio raíz `Peano/` y el namespace/lean_lib `Peano`.
 
 ---
 
@@ -337,24 +364,7 @@ en ese caso; hace falta el lema puente.
 
 ---
 
-## Plantilla para nuevas decisiones
-
-## ADR-NNN: [Título]
-
-**Fecha**: YYYY-MM-DD
-**Estado**: [Propuesto | Aceptado | Obsoleto | Sustituido por ADR-XXX]
-
-**Contexto**: [¿Por qué hace falta esta decisión?]
-
-**Decisión**: [¿Qué se decidió?]
-
-**Justificación**: [¿Por qué esta opción frente a las alternativas?]
-
-**Consecuencias**: [¿Cuáles son las contrapartidas?]
-
----
-
-## ADR-015: `add_l` permanece pública en `Peano.Add`
+## ADR-016: `add_l` permanece pública en `Peano.Add`
 
 **Fecha**: 2026-07-12
 **Estado**: Aceptado
@@ -379,3 +389,20 @@ documentado, se planteó hacerla `private` en ADR-004.
 **Consecuencias**: el sufijo `_l` denota oficialmente "definición alternativa con
 recursión sobre argumento izquierdo" en este proyecto. No generaliza a otras
 operaciones salvo que se documente explícitamente en §9 de `NAMING-CONVENTIONS.md`.
+
+---
+
+## Plantilla para nuevas decisiones
+
+## ADR-NNN: [Título]
+
+**Fecha**: YYYY-MM-DD
+**Estado**: [Propuesto | Aceptado | Obsoleto | Sustituido por ADR-XXX]
+
+**Contexto**: [¿Por qué hace falta esta decisión?]
+
+**Decisión**: [¿Qué se decidió?]
+
+**Justificación**: [¿Por qué esta opción frente a las alternativas?]
+
+**Consecuencias**: [¿Cuáles son las contrapartidas?]

@@ -31,8 +31,8 @@ Construye la estructura de grupo finito en el conjunto de cosetos izquierdos
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
-    open Peano.FSet Peano.FSetFunction Peano.Group
+  namespace QuotientGroup
+    open Peano.FSet Peano.FSetFunction Peano.Group Peano.Cosets
 
     /-!
     ## § 1. Portador del cociente
@@ -554,10 +554,10 @@ namespace Peano
         rw [inv_inv_eq G hg_G]
         exact h_simp ▸ h_conj
 
-  end GroupTheory
+  end QuotientGroup
 end Peano
 
-export Peano.GroupTheory (
+export Peano.QuotientGroup (
   quotientCarrier
   mem_quotientCarrier_iff
   mem_quotientCarrier_is_leftCoset

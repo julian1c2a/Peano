@@ -19,8 +19,9 @@ Dados un grupo finito `G`, un subgrupo `H ≤ G` y un subgrupo normal `N ⊴ G`,
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
-    open Peano.FSet Peano.FSetFunction Peano.Group
+  namespace SecondIsomorphism
+    open Peano.FSet Peano.FSetFunction Peano.Group Peano.Cosets Peano.NormalSubgroup
+    open Peano.QuotientGroup Peano.FirstIsomorphism
 
     /-! ## § 0. Lema auxiliar -/
 
@@ -340,10 +341,10 @@ namespace Peano
         (secondIsoMap G H N hn).Bijective :=
       ⟨secondIsoMap_injective G H N hn, secondIsoMap_surjective G H N hn⟩
 
-  end GroupTheory
+  end SecondIsomorphism
 end Peano
 
-export Peano.GroupTheory (
+export Peano.SecondIsomorphism (
   subgroupHN
   mem_subgroupHN_iff
   H_le_subgroupHN

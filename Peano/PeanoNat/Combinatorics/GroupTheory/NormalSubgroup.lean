@@ -22,11 +22,12 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace NormalSubgroup
 
     open Peano.FSet
     open Peano.Group
     open Peano.Mul
+    open Peano.Cosets
 
     /-!
     # § 1. Centralizador C_G(H)
@@ -336,10 +337,10 @@ namespace Peano
               (G.op_inv g hg).1, (G.op_id h (H.subset h hh)).1]
         rw [this]; exact hh
 
-  end GroupTheory
+  end NormalSubgroup
 end Peano
 
-export Peano.GroupTheory (
+export Peano.NormalSubgroup (
   centralizer
   mem_centralizer_iff
   center

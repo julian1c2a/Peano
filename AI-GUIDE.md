@@ -67,9 +67,17 @@ completo.
 
 ### (3.) Espacios de nombres (Namespaces)
 
-Los namespaces no son necesariamente iguales a los módulos. Documentar qué namespaces
-existen, a qué módulos pertenecen y cómo se relacionan. Todos derivan del namespace
-raíz del proyecto.
+**Namespace plano por fichero, un solo nivel bajo el namespace raíz** (ver
+`DECISIONS.md` ADR-005): `Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean`
+→ `namespace Peano.Sylow`, **no** `Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Sylow`.
+Los directorios organizan ficheros por tema; no anidan namespaces. Dentro de un
+fichero se permite un grano más fino (sub-namespaces para sub-conceptos, p. ej. los
+de `FSet.lean`), documentado localmente. **Nunca compartir el mismo namespace interno
+entre dos ficheros distintos** — cada fichero tiene el suyo; usar `open` para acceder
+a namespaces de otros ficheros (corregido 2026-07-12: `GroupTheory/*.lean` y
+`Foundation/*.lean` compartían namespace entre varios ficheros — ver ADR-005).
+Documentar en REFERENCE.md qué namespaces existen, a qué módulo pertenece cada uno y
+cómo se relacionan.
 
 ### (4.) Definiciones introducidas
 

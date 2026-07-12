@@ -228,36 +228,36 @@ end AssertConstructiveCmd
 -- Comprobaciones: CantorPairing.lean
 -- ─────────────────────────────────────────────────────────────────
 
-#assert_constructive Peano.Foundation.triag
-#assert_constructive Peano.Foundation.triag_zero
-#assert_constructive Peano.Foundation.triag_succ
-#assert_constructive Peano.Foundation.triag_strict_mono
-#assert_constructive Peano.Foundation.triag_le_of_le
-#assert_constructive Peano.Foundation.pair
-#assert_constructive Peano.Foundation.triag_le_pair
-#assert_constructive Peano.Foundation.pair_lt_triag_succ
-#assert_constructive Peano.Foundation.antidiag_exists
-#assert_constructive Peano.Foundation.antidiag_unique
-#assert_constructive Peano.Foundation.antidiag
-#assert_constructive Peano.Foundation.antidiag_spec
-#assert_constructive Peano.Foundation.antidiag_pair
-#assert_constructive Peano.Foundation.fst
-#assert_constructive Peano.Foundation.snd
-#assert_constructive Peano.Foundation.pair_fst
-#assert_constructive Peano.Foundation.pair_snd
-#assert_constructive Peano.Foundation.pair_surj
+#assert_constructive Peano.CantorPairing.triag
+#assert_constructive Peano.CantorPairing.triag_zero
+#assert_constructive Peano.CantorPairing.triag_succ
+#assert_constructive Peano.CantorPairing.triag_strict_mono
+#assert_constructive Peano.CantorPairing.triag_le_of_le
+#assert_constructive Peano.CantorPairing.pair
+#assert_constructive Peano.CantorPairing.triag_le_pair
+#assert_constructive Peano.CantorPairing.pair_lt_triag_succ
+#assert_constructive Peano.CantorPairing.antidiag_exists
+#assert_constructive Peano.CantorPairing.antidiag_unique
+#assert_constructive Peano.CantorPairing.antidiag
+#assert_constructive Peano.CantorPairing.antidiag_spec
+#assert_constructive Peano.CantorPairing.antidiag_pair
+#assert_constructive Peano.CantorPairing.fst
+#assert_constructive Peano.CantorPairing.snd
+#assert_constructive Peano.CantorPairing.pair_fst
+#assert_constructive Peano.CantorPairing.pair_snd
+#assert_constructive Peano.CantorPairing.pair_surj
 
 -- ─────────────────────────────────────────────────────────────────
 -- Comprobaciones: GodelBeta.lean (parte constructiva)
 -- (encodeList y encode_decode usan Classical.choose — no se comprueban)
 -- ─────────────────────────────────────────────────────────────────
 
-#assert_constructive Peano.Foundation.beta
-#assert_constructive Peano.Foundation.beta_lt
-#assert_constructive Peano.Foundation.beta_of_lt
-#assert_constructive Peano.Foundation.godel_beta_seq
-#assert_constructive Peano.Foundation.decodeList
-#assert_constructive Peano.Foundation.list_decode_length
+#assert_constructive Peano.GodelBeta.beta
+#assert_constructive Peano.GodelBeta.beta_lt
+#assert_constructive Peano.GodelBeta.beta_of_lt
+#assert_constructive Peano.GodelBeta.godel_beta_seq
+#assert_constructive Peano.GodelBeta.decodeList
+#assert_constructive Peano.GodelBeta.list_decode_length
 
 -- ─────────────────────────────────────────────────────────────────
 -- Comprobaciones: StrictOrder.lean

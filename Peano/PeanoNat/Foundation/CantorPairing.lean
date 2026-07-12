@@ -31,8 +31,8 @@ import Peano.PeanoNat.Sqrt
 namespace Peano
   open Peano
 
-  namespace Foundation
-    open Foundation
+  namespace CantorPairing
+    open CantorPairing
     open Peano.Sub
     open Peano.Sqrt
 
@@ -359,11 +359,11 @@ namespace Peano
     rw [add_comm]
     exact sub_k_add_k z (triag (antidiag z)) h_le
 
-  end Foundation
+  end CantorPairing
 
 end Peano
 
-export Peano.Foundation (
+export Peano.CantorPairing (
   triag
   pair
   antidiag

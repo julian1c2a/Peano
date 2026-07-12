@@ -29,9 +29,9 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
 set_option autoImplicit false
 
 namespace Peano
-  namespace GroupTheory
+  namespace CorrespondenceTheorem
 
-    open Peano.FSet Peano.FSetFunction Peano.Group
+    open Peano.FSet Peano.FSetFunction Peano.Group Peano.Cosets Peano.QuotientGroup
 
     /-======================================================================
       § 0. Extensionalidad genérica de FSet
@@ -409,10 +409,10 @@ namespace Peano
       have h_card := card_eq_mul_of_uniform_fibers f N.carrier.card h_uniform
       rw [h_card, mul_comm]
 
-  end GroupTheory
+  end CorrespondenceTheorem
 end Peano
 
-export Peano.GroupTheory (
+export Peano.CorrespondenceTheorem (
   preimageSubgroup
   mem_preimageSubgroup_iff
   N_le_preimageSubgroup

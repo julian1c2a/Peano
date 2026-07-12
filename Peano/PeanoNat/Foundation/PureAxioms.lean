@@ -30,8 +30,10 @@ namespace Peano
   open Peano
   open Peano.Axioms
 
-  namespace Foundation
-    open Foundation
+  namespace PureAxioms
+    open PureAxioms
+    open Peano.PeanoSystem
+    open Peano.Initiality
 
   -- ─────────────────────────────────────────────────────────────────────────
   -- § 1. Los seis axiomas de Peano como `private axiom` de Lean 4
@@ -250,11 +252,11 @@ namespace Peano
         isPeanoIso ℕ₀_PeanoSystem PurePA f) :=
     peano_unique ℕ₀_PeanoSystem PurePA
 
-  end Foundation
+  end PureAxioms
 
 end Peano
 
-export Peano.Foundation (
+export Peano.PureAxioms (
   PurePA
   pa_parity
 )

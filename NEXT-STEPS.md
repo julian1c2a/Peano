@@ -21,12 +21,27 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
   también tiraba de `Classical.choice` sin dejar rastro grepeable — localizado por
   bisección con `sorry`. Ver PLANNING.md Fase C.2 para la metodología, ahora
   obligatoria en C.3 también.
-- **Siguiente paso inmediato y concreto**: PLANNING.md Fase **C.4** —
-  `Foundation/GodelBeta.lean`, `Classical.choose`/`choose_spec` en la reconstrucción
-  de la función β de Gödel (líneas 587–588, 636–639). Independiente de C.2/C.3, se
-  puede hacer ya. Ver `PLANNING.md` §"Plan de desarrollo — eliminación de Classical"
-  para el resto de fases (C.3, C.5, C.6) y la metodología de verificación con
-  `#print axioms` + bisección con `sorry`.
+- Fase C.3 (`Sylow/Sylow.lean`) — texto ✅ limpio (2026-07-13): los 8
+  `Classical.em`/`Classical.byContradiction` sustituidos caso a caso (swaps directos a
+  `Decidable.em`/`Decidable.byContradiction` donde ya había instancia real; 2 casos
+  con construcción manual vía `List.any`, uno de ellos con el mismo problema de `simp`
+  genérico que C.2). Build 73 jobs, 0 sorry, 0 texto `Classical.`/`classical`.
+- **Hallazgo nuevo, PENDIENTE DE DECISIÓN — Fase C.9**: pese al texto limpio,
+  `#print axioms` muestra que `cauchy_minimal`, `sylow_lift_from_cauchy`,
+  `sylow_first` y `sylow_third` (NO `sylow_second`) siguen dependiendo de
+  `Classical.choice` — no por un descuido, sino porque **`Group.order`** (usado
+  genuinamente por el argumento de Cauchy) está definido vía
+  `choose_unique`/`Classical.indefiniteDescription`. Arreglarlo requiere redefinir
+  `order` con búsqueda acotada (el orden divide `|G|` por Lagrange) — cambio de
+  definición, no de táctica, con impacto en todo `Group.lean`. Ver `PLANNING.md`
+  Fase C.9 para el análisis completo. **No decidido todavía si abordarlo ahora o en
+  sesión aparte.**
+- **Siguiente paso concreto (si se sigue el orden original)**: PLANNING.md Fase
+  **C.4** — `Foundation/GodelBeta.lean`, `Classical.choose`/`choose_spec` en la
+  reconstrucción de la función β de Gödel (líneas 587–588, 636–639). Independiente de
+  C.9, se puede hacer sin esperar esa decisión. Ver `PLANNING.md`
+  §"Plan de desarrollo — eliminación de Classical" para el resto de fases (C.5, C.6,
+  C.9) y la metodología de verificación con `#print axioms` + bisección con `sorry`.
 
 ## Estado actual del build (2026-07-13)
 

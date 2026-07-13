@@ -431,7 +431,17 @@ aparece en un grep de `Classical\.` — hace falta buscarla también como palabr
    (`card_eq_one_iff_singleton`) sin relación aparente con el `Classical.em` original
    también tiraba de `Classical.choice`, sin dejar rastro textual grepeable —
    localizado por bisección con `sorry` (ver PLANNING.md Fase C.2 para la metodología,
-   ahora obligatoria también en C.3). Queda `Sylow.lean`.
+   ahora obligatoria también en C.3). **`Sylow.lean` — texto limpio (2026-07-13)**: los
+   8 usos literales sustituidos caso a caso (ver PLANNING.md Fase C.3 para el detalle
+   de cada uno). Pero `#print axioms` reveló que 4 de los 5 teoremas exportados
+   (`cauchy_minimal`, `sylow_lift_from_cauchy`, `sylow_first`, `sylow_third` — no
+   `sylow_second`) siguen dependiendo de `Classical.choice`, esta vez no por un uso
+   accidental sino porque **`Group.order` (`Combinatorics/Group.lean:269`) está
+   definido vía `choose_unique`/`Classical.indefiniteDescription`**, y el argumento de
+   Cauchy usa `order` genuinamente. Ver PLANNING.md **Fase C.9** (nueva, no estaba en
+   el alcance original de este ADR) — requiere redefinir `order` constructivamente
+   (búsqueda acotada, el orden divide `|G|` por Lagrange) en vez de eliminar un uso de
+   táctica; alcance y riesgo mayores que C.1–C.7, pendiente de decisión.
 4. `ListsAndSets/EquivRel.lean` línea 117 — táctica `classical` (no `Classical.em`
    literal) en `EquivRelOn.classOf_eq_or_disjoint`. **Ya resuelto (2026-07-13)** —
    mismo patrón que el punto 3, verificado con `#print axioms` que

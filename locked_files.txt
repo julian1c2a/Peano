@@ -48,7 +48,6 @@ Peano/PeanoNat/Primes.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
 Peano/PeanoNat/Foundation/GodelBeta.lean
 Peano/PeanoNat/Foundation/Initiality.lean
 Peano/PeanoNat/Foundation/PeanoSystem.lean
@@ -68,3 +67,4 @@ Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean

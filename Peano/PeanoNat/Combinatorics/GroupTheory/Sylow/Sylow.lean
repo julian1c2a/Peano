@@ -2910,7 +2910,7 @@ namespace Peano
         | cons S₀ rest =>
           have hS₀_mem : S₀ ∈ Ω := hΩ.symm ▸ List.mem_cons_self
           obtain ⟨hS₀_sorted, hS₀_memG⟩ := hΩ_prop S₀ hS₀_mem
-          rcases Classical.em (p ∣ lengthₚ (wieldandtOrb G Ω S₀)) with horb_dvd | horb_ndvd
+          by_cases horb_dvd : p ∣ lengthₚ (wieldandtOrb G Ω S₀)
           · -- p | |Orb(S₀)|: extract Ω' = Ω \ Orb(S₀) and apply IH
             let q₀ : List ℕ₀ → Bool :=
               fun T => G.carrier.elems.any (fun g => decide (wieldandtAct G g S₀ = T))
@@ -3038,7 +3038,7 @@ namespace Peano
                 congrArg Λ h_orb_len]
             exact ⟨S₁, hΩ ▸ hS₁_Ω, hΩ ▸ hS₁_ndvd_Ω⟩
           · -- ¬ p ∣ |Orb(S₀)|: we are done
-            exact ⟨S₀, hΩ ▸ hS₀_mem, hΩ ▸ horb_ndvd⟩
+            exact ⟨S₀, hΩ ▸ hS₀_mem, hΩ ▸ horb_dvd⟩
 
     /-- Wielandt: si G actúa sobre Ω (N-subsets de G) y p ∤ |Ω|, ∃ H ≤ G con |H| = N = p^(m+1). -/
     private theorem wielandt_fixed_point_exists
@@ -3944,13 +3944,24 @@ namespace Peano
               p ∣ (conjAct.orb x).card := by
             intro x hx hx_nf
             have ⟨g₀, hg₀_mem, hg₀_ne⟩ : ∃ g₀ ∈ G.carrier.elems, conjAct.act g₀ x ≠ x := by
-              apply Classical.byContradiction; intro hall
-              have hfixT : isFixed x = true := by
-                simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
-                intro g hg
-                apply Classical.byContradiction; intro h_ne
-                exact hall ⟨g, hg, h_ne⟩
-              simp [hfixT] at hx_nf
+              cases hb : G.carrier.elems.any (fun g => decide (conjAct.act g x ≠ x)) with
+              | true =>
+                obtain ⟨g₀, hg₀_mem, hg₀_ne_dec⟩ := List.any_eq_true.mp hb
+                exact ⟨g₀, hg₀_mem, decide_eq_true_eq.mp hg₀_ne_dec⟩
+              | false =>
+                have hall : ¬ ∃ g₀ ∈ G.carrier.elems, conjAct.act g₀ x ≠ x := by
+                  rintro ⟨g₀, hg₀_mem, hg₀_ne⟩
+                  have htrue :
+                      G.carrier.elems.any (fun g => decide (conjAct.act g x ≠ x)) = true :=
+                    List.any_eq_true.mpr ⟨g₀, hg₀_mem, decide_eq_true_eq.mpr hg₀_ne⟩
+                  rw [hb] at htrue
+                  exact absurd htrue (by decide)
+                have hfixT : isFixed x = true := by
+                  simp only [isFixed, List.all_eq_true, decide_eq_true_eq]
+                  intro g hg
+                  apply Decidable.byContradiction; intro h_ne
+                  exact hall ⟨g, hg, h_ne⟩
+                simp [hfixT] at hx_nf
             -- El estabilizador es propio
             have h_stab_ne : (conjAct.stab x hx).carrier.card ≠ G.carrier.card := by
               intro h_eq
@@ -3985,7 +3996,7 @@ namespace Peano
               exact hg₀_ne (List.mem_singleton.mp hg₀_in)
             have h_stab_ndvd : ¬ pow_dvd_card p (σ (σ m')) (conjAct.stab x hx).carrier :=
               h_no_proper (conjAct.stab x hx) h_stab_ne
-            apply Classical.byContradiction; intro h_orb_ndvd
+            apply Decidable.byContradiction; intro h_orb_ndvd
             have h_cop : Coprime (p ^ σ (σ m')) (conjAct.orb x).card := by
               unfold Coprime IsGCD
               refine ⟨one_divides _, one_divides _, ?_⟩
@@ -4066,7 +4077,7 @@ namespace Peano
                     | true => simp [h] at hy_nInOrb
                     | false => rfl
                   -- Prove goal by contradiction: assume conjAct.act g y is in orbit of x₀
-                  apply Classical.byContradiction; intro h_not_goal
+                  apply Decidable.byContradiction; intro h_not_goal
                   have h_inOrb_gy : inOrb₀ (conjAct.act g y) = true := by
                     cases h : inOrb₀ (conjAct.act g y) with
                     | true => rfl
@@ -4148,7 +4159,7 @@ namespace Peano
                     obtain ⟨hz_X, hz_inOrb⟩ := hz
                     simp only [inOrb₀, List.any_eq_true, decide_eq_true_eq] at hz_inOrb
                     obtain ⟨g, hg_G, hg_eq⟩ := hz_inOrb
-                    apply Classical.byContradiction; intro h_fixed_z
+                    apply Decidable.byContradiction; intro h_fixed_z
                     have h_fixed_z_true : isFixed z = true := by
                       cases h : isFixed z with
                       | true => rfl
@@ -4917,9 +4928,10 @@ namespace Peano
       induction N using well_founded_lt.induction
       rename_i N' ih
       intro hN'
-      rcases Classical.em (∃ k : ℕ₀, mul p k = N') with hdvd | hndvd
-      · obtain ⟨k, hk⟩ := hdvd
-        rcases Classical.em (k = 𝟘) with rfl | hk_ne
+      rcases Decidable.em (p ∣ N') with hdvd | hndvd
+      · obtain ⟨k, hk_eq⟩ := hdvd
+        have hk : mul p k = N' := hk_eq.symm
+        rcases Decidable.em (k = 𝟘) with rfl | hk_ne
         · rw [mul_zero] at hk; exact absurd hk.symm hN'
         · have hlt : lt₀ k N' := hk ▸ mul_lt_right k p hk_ne (one_lt_prime hp)
           obtain ⟨n₀, ⟨m, hm⟩, hn₀_ndvd⟩ := ih k hlt hk_ne
@@ -4947,7 +4959,7 @@ namespace Peano
         exact ⟨𝟘, ⟨N', by rw [hpz, one_mul]⟩,
           fun ⟨m, hm⟩ => hndvd ⟨m, by
             have hps1 : p ^ σ 𝟘 = Mul.mul (p ^ 𝟘) p := pow_succ p 𝟘
-            rw [hps1, hpz, one_mul] at hm; exact hm⟩⟩
+            rw [hps1, hpz, one_mul] at hm; exact hm.symm⟩⟩
 
     /-- Existencia de un subgrupo de Sylow-p. -/
     private theorem sylow_existence

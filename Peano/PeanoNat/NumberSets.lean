@@ -1,11 +1,11 @@
-import Peano.PeanoNat.Arith
-import Peano.PeanoNat.ListsAndSets.FSet
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
 -/
+
+import Peano.PeanoNat.Arith
+import Peano.PeanoNat.ListsAndSets.FSet
 
 -- Peano/PeanoNat/NumberSets.lean
 -- Conjuntos numéricos notables: primos, divisores, coprimos, múltiplos.

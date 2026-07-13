@@ -1,6 +1,6 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-05-21
+**Última actualización:** 2026-07-13
 **Autor**: Julián Calderón Almendros
 
 ---
@@ -14,13 +14,17 @@ Biblioteca de aritmética de Peano pura en Lean 4, sin Mathlib, construida ínte
 ## Estado de compilación
 
 ```
-lean-toolchain  →  leanprover/lean4:v4.30.0
+lean-toolchain  →  leanprover/lean4:v4.31.0
 lake build      →  Build completed successfully
-                   full build: ~66 jobs · último rebuild incremental: 19 jobs [2026-05-21]
+                   full build: 73 jobs [2026-07-13]
 sorry count     →  0
-warnings        →  2 (htrans sin usar en wielandt_fixed_point_exists; hg_ne sin usar en wielandt_orbit_stab)
+warnings        →  3 (SecondIsomorphism.lean:276,302,324 — simp arg `HNg` sin usar)
 errors          →  0
 ```
+
+Usa `bash check-docs-sync.bash` para verificar que este conteo sigue coincidiendo con
+`lake build` antes de dar por buena esta sección — ver `AI-GUIDE.md` §"Scripts
+disponibles".
 
 ### Axiomas privados — estado final (2026-05-10)
 
@@ -160,8 +164,20 @@ p∤|Ω| → `wielandt_exists_nondvd_orbit_aux` da punto fijo → estabilizador 
 
 ## Próximos objetivos
 
-1. **`ConstructiveCheck.lean`** — Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
-2. **Feature-freeze + handoff a `AczelSetTheory`** — Precondición: el punto anterior.
+**Cambio de rumbo (2026-07-13, ver DECISIONS.md ADR-017)**: el proyecto se
+re-desarrolla como completamente intuicionista/constructivista, prohibiendo
+`Classical.*`. Esto sustituye el plan anterior de feature-freeze + handoff a
+`AczelSetTheory` — ver `PLANNING.md` para el plan de desarrollo completo por fases.
+
+1. **Eliminar `Classical.*`** de los 3 puntos reales que quedan: `Prelim/Classical.lean`
+   (el wrapper `choose`/`choose_unique`), `Foundation/GodelBeta.lean` (`Classical.choose`
+   en la reconstrucción de β de Gödel), y `Combinatorics/GroupTheory/{Action,
+   Sylow/CosetAction,Sylow/Sylow}.lean` (`Classical.em`/`Classical.byContradiction` en
+   teoría de grupos). Ver `PLANNING.md` fases C.1–C.4.
+2. **Ampliar `ConstructiveCheck.lean`** con `#assert_constructive` para todo símbolo
+   público, para que sirva de puerta de compilación del ADR-017 (no solo para
+   aritmética base).
+3. **Feature-freeze + handoff a `AczelSetTheory`** — pospuesto hasta cerrar el punto 1.
 
 ---
 

@@ -1,6 +1,6 @@
 # Decisiones de Diseño — Peano
 
-**Última actualización:** 2026-07-12
+**Última actualización:** 2026-07-13
 **Autor**: Julián Calderón Almendros
 
 Registro de decisiones arquitectónicas (ADR) de este proyecto. Cada entrada documenta
@@ -17,11 +17,15 @@ Registro de decisiones arquitectónicas (ADR) de este proyecto. Cada entrada doc
 
 ## ⚠️ MANDATORIES (reglas vinculantes de este proyecto)
 
-**Sin MANDATORIES declaradas** — este proyecto no prohíbe `Classical.*` (se usa con
-normalidad, p. ej. `Classical.byContradiction` como sustituto de `by_contra`, no
-disponible sin Mathlib). AczelSetTheory (proyecto sucesor que consume `peanolib`)
-**sí** tiene esa directiva — ver su propio `DECISIONS.md` §MANDATORIES — pero no
-aplica retroactivamente a Peano.
+**MANDATORY-1 (desde 2026-07-13, ver ADR-017): prohibido `Classical.*` en código
+nuevo.** Este proyecto se re-desarrolla como completamente intuicionista y
+constructivista. Ningún `def`/`theorem` nuevo puede depender de `Classical.choice`
+(verificable con `#assert_constructive`, ver `Peano/ConstructiveCheck.lean`). El
+código existente que aún depende de él (`Prelim/Classical.lean`,
+`Foundation/GodelBeta.lean`, `Combinatorics/GroupTheory/{Action,Sylow/CosetAction,
+Sylow/Sylow}.lean`) es deuda a eliminar según el plan de `PLANNING.md`, no un
+precedente a imitar. Esto **revierte** la nota histórica de esta sección (previamente
+"este proyecto no prohíbe Classical.*") — ver ADR-017 para la justificación completa.
 
 ---
 
@@ -389,6 +393,67 @@ documentado, se planteó hacerla `private` en ADR-004.
 **Consecuencias**: el sufijo `_l` denota oficialmente "definición alternativa con
 recursión sobre argumento izquierdo" en este proyecto. No generaliza a otras
 operaciones salvo que se documente explícitamente en §9 de `NAMING-CONVENTIONS.md`.
+
+---
+
+## ADR-017: Re-desarrollo como proyecto completamente intuicionista/constructivista — prohibición de `Classical.*`
+
+**Fecha**: 2026-07-13
+**Estado**: Aceptado
+
+**Contexto**: Peano nació sin la restricción de evitar lógica clásica (ver
+MANDATORIES arriba, versión previa a esta entrada). Una auditoría de 2026-07-13
+(`AUDIT-2026-07-13.md`) verificó por grep exhaustivo de `Classical\.` en los 73
+módulos de producción que el uso real de `Classical.*` es mucho más acotado de lo que
+la documentación histórica (`ConstructiveCheck.lean`) sugería: `FSet.lean` y
+`FSetFunction.lean` usan `Decidable.byContradiction` (constructivo, no depende de
+`Classical.choice`), no `Classical.byContradiction` como se documentaba; y
+`CantorPairing.antidiag/fst/snd` son `def` computables, no `noncomputable` vía
+`choose_unique` como decía el CHANGELOG histórico. El alcance real de `Classical.*` se
+reduce a 3 focos:
+
+1. `Prelim/Classical.lean` — expone `choose`/`choose_unique` vía
+   `Classical.indefiniteDescription` (el único punto de entrada de `Classical.choice`
+   al proyecto).
+2. `Foundation/GodelBeta.lean` — `Classical.choose`/`choose_spec` en la reconstrucción
+   de la función β de Gödel (4 usos).
+3. `Combinatorics/GroupTheory/{Action.lean, Sylow/CosetAction.lean, Sylow/Sylow.lean}`
+   — `Classical.em`/`Classical.byContradiction` en case-splits de teoría de grupos (10
+   usos en total), en contextos donde el predicado en cuestión es sobre un `FSet`
+   finito y probablemente `Decidable`.
+
+**Decisión**: Peano se re-desarrolla como proyecto completamente intuicionista y
+constructivista. `Classical.*` queda prohibido para código nuevo (MANDATORY-1 arriba).
+El código existente que lo usa se elimina progresivamente reemplazando cada
+`Classical.em`/`Classical.byContradiction` por un `Decidable`/`by_cases` explícito
+cuando el predicado lo permite, y sustituyendo `Prelim.choose`/`GodelBeta`'s
+`Classical.choose` por construcciones con búsqueda acotada/recursión bien fundada
+(siguiendo el precedente ya sentado por `CantorPairing.antidiag`, que ya es
+constructivo). Ver `PLANNING.md` §"Plan de desarrollo — eliminación de Classical" para
+las fases concretas.
+
+**Justificación**: máximo rigor lógico — un desarrollo intuicionista es constructivo
+por diseño (todo teorema de existencia viene acompañado de un algoritmo real para
+construir el testigo), lo cual es coherente con el espíritu fundacional del proyecto
+(ADR-001: construir todo desde cero sin atajos) y con el hecho verificado de que el
+95% del código ya era constructivo sin proponérselo explícitamente. `AczelSetTheory`
+(sucesor que consume `peanolib`) ya exige esto en su propio `DECISIONS.md`
+§MANDATORIES — alinear Peano con esa exigencia desde ahora evita una migración de
+compatibilidad más costosa después del handoff.
+
+**Consecuencias**:
+
+- El plan de feature-freeze + handoff a `AczelSetTheory` (antes NEXT-STEPS.md T.3,
+  PLANNING.md P.3) queda **pospuesto** hasta cerrar la eliminación de `Classical.*`
+  — ver `CURRENT-STATUS-PROJECT.md` §"Próximos objetivos".
+- `Peano/ConstructiveCheck.lean` (el mecanismo `#assert_constructive` que ya existía)
+  pasa a ser la puerta de verificación de este ADR — se amplía su cobertura a todo
+  símbolo público, no solo a la aritmética base.
+- Los módulos "core aritmético" ya congelados (`frozen_files.txt`) no se ven afectados
+  — ya son constructivos y no requieren tocarse.
+- Los ficheros con `Classical.*` activo deben desbloquearse uno a uno siguiendo el
+  protocolo de `AI-GUIDE.md` §20 para su refactorización; ninguno está congelado
+  (`frozen_files.txt`), así que no aplica el protocolo de extensión `*Ext.lean`.
 
 ---
 

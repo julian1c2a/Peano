@@ -206,19 +206,23 @@ case $COMMAND in
     # ── list ──────────────────────────────────────────────────────────────────
     list)
         echo "=== Frozen Modules (permanent, in $FROZEN_LIST) ==="
+        HAS_FROZEN=0
         if [ -s "$FROZEN_LIST" ]; then
             while IFS= read -r f; do
-                [ -n "$f" ] && echo "  [frozen] $f"
+                [ -z "$f" ] && continue
+                [[ "$f" == \#* ]] && continue
+                echo "  [frozen] $f"
+                HAS_FROZEN=1
             done < "$FROZEN_LIST"
-        else
-            echo "  (none)"
         fi
+        [ "${HAS_FROZEN:-0}" -eq 0 ] && echo "  (none)"
         echo ""
         echo "=== Locked Files (temporary, in $LOCK_LIST) ==="
         HAS_LOCKED=0
         if [ -s "$LOCK_LIST" ]; then
             while IFS= read -r f; do
                 [ -z "$f" ] && continue
+                [[ "$f" == \#* ]] && continue
                 if ! is_frozen "$f"; then
                     echo "  [locked] $f"
                     HAS_LOCKED=1

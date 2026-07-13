@@ -1,14 +1,15 @@
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
 import Peano.PeanoNat
 import Peano.PeanoNat.Axioms
 import Peano.PeanoNat.StrictOrder
 import Peano.PeanoNat.Order
 import Peano.PeanoNat.Tuple
 
-/-
-Copyright (c) 2026. All rights reserved.
-Author: Julián Calderón Almendros
-License: MIT
--/
 -- § 1. DecidableEq para ℕ₁ y ℕ₂
 -- § 2. Órdenes inducidos sobre ℕ₁ y ℕ₂
 -- § 3. Decidabilidad de órdenes sobre subtipos

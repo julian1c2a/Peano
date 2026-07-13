@@ -19,7 +19,6 @@ Peano/PeanoNat/Isomorph.lean
 Peano/PeanoNat/Lattice.lean
 Peano/PeanoNat/Log.lean
 Peano/PeanoNat/Mul.lean
-Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Order.lean
 Peano/PeanoNat/Pairing.lean
 Peano/PeanoNat/Sqrt.lean
@@ -31,9 +30,7 @@ Peano/PeanoNat/Combinatorics/Binom.lean
 Peano/PeanoNat/Combinatorics/Counting.lean
 Peano/PeanoNat/Combinatorics/Factorial.lean
 Peano/PeanoNat/Combinatorics/Fibonacci.lean
-Peano/PeanoNat/Combinatorics/Group.lean
 Peano/PeanoNat/Combinatorics/NewtonBinom.lean
-Peano/PeanoNat/Combinatorics/Orbit.lean
 Peano/PeanoNat/Combinatorics/Pow.lean
 Peano/PeanoNat/Combinatorics/Product.lean
 Peano/PeanoNat/Combinatorics/Sign.lean
@@ -41,8 +38,6 @@ Peano/PeanoNat/Combinatorics/Summation.lean
 Peano/PeanoNat/Foundation/Foundation.lean
 Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/ListsAndSets/FSet.lean
-Peano/PeanoNat/ListsAndSets/FSetFunction.lean
-Peano/PeanoNat/ListsAndSets/List.lean
 Peano/PeanoNat/NumberTheory/ChineseRemainder.lean
 Peano/PeanoNat/NumberTheory/Fermat.lean
 Peano/PeanoNat/NumberTheory/ModEq.lean
@@ -53,12 +48,7 @@ Peano/PeanoNat/Fractions.lean
 Peano/PeanoNat/Primes.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/ThirdIsomorphism.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Cosets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
@@ -68,3 +58,13 @@ Peano/PeanoNat/Foundation/PeanoSystem.lean
 Peano/PeanoNat/Foundation/PureAxioms.lean
 Peano/PeanoNat/Foundation/CantorPairing.lean
 Peano/PeanoNat/Combinatorics/Perm.lean
+Peano/PeanoNat/Combinatorics/Group.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/ThirdIsomorphism.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean
+Peano/PeanoNat/Combinatorics/Orbit.lean
+Peano/PeanoNat/ListsAndSets/FSetFunction.lean
+Peano/PeanoNat/ListsAndSets/List.lean
+Peano/PeanoNat/NumberSets.lean

@@ -59,21 +59,32 @@ import Peano.PeanoNat.Pairing
 -- ─────────────────────────────────────────────────────────────────
 -- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
 --
---   Prelim/Classical.lean        — expone Classical.indefiniteDescription
---   Foundation/GodelBeta.lean    — encodeList y encode_decode usan Classical.choose;
---                                  beta, decodeList, godel_beta_seq SÍ son constructivos
---   ListsAndSets/FSet.lean       — usa Classical.byContradiction
---   ListsAndSets/FSetFunction.lean — usa Classical.byContradiction
---   NumberTheory/Totient.lean    — importa FSet → Classical.byContradiction
---   NumberTheory/Fermat.lean     — importa Totient → FSet
---   NumberTheory/Wilson.lean     — importa Fermat → Totient → FSet
---   Combinatorics/Counting.lean  — importa FSet → Classical.byContradiction
---   Combinatorics/Perm.lean      — importa FSet → Classical.byContradiction
---   Combinatorics/Sign.lean      — importa FSet + Perm → Classical.byContradiction
---   Combinatorics/Orbit.lean     — importa FSet + Group → Classical.em
---   Combinatorics/Product.lean   — importa FSet → Classical.byContradiction
---   Combinatorics/GroupTheory/*  — usa Classical.em (teoría de grupos)
---   Sylow/*                      — usa Classical.em y byContradiction
+-- Verificado por grep de `Classical\.` en todo el árbol (2026-07-13) — la lista
+-- anterior de este comentario sobreestimaba el alcance: `FSet.lean` y
+-- `FSetFunction.lean` usan `Decidable.byContradiction` (constructivo, solo
+-- requiere una instancia `Decidable`, no `Classical.choice`), no
+-- `Classical.byContradiction`. Por eso Totient/Fermat/Wilson/Counting/Perm/
+-- Sign/Product, que solo importan FSet transitivamente, tampoco dependen de
+-- Classical. `CantorPairing.antidiag/fst/snd` son `def` computables (no
+-- `noncomputable`, no `choose`) pese a lo que decía el CHANGELOG histórico.
+--
+-- El alcance REAL de `Classical.*` en el proyecto es:
+--
+--   Prelim/Classical.lean         — expone Classical.indefiniteDescription
+--                                   (define choose/choose_unique — el único
+--                                   punto de entrada de Classical.choice)
+--   Foundation/GodelBeta.lean     — Classical.choose/choose_spec en la
+--                                   reconstrucción de la función β de Gödel;
+--                                   beta, decodeList, godel_beta_seq SÍ son
+--                                   constructivos (comprobados abajo)
+--   Combinatorics/GroupTheory/Action.lean       — Classical.em (2 usos)
+--   Combinatorics/GroupTheory/Sylow/CosetAction.lean — Classical.em (1 uso)
+--   Combinatorics/GroupTheory/Sylow/Sylow.lean  — Classical.em (2) +
+--                                                  Classical.byContradiction (5)
+--
+-- Ver DECISIONS.md ADR-017 y PLANNING.md — el proyecto se re-desarrolla como
+-- completamente intuicionista/constructivista; estos son exactamente los
+-- puntos a eliminar.
 -- ─────────────────────────────────────────────────────────────────
 
 set_option autoImplicit false
@@ -212,11 +223,13 @@ end AssertConstructiveCmd
 #assert_constructive Peano.ModEq.modEq_zero_iff_dvd
 
 -- ─────────────────────────────────────────────────────────────────
--- Wilson.lean — NO constructivo:
---   Wilson.lean → Fermat.lean → Totient.lean → FSet.lean
---   → Classical.byContradiction → Classical.choice
+-- Wilson.lean — sin comprobación #assert_constructive todavía.
+-- Nota (2026-07-13): la razón original documentada aquí (Wilson → Fermat →
+-- Totient → FSet → Classical.byContradiction) era incorrecta — FSet.lean usa
+-- `Decidable.byContradiction`, constructivo. Pendiente: añadir
+-- #assert_constructive Peano.Wilson.wilson una vez confirmado que su cadena de
+-- dependencias no toca ninguno de los puntos reales listados arriba.
 -- ─────────────────────────────────────────────────────────────────
--- (sin comprobaciones para Wilson)
 
 -- ─────────────────────────────────────────────────────────────────
 -- Comprobaciones: ChineseRemainder.lean

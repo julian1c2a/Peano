@@ -1,14 +1,23 @@
 # Next Steps — Estado post-Sylow y próximas tareas
 
-*Última actualización: 2026-07-12 (actualización de estado; contenido matemático desde 2026-05-09)*
+*Última actualización: 2026-07-13*
 *Autor: Julián Calderón Almendros*
 
 ---
 
-## Estado actual del build (2026-07-12)
+## Cambio de rumbo (2026-07-13) — ver DECISIONS.md ADR-017 y PLANNING.md
+
+El proyecto se re-desarrolla como intuicionista/constructivista puro. **Siguiente
+paso inmediato y concreto**: PLANNING.md Fase C.1 — reemplazar los 2 usos de
+`Classical.em` en `Combinatorics/GroupTheory/Action.lean` (líneas 247, 300) por
+`by_cases`/`Decidable`. Ver `PLANNING.md` §"Plan de desarrollo — eliminación de
+Classical" para el resto de fases (C.2–C.6) y el orden sugerido.
+
+## Estado actual del build (2026-07-13)
 
 `lake build` compila con **0 errores**, **0 sorry** y **0 private axioms no intencionales**
-en todo el proyecto (~66 jobs full build).
+en todo el proyecto (**73 jobs full build**, Lean 4.31.0 — verificar con
+`bash check-docs-sync.bash` antes de confiar en esta cifra si ha pasado tiempo).
 
 Los únicos `private axiom` son los **6 axiomas de Peano** en `PureAxioms.lean` (intencionales).
 
@@ -20,25 +29,27 @@ Los tres teoremas de Sylow están completamente demostrados:
 
 Módulos añadidos tras 2026-05-09:
 - `ThirdIsomorphism.lean` — ✅ (G/N)/(K/N)≅G/K, 10 exports, 0 sorry
-- `Fractions.lean` — 🟡 en disco e importado en barrel, sin export block ni documentación
+- `Fractions.lean` — ✅ export block completo (`export Peano.Arith (...)`), corregido
+  desde la nota anterior que decía que carecía de él (verificado 2026-07-13)
 
 ---
 
-## Tareas pendientes (2026-05-09)
+## Tareas pendientes
 
-### T.1 — Ampliar `ConstructiveCheck.lean` ← SIGUIENTE
+### T.1 — Ampliar `ConstructiveCheck.lean` — ahora es PLANNING.md Fase C.6
 
-Añadir `#assert_constructive` para aritmética base, NumberTheory y Combinatorics pura.
-Los módulos de GroupTheory y GodelBeta son explícitamente no constructivos (documentar).
+Absorbido por el plan de eliminación de Classical — ver PLANNING.md. Ya no es una
+tarea aislada de cobertura, es la puerta de verificación de ADR-017.
 
 ### T.2 — Migración de documentación a `/doc/` (Phase G.1) ✅ COMPLETADO (2026-05-10)
 
 Seis archivos `doc/REFERENCE-*.md` creados y pusheados en commit `85c8742`.
 Ver §G.1 para los detalles. No bloquea trabajo matemático.
 
-### T.3 — Feature-freeze y handoff a AczelSetTheory (Phase G.2–G.3)
+### T.3 — Feature-freeze y handoff a AczelSetTheory (Phase G.2–G.3) — POSPUESTO
 
-Precondición: T.2 completada.
+Precondición ampliada (ADR-017): T.2 completada **y** PLANNING.md Fase C
+(eliminación de Classical) completada.
 
 ---
 

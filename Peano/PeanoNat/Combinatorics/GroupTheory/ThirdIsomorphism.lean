@@ -1,10 +1,12 @@
-import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
+-/
 
+import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
+
+/-!
 # Tercer Teorema de Isomorfía
 
 Sean `G` un grupo finito y `N, K` subgrupos normales de `G` con `N ≤ K`.

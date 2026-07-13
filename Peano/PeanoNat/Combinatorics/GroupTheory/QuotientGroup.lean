@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
 import Peano.PeanoNat
 import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Arith
@@ -8,10 +14,6 @@ import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Cosets
 import Peano.PeanoNat.Combinatorics.GroupTheory.NormalSubgroup
 
 /-!
-Copyright (c) 2026. All rights reserved.
-Author: Julián Calderón Almendros
-License: MIT
-
 # Grupo Cociente G/H
 
 Construye la estructura de grupo finito en el conjunto de cosetos izquierdos

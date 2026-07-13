@@ -1,10 +1,12 @@
-import Peano.PeanoNat.Combinatorics.GroupTheory.SecondIsomorphism
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
+-/
 
+import Peano.PeanoNat.Combinatorics.GroupTheory.SecondIsomorphism
+
+/-!
 # Lema de la Mariposa de Zassenhaus
 
 Sean `G` un grupo finito y `H, K, N, M ≤ G` subgrupos con:

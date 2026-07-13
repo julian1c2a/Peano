@@ -1,10 +1,12 @@
-import Peano.PeanoNat.Combinatorics.GroupTheory.FirstIsomorphism
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
+-/
 
+import Peano.PeanoNat.Combinatorics.GroupTheory.FirstIsomorphism
+
+/-!
 # Segundo Teorema de Isomorfía
 
 Dados un grupo finito `G`, un subgrupo `H ≤ G` y un subgrupo normal `N ⊴ G`, este módulo prueba:

@@ -9,15 +9,15 @@ License: MIT
 --
 -- § 1. FunPerm — permutación como FunTable con List.Perm
 -- § 2. Grupo simétrico Sym A
--- § 3. Ciclos y descomposición
--- § 4. Signatura
--- § 5. Aplicaciones aritméticas
+--
+-- Ciclos/descomposición y signatura de permutaciones son responsabilidad de
+-- Sign.lean (namespace Peano.Sign, reservado, pendiente de implementación) —
+-- no se duplican aquí.
 
 import Peano.PeanoNat
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
 import Peano.PeanoNat.ListsAndSets.List
-import Peano.PeanoNat.Combinatorics.Factorial
 
 set_option autoImplicit false
 
@@ -62,33 +62,10 @@ namespace Peano
     /-- El grupo simétrico de `A`: el tipo de todas las permutaciones de `A`. -/
     def Sym (A : ℕ₀FSet) : Type := FunPerm A
 
-    /-- Cardinalidad del grupo simétrico: hay exactamente |A|! permutaciones de A.
-        (TODO: requiere `List.permutations` o infraestructura de tipo finito) -/
-    theorem card_Sym (A : ℕ₀FSet) :
-        Peano.Factorial.factorial A.card = Peano.Factorial.factorial A.card :=
-      rfl  -- placeholder trivial; el enunciado real requiere List.permutations
-
-    /-!
-    # § 3. Ciclos y descomposición
-    -/
-    -- TODO: ciclo (i₁ i₂ … iₖ),  descomposición en ciclos disjuntos
-
-    /-!
-    # § 4. Signatura
-    -/
-    -- TODO: sign : FunPerm A → {+1, -1},  usando número de inversiones
-
-    /-!
-    # § 5. Aplicaciones aritméticas
-    -/
-    -- El número de permutaciones de un conjunto de `n` elementos es `n!`
-    -- (se deduce directamente de `card_Sym`).
-
   end Perm
 end Peano
 
 export Peano.Perm (
   FunPerm.comp
   Sym
-  card_Sym
 )

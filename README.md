@@ -5,8 +5,8 @@
 Formalización de la aritmética de Peano en **Lean 4**, construida desde los axiomas inductivos de `ℕ₀` sin depender de Mathlib.
 
 > **Autor:** Julián Calderón Almendros
-> **Lean:** `leanprover/lean4:v4.29.0`
-> **Build:** 66 jobs · 0 errores · 0 sorry · 0 axiomas privados
+> **Lean:** `leanprover/lean4:v4.31.0`
+> **Build:** 73 jobs · 0 errores · 0 sorry · 0 axiomas privados no intencionales
 > **Licencia:** MIT
 
 ---
@@ -187,14 +187,13 @@ Los 8 axiomas clásicos demostrados como teoremas a partir de la estructura indu
 - **Action.lean**: acciones de grupo, órbitas y estabilizadores, `orbit_stabilizer`, `orbits_partition`
 - **Cosets.lean**: coclases, Lagrange ($|H| \cdot k = |G|$), conteo por fibras
 - **CosetAction.lean**: acción de $G$ sobre coclases, `coset_conjugate_exists` (cierra Sylow II)
-- **Sylow.lean**: los tres teoremas de Sylow **formalmente cerrados** (0 sorry):
+- **Sylow.lean**: los tres teoremas de Sylow **formalmente cerrados** (0 sorry, 0 axiomas privados no intencionales):
   - `cauchy_minimal` — argumento de órbitas de McKay
   - `sylow_first` — existencia de p-subgrupo de Sylow
   - `sylow_second` — conjugación de subgrupos de Sylow
   - `sylow_third` — $n_p \equiv 1 \pmod{p}$ y $n_p \mid |G|$
-  - ⚠ 3 axiomas privados pendientes de prueba (rutas Wielandt y Conjugation en curso)
 
-> *3 axiomas privados en Sylow.lean: `wielandt_p_ndvd_r` (caso succ m'), `sylow_third_mod`, `sylow_third_dvd` — pendientes de prueba.*
+> Los únicos `private axiom` del proyecto son los 6 axiomas intencionales de Peano en `Foundation/PureAxioms.lean` — ver `CURRENT-STATUS-PROJECT.md`.
 
 ### Decidabilidad completa
 
@@ -217,7 +216,7 @@ cd Peano
 lake build
 ```
 
-La versión de Lean se instala automáticamente desde `lean-toolchain` (`leanprover/lean4:v4.29.0`).
+La versión de Lean se instala automáticamente desde `lean-toolchain` (`leanprover/lean4:v4.31.0`).
 
 ---
 
@@ -282,9 +281,7 @@ import Peano.PeanoNat.NumberTheory.Wilson  -- Teorema de Wilson
 - [x] **Foundation/CantorPairing.lean** — biyección ℕ₀×ℕ₀ ≅ ℕ₀, `pair`/`fst`/`snd`/`pair_surj` (Phase F.1) ✅
 - [x] **Foundation/GodelBeta.lean** — función β de Gödel, `godel_beta_seq`, `encodeList`/`decodeList`/`encode_decode` (Phase F.2) ✅
 - [x] **Foundation/Foundation.lean** — módulo paraguas compilando (Phase F.3) ✅
-- [ ] **Eliminar 3 axiomas privados** en Sylow.lean:
-  - [ ] `wielandt_p_ndvd_r` (caso succ m') — inducción fuerte sobre |G| + cociente G/Z (Track 1)
-  - [ ] `sylow_third_mod` y `sylow_third_dvd` — acción de conjugación sobre subgrupos de Sylow (Track 3)
+- [x] **Eliminar los 3 axiomas privados** en Sylow.lean (2026-05-09): `wielandt_p_ndvd_r`, `sylow_third_mod`, `sylow_third_dvd` — todos demostrados como `private theorem`.
 
 ### Futuro
 

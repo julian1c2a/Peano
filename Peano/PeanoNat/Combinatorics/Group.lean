@@ -1,3 +1,9 @@
+/-
+Copyright (c) 2026. All rights reserved.
+Author: Julián Calderón Almendros
+License: MIT
+-/
+
 import Peano.Prelim
 import Peano.PeanoNat
 import Peano.PeanoNat.Sub
@@ -5,12 +11,6 @@ import Peano.PeanoNat.Mul
 import Peano.PeanoNat.Div
 import Peano.PeanoNat.ListsAndSets.FSet
 import Peano.PeanoNat.ListsAndSets.FSetFunction
-
-/-!
-Copyright (c) 2026. All rights reserved.
-Author: Julián Calderón Almendros
-License: MIT
--/
 
 -- Peano/PeanoNat/Combinatorics/Group.lean
 

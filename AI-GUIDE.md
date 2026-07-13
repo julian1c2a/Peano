@@ -325,6 +325,7 @@ Transición: 🔄 → 🔶 → ✅ → 🧊 (el estado 🧊 es final).
 | `bash new-module.bash NombreModulo` | Crea un módulo nuevo desde la plantilla |
 | `bash gen-root.bash` | Regenera el fichero de importación raíz |
 | `bash check-sorry.bash` | Localiza todos los `sorry` (excluyendo comentarios) |
+| `bash check-docs-sync.bash` | Compara el nº de jobs real de `lake build` contra lo declarado en README/REFERENCE/NEXT-STEPS/CURRENT-STATUS-PROJECT; `--no-build` reutiliza la última compilación |
 | `bash update-toolchain.bash vX.Y.Z` | Actualiza el toolchain de Lean con verificación de build |
 | `make help` | Lista los targets del Makefile |
 
@@ -412,7 +413,10 @@ vivos con el estado real del código tras una sesión de desarrollo.
 
 **Pasos (en orden):**
 
-1. Ejecutar `lake build` — anotar jobs, errores, `sorry`, warnings.
+1. Ejecutar `lake build` — anotar jobs, errores, `sorry`, warnings. Ejecutar
+   `bash check-docs-sync.bash --no-build` y corregir cualquier documento marcado con ⚠️
+   (evita que el conteo de jobs quede desincronizado como ocurrió en la auditoría de
+   2026-07-12/13 — ver `AUDIT-2026-07-13.md` §B).
 2. Leer el estado previo de `NEXT-STEPS.md`, `CHANGELOG.md`, `CURRENT-STATUS-PROJECT.md`.
 3. Identificar qué cambió: qué `sorry` se cerraron, qué módulos/teoremas se añadieron,
    qué módulos cambiaron de estado (🔄→🔶→✅→🧊).
@@ -485,9 +489,10 @@ errores) invitando a revisar el fichero para más detalle.
 **Propósito:** informe de solo lectura del estado actual. No modifica ningún fichero.
 
 **Pasos (en paralelo cuando sea posible):** `check-sorry.bash` → `lake build` (jobs,
-errores, warnings) → leer la tabla de `sorry` vigentes de `NEXT-STEPS.md` → leer la
-tabla de estado de módulos de `CURRENT-STATUS-PROJECT.md` → leer la última entrada de
-`CHANGELOG.md`.
+errores, warnings) → `check-docs-sync.bash --no-build` (avisa si el conteo de jobs
+documentado ha quedado desincronizado) → leer la tabla de `sorry` vigentes de
+`NEXT-STEPS.md` → leer la tabla de estado de módulos de `CURRENT-STATUS-PROJECT.md` →
+leer la última entrada de `CHANGELOG.md`.
 
 **Formato de salida (siempre en este orden):**
 

@@ -1,10 +1,12 @@
-import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
+-/
 
+import Peano.PeanoNat.Combinatorics.GroupTheory.QuotientGroup
+
+/-!
 # Primer Teorema de Isomorfía
 
 Dado un homomorfismo de grupos finitos `h : G → J` (con `G J : FinGroup ℕ₀`),

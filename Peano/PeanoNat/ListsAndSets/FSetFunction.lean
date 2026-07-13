@@ -1,12 +1,12 @@
-import Peano.PeanoNat.ListsAndSets.List
-import Peano.PeanoNat.ListsAndSets.FSet
-import Peano.PeanoNat.Mul
-
-/-!
+/-
 Copyright (c) 2026. All rights reserved.
 Author: Julián Calderón Almendros
 License: MIT
 -/
+
+import Peano.PeanoNat.ListsAndSets.List
+import Peano.PeanoNat.ListsAndSets.FSet
+import Peano.PeanoNat.Mul
 
 -- Peano/PeanoNat/ListsAndSets/FSetFunction.lean
 -- Funciones entre conjuntos finitos (FSets) arbitrarios.

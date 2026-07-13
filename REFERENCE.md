@@ -1,6 +1,6 @@
 # Referencia Técnica — Proyecto Peano
 
-**Última actualización:** 2026-05-07
+**Última actualización:** 2026-07-13
 **Autor**: Julián Calderón Almendros
 
 > Documentación técnica de referencia para IA y desarrolladores Lean 4. **No** es documentación de usuario final.
@@ -13,7 +13,7 @@
 
 ### 0.1. Módulos `.lean`
 
-> 66 build jobs · 0 sorry · 0 errores · Lean 4 v4.29.0 · *Actualizado: 2026-07-12*
+> 73 build jobs · 0 sorry · 0 errores · Lean 4 v4.31.0 · *Actualizado: 2026-07-13*
 
 | Módulo (ruta) | Namespace | Depende de | Dependido por |
 |---|---|---|---|

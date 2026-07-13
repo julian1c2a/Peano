@@ -49,10 +49,27 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
   Peano.Add` — usar `Nat.succ`/`.succ` en su lugar. Build 73 jobs, 0 sorry, 0 texto
   `Classical.`/`classical`; `#print axioms` confirma que `encodeList`, `encode_decode`,
   `godelC`, `godelC_spec` y `godel_beta_seq` ya no dependen de `Classical.choice`.
-- **Siguiente paso**: por decisión del usuario (2026-07-13), C.4 se hizo primero por
-  ser la más simple; **C.9 es el siguiente objetivo** (redefinir `Group.order` sin
-  `Classical.choice`, ver PLANNING.md Fase C.9 para el análisis completo — cambio de
-  definición con impacto en todo `Group.lean`, no un swap mecánico). Tras C.9 quedan
+- Fase C.9 (`Combinatorics/Group.lean`, `Group.order`) — ✅ COMPLETADA (2026-07-13):
+  redefinido como búsqueda acotada (`List.find?` sobre `[1, |G|]`, acotado por
+  `orderExists`), sin `choose_unique`/`Classical.indefiniteDescription`. Mismos nombres
+  públicos (`order`, `order_pos`, `gpow_order_eq_id`, `order_minimal`, `order_le_card`),
+  cero cambios para `Sylow.lean`. `#print axioms Peano.Group.order` → sin ningún
+  axioma. Ver PLANNING.md Fase C.9 para las dos trampas nuevas documentadas (`omega`
+  no entiende `Nat.pred`/`Nat.sub` en este entorno; `by_contra` no existe sin Mathlib,
+  usar `Decidable.byContradiction`).
+- **Hallazgo nuevo, PENDIENTE DE DECISIÓN (descubierto 2026-07-13 al cerrar C.9)**:
+  arreglar `order` NO limpió `cauchy_minimal`/`sylow_lift_from_cauchy`/`sylow_first`/
+  `sylow_third` — `#print axioms` seguía mostrando `Classical.choice`. La fuente real,
+  aislada por bisección: **`List.mem_erase_of_ne`/`List.length_erase_of_mem` (núcleo
+  de Lean 4, no de este proyecto) dependen de `Classical.choice` en sí mismos**
+  (verificado en aislamiento total, sin código del proyecto de por medio). El patrón
+  que los usa (`nodup_sub_len`, "inline nodup_subset_length_le") está copiado en ~9
+  sitios de `Sylow.lean`. Ver PLANNING.md Fase C.9 (sección "Hallazgo nuevo") para el
+  análisis completo y el arreglo probable (usar `card_le_of_injective`/
+  `card_le_of_surjective` de `FSetFunction.lean`, ya verificados limpios, en vez de
+  `List.erase`). **No decidido todavía si abordarlo ahora o en sesión aparte** — alcance
+  comparable al propio C.9.
+- **Siguiente paso**: decidir sobre el hallazgo de `List.erase` arriba, o continuar con
   C.5 (retirar `Prelim/Classical.lean`) y C.6 (`ConstructiveCheck.lean` exhaustivo).
 
 ## Estado actual del build (2026-07-13)

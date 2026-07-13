@@ -53,7 +53,6 @@ Peano/PeanoNat/Foundation/PeanoSystem.lean
 Peano/PeanoNat/Foundation/PureAxioms.lean
 Peano/PeanoNat/Foundation/CantorPairing.lean
 Peano/PeanoNat/Combinatorics/Perm.lean
-Peano/PeanoNat/Combinatorics/Group.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/FirstIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/QuotientGroup.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean
@@ -66,5 +65,5 @@ Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
 Peano/PeanoNat/Foundation/GodelBeta.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean

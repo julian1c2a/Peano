@@ -256,25 +256,107 @@ namespace Peano
                  le_trans _ i₁ _ (sub_le_self i₁ i₂) hi₁_le⟩
         · exact absurd rfl h_ne
 
-    /-- Especificación del orden (via WOP). -/
-    private noncomputable def order_wop {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
-        (G : FinGroup α) (g : α) (hg : g ∈ G.carrier.elems) :
-        ExistsUnique (fun n : ℕ₀ =>
-          (lt₀ 𝟘 n ∧ gpow G g n = G.id) ∧
-          ∀ m : ℕ₀, (lt₀ 𝟘 m ∧ gpow G g m = G.id) → le₀ n m) :=
-      well_ordering_principle (fun n => lt₀ 𝟘 n ∧ gpow G g n = G.id)
-        (let ⟨n, hn1, hn2, _⟩ := orderExists G hg; ⟨n, hn1, hn2⟩)
+    /-- Predicado (Bool, decidible) de candidato a orden, codificado como Nat vía
+    `Λ` para poder usar `List.range'`/`find?` de Lean4 core sobre el rango [1, |G|]. -/
+    private def orderPred {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (G : FinGroup α) (g : α) (k : Nat) : Bool :=
+      decide (gpow G g (Λ k) = G.id)
 
-    /-- El orden de `g` en `G`: el mínimo `n > 0` tal que `g^n = id`. -/
-    noncomputable def order {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+    /-- Búsqueda acotada (Fase C.9, ADR-017) del menor n ∈ [1, |G|] con g^n = id.
+    Existe por `orderExists` (el argumento de pigeonhole ya acota n ≤ |G|), así que
+    no hace falta `Classical.choice` para extraerlo: basta buscar linealmente. -/
+    private def orderFind {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (G : FinGroup α) (g : α) : Option Nat :=
+      (List.range' 1 (Ψ G.carrier.card)).find? (orderPred G g)
+
+    private theorem orderFind_isSome {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (G : FinGroup α) {g : α} (hg : g ∈ G.carrier.elems) :
+        (orderFind G g).isSome = true := by
+      obtain ⟨n, hn_pos, hn_eq, hn_le⟩ := orderExists G hg
+      have hn_pos_nat : 1 ≤ Ψ n := by
+        have h := (isomorph_Ψ_lt 𝟘 n).mp hn_pos
+        rw [isomorph_0_Ψ] at h
+        omega
+      have hn_le_nat : Ψ n ≤ Ψ G.carrier.card := (isomorph_Ψ_le n G.carrier.card).mpr hn_le
+      obtain ⟨j, hj⟩ := Nat.exists_eq_succ_of_ne_zero (show Ψ n ≠ 0 by omega)
+      apply List.find?_isSome.mpr
+      refine ⟨Ψ n, List.mem_range'.mpr ⟨j, by omega, by omega⟩, ?_⟩
+      show orderPred G g (Ψ n) = true
+      unfold orderPred
+      rw [ΛΨ]
+      simp [hn_eq]
+
+    /-- Para j con σ(j) < k donde `orderFind G g = some k`, el candidato σ(j) no
+    cumple la especificación (k es el menor candidato que la cumple, por orden de
+    recorrido de `List.range'` y la propiedad de `List.find?` de no saltarse
+    coincidencias previas). Cuantificamos sobre el predecesor `j` (en vez de sobre
+    el candidato `v` con `v - 1`) porque `omega` en este entorno no relaciona
+    `Nat.pred`/`Nat.sub` con la resta real (`-`), y `-` está sobrecargado sin
+    precedencia por la notación de ℕ₀ (`Add.lean`/`Sub.lean`) — ver Fase C.4/C.9. -/
+    private theorem orderFind_no_earlier {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
+        (G : FinGroup α) (g : α) {k : Nat} (hk : orderFind G g = some k) :
+        ∀ j : Nat, Nat.succ j < k → orderPred G g (Nat.succ j) = false := by
+      obtain ⟨-, i, hi_lt, hget, hmin⟩ := List.find?_eq_some_iff_getElem.mp hk
+      have hidx := List.getElem_range' (n := 1) (m := Ψ G.carrier.card) (step := 1) hi_lt
+      have hlen : (List.range' 1 (Ψ G.carrier.card)).length = Ψ G.carrier.card :=
+        List.length_range'
+      have hk_eq : k = Nat.succ i := by omega
+      intro j hjk
+      have hj_lt_i : j < i := by omega
+      have hj_lt_len : j < (List.range' 1 (Ψ G.carrier.card)).length := by omega
+      have hidx2 := List.getElem_range' (n := 1) (m := Ψ G.carrier.card) (step := 1) hj_lt_len
+      have hfalse := hmin j hj_lt_i
+      have hxv : (List.range' 1 (Ψ G.carrier.card))[j] = Nat.succ j := by omega
+      rw [hxv] at hfalse
+      simpa using hfalse
+
+    /-- El orden de `g` en `G`: el mínimo `n > 0` tal que `g^n = id`, computable por
+    búsqueda acotada (Fase C.9, ADR-017: sin `Classical.choose`). -/
+    def order {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
         (G : FinGroup α) (g : α) (hg : g ∈ G.carrier.elems) : ℕ₀ :=
-      choose_unique (order_wop G g hg)
+      Λ ((orderFind G g).getD 0)
 
     private theorem order_spec {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
         (G : FinGroup α) (g : α) (hg : g ∈ G.carrier.elems) :
         (lt₀ 𝟘 (order G g hg) ∧ gpow G g (order G g hg) = G.id) ∧
-        ∀ m : ℕ₀, (lt₀ 𝟘 m ∧ gpow G g m = G.id) → le₀ (order G g hg) m :=
-      choose_spec_unique (order_wop G g hg)
+        ∀ m : ℕ₀, (lt₀ 𝟘 m ∧ gpow G g m = G.id) → le₀ (order G g hg) m := by
+      obtain ⟨k, hk⟩ := Option.isSome_iff_exists.mp (orderFind_isSome G hg)
+      have hgetD : order G g hg = Λ k := by unfold order; rw [hk, Option.getD_some]
+      have hp : orderPred G g k = true := by
+        unfold orderFind at hk; exact List.find?_some hk
+      have heq : gpow G g (Λ k) = G.id := by
+        have hp' := hp; unfold orderPred at hp'; simpa using hp'
+      have hk_pos : 1 ≤ k := by
+        obtain ⟨-, i, hi_lt, hget, -⟩ := List.find?_eq_some_iff_getElem.mp hk
+        have hidx := List.getElem_range' (n := 1) (m := Ψ G.carrier.card) (step := 1) hi_lt
+        omega
+      constructor
+      · rw [hgetD]
+        refine ⟨?_, heq⟩
+        apply (isomorph_Ψ_lt 𝟘 (Λ k)).mpr
+        rw [isomorph_0_Ψ, ΨΛ]
+        omega
+      · intro m hm
+        obtain ⟨hm_pos, hm_eq⟩ := hm
+        rw [hgetD]
+        apply Decidable.byContradiction
+        intro hcon
+        have hlt : lt₀ m (Λ k) := nle_then_gt_wp hcon
+        have hlt_nat : Ψ m < k := by
+          have h := (isomorph_Ψ_lt m (Λ k)).mp hlt
+          rwa [ΨΛ] at h
+        have hm_pos_nat : 1 ≤ Ψ m := by
+          have h := (isomorph_Ψ_lt 𝟘 m).mp hm_pos
+          rw [isomorph_0_Ψ] at h
+          omega
+        obtain ⟨j, hj⟩ := Nat.exists_eq_succ_of_ne_zero (show Ψ m ≠ 0 by omega)
+        have hjk : Nat.succ j < k := by omega
+        have hfalse := orderFind_no_earlier G g hk j hjk
+        rw [← hj] at hfalse
+        unfold orderPred at hfalse
+        rw [ΛΨ] at hfalse
+        rw [hm_eq] at hfalse
+        simp at hfalse
 
     theorem order_pos {α : Type} [DecidableEq α] [LT α] [StrictLinearOrder α]
         (G : FinGroup α) (g : α) (hg : g ∈ G.carrier.elems) :

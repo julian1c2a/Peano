@@ -298,9 +298,43 @@ predicado no acotado. Esto:
    deja de depender de `choose_unique`, puede que `Prelim.Classical` quede sin
    consumidores reales en todo el proyecto (pendiente de verificar tras el cambio).
 
-Pendiente de decisión del usuario sobre si abordar C.9 ahora o dejarlo documentado
-para una sesión dedicada — es cualitativamente distinto (mayor alcance, mayor riesgo)
-que el resto de la Fase C hecha hasta ahora.
+**C.9 — `Group.order` ✅ COMPLETADA (2026-07-13, por decisión del usuario: primero C.4,
+luego C.9).** Redefinido como búsqueda acotada: `orderPred`/`orderFind` (predicado
+`Bool` + `List.find?` sobre `List.range' 1 (Ψ G.carrier.card)`, candidatos codificados
+como `Nat` vía `Λ`), `order := Λ ((orderFind G g).getD 0)`, con `order_spec` demostrado
+aparte (`orderFind_isSome` + `orderFind_no_earlier` para minimalidad). Mismos nombres
+públicos que antes (`order`, `order_pos`, `gpow_order_eq_id`, `order_ne_zero`,
+`order_minimal`, `order_le_card`) — cero cambios para los consumidores (`Sylow.lean`).
+`#print axioms Peano.Group.order` → **sin ningún axioma** (ni siquiera `propext`/
+`Quot.sound`). `order_wop`/`choose_unique` eliminados del fichero.
+
+Trampa nueva (además de la de `+`/`Sub.lean` ya documentada en C.4): `omega` en este
+entorno **no** relaciona `Nat.pred`/`Nat.sub` escritos explícitamente con la resta real
+(trata `Nat.sub x 1`/`x.pred` como átomos opacos, sin conectarlos a `x`) — hay que
+evitarlos por completo y trabajar con `Nat.succ`/`Nat.exists_eq_succ_of_ne_zero` en su
+lugar (cuantificar sobre el predecesor `j` en vez de sobre `v` con `v - 1`). También:
+la táctica `by_contra` no existe en este entorno (sin Mathlib) — usar
+`Decidable.byContradiction; intro h` (mismo patrón que C.1–C.3).
+
+**Hallazgo nuevo — NO resuelto, pendiente de decisión: `List.mem_erase_of_ne` y
+`List.length_erase_of_mem` (núcleo de Lean 4, NO de este proyecto) dependen de
+`Classical.choice` en sí mismos.** Verificado de forma completamente aislada:
+`#print axioms List.length_erase_of_mem` → `[propext, Classical.choice, Quot.sound]`,
+sin ningún código del proyecto de por medio. Tras arreglar `order`, `#print axioms` en
+`cauchy_minimal`/`sylow_lift_from_cauchy`/`sylow_first`/`sylow_third` seguía mostrando
+`Classical.choice` (NO era solo `order` la fuente, como asumía el análisis original de
+C.9) — bisección dentro de `mckay_orbit_remove` (prueba de Cauchy vía McKay,
+independiente de `order`) aisló la fuente exacta al patrón `have nodup_sub_len : ... :=
+by ... List.mem_erase_of_ne ... List.length_erase_of_mem ...` ("inline
+nodup_subset_length_le"), **copiado y pegado en ~9 sitios** de `Sylow.lean` (líneas
+aprox. 1188, 1439, 1724, 2233, 2517, 2857, 3353, 5030 — verificar tras cualquier
+edición previa que desplace líneas). Arreglo probable: sustituir ese patrón por algo
+que no use `List.erase`, reutilizando infraestructura ya existente y limpia del
+proyecto (`FSetFunction.lean` tiene `card_le_of_injective`/`card_le_of_surjective`,
+ambos verificados sin `Classical.choice`) en vez de la prueba inline vía erase. No
+decidido todavía si abordarlo ahora o en sesión aparte — es un hallazgo nuevo, de
+alcance comparable al propio C.9 (9 sitios en un fichero de >5500 líneas), descubierto
+el 2026-07-13 al cerrar C.9.
 
 **C.4 — `Foundation/GodelBeta.lean`** ✅ COMPLETADA (2026-07-13). Los 2
 `Classical.choose`/`choose_spec` (encodeList, encode_decode) eliminados. Estrategia:
@@ -365,8 +399,8 @@ cero `Classical.choice`. `grep -n '\bclassical\b\|Classical\.'` sobre el fichero
 vacío. Build: 73 jobs, 0 sorry, 0 errores.
 
 **Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → ~~C.3~~ ✅ (texto) →
-~~C.4~~ ✅ → **C.9** (siguiente, por decisión del usuario 2026-07-13: redefinir
-`Group.order` sin `Classical.choice`) → C.5 → C.6. Cada paso
+~~C.4~~ ✅ → ~~C.9~~ ✅ (`Group.order`) → **hallazgo `List.erase`** (nuevo, ver arriba,
+pendiente de decisión del usuario) → C.5 → C.6. Cada paso
 debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
 `#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
 sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil

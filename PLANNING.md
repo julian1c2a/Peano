@@ -219,28 +219,29 @@ del fichero), solo falta la cobertura exhaustiva. Añadir también a este punto:
 qué hacer con `Primes.lean` congelado y su orden de copyright/import (Fase A, punto
 pendiente) — buen momento para agrupar ambas decisiones si se hace un `thaw` puntual.
 
-**C.7 — `ListsAndSets/EquivRel.lean`** (descubierto 2026-07-13 al resolver C.1, NO
-estaba en el alcance original de ADR-017): `EquivRelOn.classOf_eq_or_disjoint` (línea
-117) usa la táctica `classical` — mismo patrón exacto que C.1
-(`∃ z, z ∈ (R.classOf a).elems ∧ z ∈ (R.classOf b).elems`, seguido de
-`by_cases hza : z ∈ (R.classOf a).elems`) pero resuelto con `classical` en vez de
-`Classical.em` explícito, por eso el grep original de `Classical\.` no lo encontró.
-Como el arreglo de C.1 ya resuelve exactamente esta forma, **aplicar el mismo patrón
-aquí es mecánico**: replicar la construcción de `hb`/`List.any_eq_true` de C.1 en
-`classOf_eq_or_disjoint`, verificar con `#print axioms` que
-`EquivRelOn.classOf_eq_or_disjoint` (y transitivamente `canonicalClassFamily`,
-`ClassFamily`, `classes`, `classes_cover`) quedan libres de `Classical.choice`.
-Prioridad alta — es la corrección más barata de la Fase C y cierra un hallazgo que
-contradice lo que `ADR-017`/`ConstructiveCheck.lean` afirman hoy sobre `EquivRel.lean`.
+**C.7 — `ListsAndSets/EquivRel.lean`** ✅ COMPLETADA (2026-07-13, descubierta el mismo
+día al resolver C.1 — no estaba en el alcance original de ADR-017).
+`EquivRelOn.classOf_eq_or_disjoint` (línea 117) usaba la táctica `classical` — mismo
+patrón exacto que C.1 (`∃ z, z ∈ (R.classOf a).elems ∧ z ∈ (R.classOf b).elems`,
+seguido de `by_cases hza : z ∈ (R.classOf a).elems`) pero resuelto con `classical` en
+vez de `Classical.em` explícito, por eso el grep original de `Classical\.` no lo
+encontró. Se aplicó la misma construcción `List.any`/`decide` de C.1 sin cambios de
+diseño. Verificado con `#print axioms`: `classOf_eq_or_disjoint`,
+`canonicalClassFamily` y `classes_cover` dependen solo de `[propext, Quot.sound]` —
+cero `Classical.choice`. `grep -n '\bclassical\b\|Classical\.'` sobre el fichero →
+vacío. Build: 73 jobs, 0 sorry, 0 errores.
 
-**Orden sugerido**: ~~C.1~~ ✅ → **C.7** (mismo patrón que C.1, ya resuelto, coste
-mínimo) → C.2 (mismo patrón, un solo uso) → C.4 (independiente, se puede paralelizar)
-→ C.3 (el más grande, dejarlo para cuando el patrón esté rodado) → C.5 → C.6. Cada
-paso debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una
-verificación `#print axioms` del teorema tocado** antes de pasar al siguiente — no
-acumular cambios sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba
-larga y frágil (ver `feedback_lean4_tactics.md` en la memoria del asistente sobre las
-trampas de Lean 4.29+ con `rcases`/`cases`).
+**Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → **C.2** (siguiente — mismo patrón, un
+solo uso en `Sylow/CosetAction.lean`) → C.4 (independiente, se puede paralelizar) →
+C.3 (el más grande, dejarlo para cuando el patrón esté rodado) → C.5 → C.6. Cada paso
+debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
+`#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
+sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil
+(ver `feedback_lean4_tactics.md` en la memoria del asistente sobre las trampas de Lean
+4.29+ con `rcases`/`cases`). **Recordatorio permanente**: antes de dar cualquier fase
+de esta lista por cerrada, repetir también el grep de la palabra suelta `classical`
+(no solo `Classical\.`) — C.7 demostró que el patrón oculto puede reaparecer en
+cualquier fichero tocado por C.2–C.6.
 
 ### Fase D — Retomar feature-freeze + handoff a AczelSetTheory (bloqueada por C)
 

@@ -114,10 +114,11 @@ namespace Peano
         (ha : a ∈ A.elems) (hb : b ∈ A.elems) :
         (∀ x, x ∈ (R.classOf a).elems ↔ x ∈ (R.classOf b).elems) ∨
         (∀ z, z ∉ (R.classOf a).elems ∨ z ∉ (R.classOf b).elems) := by
-      classical
-      by_cases hInt : ∃ z, z ∈ (R.classOf a).elems ∧ z ∈ (R.classOf b).elems
-      · left
-        obtain ⟨z, hza, hzb⟩ := hInt
+      cases hInt : (R.classOf a).elems.any (fun z => decide (z ∈ (R.classOf b).elems)) with
+      | true =>
+        left
+        obtain ⟨z, hza, hzb_dec⟩ := List.any_eq_true.mp hInt
+        have hzb : z ∈ (R.classOf b).elems := decide_eq_true_eq.mp hzb_dec
         have hzA : z ∈ A.elems := (R.mem_classOf_iff a z).mp hza |>.1
         have haz : R.rel a z := (R.mem_classOf_iff a z).mp hza |>.2
         have hbz : R.rel b z := (R.mem_classOf_iff b z).mp hzb |>.2
@@ -125,10 +126,16 @@ namespace Peano
         have hab : R.rel a b := R.trans_on a z b ha hzA hb haz hzb'
         intro x
         exact R.mem_classOf_iff_of_rel a b x ha hb hab
-      · right
+      | false =>
+        have hNotInt : ¬∃ z, z ∈ (R.classOf a).elems ∧ z ∈ (R.classOf b).elems := by
+          rintro ⟨z, hza, hzb⟩
+          have htrue : (R.classOf a).elems.any (fun w => decide (w ∈ (R.classOf b).elems)) = true :=
+            List.any_eq_true.mpr ⟨z, hza, decide_eq_true_eq.mpr hzb⟩
+          simp [hInt] at htrue
+        right
         intro z
         by_cases hza : z ∈ (R.classOf a).elems
-        · exact Or.inr (fun hzb => hInt ⟨z, hza, hzb⟩)
+        · exact Or.inr (fun hzb => hNotInt ⟨z, hza, hzb⟩)
         · exact Or.inl hza
 
     /-- Familia finita de representantes de clases de equivalencia sobre `A`.

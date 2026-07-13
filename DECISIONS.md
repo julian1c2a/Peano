@@ -425,10 +425,13 @@ aparece en un grep de `Classical\.` — hace falta buscarla también como palabr
    usos en total), en contextos donde el predicado en cuestión es sobre un `FSet`
    finito y probablemente `Decidable`. **`Action.lean` ya resuelto (2026-07-13)** —
    verificado con `#print axioms` que `orbits_partition`/`class_equation`/
-   `class_equation_split` no dependen de `Classical.choice`.
+   `class_equation_split` no dependen de `Classical.choice`. Quedan
+   `CosetAction.lean`/`Sylow.lean`.
 4. `ListsAndSets/EquivRel.lean` línea 117 — táctica `classical` (no `Classical.em`
-   literal) en `EquivRelOn.classOf_eq_or_disjoint`, mismo patrón exacto que el punto 3
-   en `Action.lean` — la corrección ya probada allí aplica aquí sin cambios de diseño.
+   literal) en `EquivRelOn.classOf_eq_or_disjoint`. **Ya resuelto (2026-07-13)** —
+   mismo patrón que el punto 3, verificado con `#print axioms` que
+   `classOf_eq_or_disjoint`/`canonicalClassFamily`/`classes_cover` no dependen de
+   `Classical.choice`.
 
 **Decisión**: Peano se re-desarrolla como proyecto completamente intuicionista y
 constructivista. `Classical.*` queda prohibido para código nuevo (MANDATORY-1 arriba).

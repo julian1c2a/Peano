@@ -36,7 +36,6 @@ Peano/PeanoNat/Combinatorics/Product.lean
 Peano/PeanoNat/Combinatorics/Sign.lean
 Peano/PeanoNat/Combinatorics/Summation.lean
 Peano/PeanoNat/Foundation/Foundation.lean
-Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/ListsAndSets/FSet.lean
 Peano/PeanoNat/NumberTheory/ChineseRemainder.lean
 Peano/PeanoNat/NumberTheory/Fermat.lean
@@ -68,3 +67,4 @@ Peano/PeanoNat/ListsAndSets/FSetFunction.lean
 Peano/PeanoNat/ListsAndSets/List.lean
 Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
+Peano/PeanoNat/ListsAndSets/EquivRel.lean

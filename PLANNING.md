@@ -153,17 +153,35 @@ matemático real pendiente; **D** reactiva el plan de handoff una vez C esté ce
       falla) antes de adoptarla vía `update-toolchain.bash` (que commitea automático
       en éxito — revisar el diff antes de dejar que commitee).
 
-### Fase C — Eliminación de `Classical.*` (núcleo de ADR-017, PENDIENTE)
+### Fase C — Eliminación de `Classical.*` (núcleo de ADR-017, EN CURSO)
 
-Alcance verificado por grep exhaustivo (ver ADR-017) — solo 3 focos, no los ~12
-ficheros que sugería la documentación histórica.
+Alcance verificado por grep exhaustivo (ver ADR-017) — 3 focos vía `Classical.`
+literal, más un 4º foco descubierto en C.1 (ver C.7): la táctica `classical` (sin
+punto, sin prefijo `Classical.`) también instala `Classical.propDecidable` como
+instancia local y **no aparece en un grep de `Classical\.`** — hay que buscarla
+también como palabra suelta (`grep -rn '\bclassical\b'`).
 
-**C.1 — `Combinatorics/GroupTheory/Action.lean`** (2 usos de `Classical.em`, líneas
-247 y 300): ambos son `rcases Classical.em (∃ z, ...)` sobre predicados acerca de
-`FSet`/`FSetFunction`. Como el dominio es un `FSet` finito con `DecidableEq`, el
-predicado `∃ z, z ∈ (ψ.orb x).elems ∧ z ∈ (ψ.orb y).elems` debería admitir una
-instancia `Decidable` (búsqueda finita sobre una lista) — reemplazar
-`Classical.em P` por `by_cases h : P` una vez exista o se derive esa instancia.
+**C.1 — `Combinatorics/GroupTheory/Action.lean`** ✅ COMPLETADA (2026-07-13). Los 2
+usos de `Classical.em` (líneas 247 y 300 originales, sobre
+`∃ z, z ∈ (ψ.orb x).elems ∧ z ∈ (ψ.orb y).elems` y `z ∈ (ψ.orb x).elems`) se
+sustituyeron por: (1) un test de decidibilidad explícito vía
+`(ψ.orb x).elems.any (fun z => decide (z ∈ (ψ.orb y).elems))` + `List.any_eq_true` /
+`decide_eq_true_eq` para el existencial (no hay instancia `Decidable` automática
+para un `∃` no acotado sobre `β`, hay que construirla a mano igual que el resto del
+fichero ya hace en `GroupAction.orb`/`isFixed`); (2) `by_cases` directo para la
+pertenencia a una lista (`z ∈ (ψ.orb x).elems`), que sí tiene instancia `Decidable`
+automática vía `DecidableEq β`. Verificado con
+`#print axioms Peano.Action.orbits_partition` (y `class_equation`,
+`class_equation_split`): dependen solo de `[propext, Quot.sound]` — **cero**
+`Classical.choice` — antes de esta sesión no se había hecho esta verificación
+explícita, solo se confiaba en el grep textual. Build: 73 jobs, 0 sorry, 0 errores.
+
+**Nota de precaución para C.2–C.3 (mismo fichero/familia)**: `by_cases`/`classical`
+sobre un `∃` no acotado silenciosamente tira de `Classical.propDecidable` si está en
+el contexto — **no basta con borrar la palabra `Classical.em` y poner `by_cases`**,
+hay que verificar con `#print axioms` que el teorema resultante no menciona
+`Classical.choice` antes de dar el paso por bueno (el caso C.7 de abajo es la prueba
+de que el propio código de este proyecto ya tiene un caso así, escondido).
 
 **C.2 — `Sylow/CosetAction.lean`** (1 uso, línea 439): mismo patrón,
 `∀ g ∈ G.carrier.elems, α.act g x₀ = x₀` sobre un `FSet` finito — decidible en
@@ -201,12 +219,28 @@ del fichero), solo falta la cobertura exhaustiva. Añadir también a este punto:
 qué hacer con `Primes.lean` congelado y su orden de copyright/import (Fase A, punto
 pendiente) — buen momento para agrupar ambas decisiones si se hace un `thaw` puntual.
 
-**Orden sugerido**: C.1 → C.2 (mismo patrón, más simple primero) → C.4 (independiente,
-se puede paralelizar) → C.3 (el más grande, dejarlo para cuando el patrón esté rodado)
-→ C.5 → C.6. Cada paso debe cerrar con `lake build` limpio y `check-sorry.bash` en 0
-antes de pasar al siguiente — no acumular cambios sin verificar entre pasos, dado que
-`Sylow.lean` (C.3) es una prueba larga y frágil (ver `feedback_lean4_tactics.md` en la
-memoria del asistente sobre las trampas de Lean 4.29+ con `rcases`/`cases`).
+**C.7 — `ListsAndSets/EquivRel.lean`** (descubierto 2026-07-13 al resolver C.1, NO
+estaba en el alcance original de ADR-017): `EquivRelOn.classOf_eq_or_disjoint` (línea
+117) usa la táctica `classical` — mismo patrón exacto que C.1
+(`∃ z, z ∈ (R.classOf a).elems ∧ z ∈ (R.classOf b).elems`, seguido de
+`by_cases hza : z ∈ (R.classOf a).elems`) pero resuelto con `classical` en vez de
+`Classical.em` explícito, por eso el grep original de `Classical\.` no lo encontró.
+Como el arreglo de C.1 ya resuelve exactamente esta forma, **aplicar el mismo patrón
+aquí es mecánico**: replicar la construcción de `hb`/`List.any_eq_true` de C.1 en
+`classOf_eq_or_disjoint`, verificar con `#print axioms` que
+`EquivRelOn.classOf_eq_or_disjoint` (y transitivamente `canonicalClassFamily`,
+`ClassFamily`, `classes`, `classes_cover`) quedan libres de `Classical.choice`.
+Prioridad alta — es la corrección más barata de la Fase C y cierra un hallazgo que
+contradice lo que `ADR-017`/`ConstructiveCheck.lean` afirman hoy sobre `EquivRel.lean`.
+
+**Orden sugerido**: ~~C.1~~ ✅ → **C.7** (mismo patrón que C.1, ya resuelto, coste
+mínimo) → C.2 (mismo patrón, un solo uso) → C.4 (independiente, se puede paralelizar)
+→ C.3 (el más grande, dejarlo para cuando el patrón esté rodado) → C.5 → C.6. Cada
+paso debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una
+verificación `#print axioms` del teorema tocado** antes de pasar al siguiente — no
+acumular cambios sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba
+larga y frágil (ver `feedback_lean4_tactics.md` en la memoria del asistente sobre las
+trampas de Lean 4.29+ con `rcases`/`cases`).
 
 ### Fase D — Retomar feature-freeze + handoff a AczelSetTheory (bloqueada por C)
 

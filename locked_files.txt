@@ -46,7 +46,6 @@ Peano/PeanoNat/NumberTheory/Wilson.lean
 Peano/PeanoNat/Arith.lean
 Peano/PeanoNat/Fractions.lean
 Peano/PeanoNat/Primes.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/CorrespondenceTheorem.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/NormalSubgroup.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
@@ -68,3 +67,4 @@ Peano/PeanoNat/Combinatorics/Orbit.lean
 Peano/PeanoNat/ListsAndSets/FSetFunction.lean
 Peano/PeanoNat/ListsAndSets/List.lean
 Peano/PeanoNat/NumberSets.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean

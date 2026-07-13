@@ -7,11 +7,17 @@
 
 ## Cambio de rumbo (2026-07-13) — ver DECISIONS.md ADR-017 y PLANNING.md
 
-El proyecto se re-desarrolla como intuicionista/constructivista puro. **Siguiente
-paso inmediato y concreto**: PLANNING.md Fase C.1 — reemplazar los 2 usos de
-`Classical.em` en `Combinatorics/GroupTheory/Action.lean` (líneas 247, 300) por
-`by_cases`/`Decidable`. Ver `PLANNING.md` §"Plan de desarrollo — eliminación de
-Classical" para el resto de fases (C.2–C.6) y el orden sugerido.
+El proyecto se re-desarrolla como intuicionista/constructivista puro.
+
+- Fase C.1 (`Combinatorics/GroupTheory/Action.lean`) — ✅ COMPLETADA (2026-07-13):
+  los 2 `Classical.em` sustituidos por decidibilidad explícita; verificado con
+  `#print axioms` que no queda `Classical.choice`.
+- **Siguiente paso inmediato y concreto**: PLANNING.md Fase **C.7** —
+  `ListsAndSets/EquivRel.lean` línea 117 usa la táctica `classical` (hallazgo nuevo,
+  no estaba en el alcance original de ADR-017 porque no aparece en un grep de
+  `Classical\.`) con el mismo patrón que C.1 — aplicar la misma solución ya probada.
+  Ver `PLANNING.md` §"Plan de desarrollo — eliminación de Classical" para el resto de
+  fases (C.2–C.6) y el orden sugerido.
 
 ## Estado actual del build (2026-07-13)
 

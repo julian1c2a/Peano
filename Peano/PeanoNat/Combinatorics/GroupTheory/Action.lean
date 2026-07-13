@@ -244,9 +244,11 @@ namespace Peano
       · intro x hx
         exact ⟨x, hx, (mem_orb_iff ψ x x hx).mpr ⟨G.id, G.id_in, ψ.act_id x hx⟩⟩
       · intro x y hx hy
-        rcases Classical.em (∃ z, z ∈ (ψ.orb x).elems ∧ z ∈ (ψ.orb y).elems) with h | h
-        · left
-          obtain ⟨z, hzx, hzy⟩ := h
+        cases hb : (ψ.orb x).elems.any (fun z => decide (z ∈ (ψ.orb y).elems)) with
+        | true =>
+          left
+          obtain ⟨z, hzx, hzy_dec⟩ := List.any_eq_true.mp hb
+          have hzy : z ∈ (ψ.orb y).elems := decide_eq_true_eq.mp hzy_dec
           obtain ⟨g₁, hg₁, hg₁_eq⟩ := (mem_orb_iff ψ x z hx).mp hzx
           obtain ⟨g₂, hg₂, hg₂_eq⟩ := (mem_orb_iff ψ y z hy).mp hzy
           have hxy_mem : x ∈ (ψ.orb y).elems := by
@@ -295,9 +297,15 @@ namespace Peano
                   rw [← ψ.act_compat g k x hg hk hx, hky, hgw]⟩
 
           exact congrArg FSet.elems horb_eq
-        · right
+        | false =>
+          have h : ¬∃ z, z ∈ (ψ.orb x).elems ∧ z ∈ (ψ.orb y).elems := by
+            rintro ⟨z, hzx, hzy⟩
+            have htrue : (ψ.orb x).elems.any (fun w => decide (w ∈ (ψ.orb y).elems)) = true :=
+              List.any_eq_true.mpr ⟨z, hzx, decide_eq_true_eq.mpr hzy⟩
+            simp [hb] at htrue
+          right
           intro z
-          rcases Classical.em (z ∈ (ψ.orb x).elems) with hzx | hzx
+          by_cases hzx : z ∈ (ψ.orb x).elems
           · exact Or.inr (fun hzy => absurd ⟨z, hzx, hzy⟩ h)
           · exact Or.inl hzx
 

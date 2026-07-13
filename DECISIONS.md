@@ -410,17 +410,25 @@ la documentación histórica (`ConstructiveCheck.lean`) sugería: `FSet.lean` y
 `Classical.choice`), no `Classical.byContradiction` como se documentaba; y
 `CantorPairing.antidiag/fst/snd` son `def` computables, no `noncomputable` vía
 `choose_unique` como decía el CHANGELOG histórico. El alcance real de `Classical.*` se
-reduce a 3 focos:
+reduce a 3 focos vía grep literal de `Classical\.`, **más un 4º descubierto el
+2026-07-13 al resolver el primero** (ver PLANNING.md Fase C.7): la táctica `classical`
+(sin punto) también tira de `Classical.choice` vía `Classical.propDecidable` y no
+aparece en un grep de `Classical\.` — hace falta buscarla también como palabra suelta.
 
 1. `Prelim/Classical.lean` — expone `choose`/`choose_unique` vía
-   `Classical.indefiniteDescription` (el único punto de entrada de `Classical.choice`
-   al proyecto).
+   `Classical.indefiniteDescription` (el único punto de entrada literal de
+   `Classical.choice` al proyecto).
 2. `Foundation/GodelBeta.lean` — `Classical.choose`/`choose_spec` en la reconstrucción
    de la función β de Gödel (4 usos).
 3. `Combinatorics/GroupTheory/{Action.lean, Sylow/CosetAction.lean, Sylow/Sylow.lean}`
    — `Classical.em`/`Classical.byContradiction` en case-splits de teoría de grupos (10
    usos en total), en contextos donde el predicado en cuestión es sobre un `FSet`
-   finito y probablemente `Decidable`.
+   finito y probablemente `Decidable`. **`Action.lean` ya resuelto (2026-07-13)** —
+   verificado con `#print axioms` que `orbits_partition`/`class_equation`/
+   `class_equation_split` no dependen de `Classical.choice`.
+4. `ListsAndSets/EquivRel.lean` línea 117 — táctica `classical` (no `Classical.em`
+   literal) en `EquivRelOn.classOf_eq_or_disjoint`, mismo patrón exacto que el punto 3
+   en `Action.lean` — la corrección ya probada allí aplica aquí sin cambios de diseño.
 
 **Decisión**: Peano se re-desarrolla como proyecto completamente intuicionista y
 constructivista. `Classical.*` queda prohibido para código nuevo (MANDATORY-1 arriba).

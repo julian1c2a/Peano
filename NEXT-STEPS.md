@@ -15,13 +15,18 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
 - Fase C.7 (`ListsAndSets/EquivRel.lean`) — ✅ COMPLETADA (2026-07-13): la táctica
   `classical` (hallazgo no previsto en ADR-017 original) sustituida con el mismo
   patrón de C.1; verificado con `#print axioms`.
-- **Siguiente paso inmediato y concreto**: PLANNING.md Fase **C.2** —
-  `Sylow/CosetAction.lean` línea 439, un único `Classical.em` sobre
-  `∀ g ∈ G.carrier.elems, α.act g x₀ = x₀` (cuantificador acotado sobre lista finita,
-  mismo tipo de patrón ya resuelto dos veces). Ver `PLANNING.md`
-  §"Plan de desarrollo — eliminación de Classical" para el resto de fases (C.3–C.6) y
-  el orden sugerido. Recordatorio de C.7: buscar también la palabra suelta
-  `classical` (no solo `Classical\.`) al cerrar cada fase.
+- Fase C.2 (`Sylow/CosetAction.lean`) — ✅ COMPLETADA (2026-07-13): el `Classical.em`
+  sustituido por `List.all`/`decide`. Hallazgo importante: un `simp` genérico sin
+  argumentos en un lema privado sin relación aparente (`card_eq_one_iff_singleton`)
+  también tiraba de `Classical.choice` sin dejar rastro grepeable — localizado por
+  bisección con `sorry`. Ver PLANNING.md Fase C.2 para la metodología, ahora
+  obligatoria en C.3 también.
+- **Siguiente paso inmediato y concreto**: PLANNING.md Fase **C.4** —
+  `Foundation/GodelBeta.lean`, `Classical.choose`/`choose_spec` en la reconstrucción
+  de la función β de Gödel (líneas 587–588, 636–639). Independiente de C.2/C.3, se
+  puede hacer ya. Ver `PLANNING.md` §"Plan de desarrollo — eliminación de Classical"
+  para el resto de fases (C.3, C.5, C.6) y la metodología de verificación con
+  `#print axioms` + bisección con `sorry`.
 
 ## Estado actual del build (2026-07-13)
 

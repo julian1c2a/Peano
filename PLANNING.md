@@ -183,9 +183,38 @@ hay que verificar con `#print axioms` que el teorema resultante no menciona
 `Classical.choice` antes de dar el paso por bueno (el caso C.7 de abajo es la prueba
 de que el propio código de este proyecto ya tiene un caso así, escondido).
 
-**C.2 — `Sylow/CosetAction.lean`** (1 uso, línea 439): mismo patrón,
-`∀ g ∈ G.carrier.elems, α.act g x₀ = x₀` sobre un `FSet` finito — decidible en
-principio (cuantificador acotado sobre una lista finita con igualdad decidible).
+**C.2 — `Sylow/CosetAction.lean`** ✅ COMPLETADA (2026-07-13). El `Classical.em` de
+la línea 439 (`∀ g ∈ G.carrier.elems, α.act g x₀ = x₀`, en `pgroup_fixed_point`) se
+sustituyó por `G.carrier.elems.all (fun g => decide (α.act g x₀ = x₀))` +
+`List.all_eq_true`/`decide_eq_true_eq` — mismo patrón que C.1 pero con `all` en vez
+de `any` (cuantificador universal acotado, no existencial). **Hallazgo nuevo, más
+sutil que C.7**: tras quitar el `Classical.em` explícito, `#print axioms` sobre
+`coset_conjugate_exists` seguía mostrando `Classical.choice` — no por el `Classical.em`
+ya arreglado, sino por un `simp at hlen` genérico (sin argumentos) en
+`card_eq_one_iff_singleton`, un lema privado sin relación aparente con C.2. `simp` sin
+argumentos puede resolver una meta apoyándose en `Decidable`/`Classical.propDecidable`
+de forma completamente silenciosa — sin escribir `Classical.em`, sin `classical`, sin
+ningún texto detectable por grep. Se sustituyó por el `simp only [List.length_cons] at
+hlen; omega` explícito (mismo resultado matemático, sin la vía classical), verificado
+por bisección con `sorry` (aislar qué sub-término del término de prueba cargaba el
+axioma) — técnica documentada abajo en "Metodología de verificación" porque **va a
+hacer falta repetirla en C.3**, que tiene muchas más tácticas `simp`/`by_contra`
+genéricas. Build: 73 jobs, 0 sorry. `#print axioms coset_conjugate_exists` →
+`[propext, Quot.sound]`, cero `Classical.choice`.
+
+**Metodología de verificación (aplicar en C.3–C.6)**: `grep` de `Classical\.` y
+`\bclassical\b` solo encuentra los usos *explícitos*. Un `simp`/`decide`/`omega` sin
+argumentos puede tirar de `Classical.choice` sin dejar ningún rastro textual. El único
+chequeo fiable es `#print axioms <teorema>` sobre cada teorema público tocado
+(exportado) tras cada cambio. Si aparece `Classical.choice` inesperadamente y no está
+claro por qué: (1) añadir temporalmente `#print axioms <lema_privado>` para cada lema
+privado que use la prueba, uno por línea, justo antes de `end <Namespace>`; (2)
+localizar cuál lo introduce; (3) dentro de ese lema, sustituir progresivamente
+sub-pruebas por `sorry` (bisección) hasta que `Classical.choice` desaparezca del
+reporte (quedará solo `sorryAx`) — el último trozo sorryado es el culpable; (4)
+reemplazar ese trozo por una táctica más específica (`simp only [...]`, `omega`,
+`decide` sobre un `Decidable` concreto) en vez de `simp`/`by_contra` genéricos; (5)
+borrar los `#print axioms` temporales antes de terminar.
 
 **C.3 — `Sylow/Sylow.lean`** (2 `Classical.em` + 5 `Classical.byContradiction`,
 líneas 2913–4151, 4920–4922): el módulo más grande y más delicado — es el que cierra
@@ -231,9 +260,9 @@ diseño. Verificado con `#print axioms`: `classOf_eq_or_disjoint`,
 cero `Classical.choice`. `grep -n '\bclassical\b\|Classical\.'` sobre el fichero →
 vacío. Build: 73 jobs, 0 sorry, 0 errores.
 
-**Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → **C.2** (siguiente — mismo patrón, un
-solo uso en `Sylow/CosetAction.lean`) → C.4 (independiente, se puede paralelizar) →
-C.3 (el más grande, dejarlo para cuando el patrón esté rodado) → C.5 → C.6. Cada paso
+**Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → **C.4** (siguiente —
+independiente, `GodelBeta.lean`) → C.3 (el más grande, dejarlo para cuando el patrón
+esté rodado) → C.5 → C.6. Cada paso
 debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
 `#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
 sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil

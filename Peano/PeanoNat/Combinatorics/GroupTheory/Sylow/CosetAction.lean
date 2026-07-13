@@ -142,7 +142,7 @@ namespace Peano
           rw [heq] at hlen
           cases as with
           | nil => rw [heq]
-          | cons b bs => simp at hlen⟩
+          | cons b bs => simp only [List.length_cons] at hlen; omega⟩
       · rintro ⟨a, ha⟩
         show lengthₚ s.elems = 𝟙
         rw [ha, lengthₚ_cons, lengthₚ_nil]
@@ -436,9 +436,18 @@ namespace Peano
           exact absurd (hcard0 ▸ divides_zero p) hndvd
         obtain ⟨x₀, rest, h_x0⟩ := List.exists_cons_of_ne_nil hnonempty
         have hx₀_mem : x₀ ∈ X.elems := h_x0 ▸ List.mem_cons_self
-        rcases Classical.em (∀ g ∈ G.carrier.elems, α.act g x₀ = x₀) with hfixed | hnotfixed
-        · exact ⟨x₀, hx₀_mem, hfixed⟩
-        · let inOrb : ℕ₀ → Bool :=
+        cases hf : G.carrier.elems.all (fun g => decide (α.act g x₀ = x₀)) with
+        | true =>
+          have hfixed : ∀ g ∈ G.carrier.elems, α.act g x₀ = x₀ := fun g hg =>
+            decide_eq_true_eq.mp (List.all_eq_true.mp hf g hg)
+          exact ⟨x₀, hx₀_mem, hfixed⟩
+        | false =>
+          have hnotfixed : ¬ ∀ g ∈ G.carrier.elems, α.act g x₀ = x₀ := by
+            intro hall
+            have htrue : G.carrier.elems.all (fun g => decide (α.act g x₀ = x₀)) = true :=
+              List.all_eq_true.mpr (fun g hg => decide_eq_true_eq.mpr (hall g hg))
+            simp [hf] at htrue
+          let inOrb : ℕ₀ → Bool :=
             fun y => G.carrier.elems.any (fun g => decide (α.act g x₀ = y))
           let X' : ℕ₀FSet := FSet.filter (fun y => !inOrb y) X
           let hα' : GroupAction G X' := restrictedAction α x₀ hx₀_mem

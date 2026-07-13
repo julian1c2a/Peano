@@ -423,10 +423,15 @@ aparece en un grep de `Classical\.` — hace falta buscarla también como palabr
 3. `Combinatorics/GroupTheory/{Action.lean, Sylow/CosetAction.lean, Sylow/Sylow.lean}`
    — `Classical.em`/`Classical.byContradiction` en case-splits de teoría de grupos (10
    usos en total), en contextos donde el predicado en cuestión es sobre un `FSet`
-   finito y probablemente `Decidable`. **`Action.lean` ya resuelto (2026-07-13)** —
-   verificado con `#print axioms` que `orbits_partition`/`class_equation`/
-   `class_equation_split` no dependen de `Classical.choice`. Quedan
-   `CosetAction.lean`/`Sylow.lean`.
+   finito y probablemente `Decidable`. **`Action.lean` y `CosetAction.lean` ya
+   resueltos (2026-07-13)** — verificado con `#print axioms` que
+   `orbits_partition`/`class_equation`/`class_equation_split`/`coset_conjugate_exists`
+   no dependen de `Classical.choice`. `CosetAction.lean` reveló un tercer patrón
+   oculto, más sutil que el de C.7: un `simp at h` sin argumentos en un lema privado
+   (`card_eq_one_iff_singleton`) sin relación aparente con el `Classical.em` original
+   también tiraba de `Classical.choice`, sin dejar rastro textual grepeable —
+   localizado por bisección con `sorry` (ver PLANNING.md Fase C.2 para la metodología,
+   ahora obligatoria también en C.3). Queda `Sylow.lean`.
 4. `ListsAndSets/EquivRel.lean` línea 117 — táctica `classical` (no `Classical.em`
    literal) en `EquivRelOn.classOf_eq_or_disjoint`. **Ya resuelto (2026-07-13)** —
    mismo patrón que el punto 3, verificado con `#print axioms` que

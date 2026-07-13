@@ -1172,27 +1172,6 @@ namespace Peano
         · have h_sk : nthRotate (σ k) v.val = v.val := by rw [h_eq]; exact hp_period
           exact ⟨𝟘, (ℕ₀FSet.mem_Fin₀Set_iff p 𝟘).mpr (pos_of_ne_zero p hp.1),
                  Subtype.ext h_sk.symm⟩
-      -- ── Inline nodup_subset_length_le ────────────────────────────────────
-      have nodup_sub_len : ∀ {l₁ l₂ : List (Vector ℕ₀ p)},
-          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-        intro l₁ l₂
-        induction l₁ generalizing l₂ with
-        | nil => intro _ _; exact Nat.zero_le _
-        | cons a l₁' ih =>
-          intro hnd hsub
-          rw [List.nodup_cons] at hnd
-          obtain ⟨ha_nin, hnd'⟩ := hnd
-          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-          have h_ih := ih hnd' (fun x hx => by
-            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
-            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
-          rw [List.length_cons]
-          have h_pos : 0 < l₂.length := by
-            cases l₂ with
-            | nil => exact absurd ha2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem ha2
-          omega
       -- ── Define S' and prove its properties ───────────────────────────────
       refine ⟨S.filter (fun w => !decide (w ∈ orbit)), ?_, ?_, ?_, ?_⟩
       -- Property 1: S'.Nodup
@@ -1225,10 +1204,10 @@ namespace Peano
         have filter_orbit_len :
             (S.filter (fun w => decide (w ∈ orbit))).length = orbit.length := by
           apply Nat.le_antisymm
-          · apply nodup_sub_len (List.filter_sublist.nodup hnodup)
+          · apply nodup_subset_length_le (List.filter_sublist.nodup hnodup)
             intro w hw
             exact of_decide_eq_true (List.mem_filter.mp hw).2
-          · apply nodup_sub_len orbit_nodup
+          · apply nodup_subset_length_le orbit_nodup
             intro w hw
             rw [List.mem_filter]
             exact ⟨orbit_mem_S w hw, decide_eq_true hw⟩
@@ -1245,7 +1224,7 @@ namespace Peano
                 (fun w => decide (rotateVector w = w))).length by
           exact congrArg Λ h4
         apply Nat.le_antisymm
-        · apply nodup_sub_len (List.filter_sublist.nodup hnodup)
+        · apply nodup_subset_length_le (List.filter_sublist.nodup hnodup)
           intro w hw
           rw [List.mem_filter] at hw ⊢
           obtain ⟨hw_S, hw_fixed⟩ := hw
@@ -1258,7 +1237,7 @@ namespace Peano
             exact orbit_no_fixed k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
               (hk_eq ▸ of_decide_eq_true hw_fixed)
           simp [hn]
-        · apply nodup_sub_len (List.filter_sublist.nodup (List.filter_sublist.nodup hnodup))
+        · apply nodup_subset_length_le (List.filter_sublist.nodup (List.filter_sublist.nodup hnodup))
           intro w hw
           rw [List.mem_filter] at hw ⊢
           exact ⟨(List.mem_filter.mp hw.1).1, hw.2⟩
@@ -1424,26 +1403,6 @@ namespace Peano
                decide_eq_true (listProd_rotate_eq_id G hv_mem (of_decide_eq_true hv_prod))⟩
       obtain ⟨k_orb, hk_orb⟩ := mckay_orbit_count p hp T hT_nodup hT_rot
       let fixed_T := T.filter (fun v => decide (rotateVector v = v))
-      have nodup_sub_len_p : ∀ {l₁ l₂ : List (Vector ℕ₀ p)},
-          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-        intro l₁ l₂
-        induction l₁ generalizing l₂ with
-        | nil => intro _ _; exact Nat.zero_le _
-        | cons a l₁' ih =>
-          intro hnd hsub
-          rw [List.nodup_cons] at hnd
-          obtain ⟨ha_nin, hnd'⟩ := hnd
-          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-          have h_ih := ih hnd' (fun x hx => by
-            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
-            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
-          rw [List.length_cons]
-          have h_pos : 0 < l₂.length := by
-            cases l₂ with
-            | nil => exact absurd ha2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem ha2
-          omega
       -- |T| = pow |G| (sub p 1)
       have h_T_card : lengthₚ T = pow G.carrier.card (sub p 𝟙) := by
         have hcard : G.carrier.card = lengthₚ G.carrier.elems := rfl
@@ -1506,11 +1465,11 @@ namespace Peano
                   (congrArg Subtype.val heq)
               exact Subtype.ext h_ini)
         exact congrArg Λ (Nat.le_antisymm
-          (calc T.length ≤ img.length := nodup_sub_len_p hT_nodup h_T_sub_img
+          (calc T.length ≤ img.length := nodup_subset_length_le hT_nodup h_T_sub_img
                 _ = _ := h_img_len)
           (calc (allVectorsList G.carrier.elems (sub p 𝟙)).length
                 = img.length := h_img_len.symm
-                _ ≤ T.length := nodup_sub_len_p h_img_nd h_img_sub_T))
+                _ ≤ T.length := nodup_subset_length_le h_img_nd h_img_sub_T))
       -- p ∣ |T|
       have h_p_dvd_T : p ∣ lengthₚ T := by
         rw [h_T_card]
@@ -1590,8 +1549,8 @@ namespace Peano
         have h_fixed_nd : fixed_T.Nodup := List.filter_sublist.nodup hT_nodup
         have h_len_eq2 : fixed_T.length = img2.length :=
           Nat.le_antisymm
-            (nodup_sub_len_p h_fixed_nd (fun v hv => h_fixed_sub_img2 v hv))
-            (nodup_sub_len_p h_img2_nd (fun v hv => h_img2_sub_fixed v hv))
+            (nodup_subset_length_le h_fixed_nd (fun v hv => h_fixed_sub_img2 v hv))
+            (nodup_subset_length_le h_img2_nd (fun v hv => h_img2_sub_fixed v hv))
         show Λ fixed_T.length = lengthₚ F.elems
         rw [h_len_eq2, List.length_map fwd2]; rfl
       -- Divisibility arithmetic
@@ -1711,25 +1670,8 @@ namespace Peano
     private theorem nodup_same_card {l₁ l₂ : List ℕ₀}
         (h1 : l₁.Nodup) (h2 : l₂.Nodup)
         (h12 : ∀ x, x ∈ l₁ → x ∈ l₂) (h21 : ∀ x, x ∈ l₂ → x ∈ l₁) :
-        l₁.length = l₂.length := by
-      have nodup_sub : ∀ {a b : List ℕ₀}, a.Nodup → (∀ x, x ∈ a → x ∈ b) → a.length ≤ b.length := by
-        intro a b hnd hsub
-        induction a generalizing b with
-        | nil => exact Nat.zero_le _
-        | cons x a' ih =>
-          rw [List.nodup_cons] at hnd; obtain ⟨hx_nin, hnd'⟩ := hnd
-          have hx2 := hsub x List.mem_cons_self
-          have h_ih := ih hnd' (fun y hy => by
-            have hyx : y ≠ x := fun heq => hx_nin (heq ▸ hy)
-            exact (List.mem_erase_of_ne hyx).mpr (hsub y (List.mem_cons_of_mem x hy)))
-          rw [List.length_cons]
-          have h_pos : 0 < b.length := by
-            cases b with
-            | nil => exact absurd hx2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem hx2
-          omega
-      exact Nat.le_antisymm (nodup_sub h1 h12) (nodup_sub h2 h21)
+        l₁.length = l₂.length :=
+      Nat.le_antisymm (nodup_subset_length_le h1 h12) (nodup_subset_length_le h2 h21)
 
     -- ══════════════════════════════════════════════════════════════════
     -- § Wielandt: sublistsOfLength e infraestructura
@@ -2217,27 +2159,6 @@ namespace Peano
           have hbinv_G := inv_mem G (hS_mem b hb)
           have := hS_fixed (G.inv b) hbinv_G G.id hid_in_S
           rwa [(G.op_id (G.inv b) hbinv_G).1] at this
-        -- Inline nodup_sub_len para el argumento de cardinalidad
-        have nodup_sub_len : ∀ {l₁ l₂ : List ℕ₀},
-            l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-          intro l₁ l₂
-          induction l₁ generalizing l₂ with
-          | nil => intro _ _; exact Nat.zero_le _
-          | cons a l₁' ih =>
-            intro hnd hsub
-            rw [List.nodup_cons] at hnd
-            obtain ⟨ha_nin, hnd'⟩ := hnd
-            have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-            have h_ih := ih hnd' (fun x hx => by
-              have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
-              exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
-            rw [List.length_cons]
-            have h_pos : 0 < l₂.length := by
-              cases l₂ with
-              | nil => exact absurd ha2 List.not_mem_nil
-              | cons _ _ => exact Nat.zero_lt_succ _
-            have h_erase_len := List.length_erase_of_mem ha2
-            omega
         -- Construir carrier = G.carrier ∩ (x₀ :: S')
         let S_fset : FSet ℕ₀ := G.carrier.filter (fun x => decide (x ∈ x₀ :: S'))
         have hmem_fset : ∀ x, x ∈ S_fset.elems ↔ x ∈ G.carrier.elems ∧ x ∈ x₀ :: S' := by
@@ -2266,11 +2187,11 @@ namespace Peano
             (G.carrier.elems.filter (fun x => decide (x ∈ x₀ :: S'))).length =
             (x₀ :: S').length := by
           apply Nat.le_antisymm
-          · apply nodup_sub_len
+          · apply nodup_subset_length_le
             · exact List.filter_sublist.nodup (sorted_nodup G.carrier.sorted)
             · intro x hx
               exact of_decide_eq_true (List.mem_filter.mp hx).2
-          · apply nodup_sub_len hS_nd
+          · apply nodup_subset_length_le hS_nd
             intro x hx
             exact List.mem_filter.mpr ⟨hS_mem x hx, decide_eq_true hx⟩
         exact (congrArg Λ hlen_eq).trans hS_len
@@ -2500,30 +2421,6 @@ namespace Peano
         rw [hassoc] at h1
         exact h1
 
-    /-- Auxiliar: si l₁ es Nodup y hay una inyección l₁ → l₂, entonces |l₁| ≤ |l₂|.
-        Versión para List ℕ₀, reutilizable en esta sección. -/
-    private theorem wieldandt_nodup_sub_len : ∀ {l₁ l₂ : List ℕ₀},
-        l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-      intro l₁ l₂
-      induction l₁ generalizing l₂ with
-      | nil => intro _ _; exact Nat.zero_le _
-      | cons a l₁' ih =>
-        intro hnd hsub
-        rw [List.nodup_cons] at hnd
-        obtain ⟨ha_nin, hnd'⟩ := hnd
-        have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-        have h_ih := ih hnd' (fun x hx => by
-          have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
-          exact (List.mem_erase_of_ne hxa).mpr
-            (hsub x (List.mem_cons_of_mem a hx)))
-        rw [List.length_cons]
-        have h_pos : 0 < l₂.length := by
-          cases l₂ with
-          | nil => exact absurd ha2 List.not_mem_nil
-          | cons _ _ => exact Nat.zero_lt_succ _
-        have h_erase_len := List.length_erase_of_mem ha2
-        omega
-
     /-- La fibra { h ∈ G | h·S = T } tiene el mismo cardinal que Stab(S),
         para cualquier T ∈ wieldandtOrb G Ω S. -/
     private theorem wieldandtStab_fiber_card
@@ -2564,7 +2461,7 @@ namespace Peano
               (List.mem_filter.mp ha).1 (List.mem_filter.mp hb).1 heq)
       -- |fL| ≤ |sL|
       have h1 : fL.length ≤ sL.length := by
-        have h := wieldandt_nodup_sub_len φ_nodup
+        have h := nodup_subset_length_le φ_nodup
                     (fun x hx => by
                       obtain ⟨h, hh, rfl⟩ := List.mem_map.mp hx
                       exact φ_img h hh)
@@ -2592,7 +2489,7 @@ namespace Peano
               ((wieldandtStab G S hS_sorted hS_mem).subset b hb) heq)
       -- |sL| ≤ |fL|
       have h2 : sL.length ≤ fL.length := by
-        have h := wieldandt_nodup_sub_len ψ_nodup
+        have h := nodup_subset_length_le ψ_nodup
                     (fun x hx => by
                       obtain ⟨k, hk, rfl⟩ := List.mem_map.mp hx
                       exact ψ_img k hk)
@@ -2760,7 +2657,7 @@ namespace Peano
             (wieldandtStab G S hS_sorted hS_mem).carrier.elems.length :=
           List.length_map _
         rw [← h_img_len]
-        exact wieldandt_nodup_sub_len img_nodup img_sub_S
+        exact nodup_subset_length_le img_nodup img_sub_S
       -- Convertir de Nat a ℕ₀ usando isomorph_Λ_le
       rw [← hS_len]
       exact (isomorph_Λ_le
@@ -2843,27 +2740,8 @@ namespace Peano
     private theorem nodup_same_card_ll {l₁ l₂ : List (List ℕ₀)}
         (h1 : l₁.Nodup) (h2 : l₂.Nodup)
         (h12 : ∀ x, x ∈ l₁ → x ∈ l₂) (h21 : ∀ x, x ∈ l₂ → x ∈ l₁) :
-        l₁.length = l₂.length := by
-      have nodup_sub : ∀ {a b : List (List ℕ₀)}, a.Nodup →
-          (∀ x, x ∈ a → x ∈ b) → a.length ≤ b.length := by
-        intro a b hnd hsub
-        induction a generalizing b with
-        | nil => exact Nat.zero_le _
-        | cons x a' ih =>
-          rw [List.nodup_cons] at hnd; obtain ⟨hx_nin, hnd'⟩ := hnd
-          have hx2 := hsub x List.mem_cons_self
-          have h_ih := ih hnd' (fun y hy => by
-            have hyx : y ≠ x := fun heq => hx_nin (heq ▸ hy)
-            exact (List.mem_erase_of_ne hyx).mpr
-              (hsub y (List.mem_cons_of_mem x hy)))
-          rw [List.length_cons]
-          have h_pos : 0 < b.length := by
-            cases b with
-            | nil => exact absurd hx2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem hx2
-          omega
-      exact Nat.le_antisymm (nodup_sub h1 h12) (nodup_sub h2 h21)
+        l₁.length = l₂.length :=
+      Nat.le_antisymm (nodup_subset_length_le h1 h12) (nodup_subset_length_le h2 h21)
 
     /-- Partición de una lista por un predicado booleano. -/
     private theorem filter_partition_nat {α : Type} (q : α → Bool) :
@@ -3337,27 +3215,6 @@ namespace Peano
             rw [gpow_zero]; exact wieldandtAct_id G S hS_sorted hS_mem
           exact ⟨𝟘, (ℕ₀FSet.mem_Fin₀Set_iff p 𝟘).mpr (pos_of_ne_zero p hp.1),
                  h_orb0_S.trans h_sk.symm⟩
-      -- ── nodup_sub_len helper ──────────────────────────────────────────
-      have nodup_sub_len : ∀ {l₁ l₂ : List (List ℕ₀)},
-          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-        intro l₁ l₂
-        induction l₁ generalizing l₂ with
-        | nil => intro _ _; exact Nat.zero_le _
-        | cons a l₁' ih =>
-          intro hnd hsub
-          rw [List.nodup_cons] at hnd
-          obtain ⟨ha_nin, hnd'⟩ := hnd
-          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-          have h_ih := ih hnd' (fun x hx => by
-            have hxa : x ≠ a := fun (heq : x = a) => ha_nin (heq ▸ hx)
-            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
-          rw [List.length_cons]
-          have h_pos : 0 < l₂.length := by
-            cases l₂ with
-            | nil => exact absurd ha2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem ha2
-          omega
       -- ── Define Ω' and prove its properties ───────────────────────────
       refine ⟨Ω.filter (fun T => !decide (T ∈ orbit)), ?_, ?_, ?_, ?_, ?_, ?_⟩
       -- Property 1: Ω'.Nodup
@@ -3394,9 +3251,9 @@ namespace Peano
         have filter_orbit_len :
             (Ω.filter (fun T => decide (T ∈ orbit))).length = orbit.length := by
           apply Nat.le_antisymm
-          · apply nodup_sub_len (List.filter_sublist.nodup hΩ_nd)
+          · apply nodup_subset_length_le (List.filter_sublist.nodup hΩ_nd)
             intro T hT; exact of_decide_eq_true (List.mem_filter.mp hT).2
-          · apply nodup_sub_len orbit_nodup
+          · apply nodup_subset_length_le orbit_nodup
             intro T hT
             rw [List.mem_filter]
             exact ⟨orbit_mem_Ω' T hT, decide_eq_true hT⟩
@@ -3414,7 +3271,7 @@ namespace Peano
               (fun T => decide (wieldandtAct G g T = T))).length by
           exact congrArg Λ h4
         apply Nat.le_antisymm
-        · apply nodup_sub_len (List.filter_sublist.nodup hΩ_nd)
+        · apply nodup_subset_length_le (List.filter_sublist.nodup hΩ_nd)
           intro T hT
           rw [List.mem_filter] at hT ⊢
           obtain ⟨hT_Ω, hT_fixed⟩ := hT
@@ -3428,7 +3285,7 @@ namespace Peano
             exact orbit_no_fixed k ((ℕ₀FSet.mem_Fin₀Set_iff p k).mp hk_in)
               (hk_eq ▸ of_decide_eq_true hT_fixed)
           simp [hn]
-        · apply nodup_sub_len
+        · apply nodup_subset_length_le
               (List.filter_sublist.nodup (List.filter_sublist.nodup hΩ_nd))
           intro T hT
           rw [List.mem_filter] at hT ⊢
@@ -3980,11 +3837,13 @@ namespace Peano
               obtain ⟨y, hy_eq⟩ : ∃ y, (conjAct.orb x).elems = [y] := by
                 have h1 : (conjAct.orb x).elems.length = 1 := hlen
                 cases h2 : (conjAct.orb x).elems with
-                | nil => simp [h2] at h1
+                | nil => rw [h2] at h1; exact absurd h1 (by decide)
                 | cons a t =>
                   cases t with
                   | nil => exact ⟨a, rfl⟩
-                  | cons b s => simp [h2] at h1
+                  | cons b s =>
+                    rw [h2, List.length_cons, List.length_cons] at h1
+                    exact absurd h1 (by omega)
               have hx_in_orb : x ∈ (conjAct.orb x).elems :=
                 (mem_orb_iff conjAct x x hx).mpr
                   ⟨G.id, G.id_in, conjAct.act_id x hx⟩
@@ -4010,7 +3869,8 @@ namespace Peano
                 (conjAct.stab x hx).carrier.card :=
               coprime_dvd_of_dvd_mul h_cop
                 ⟨r, (orbit_stabilizer conjAct x hx).trans hr_eq.symm⟩
-            exact h_stab_ndvd ⟨h_pow_dvd_stab.choose, h_pow_dvd_stab.choose_spec.symm⟩
+            obtain ⟨k, hk⟩ := h_pow_dvd_stab
+            exact h_stab_ndvd ⟨k, hk.symm⟩
           -- ── p | (filter (!isFixed) G.carrier).card — inducción ───────────────
           have h_p_dvd_nonfixed :
               p ∣ (FSet.filter (fun y => !isFixed y) G.carrier).card := by
@@ -5014,27 +4874,6 @@ namespace Peano
           · have hcop' : Coprime d p := coprime_symm hcop
             have hd' : d ∣ mul p (p ^ n') := by rwa [mul_comm] at hd
             exact ih (coprime_dvd_of_dvd_mul hcop' hd') hne
-      -- ── Helper: lista Nodup incluida en otra tiene longitud ≤ ──────────
-      have nodup_sub_len : ∀ {l₁ l₂ : List (Subgroup G)},
-          l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) → l₁.length ≤ l₂.length := by
-        intro l₁ l₂
-        induction l₁ generalizing l₂ with
-        | nil => intro _ _; exact Nat.zero_le _
-        | cons a l₁' ih_sub =>
-          intro hnd hsub
-          rw [List.nodup_cons] at hnd
-          obtain ⟨ha_nin, hnd'⟩ := hnd
-          have ha2 : a ∈ l₂ := hsub a List.mem_cons_self
-          have h_ih := ih_sub hnd' (fun x hx => by
-            have hxa : x ≠ a := fun heq => ha_nin (heq ▸ hx)
-            exact (List.mem_erase_of_ne hxa).mpr (hsub x (List.mem_cons_of_mem a hx)))
-          rw [List.length_cons]
-          have h_pos : 0 < l₂.length := by
-            cases l₂ with
-            | nil => exact absurd ha2 List.not_mem_nil
-            | cons _ _ => exact Nat.zero_lt_succ _
-          have h_erase_len := List.length_erase_of_mem ha2
-          omega
       -- ── H₀ es punto fijo de ψ₀ ─────────────────────────────────────────
       have hH₀_fixed : ∀ h ∈ H₀G.carrier.elems, ψ₀.act h H₀ = H₀ := by
         intro h hh
@@ -5262,9 +5101,9 @@ namespace Peano
           -- |orbit_filter| = |orb(K₀)|
           have h_orb_filter_len : orbit_filter.length = (ψ₀.orb K₀).elems.length := by
             apply Nat.le_antisymm
-            · apply nodup_sub_len (List.filter_sublist.nodup hl_nd)
+            · apply nodup_subset_length_le (List.filter_sublist.nodup hl_nd)
               intro x hx; exact decide_eq_true_eq.mp (List.mem_filter.mp hx).2
-            · apply nodup_sub_len (sorted_nodup (ψ₀.orb K₀).sorted)
+            · apply nodup_subset_length_le (sorted_nodup (ψ₀.orb K₀).sorted)
               intro x hx
               exact List.mem_filter.mpr ⟨h_orb_in_l x hx, decide_eq_true_eq.mpr hx⟩
           -- l.length = orbit_filter.length + rest'.length
@@ -5399,7 +5238,7 @@ namespace Peano
       have h_filter_one : (sylows.filter (fun K => decide (K = H₀))).length = 1 := by
         apply Nat.le_antisymm
         · calc (sylows.filter (fun K => decide (K = H₀))).length
-              ≤ [H₀].length := nodup_sub_len (List.filter_sublist.nodup h_nodup)
+              ≤ [H₀].length := nodup_subset_length_le (List.filter_sublist.nodup h_nodup)
                 (fun x hx => List.mem_singleton.mpr (decide_eq_true_eq.mp (List.mem_filter.mp hx).2))
             _ = 1 := rfl
         · have hmem : H₀ ∈ sylows.filter (fun K => decide (K = H₀)) :=

@@ -59,7 +59,6 @@ Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/ThirdIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean
 Peano/PeanoNat/Combinatorics/Orbit.lean
-Peano/PeanoNat/ListsAndSets/FSetFunction.lean
 Peano/PeanoNat/ListsAndSets/List.lean
 Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
@@ -67,3 +66,4 @@ Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
 Peano/PeanoNat/Foundation/GodelBeta.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
+Peano/PeanoNat/ListsAndSets/FSetFunction.lean

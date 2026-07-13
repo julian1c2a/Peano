@@ -601,8 +601,11 @@ namespace Peano
             List.Perm.cons x (peano_perm_cons_erase ha_xs)
           exact hswap.trans hcons
 
-    /-- Lema auxiliar: lista nodup contenida (como conjunto) en otra → longitud ≤. -/
-    private theorem nodup_subset_length_le {α : Type} [DecidableEq α] :
+    /-- Lista nodup contenida (como conjunto) en otra → longitud ≤. Constructiva
+    (usa `peano_mem_erase_of_ne`/`peano_length_erase_of_mem`, no las versiones del
+    núcleo de Lean 4 `List.mem_erase_of_ne`/`List.length_erase_of_mem`, que dependen
+    de `Classical.choice` — ver ADR-017 Fase C.9). -/
+    theorem nodup_subset_length_le {α : Type} [DecidableEq α] :
         ∀ {l₁ l₂ : List α}, l₁.Nodup → (∀ x, x ∈ l₁ → x ∈ l₂) →
         l₁.length ≤ l₂.length
       | [], _ => fun _ _ => Nat.zero_le _
@@ -1918,6 +1921,7 @@ export Peano.FSetFunction (
   -- Lemas auxiliares (ex-privados)
   sorted_nodup
   nodup_map_of_inj_on
+  nodup_subset_length_le
   perm_of_nodup_subset_same_length
   perm_map_of_injective_on_nodup
 )

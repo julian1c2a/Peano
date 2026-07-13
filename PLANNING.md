@@ -316,25 +316,136 @@ lugar (cuantificar sobre el predecesor `j` en vez de sobre `v` con `v - 1`). Tam
 la táctica `by_contra` no existe en este entorno (sin Mathlib) — usar
 `Decidable.byContradiction; intro h` (mismo patrón que C.1–C.3).
 
-**Hallazgo nuevo — NO resuelto, pendiente de decisión: `List.mem_erase_of_ne` y
-`List.length_erase_of_mem` (núcleo de Lean 4, NO de este proyecto) dependen de
-`Classical.choice` en sí mismos.** Verificado de forma completamente aislada:
-`#print axioms List.length_erase_of_mem` → `[propext, Classical.choice, Quot.sound]`,
-sin ningún código del proyecto de por medio. Tras arreglar `order`, `#print axioms` en
-`cauchy_minimal`/`sylow_lift_from_cauchy`/`sylow_first`/`sylow_third` seguía mostrando
-`Classical.choice` (NO era solo `order` la fuente, como asumía el análisis original de
-C.9) — bisección dentro de `mckay_orbit_remove` (prueba de Cauchy vía McKay,
-independiente de `order`) aisló la fuente exacta al patrón `have nodup_sub_len : ... :=
-by ... List.mem_erase_of_ne ... List.length_erase_of_mem ...` ("inline
-nodup_subset_length_le"), **copiado y pegado en ~9 sitios** de `Sylow.lean` (líneas
-aprox. 1188, 1439, 1724, 2233, 2517, 2857, 3353, 5030 — verificar tras cualquier
-edición previa que desplace líneas). Arreglo probable: sustituir ese patrón por algo
-que no use `List.erase`, reutilizando infraestructura ya existente y limpia del
-proyecto (`FSetFunction.lean` tiene `card_le_of_injective`/`card_le_of_surjective`,
-ambos verificados sin `Classical.choice`) en vez de la prueba inline vía erase. No
-decidido todavía si abordarlo ahora o en sesión aparte — es un hallazgo nuevo, de
-alcance comparable al propio C.9 (9 sitios en un fichero de >5500 líneas), descubierto
-el 2026-07-13 al cerrar C.9.
+**Hallazgo 1 — RESUELTO (2026-07-13): `List.mem_erase_of_ne`/`List.length_erase_of_mem`
+(núcleo de Lean 4, NO de este proyecto) dependen de `Classical.choice` en sí mismos.**
+Verificado de forma completamente aislada: `#print axioms List.length_erase_of_mem` →
+`[propext, Classical.choice, Quot.sound]`, sin código del proyecto de por medio. El
+patrón que los usaba (`have nodup_sub_len : ... := by ... List.mem_erase_of_ne ...`,
+"inline nodup_subset_length_le") estaba copiado y pegado en **9 sitios** de
+`Sylow.lean` (bajo los nombres locales `nodup_sub_len` ×4, `nodup_sub_len_p` ×1,
+`wieldandt_nodup_sub_len` ×1 con su propio `private theorem`, y `nodup_sub` ×2 dentro
+de `nodup_same_card`/`nodup_same_card_ll`). **Arreglo aplicado**: ya existía en
+`FSetFunction.lean:605` un `private theorem nodup_subset_length_le` que YA evitaba el
+problema usando helpers propios y constructivos (`peano_mem_erase_of_ne`,
+`peano_length_erase_of_mem`, ambos ya en el fichero, verificados sin
+`Classical.choice`) — solo hacía falta quitarle `private` y exportarlo. Se hizo eso, y
+se sustituyeron las 9 copias en `Sylow.lean` por llamadas directas a
+`nodup_subset_length_le` (eliminando además ~180 líneas de código duplicado). Fichero
+`FSetFunction.lean` también forma parte del commit de este hallazgo.
+
+**Hallazgo 2 — RESUELTO (2026-07-13): `.choose`/`.choose_spec` (azúcar de
+`Exists.choose`, que en Lean4 core ES `Classical.choose`) usado directamente en el
+propio código del proyecto, en `wielandt_p_ndvd_r` (línea ~3870, dentro de
+`h_p_dvd_orb`).** Grep de `Classical\.` no lo detecta (como con la táctica `classical`
+en C.7) porque está escrito como `h.choose`/`h.choose_spec`, no como `Classical.choose`
+literal. La eliminación de la existencial (`h_pow_dvd_stab : p^k ∣ ...`) para
+reconstruir OTRA existencial (`pow_dvd_card ...`) es Prop→Prop, así que NO hace falta
+choice: bastaba `obtain ⟨k, hk⟩ := h_pow_dvd_stab; exact h_stab_ndvd ⟨k, hk.symm⟩` en
+vez de `⟨h_pow_dvd_stab.choose, h_pow_dvd_stab.choose_spec.symm⟩`. **Regla general para
+el resto del fichero**: grep de `\.choose\b` (no solo `Classical\.`) antes de dar
+cualquier fase por cerrada — ya se hizo una vez sobre `Sylow.lean` completo y no queda
+ninguno, pero no se ha repetido sobre el resto del proyecto.
+
+**Hallazgo 3 — RESUELTO (2026-07-13), trampa nueva importante para toda sesión futura:
+`omega` cerrando un objetivo que NO es literalmente una proposición aritmética (p. ej.
+un existencial `∃ y, ...`) invoca `Classical.choice` internamente**, aunque las
+hipótesis en contexto sean aritméticas y la contradicción sea perfectamente
+constructiva. Confirmado con un test aislado mínimo (sin ningún import del proyecto):
+```
+example {α} (b s : List α) (h1 : s.length + 1 + 1 = 1) : False := by omega
+-- limpio: [propext, Quot.sound]
+example {α} (b s : List α) (h1 : s.length + 1 + 1 = 1) : ∃ y : α, True := by omega
+-- CONTAMINADO: [propext, Classical.choice, Quot.sound]
+```
+Se encontró en `wielandt_p_ndvd_r` (`h_stab_ne`, rama `cons b s` de un `cases` sobre
+listas de longitud 1): `omega` se llamaba directamente sobre el objetivo real
+(`∃ y, (conjAct.orb x).elems = [y]`), no sobre `False`. **Arreglo**: nunca llamar
+`omega` (ni `decide`) directamente sobre un objetivo no aritmético para cerrarlo por
+contradicción — primero obtener la negación aritmética por separado y combinar con
+`absurd`: `exact absurd h1 (by omega)` en vez de `omega` a secas. Aplicado en
+`wielandt_p_ndvd_r` línea ~3844. **Repetir este grep/patrón mental (buscar `omega`/
+`decide` como última línea de una rama cuyo objetivo NO es `False` ni una desigualdad)
+en el resto de `Sylow.lean` cuando se retome — es plausible que el mismo error exista
+en otros sitios no visitados todavía** (el fichero tiene sublistsOfLength, McKay,
+CosetAction, Correspondence, etc. con muchísimos `cases`/`omega` no auditados).
+
+**Estado de `#print axioms` tras los 3 hallazgos (2026-07-13, fin de sesión)**:
+- ✅ `Peano.Group.order` → sin axiomas.
+- ✅ `Peano.Sylow.cauchy_minimal` → `[propext, Quot.sound]`.
+- ✅ `wielandt_p_ndvd_r` (privado) → `[propext, Quot.sound]`.
+- ✅ `sylow_center_step_wielandt` (privado) → `[propext, Quot.sound]`.
+- ✅ `Peano.Cosets.lagrange` → `[propext, Quot.sound]`.
+- ❌ **`Peano.Sylow.sylow_lift_from_cauchy` → SIGUE mostrando `Classical.choice`**,
+  pese a que ya se comprobó que NINGUNA de sus piezas ya auditadas (arriba) lo
+  contiene, y que `hC` es un parámetro abstracto (no se especializa a
+  `cauchy_minimal` dentro de esta prueba, así que su contaminación no viene de ahí).
+  Esto propaga a `sylow_first` y `sylow_third` (ambos siguen `Classical.choice`).
+  **NO localizado todavía** — ver plan de continuación abajo.
+
+### Plan exacto para continuar (sesión siguiente)
+
+1. `bash git-lock.bash unlock Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean`.
+2. Añadir temporalmente `#print axioms sylow_lift_from_cauchy` justo después de su
+   `exact key G.carrier.card G rfl hpow` (línea ~4338, verificar con
+   `grep -n "theorem sylow_lift_from_cauchy"`) y `lake env lean
+   Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean 2>&1 | grep -A3
+   sylow_lift_from_cauchy` para confirmar que sigue contaminado (debería, ya lo
+   estaba al cerrar la sesión).
+3. Candidatos SIN auditar todavía dentro de `sylow_lift_from_cauchy` (su `have step`
+   y `have key`): `sylow_center_step` (wrapper de una línea a
+   `sylow_center_step_wielandt` — debería ser trivialmente limpio si la llamada lo es,
+   pero no se ha comprobado con `#print axioms` directamente), `subgroupToFinGroup`,
+   `subgroupOfSubgroup` (defs estructurales puras en Sylow.lean ~L1648/1660, parecen
+   inocuas pero no verificadas individualmente), `improperSubgroup`, `mul_le_right`,
+   `lt_of_le_of_ne`, `card_pos_of_mem_aux`, `not_lt_zero`,
+   `strongInductionOn`/`strongRecOn` (de `WellFounded.lean` — casi seguro limpio, ya
+   que se usó para `Group.order`, pero tampoco comprobado con `#print axioms` directo
+   sobre el nombre, solo indirectamente).
+4. Metodología de bisección que ya funcionó 3 veces en esta sesión (documentar para no
+   repetir errores):
+   - **NUNCA** basta con renombrar un `have` a `_UNUSED` para "desactivarlo" — Lean
+     sigue elaborando su prueba y sus axiomas cuentan igual aunque no se use en el
+     resto del término. Hay que **borrar** el bloque de verdad (con `sed -i
+     'L1,L2d'` usando los números de línea de un `grep -n` fresco) y sustituir por
+     `:= sorry` en la línea del `have`/`theorem` para aislar.
+   - Guardar SIEMPRE una copia (`cp Sylow.lean Sylow.lean.bakN`) antes de cada
+     borrado experimental, y restaurar con `cp` (nunca `git checkout`, porque hay
+     cambios legítimos sin commitear encima del HEAD).
+   - Tras cada `sed` que borra líneas, los números de línea de TODO lo posterior
+     cambian — repetir `grep -n` antes de cada edición siguiente, no confiar en
+     números de líneas de pasos anteriores.
+   - Patrón de bisección: sorry la mitad final de un bloque grande primero (barato),
+     si se limpia el axioma la fuente está en esa mitad; si no, en la otra. Repetir
+     recursivamente hasta llegar a una única línea sospechosa.
+5. Una vez localizada la línea exacta, casi seguro será una de las dos trampas ya
+   conocidas (`.choose`/`.choose_spec` sin punto literal "Classical", o `omega`/
+   `decide` cerrando un objetivo no aritmético) — el arreglo debería ser mecánico
+   siguiendo los patrones de los Hallazgos 2 y 3 arriba.
+6. Tras arreglar, re-verificar con el mismo comando de `axcheck2.lean` (ver abajo) que
+   los 5 teoremas objetivo (`cauchy_minimal`, `sylow_lift_from_cauchy`, `sylow_first`,
+   `sylow_second`, `sylow_third`) estén todos en `[propext, Quot.sound]` sin
+   `Classical.choice`.
+7. `lake build` completo + `bash check-sorry.bash` (deben seguir en 0/0) antes de
+   comitear. Commit siguiendo el patrón de los commits `feat(ADR-017): Fase C.9 ...`
+   ya hechos hoy.
+8. Tras cerrar esto, quedan pendientes C.5 (retirar `Prelim/Classical.lean` — probable
+   que ya no tenga consumidores reales, verificar con
+   `grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\." Peano/`) y C.6
+   (`ConstructiveCheck.lean` exhaustivo).
+
+Comando de verificación rápida usado toda la sesión (guardado en el scratchpad de la
+sesión, recrear si hace falta):
+```lean
+import Peano.PeanoNat.Combinatorics.GroupTheory.Sylow.Sylow
+import Peano.PeanoNat.Combinatorics.Group
+
+#print axioms Peano.Group.order
+#print axioms Peano.Sylow.cauchy_minimal
+#print axioms Peano.Sylow.sylow_lift_from_cauchy
+#print axioms Peano.Sylow.sylow_first
+#print axioms Peano.Sylow.sylow_second
+#print axioms Peano.Sylow.sylow_third
+```
 
 **C.4 — `Foundation/GodelBeta.lean`** ✅ COMPLETADA (2026-07-13). Los 2
 `Classical.choose`/`choose_spec` (encodeList, encode_decode) eliminados. Estrategia:

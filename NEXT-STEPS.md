@@ -57,19 +57,30 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
   axioma. Ver PLANNING.md Fase C.9 para las dos trampas nuevas documentadas (`omega`
   no entiende `Nat.pred`/`Nat.sub` en este entorno; `by_contra` no existe sin Mathlib,
   usar `Decidable.byContradiction`).
-- **Hallazgo nuevo, PENDIENTE DE DECISIÓN (descubierto 2026-07-13 al cerrar C.9)**:
-  arreglar `order` NO limpió `cauchy_minimal`/`sylow_lift_from_cauchy`/`sylow_first`/
-  `sylow_third` — `#print axioms` seguía mostrando `Classical.choice`. La fuente real,
-  aislada por bisección: **`List.mem_erase_of_ne`/`List.length_erase_of_mem` (núcleo
-  de Lean 4, no de este proyecto) dependen de `Classical.choice` en sí mismos**
-  (verificado en aislamiento total, sin código del proyecto de por medio). El patrón
-  que los usa (`nodup_sub_len`, "inline nodup_subset_length_le") está copiado en ~9
-  sitios de `Sylow.lean`. Ver PLANNING.md Fase C.9 (sección "Hallazgo nuevo") para el
-  análisis completo y el arreglo probable (usar `card_le_of_injective`/
-  `card_le_of_surjective` de `FSetFunction.lean`, ya verificados limpios, en vez de
-  `List.erase`). **No decidido todavía si abordarlo ahora o en sesión aparte** — alcance
-  comparable al propio C.9.
-- **Siguiente paso**: decidir sobre el hallazgo de `List.erase` arriba, o continuar con
+- **Tres hallazgos post-C.9, MISMA SESIÓN 2026-07-13 (ver PLANNING.md Fase C.9,
+  sección "Hallazgo 1/2/3" para el detalle completo)**:
+  1. ✅ RESUELTO: `List.mem_erase_of_ne`/`List.length_erase_of_mem` (núcleo de Lean 4)
+     dependen de `Classical.choice` en sí mismos. El patrón que los usaba
+     (`nodup_sub_len` inline) estaba copiado en 9 sitios de `Sylow.lean`; ya existía
+     un `nodup_subset_length_le` constructivo (privado) en `FSetFunction.lean` — se
+     exportó y se sustituyeron las 9 copias (~180 líneas menos).
+  2. ✅ RESUELTO: `.choose`/`.choose_spec` (= `Classical.choose` sin la palabra
+     "Classical" literal) usado directamente en `wielandt_p_ndvd_r` — sustituido por
+     `obtain`.
+  3. ✅ RESUELTO, trampa nueva importante: `omega` cerrando un objetivo NO aritmético
+     (p. ej. un existencial) por contradicción invoca `Classical.choice` internamente
+     — hay que aislar la contradicción con `exact absurd h (by omega)` en vez de
+     llamar `omega` directo sobre el objetivo real. Puede haber más instancias de este
+     patrón sin auditar en el resto de `Sylow.lean`.
+  - **PENDIENTE, sin resolver al cerrar la sesión**: `sylow_lift_from_cauchy` (y por
+    tanto `sylow_first`/`sylow_third`) SIGUE mostrando `Classical.choice` pese a que
+    `wielandt_p_ndvd_r`, `sylow_center_step_wielandt`, `cauchy_minimal` y `lagrange`
+    ya están todos limpios — la fuente está en alguna pieza de `sylow_lift_from_cauchy`
+    todavía no auditada individualmente (`sylow_center_step`, `subgroupToFinGroup`,
+    `subgroupOfSubgroup`, o algo dentro de su `have step`). Plan de bisección exacto
+    para continuar mañana: PLANNING.md Fase C.9, "Plan exacto para continuar".
+- **Siguiente paso concreto**: localizar y arreglar la fuente restante en
+  `sylow_lift_from_cauchy` (ver plan arriba), luego continuar con
   C.5 (retirar `Prelim/Classical.lean`) y C.6 (`ConstructiveCheck.lean` exhaustivo).
 
 ## Estado actual del build (2026-07-13)

@@ -302,12 +302,38 @@ Pendiente de decisión del usuario sobre si abordar C.9 ahora o dejarlo document
 para una sesión dedicada — es cualitativamente distinto (mayor alcance, mayor riesgo)
 que el resto de la Fase C hecha hasta ahora.
 
-**C.4 — `Foundation/GodelBeta.lean`** (`Classical.choose`/`choose_spec`, líneas
-587–588 y 636–639): reconstrucción de la función β de Gödel. Seguir el precedente ya
-sentado por `CantorPairing.antidiag` (ya constructivo, vía búsqueda acotada/recursión
-bien fundada en vez de `choose_unique`) — el rango de búsqueda para el testigo de
-`godel_beta_seq` es finito y acotado por construcción, así que un `Nat.rec`/
-`WellFounded.fix` explícito debería reemplazar el `choose`.
+**C.4 — `Foundation/GodelBeta.lean`** ✅ COMPLETADA (2026-07-13). Los 2
+`Classical.choose`/`choose_spec` (encodeList, encode_decode) eliminados. Estrategia:
+
+- `godel_beta_seq` se descompuso en `godelB n a` (el módulo b, ya explícito en la
+  prueba original: `factorial (σ (max n (seqBound a n)))`, ahora un `def` público en
+  vez de estar oculto tras el existencial) + `godel_beta_seq_aux` (privado, mismo
+  enunciado con b fijado a `godelB n a`, sólo c existencial). `godel_beta_seq` se
+  mantiene como wrapper público con el mismo enunciado de siempre (∃ c b, ...), para
+  no romper el uso externo/docs.
+- El testigo c, en cambio, **no tiene fórmula cerrada** (viene de CRT iterado vía
+  `simultaneous_congruences`/`chinese_remainder`/`bezout_natform`, una cadena de
+  ~4 ficheros que habría sido necesario rehacer como `def`s computables). Se evitó
+  ese refactor mayor con un atajo constructivo: cualquier testigo c que satisfaga la
+  especificación puede reducirse mod `prod_mods b n` sin romperla (`gmod b i ∣
+  prod_mods b n` para i ≤ n, por periodicidad de β vía `ModEq`/`modEq_of_dvd`,
+  reutilizando lemas ya existentes en el fichero). Eso acota el rango de búsqueda a
+  `[0, prod_mods b n)`, finito y decidible (igualdad en ℕ₀ decidible), así que basta
+  una búsqueda lineal (`List.find?` sobre `List.range`, con predicado `checkBetaSeq :
+  ℕ₀ → Bool` vía `List.all`/`decide`) — sin necesidad de tocar la cadena CRT/Bezout.
+  `godelC n a := (findBetaC n (godelB n a) a).getD 𝟘`, con `godelC_spec` demostrando
+  que satisface la especificación (usa `List.find?_isSome`/`List.find?_some`, ambos
+  en Lean4 core, no Mathlib).
+- Trampa de sintaxis (nueva, documentar para futuras fases): el proyecto redefine `+`
+  como `notation a "+" b => Peano.Add.add a b` (`Add.lean:1179`) SIN anotación de
+  precedencia — esto captura también expresiones sobre `Nat` puro (no sólo ℕ₀) que
+  usen `+` dentro de un fichero con `open Peano.Add`, rompiendo el parseo de
+  expresiones como `k < Ψ n + 1 ↔ P` (error confuso: `failed to synthesize OfNat Prop
+  1`). Solución: evitar `+` sobre `Nat` en estos ficheros y usar `Nat.succ`/`.succ`
+  explícito en su lugar.
+- Build: 73 jobs, 0 sorry, 0 texto `Classical.`/`classical`. `#print axioms` sobre
+  `encodeList`, `encode_decode`, `godelC`, `godelC_spec`, `godel_beta_seq` →
+  `[propext, Quot.sound]`, sin `Classical.choice`.
 
 **C.5 — Retirar `Prelim/Classical.lean`**: una vez C.1–C.4 cerradas, ningún módulo de
 producción debería seguir importando `Prelim.Classical`. Verificar con
@@ -338,9 +364,9 @@ diseño. Verificado con `#print axioms`: `classOf_eq_or_disjoint`,
 cero `Classical.choice`. `grep -n '\bclassical\b\|Classical\.'` sobre el fichero →
 vacío. Build: 73 jobs, 0 sorry, 0 errores.
 
-**Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → **C.4** (siguiente —
-independiente, `GodelBeta.lean`) → C.3 (el más grande, dejarlo para cuando el patrón
-esté rodado) → C.5 → C.6. Cada paso
+**Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → ~~C.3~~ ✅ (texto) →
+~~C.4~~ ✅ → **C.9** (siguiente, por decisión del usuario 2026-07-13: redefinir
+`Group.order` sin `Classical.choice`) → C.5 → C.6. Cada paso
 debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
 `#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
 sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil

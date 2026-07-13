@@ -506,16 +506,20 @@ namespace Peano
             (le_max_left (seqBound a n') (a (σ n')))
       · subst h_eq; exact le_max_right (seqBound a n') (a (σ n'))
 
-  /-- Para cualquier secuencia a : ℕ₀ → ℕ₀ y longitud n, existen c, b : ℕ₀
-  tales que β(c, b, i) = a(i) para todo i ≤ n. -/
-  theorem godel_beta_seq (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
-      ∃ c b : ℕ₀, ∀ i, le₀ i n → beta c b i = a i := by
+  /-- El módulo b usado por `godel_beta_seq`, ya explícito (Fase C.4 ADR-017:
+  extraído de la prueba para poder fijarlo antes del testigo c). -/
+  def godelB (n : ℕ₀) (a : ℕ₀ → ℕ₀) : ℕ₀ := factorial (σ (max n (seqBound a n)))
+
+  /-- Versión con b fijado a `godelB n a`: sólo el testigo c queda existencial. -/
+  private theorem godel_beta_seq_aux (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
+      ∃ c : ℕ₀, ∀ i, le₀ i n → beta c (godelB n a) i = a i := by
     -- Elegimos K = max(n, seqBound a n) y b = factorial (σ K).
     -- (1) Coprimality: i,j ≤ n ≤ K ≤ σ K, via godel_factorial_coprime (σ K).
     -- (2) Cota: a i ≤ seqBound a n ≤ K < σ K ≤ factorial(σ K) = b ≤ gmod b i.
     let M := seqBound a n
     let K := max n M
     let b := factorial (σ K)
+    have hgodelB : godelB n a = b := rfl
     -- Coprimality
     have hcop : ∀ i j, le₀ i n → le₀ j n → i ≠ j →
         Coprime (gmod b i) (gmod b j) := by
@@ -529,7 +533,8 @@ namespace Peano
       exact godel_factorial_coprime (σ K) i j hi_sK hj_sK hij
     -- Aplicar CRT
     obtain ⟨c, hc⟩ := simultaneous_congruences n b a hcop
-    refine ⟨c, b, fun i hi => ?_⟩
+    refine ⟨c, fun i hi => ?_⟩
+    rw [hgodelB]
     -- Mostrar a i < gmod b i
     have ha_lt : lt₀ (a i) (gmod b i) := by
       -- Paso 1: K < σ K ≤ factorial (σ K) = b
@@ -574,18 +579,115 @@ namespace Peano
     rw [hc i hi]
     exact mod_of_lt (a i) (gmod b i) ha_lt
 
+  /-- Para cualquier secuencia a : ℕ₀ → ℕ₀ y longitud n, existen c, b : ℕ₀
+  tales que β(c, b, i) = a(i) para todo i ≤ n. -/
+  theorem godel_beta_seq (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
+      ∃ c b : ℕ₀, ∀ i, le₀ i n → beta c b i = a i := by
+    obtain ⟨c, hc⟩ := godel_beta_seq_aux n a
+    exact ⟨c, godelB n a, hc⟩
+
+  -- ─────────────────────────────────────────────────────────────────────────
+  -- § 5b. Versión constructiva (Fase C.4, ADR-017): el testigo c computable
+  -- por búsqueda acotada, sin `Classical.choose`.
+  --
+  -- El módulo b ya es explícito (`godelB`, sin existencial). Para c: cualquier
+  -- testigo que satisfaga la especificación puede reducirse mod (prod_mods b n)
+  -- sin romperla, porque `gmod b i ∣ prod_mods b n` para todo i ≤ n (periodicidad
+  -- de β vía ModEq); basta entonces buscar linealmente en el rango finito
+  -- [0, prod_mods b n) el primer candidato que la cumpla — búsqueda decidible,
+  -- no una elección sobre un existencial de Prop.
+  -- ─────────────────────────────────────────────────────────────────────────
+
+  private theorem lt_Ψ_succ_iff_le_Λ (k : Nat) (n : ℕ₀) :
+      k < (Ψ n).succ ↔ le₀ (Λ k) n := by
+    rw [Nat.lt_succ_iff]
+    constructor
+    · intro h
+      have h2 : le₀ (Λ k) (Λ (Ψ n)) := (isomorph_Λ_le k (Ψ n)).mp h
+      rwa [ΛΨ] at h2
+    · intro h
+      have h2 : le₀ (Λ k) (Λ (Ψ n)) := by rw [ΛΨ]; exact h
+      exact (isomorph_Λ_le k (Ψ n)).mpr h2
+
+  /-- Verificación (Bool, decidible) de que c satisface la especificación de β
+  para todo i ≤ n. -/
+  private def checkBetaSeq (n b : ℕ₀) (a : ℕ₀ → ℕ₀) (c : ℕ₀) : Bool :=
+    (List.range (Ψ n).succ).all (fun k => decide (beta c b (Λ k) = a (Λ k)))
+
+  private theorem checkBetaSeq_eq_true_iff (n b : ℕ₀) (a : ℕ₀ → ℕ₀) (c : ℕ₀) :
+      checkBetaSeq n b a c = true ↔ ∀ i, le₀ i n → beta c b i = a i := by
+    unfold checkBetaSeq
+    rw [List.all_eq_true]
+    constructor
+    · intro h i hi
+      have hk := h (Ψ i) (List.mem_range.mpr
+        ((lt_Ψ_succ_iff_le_Λ (Ψ i) n).mpr (by rw [ΛΨ]; exact hi)))
+      rw [ΛΨ] at hk
+      simpa using hk
+    · intro h k hk
+      have hi_le : le₀ (Λ k) n := (lt_Ψ_succ_iff_le_Λ k n).mp (List.mem_range.mp hk)
+      simpa using h (Λ k) hi_le
+
+  /-- Búsqueda acotada del primer candidato c < prod_mods b n que satisface la
+  especificación (existe por `godel_beta_seq_aux` + reducción módulo prod_mods). -/
+  private def findBetaC (n b : ℕ₀) (a : ℕ₀ → ℕ₀) : Option ℕ₀ :=
+    ((List.range (Ψ (prod_mods b n))).map Λ).find? (checkBetaSeq n b a)
+
+  private theorem findBetaC_isSome (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
+      (findBetaC n (godelB n a) a).isSome = true := by
+    obtain ⟨c, hc⟩ := godel_beta_seq_aux n a
+    let b := godelB n a
+    have hMpos : lt₀ 𝟘 (prod_mods b n) := prod_mods_pos n b
+    have hMne : prod_mods b n ≠ 𝟘 := fun h => absurd (h ▸ hMpos) (lt_irrefl 𝟘)
+    let c' := mod c (prod_mods b n)
+    have hc'_lt : lt₀ c' (prod_mods b n) := mod_lt c (prod_mods b n) hMne
+    have hcong : ModEq (prod_mods b n) c' c := mod_mod c (prod_mods b n)
+    have hc'_spec : ∀ i, le₀ i n → beta c' b i = a i := by
+      intro i hi
+      have hdvd : gmod b i ∣ prod_mods b n := gmod_dvd_prod_mods b n i hi
+      have hgne : gmod b i ≠ 𝟘 := gmod_ne_zero b i
+      have hme : ModEq (gmod b i) c' c := modEq_of_dvd hMne hgne hdvd hcong
+      unfold ModEq at hme
+      show mod c' (gmod b i) = a i
+      rw [hme]
+      exact hc i hi
+    have hcheck : checkBetaSeq n b a c' = true :=
+      (checkBetaSeq_eq_true_iff n b a c').mpr hc'_spec
+    show (findBetaC n b a).isSome = true
+    unfold findBetaC
+    apply List.find?_isSome.mpr
+    refine ⟨c', ?_, hcheck⟩
+    rw [List.mem_map]
+    exact ⟨Ψ c', List.mem_range.mpr ((isomorph_Ψ_lt c' (prod_mods b n)).mp hc'_lt), ΛΨ c'⟩
+
+  /-- El testigo c de la especificación de β, computable por búsqueda acotada
+  (sin `Classical.choose`). -/
+  def godelC (n : ℕ₀) (a : ℕ₀ → ℕ₀) : ℕ₀ :=
+    (findBetaC n (godelB n a) a).getD 𝟘
+
+  theorem godelC_spec (n : ℕ₀) (a : ℕ₀ → ℕ₀) :
+      ∀ i, le₀ i n → beta (godelC n a) (godelB n a) i = a i := by
+    obtain ⟨c, hcfind⟩ := Option.isSome_iff_exists.mp (findBetaC_isSome n a)
+    have hc_check : checkBetaSeq n (godelB n a) a c = true := by
+      unfold findBetaC at hcfind
+      exact List.find?_some hcfind
+    have hgodelC : godelC n a = c := by
+      unfold godelC
+      rw [hcfind, Option.getD_some]
+    rw [hgodelC]
+    exact (checkBetaSeq_eq_true_iff n (godelB n a) a c).mp hc_check
+
   -- ─────────────────────────────────────────────────────────────────────────
   -- § 6. Codificación y decodificación de listas
   -- ─────────────────────────────────────────────────────────────────────────
 
   /-- Codifica una lista como un único ℕ₀ mediante pair (c, b). -/
-  noncomputable def encodeList (l : List ℕ₀) : ℕ₀ :=
+  def encodeList (l : List ℕ₀) : ℕ₀ :=
     if l = [] then 𝟘
     else
       let n := Λ (l.length - 1)
       let a := fun i => l.getD (Ψ i) 𝟘
-      pair (Classical.choose (godel_beta_seq n a))
-           (Classical.choose (Classical.choose_spec (godel_beta_seq n a)))
+      pair (godelC n a) (godelB n a)
 
   /-- Decodifica: dado el código z y la longitud n, reconstruye la lista. -/
   def decodeList (z : ℕ₀) : ℕ₀ → List ℕ₀
@@ -632,11 +734,9 @@ namespace Peano
       -- Parámetros de encodeList
       let n := Λ ((x :: xs).length - 1)
       let a : ℕ₀ → ℕ₀ := fun i => (x :: xs).getD (Ψ i) 𝟘
-      have spec := godel_beta_seq n a
-      let c := Classical.choose spec
-      have rest := Classical.choose_spec spec
-      let b := Classical.choose rest
-      have hbeta := Classical.choose_spec rest
+      let c := godelC n a
+      let b := godelB n a
+      have hbeta := godelC_spec n a
       -- encodeList (x :: xs) = pair c b
       have henc : encodeList (x :: xs) = pair c b := by
         simp only [encodeList, h_l_ne, ite_false]; rfl
@@ -669,6 +769,9 @@ export Peano.GodelBeta (
   beta_lt
   beta_of_lt
   godel_beta_seq
+  godelB
+  godelC
+  godelC_spec
   encodeList
   decodeList
   list_decode_length

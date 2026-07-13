@@ -36,12 +36,24 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
   definición, no de táctica, con impacto en todo `Group.lean`. Ver `PLANNING.md`
   Fase C.9 para el análisis completo. **No decidido todavía si abordarlo ahora o en
   sesión aparte.**
-- **Siguiente paso concreto (si se sigue el orden original)**: PLANNING.md Fase
-  **C.4** — `Foundation/GodelBeta.lean`, `Classical.choose`/`choose_spec` en la
-  reconstrucción de la función β de Gödel (líneas 587–588, 636–639). Independiente de
-  C.9, se puede hacer sin esperar esa decisión. Ver `PLANNING.md`
-  §"Plan de desarrollo — eliminación de Classical" para el resto de fases (C.5, C.6,
-  C.9) y la metodología de verificación con `#print axioms` + bisección con `sorry`.
+- Fase C.4 (`Foundation/GodelBeta.lean`) — ✅ COMPLETADA (2026-07-13): los 2
+  `Classical.choose`/`choose_spec` (en `encodeList`/`encode_decode`) eliminados. `b`
+  ya era explícito (extraído a `godelB`); `c` no tiene fórmula cerrada (viene de CRT
+  iterado), así que se evitó rehacer toda la cadena `simultaneous_congruences`/
+  `chinese_remainder`/`bezout_natform` como `def`s computables, y en su lugar se
+  acotó el rango de búsqueda (cualquier testigo se puede reducir mod `prod_mods b n`
+  sin romper la especificación) y se buscó linealmente con `List.find?`/`decide`
+  (`godelC`/`godelC_spec`, Fase C.4 en PLANNING.md tiene el detalle completo).
+  Trampa nueva documentada: `+` está redefinido como `notation` sin precedencia
+  (`Add.lean:1179`), rompe el parseo de `+` sobre `Nat` puro en ficheros con `open
+  Peano.Add` — usar `Nat.succ`/`.succ` en su lugar. Build 73 jobs, 0 sorry, 0 texto
+  `Classical.`/`classical`; `#print axioms` confirma que `encodeList`, `encode_decode`,
+  `godelC`, `godelC_spec` y `godel_beta_seq` ya no dependen de `Classical.choice`.
+- **Siguiente paso**: por decisión del usuario (2026-07-13), C.4 se hizo primero por
+  ser la más simple; **C.9 es el siguiente objetivo** (redefinir `Group.order` sin
+  `Classical.choice`, ver PLANNING.md Fase C.9 para el análisis completo — cambio de
+  definición con impacto en todo `Group.lean`, no un swap mecánico). Tras C.9 quedan
+  C.5 (retirar `Prelim/Classical.lean`) y C.6 (`ConstructiveCheck.lean` exhaustivo).
 
 ## Estado actual del build (2026-07-13)
 

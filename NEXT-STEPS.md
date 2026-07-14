@@ -85,10 +85,19 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
     Los 6 teoremas objetivo (`Group.order`, `cauchy_minimal`, `sylow_lift_from_cauchy`,
     `sylow_first`, `sylow_second`, `sylow_third`) están todos verificados sin
     `Classical.choice`. Build 73 jobs, 0 sorry.
-- **Siguiente paso concreto**: C.5 (retirar `Prelim/Classical.lean` — verificar
-  consumidores con `grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\."
-  Peano/`) y C.6 (`ConstructiveCheck.lean` exhaustivo, incluyendo `#assert_constructive`
-  para los 6 teoremas de Sylow y las nuevas defs de enumeración de subgrupos).
+- ✅ **C.5 CERRADA (2026-07-14)**: el grep de consumidores SÍ encontró 2 reales
+  (`Foundation/Initiality.lean`'s `morph_fn`/`peano_unique`,
+  `Foundation/PureAxioms.lean`'s `ψ`) — ambos metateoría sobre `PeanoSystem`
+  abstractos, inherentemente no constructiva, y confirmada sin propagación (nada fuera
+  de esos 2 ficheros los usa, nada importa el paraguas `Foundation/Foundation.lean`).
+  Decisión: `Prelim/Classical.lean` queda como única excepción documentada de
+  ADR-017, no se retira. `ConstructiveCheck.lean` actualizado (comentario de cabecera
+  ya no lista Action/CosetAction/Sylow/GodelBeta como no constructivos — están
+  resueltos desde C.1–C.4/C.9; añadidos `#assert_constructive` para
+  `GodelBeta.encodeList`/`encode_decode`).
+- **Siguiente paso concreto**: C.6 (`ConstructiveCheck.lean` exhaustivo — añadir
+  `#assert_constructive` para los 6 teoremas de Sylow, `Group.order`, y las nuevas
+  defs de enumeración de subgrupos de la Fase C.9).
 
 ## Estado actual del build (2026-07-13)
 

@@ -481,6 +481,28 @@ compatibilidad más costosa después del handoff.
   protocolo de `AI-GUIDE.md` §20 para su refactorización; ninguno está congelado
   (`frozen_files.txt`), así que no aplica el protocolo de extensión `*Ext.lean`.
 
+**Cierre (2026-07-14)**: Fase C completada. Además de los 4 focos listados arriba,
+la eliminación reveló **5 fuentes de `Classical.choice` en total** (2 más, ambas
+invisibles a grep de `Classical\.`, encontradas al cerrar C.9 — ver PLANNING.md Fase
+C.9 para el detalle): `by_cases` sobre una existencial de `Subgroup` sin instancia
+`Decidable` (cae a `Classical.propDecidable`), y `simp` genérico normalizando una
+hipótesis puramente aritmética (también cae a `Classical.choice` vía su simp-set por
+defecto, sin relación con el objetivo real de la meta). Los 6 teoremas exportados de
+`Sylow.lean` más `Group.order` quedaron verificados sin `Classical.choice`.
+
+**Excepción intencional, documentada y aceptada**: `Prelim/Classical.lean` **no** se
+retira (contra la intención original de "eliminación completa"). Sus dos únicos
+consumidores reales — `Foundation/Initiality.lean` (`morph_fn`/`peano_unique`, el
+morfismo canónico y la unicidad de isomorfismo entre `PeanoSystem` **abstractos**
+cualesquiera) y `Foundation/PureAxioms.lean` (`ψ`, la inversa de `φ : ℕ₀ → ℕ₀_pa` sobre
+el modelo puramente axiomático de los 6 axiomas de Peano) — son metateoría
+genuinamente no constructiva por naturaleza: cuantifican sobre tipos abstractos
+arbitrarios, sin nada que enumerar o acotar. Verificado que la propagación es cero:
+nada fuera de esos dos ficheros (ni siquiera el módulo paraguas `Foundation/Foundation.lean`)
+tiene ningún consumidor en el resto del árbol — la aritmética, teoría de números,
+combinatoria, teoría de grupos y los 3 teoremas de Sylow no dependen de ellos en
+absoluto. `ConstructiveCheck.lean` documenta esta excepción explícitamente.
+
 ---
 
 ## Plantilla para nuevas decisiones

@@ -59,32 +59,39 @@ import Peano.PeanoNat.Pairing
 -- ─────────────────────────────────────────────────────────────────
 -- Módulos EXPLÍCITAMENTE NO CONSTRUCTIVOS — no se comprueban aquí:
 --
--- Verificado por grep de `Classical\.` en todo el árbol (2026-07-13) — la lista
--- anterior de este comentario sobreestimaba el alcance: `FSet.lean` y
--- `FSetFunction.lean` usan `Decidable.byContradiction` (constructivo, solo
--- requiere una instancia `Decidable`, no `Classical.choice`), no
--- `Classical.byContradiction`. Por eso Totient/Fermat/Wilson/Counting/Perm/
--- Sign/Product, que solo importan FSet transitivamente, tampoco dependen de
--- Classical. `CantorPairing.antidiag/fst/snd` son `def` computables (no
--- `noncomputable`, no `choose`) pese a lo que decía el CHANGELOG histórico.
---
--- El alcance REAL de `Classical.*` en el proyecto es:
+-- Estado (2026-07-14, ADR-017 Fase C cerrada): tras C.1-C.9, el único uso real
+-- de `Classical.*` que queda en todo el proyecto es un rincón metateórico
+-- aislado sin ningún consumidor fuera de sí mismo (verificado por grep: nada
+-- importa `Foundation/Foundation.lean`, y nada fuera de `Initiality.lean`/
+-- `PureAxioms.lean` usa `morph_fn`/`peano_unique`/`ψ`/`φ_ψ`/`ℕ₀_pa`):
 --
 --   Prelim/Classical.lean         — expone Classical.indefiniteDescription
 --                                   (define choose/choose_unique — el único
 --                                   punto de entrada de Classical.choice)
---   Foundation/GodelBeta.lean     — Classical.choose/choose_spec en la
---                                   reconstrucción de la función β de Gödel;
---                                   beta, decodeList, godel_beta_seq SÍ son
---                                   constructivos (comprobados abajo)
---   Combinatorics/GroupTheory/Action.lean       — Classical.em (2 usos)
---   Combinatorics/GroupTheory/Sylow/CosetAction.lean — Classical.em (1 uso)
---   Combinatorics/GroupTheory/Sylow/Sylow.lean  — Classical.em (2) +
---                                                  Classical.byContradiction (5)
+--   Foundation/Initiality.lean    — `morph_fn`/`morph_as_morph`/`peano_unique`:
+--                                   el morfismo canónico y la unicidad de
+--                                   isomorfismo entre dos `PeanoSystem`
+--                                   ABSTRACTOS cualesquiera (no `ℕ₀` concreto).
+--                                   Inherentemente no constructivo: no hay
+--                                   nada que enumerar/acotar cuando se
+--                                   cuantifica sobre un tipo arbitrario.
+--   Foundation/PureAxioms.lean    — `ψ` (inversa de `φ : ℕ₀ → ℕ₀_pa`, elegida
+--                                   por `Peano.choose` sobre `φ_surj`), usada
+--                                   para `pa_parity` (ℕ₀ ≅ cualquier modelo
+--                                   axiomático puro de Peano, incl. ω de ZFC
+--                                   por el mismo mecanismo). Misma naturaleza
+--                                   que `Initiality.lean`: es la prueba de que
+--                                   el tipo inductivo `ℕ₀` que usa el resto del
+--                                   proyecto "es" el objeto axiomático abstracto,
+--                                   no al revés — la aritmética/Sylow/etc. NO
+--                                   dependen de este módulo.
 --
--- Ver DECISIONS.md ADR-017 y PLANNING.md — el proyecto se re-desarrolla como
--- completamente intuicionista/constructivista; estos son exactamente los
--- puntos a eliminar.
+-- Todo el resto del árbol (aritmética, teoría de números, combinatoria, teoría
+-- de grupos, los 3 teoremas de Sylow, `Group.order`) es constructivo — ver
+-- PLANNING.md Fase C.9 para el historial completo de los 5 hallazgos
+-- (2 de ellos invisibles a grep de `Classical\.`: `by_cases`/`omega`/`simp`
+-- cayendo a `Classical.propDecidable`/`Classical.choice` sin mencionar la
+-- palabra "Classical" en el código fuente).
 -- ─────────────────────────────────────────────────────────────────
 
 set_option autoImplicit false
@@ -261,8 +268,9 @@ end AssertConstructiveCmd
 #assert_constructive Peano.CantorPairing.pair_surj
 
 -- ─────────────────────────────────────────────────────────────────
--- Comprobaciones: GodelBeta.lean (parte constructiva)
--- (encodeList y encode_decode usan Classical.choose — no se comprueban)
+-- Comprobaciones: GodelBeta.lean
+-- (encodeList/encode_decode ya no usan Classical.choose desde C.4, 2026-07-13
+-- — búsqueda acotada vía godelC/godelC_spec; ver PLANNING.md Fase C.4)
 -- ─────────────────────────────────────────────────────────────────
 
 #assert_constructive Peano.GodelBeta.beta
@@ -271,6 +279,8 @@ end AssertConstructiveCmd
 #assert_constructive Peano.GodelBeta.godel_beta_seq
 #assert_constructive Peano.GodelBeta.decodeList
 #assert_constructive Peano.GodelBeta.list_decode_length
+#assert_constructive Peano.GodelBeta.encodeList
+#assert_constructive Peano.GodelBeta.encode_decode
 
 -- ─────────────────────────────────────────────────────────────────
 -- Comprobaciones: StrictOrder.lean

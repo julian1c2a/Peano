@@ -530,14 +530,25 @@ import Peano.PeanoNat.Combinatorics.Group
   `encodeList`, `encode_decode`, `godelC`, `godelC_spec`, `godel_beta_seq` →
   `[propext, Quot.sound]`, sin `Classical.choice`.
 
-**C.5 — Retirar `Prelim/Classical.lean`**: una vez C.1–C.4 cerradas, ningún módulo de
-producción debería seguir importando `Prelim.Classical`. Verificar con
-`grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\." Peano/` → debe devolver
-vacío (salvo el propio fichero). Retirar su `import`/`export` de `Prelim.lean` y
-`Peano.lean`. Decisión pendiente: ¿se borra el fichero o se deja como reliquia
-histórica sin importar desde ningún sitio? (Precedente del proyecto: preferir borrar
-lo que ya no se usa — ver AI-GUIDE.md §16b, aunque ese párrafo habla de scratch files,
-no de módulos de producción retirados; tratar como caso nuevo a decidir en el momento).
+**C.5 — Retirar `Prelim/Classical.lean`** ✅ CERRADA (2026-07-14, con excepción
+documentada en vez de retirada completa). El grep
+`grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\." Peano/` (ejecutado tras
+cerrar C.9) **no** devolvió vacío: hay 2 consumidores reales,
+`Foundation/Initiality.lean` (`morph_fn`/`morph_as_morph`/`peano_unique`) y
+`Foundation/PureAxioms.lean` (`ψ`, vía `φ_surj`). Investigado su alcance: ambos prueban
+resultados de unicidad/isomorfismo sobre `PeanoSystem` **abstractos** (no sobre `ℕ₀`
+concreto) — inherentemente no constructivos, no hay nada que enumerar/acotar cuando se
+cuantifica sobre un tipo arbitrario. **Verificado que la contaminación no se propaga**:
+`grep` confirma que nada fuera de esos dos ficheros usa `morph_fn`/`peano_unique`/`ψ`/
+`φ_ψ`/`ℕ₀_pa`, y que nada en todo el árbol importa el módulo paraguas
+`Foundation/Foundation.lean` que los agrupa (junto a `CantorPairing`/`GodelBeta`, ya
+constructivos). **Decisión**: aceptar `Prelim/Classical.lean` como la única excepción
+intencional y documentada de ADR-017 — no se borra ni se retira el `import`. Comentario
+de cabecera de `ConstructiveCheck.lean` actualizado para reflejar esta excepción
+(reemplaza el comentario obsoleto que aún listaba `Action.lean`/`CosetAction.lean`/
+`Sylow.lean`/`GodelBeta.lean` como no constructivos — ya estaban resueltos desde C.1–C.4
+y C.9). Añadidos también `#assert_constructive` para `GodelBeta.encodeList`/
+`encode_decode` (pendientes desde C.4, confirmados limpios).
 
 **C.6 — Ampliar `Peano/ConstructiveCheck.lean`**: añadir `#assert_constructive` para
 **todo** símbolo público del proyecto (no solo aritmética base) — convertir el chequeo
@@ -560,8 +571,9 @@ cero `Classical.choice`. `grep -n '\bclassical\b\|Classical\.'` sobre el fichero
 vacío. Build: 73 jobs, 0 sorry, 0 errores.
 
 **Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → ~~C.3~~ ✅ (texto) →
-~~C.4~~ ✅ → ~~C.9~~ ✅ (`Group.order`) → **hallazgo `List.erase`** (nuevo, ver arriba,
-pendiente de decisión del usuario) → C.5 → C.6. Cada paso
+~~C.4~~ ✅ → ~~C.9~~ ✅ (`Group.order` + `sylow_lift_from_cauchy`/`sylow_third`,
+cerrada 2026-07-14) → ~~C.5~~ ✅ (excepción documentada, cerrada 2026-07-14) →
+**C.6** (siguiente, en curso). Cada paso
 debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
 `#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
 sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil

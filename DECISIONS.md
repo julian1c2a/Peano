@@ -503,6 +503,25 @@ tiene ningún consumidor en el resto del árbol — la aritmética, teoría de n
 combinatoria, teoría de grupos y los 3 teoremas de Sylow no dependen de ellos en
 absoluto. `ConstructiveCheck.lean` documenta esta excepción explícitamente.
 
+**Fase C.6 (2026-07-14) — cobertura exhaustiva + 2 hallazgos finales, ambos
+resueltos**: `ConstructiveCheck.lean` se amplió con `#assert_constructive` para los
+~1420 símbolos exportados en los 57 ficheros del proyecto (antes solo cubría un
+subconjunto de aritmética base). El barrido exhaustivo reveló 2 fuentes más:
+(1) `String.drop`/`.extract`/`.toList` del **núcleo de Lean 4.31** dependen de
+`Classical.choice` — `Tuple.lean` los usaba en 3 instancias `Repr`, resuelto
+reconstruyendo el string sin recortar. (2) `well_ordering_principle` (`Order.lean`)
+hacía `by_cases` sobre un predicado `P` arbitrario sin `[DecidablePred P]`, propagando
+el fallback clásico a `WellFounded.well_ordering_principle` y a
+`Mul.exists_unique_mul_le_and_lt_succ_mul`/`exists_factor_of_mul_le`. `Order.lean`/
+`WellFounded.lean`/`Mul.lean` estaban `frozen_files.txt` — se autorizó `thaw --confirm`
+puntual, se añadió `[DecidablePred P]` + una instancia real (`decidableExistsLe`,
+envolviendo el `def` preexistente `decidableBExLe_of_bool`, que por sí solo no era
+recogido por la búsqueda de instancias), y se volvió a congelar. **Con esto, la única
+excepción de `Classical.*` que queda en todo el proyecto es la metateoría documentada
+arriba** (`Initiality.lean`/`PureAxioms.lean`) — todo lo demás, incluida ahora
+`well_ordering_principle` y su cadena, es constructivo y está bajo guarda de
+`#assert_constructive`.
+
 ---
 
 ## Plantilla para nuevas decisiones

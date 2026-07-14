@@ -89,7 +89,7 @@ namespace Peano
       Afirma que todo conjunto no vacío de números (descrito por una propiedad `P`)
       contiene un único elemento mínimo. Es una consecuencia directa de `well_founded_lt`.
     -/
-    theorem well_ordering_principle (P : ℕ₀ → Prop) (h_nonempty : ∃ k, P k) :
+    theorem well_ordering_principle (P : ℕ₀ → Prop) [DecidablePred P] (h_nonempty : ∃ k, P k) :
       ∃¹ (n : ℕ₀), (P n) ∧ ∀ (m : ℕ₀), (P m) → (n ≤ m )
         := by
       -- 1. Existencia del mínimo (delegamos a la versión de Order.lean)

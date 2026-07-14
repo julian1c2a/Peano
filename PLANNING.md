@@ -1,7 +1,7 @@
 # PLANNING — Estado del proyecto
 
 *Autor: Julián Calderón Almendros*
-*Última actualización: 2026-07-13*
+*Última actualización: 2026-07-14*
 
 ---
 
@@ -497,6 +497,109 @@ import Peano.PeanoNat.Combinatorics.Group
 #print axioms Peano.Sylow.sylow_third
 ```
 
+### Fase C.6 — ✅ COMPLETADA (2026-07-14): `ConstructiveCheck.lean` exhaustivo + 2 hallazgos nuevos
+
+Objetivo: extender `ConstructiveCheck.lean` para cubrir **todo símbolo exportado
+(`export X.Y (...)`) de todo módulo del proyecto**, no solo el subconjunto de
+aritmética base cubierto hasta ahora. Metodología: extracción programática (script
+Python) de los 69 bloques `export` en 57 ficheros bajo `Peano/` (1508 tokens crudos),
+exclusión de las 14 excepciones ya documentadas (`Initiality.morph_fn*`/`peano_unique`,
+`PureAxioms.PurePA`/`pa_parity`, `Prelim.choose*`), deduplicación global por nombre
+completamente cualificado (para no repetir `#assert_constructive` sobre el mismo
+símbolo cuando lo re-exportan varios ficheros — p. ej. `Isomorph.lean` y
+`Decidable.lean` son ficheros "shim" que re-exportan símbolos ya declarados en
+`Add.lean`/`Order.lean`/etc.; tras dedup contribuyeron 0 y 1 líneas nuevas
+respectivamente), y verificación de la sutileza de doble-namespace mencionada en el
+encargo (`FSet.lean` tiene un `namespace FSet` reabierto dentro de `namespace Peano`,
+así que tokens ya vienen pre-cualificados como `FSet.ext` dentro del bloque `export
+Peano.FSet (...)`, resolviendo a `Peano.FSet.FSet.ext` — la concatenación simple
+`NS + "." + token` ya lo maneja bien sin necesidad de un caso especial).
+
+**Resultado**: 1300 líneas `#assert_constructive` nuevas (de 1304 generadas, 4
+excluidas por el hallazgo nuevo de abajo) añadidas a `ConstructiveCheck.lean`, sobre
+53 módulos adicionales (arriba de los ~20 ya cubiertos), para un total de 1421
+comprobaciones activas. Import nuevos: `Axioms`, `Arith`, `Fractions`, `Decidable`,
+`Combinatorics.{Product,Perm,Group}`, `GroupTheory.*` (cadena completa hasta
+`Sylow/Sylow.lean`), `ListsAndSets.{List,FSet,FSetFunction,EquivRel}`,
+`NumberTheory.{Totient,Wilson,Fermat}`, `NumberSets`, `Foundation.{PeanoSystem,
+Initiality}` (solo los símbolos constructivos de `Initiality`, no los 7 ya excluidos),
+`Isomorph`, `Prelim`, `Prelim.ExistsUnique`. Ningún símbolo tuvo que saltarse por
+fallo de resolución de nombre (`resolveGlobalConstNoOverload` los resolvió todos a la
+primera tras el ajuste de dedup) — no hizo falta el mecanismo de "saltar con
+comentario" previsto en el encargo para notaciones/símbolos no resolubles.
+
+**Hallazgo nuevo 1 — RESUELTO: `String.drop`/`String.extract`/`String.toList` del
+núcleo de Lean 4.31 dependen de `Classical.choice`.** Al comprobar por primera vez
+`Peano.tupleRepr`/`Peano.natsTupleRepr`/`Peano.instHTupleReprCons`/
+`Peano.List.instReprPeanoVal` (instancias `Repr` para tuplas, nunca antes cubiertas
+por `ConstructiveCheck.lean`), aparecieron con `Classical.choice`. Bisección aislada
+(sin ningún import del proyecto) confirmó que **no era código del proyecto**: `#print
+axioms String.drop`/`String.extract`/`String.toList` → `[propext, Classical.choice,
+Quot.sound]` en este toolchain (Lean 4.31.0, API `String.Slice`), mientras que
+`String.append`/`String.push`/comparación `=`/interpolación `s!"..."` son limpios.
+Causa: las tres instancias usaban `tailStr.drop 1` para recortar el corchete de
+apertura de la representación de la cola antes de reconcatenar. Arreglo (en
+`Peano/PeanoNat/Tuple.lean`, que SÍ estaba solo `locked`, no `frozen`): se introdujeron
+`tupleReprInner`/`natsTupleReprInner` y un método `reprInner` en la clase
+`HTupleRepr` que construyen el contenido **sin corchetes** de forma recursiva, y los
+corchetes se añaden una única vez al envolver — eliminando por completo la necesidad
+de `.drop`/`.extract`/`.toList` sobre `String`. Verificado:
+`#print axioms Peano.tupleRepr` (y las otras 3) → `[propext]`, cero
+`Classical.choice`. `Peano.List.instReprPeanoVal` se limpió automáticamente al
+recompilar (llama a `tupleRepr`/`natsTupleRepr`). Build + `check-sorry.bash` limpios
+tras el cambio.
+
+**Hallazgo nuevo 2 — ✅ RESUELTO (2026-07-14, thaw autorizado por el usuario):
+`Peano.Order.well_ordering_principle` usaba `by_cases` sobre un predicado `P`
+arbitrario sin `[DecidablePred P]`.** En `Order.lean`, dentro de la inducción de
+`well_ordering_principle`, la línea
+`by_cases h_exists_le_n' : (∃ k', le₀ k' n' ∧ P k')` no tenía instancia `Decidable`
+disponible porque `P : ℕ₀ → Prop` era completamente arbitrario (sin hipótesis de
+decidibilidad en la firma) — caía a `Classical.propDecidable`. Contaminaba en cadena:
+`Peano.WellFounded.well_ordering_principle` (llama a la de `Order.lean`) y
+`Peano.Mul.exists_unique_mul_le_and_lt_succ_mul`/`exists_factor_of_mul_le` (llaman a
+la de `WellFounded.lean` con predicados que, en la práctica, SÍ son decidibles —
+`fun j => lt₀ m (mul j n)`). Diagnóstico y arreglo verificados primero **en
+aislamiento** (fuera del árbol frozen, dos rondas de prueba: la primera con
+`[DecidablePred P]` solo en la firma de `wop` sin una instancia real para la
+existencial acotada seguía cayendo a `Classical.choice` — `decidableBExLe_of_bool`
+es un `def`, no una `instance`, así que por sí solo NO lo recoge la búsqueda de
+instancias; la segunda ronda, envolviéndolo en una `instance` real, dio
+`[propext]` limpio incluso a través del patrón `let P := fun j => lt₀ m (mul j n)`
+que usa `Mul.lean` — el `let` no bloquea la resolución de instancias como se temía).
+
+Autorizado el `thaw --confirm` puntual de `Order.lean`/`WellFounded.lean`/`Mul.lean`
+(estaban en `frozen_files.txt`, protección más fuerte que `locked_files.txt`). Cambios
+aplicados:
+
+- `Order.lean`: nueva `instance decidableExistsLe {P} [DecidablePred P] (n) :
+  Decidable (∃ k, le₀ k n ∧ P k)` (envolviendo `decidableBExLe_of_bool` con
+  `Pb := fun k => decide (P k)` y `h_iff := fun _ => Iff.of_eq decide_eq_true_eq`),
+  reubicada — junto con `bexLe`/`bexLe_true_imp_exists`/`bexLe_false_imp_not_exists`/
+  `decidableBExLe_of_bool`, que antes estaban declarados DESPUÉS de
+  `well_ordering_principle` en el fichero — a ANTES de `well_ordering_principle`
+  (Lean exige declaración antes de uso; verificado que ninguna de sus dependencias
+  internas requería nada declarado entre medias). `well_ordering_principle` ganó
+  `[DecidablePred P]` en la firma.
+- `WellFounded.lean`: `well_ordering_principle` ganó `[DecidablePred P]` en la firma
+  (una línea).
+- `Mul.lean`: **sin cambios** — el `by_cases`/`let P := ...` existente recogió la
+  nueva instancia automáticamente, exactamente como predijo la prueba aislada.
+
+Verificado con `#print axioms` tras reconstruir: los 4 símbolos
+(`Peano.Order.well_ordering_principle`, `Peano.WellFounded.well_ordering_principle`,
+`Peano.Mul.exists_unique_mul_le_and_lt_succ_mul`, `Peano.Mul.exists_factor_of_mul_le`)
+→ `[propext]`, sin `Classical.choice` ni siquiera `Quot.sound`. Los 3 ficheros se
+volvieron a congelar (`freeze`) tras el arreglo. `#assert_constructive` añadido para
+los 4 en `ConstructiveCheck.lean` (antes excluidos con comentario). **Con esto, la
+única excepción de `Classical.*` que queda en todo el proyecto es la metateoría
+documentada arriba (`Initiality.lean`/`PureAxioms.lean`, Fase C.5)** — no queda ningún
+hallazgo pendiente de ADR-017.
+
+**Estado final (2026-07-14)**: `lake build Peano.ConstructiveCheck` (1420 asserts) y
+`lake build` completo (73 jobs) + `bash check-sorry.bash` — ambos limpios, 0 errores,
+0 sorry.
+
 **C.4 — `Foundation/GodelBeta.lean`** ✅ COMPLETADA (2026-07-13). Los 2
 `Classical.choose`/`choose_spec` (encodeList, encode_decode) eliminados. Estrategia:
 
@@ -550,13 +653,12 @@ de cabecera de `ConstructiveCheck.lean` actualizado para reflejar esta excepció
 y C.9). Añadidos también `#assert_constructive` para `GodelBeta.encodeList`/
 `encode_decode` (pendientes desde C.4, confirmados limpios).
 
-**C.6 — Ampliar `Peano/ConstructiveCheck.lean`**: añadir `#assert_constructive` para
-**todo** símbolo público del proyecto (no solo aritmética base) — convertir el chequeo
-en la puerta de compilación de ADR-017. Una vez C.1–C.5 cerradas, cualquier
-declaración pública debería pasar; el comando ya existe y funciona (ver líneas 88–94
-del fichero), solo falta la cobertura exhaustiva. Añadir también a este punto: decidir
-qué hacer con `Primes.lean` congelado y su orden de copyright/import (Fase A, punto
-pendiente) — buen momento para agrupar ambas decisiones si se hace un `thaw` puntual.
+**C.6 — Ampliar `Peano/ConstructiveCheck.lean`** ✅ COMPLETADA (2026-07-14) — ver la
+sección dedicada más arriba ("Fase C.6") para el detalle completo.
+
+**Pendiente, NO parte de C.6**: `Primes.lean` sigue con el orden de copyright/import
+invertido (Fase A, punto marcado pendiente de decisión) — sigue frozen, no se ha
+tocado; sin relación con la cobertura de `ConstructiveCheck.lean`.
 
 **C.7 — `ListsAndSets/EquivRel.lean`** ✅ COMPLETADA (2026-07-13, descubierta el mismo
 día al resolver C.1 — no estaba en el alcance original de ADR-017).
@@ -573,7 +675,9 @@ vacío. Build: 73 jobs, 0 sorry, 0 errores.
 **Orden actualizado**: ~~C.1~~ ✅ → ~~C.7~~ ✅ → ~~C.2~~ ✅ → ~~C.3~~ ✅ (texto) →
 ~~C.4~~ ✅ → ~~C.9~~ ✅ (`Group.order` + `sylow_lift_from_cauchy`/`sylow_third`,
 cerrada 2026-07-14) → ~~C.5~~ ✅ (excepción documentada, cerrada 2026-07-14) →
-**C.6** (siguiente, en curso). Cada paso
+~~C.6~~ ✅ (cobertura exhaustiva + `well_ordering_principle`, cerrada 2026-07-14).
+**Fase C completa — ADR-017 cerrado** (solo queda la excepción documentada de C.5).
+Siguiente: Fase D (retomar feature-freeze + handoff a AczelSetTheory). Cada paso
 debe cerrar con `lake build` limpio, `check-sorry.bash` en 0, **y una verificación
 `#print axioms` del teorema tocado** antes de pasar al siguiente — no acumular cambios
 sin verificar entre pasos, dado que `Sylow.lean` (C.3) es una prueba larga y frágil
@@ -583,9 +687,13 @@ de esta lista por cerrada, repetir también el grep de la palabra suelta `classi
 (no solo `Classical\.`) — C.7 demostró que el patrón oculto puede reaparecer en
 cualquier fichero tocado por C.2–C.6.
 
-### Fase D — Retomar feature-freeze + handoff a AczelSetTheory (bloqueada por C)
+### Fase D — Retomar feature-freeze + handoff a AczelSetTheory (desbloqueada 2026-07-14)
 
 Precondición: Fase C completa (0 usos de `Classical.*` fuera de, como mucho, un
-`Prelim/Classical.lean` ya retirado de la cadena de imports). Pasos: los ya
-documentados en `NEXT-STEPS.md` §G.2–G.3, sin cambios — el criterio de feature-freeze
-gana ahora una condición adicional: "0 `Classical.*` en el árbol de producción".
+`Prelim/Classical.lean` ya retirado de la cadena de imports) — **cumplida** (con la
+excepción documentada y aceptada de C.5: `Prelim/Classical.lean` no se retiró, pero
+está confirmado sin propagación fuera de `Initiality.lean`/`PureAxioms.lean`). Pasos:
+los ya documentados en `NEXT-STEPS.md` §G.2–G.3, sin cambios — el criterio de
+feature-freeze gana ahora una condición adicional: "0 `Classical.*` en el árbol de
+producción", satisfecha. **No iniciada todavía** — requiere decisión explícita del
+usuario para empezar (es un cambio de fase de proyecto, no una tarea de sesión).

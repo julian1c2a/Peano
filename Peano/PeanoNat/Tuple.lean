@@ -149,17 +149,23 @@ namespace Peano
         | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
         | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
 
+  /-- Contenido interno (sin corchetes) de la representación de una tupla.
+      NOTA (ADR-017 Fase C.6, 2026-07-14): construida sin `String.drop`/
+      `String.extract`/`String.toList` — en Lean 4.31 estas primitivas del
+      núcleo dependen de `Classical.choice` (ver PLANNING.md Fase C.6). Se
+      evita construyendo el string interno recursivamente y añadiendo los
+      corchetes una sola vez al final, en vez de generarlos en cada nivel de
+      la recursión y luego recortar el primero con `.drop 1`. -/
+  def tupleReprInner {α : Type} [Repr α] : (n : ℕ₀) → Tuple α n → String
+    | .zero, _ => ""
+    | .succ n, t =>
+        let headStr := toString (repr t.1)
+        let tailStr := tupleReprInner n t.2
+        if tailStr = "" then headStr else s!"{headStr}, {tailStr}"
+
   /-- Representación para tuplas polimórficas. -/
   instance tupleRepr {α : Type} [Repr α] : (n : ℕ₀) → Repr (Tuple α n)
-    | .zero => ⟨fun _ _ => "⟨⟩"⟩
-    | .succ n => ⟨fun t _ =>
-        let head := repr t.1
-        let tailRepr := (tupleRepr n).reprPrec t.2 0
-        let tailStr := toString tailRepr
-        if tailStr = "⟨⟩" then
-          s!"⟨{head}⟩"
-        else
-          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
+    | n => ⟨fun t _ => s!"⟨{tupleReprInner n t}⟩"⟩
 
   -- Instancias auxiliares para Nats
   instance instDecidableEqNatsType : (t : Nats) → DecidableEq t
@@ -181,33 +187,35 @@ namespace Peano
         | isFalse h1, _ => isFalse (fun h => h1 (congrArg Prod.fst h))
         | _, isFalse h2 => isFalse (fun h => h2 (congrArg Prod.snd h))
 
+  /-- Contenido interno (sin corchetes) de la representación de un NatsTuple.
+      Ver nota en `tupleReprInner` (ADR-017 Fase C.6): evita `String.drop`. -/
+  def natsTupleReprInner : (ts : List Nats) → NatsTuple ts → String
+    | [], _ => ""
+    | _ :: ts, tup =>
+        let headStr := toString (repr tup.1)
+        let tailStr := natsTupleReprInner ts tup.2
+        if tailStr = "" then headStr else s!"{headStr}, {tailStr}"
+
   /-- Representación para NatsTuple. -/
   instance natsTupleRepr : (ts : List Nats) → Repr (NatsTuple ts)
-    | [] => ⟨fun _ _ => "⟨⟩"⟩
-    | _ :: ts => ⟨fun tup _ =>
-        let head := repr tup.1
-        let tailRepr := (natsTupleRepr ts).reprPrec tup.2 0
-        let tailStr := toString tailRepr
-        if tailStr = "⟨⟩" then
-          s!"⟨{head}⟩"
-        else
-          s!"⟨{head}, {tailStr.drop 1}⟩"⟩
+    | ts => ⟨fun tup _ => s!"⟨{natsTupleReprInner ts tup}⟩"⟩
 
+  /-- `reprInner` produce el contenido SIN corchetes; `reprPrec` (con valor
+      por defecto) los añade una única vez. Ver nota en `tupleReprInner`
+      (ADR-017 Fase C.6): evita `String.drop`/`String.extract`/`String.toList`,
+      que en Lean 4.31 dependen de `Classical.choice` en el núcleo. -/
   class HTupleRepr (ts : List Type) where
-    reprPrec : HTuple ts → Nat → Std.Format
+    reprInner : HTuple ts → String
+    reprPrec : HTuple ts → Nat → Std.Format := fun t _ => s!"⟨{reprInner t}⟩"
 
   instance instHTupleReprNil : HTupleRepr [] where
-    reprPrec _ _ := "⟨⟩"
+    reprInner _ := ""
 
   instance instHTupleReprCons {α : Type} {ts : List Type} [Repr α] [HTupleRepr ts] : HTupleRepr (α :: ts) where
-    reprPrec tup _ :=
-      let head := repr tup.1
-      let tailRepr := HTupleRepr.reprPrec tup.2 0
-      let tailStr := toString tailRepr
-      if tailStr = "⟨⟩" then
-        s!"⟨{head}⟩"
-      else
-        s!"⟨{head}, {tailStr.drop 1}⟩"
+    reprInner tup :=
+      let headStr := toString (repr tup.1)
+      let tailStr := HTupleRepr.reprInner tup.2
+      if tailStr = "" then headStr else s!"{headStr}, {tailStr}"
 
   instance htupleRepr {ts : List Type} [HTupleRepr ts] : Repr (HTuple ts) :=
     ⟨HTupleRepr.reprPrec⟩

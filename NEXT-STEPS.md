@@ -1,6 +1,6 @@
 # Next Steps — Estado post-Sylow y próximas tareas
 
-*Última actualización: 2026-07-13*
+*Última actualización: 2026-07-14*
 *Autor: Julián Calderón Almendros*
 
 ---
@@ -95,9 +95,34 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
   ya no lista Action/CosetAction/Sylow/GodelBeta como no constructivos — están
   resueltos desde C.1–C.4/C.9; añadidos `#assert_constructive` para
   `GodelBeta.encodeList`/`encode_decode`).
-- **Siguiente paso concreto**: C.6 (`ConstructiveCheck.lean` exhaustivo — añadir
-  `#assert_constructive` para los 6 teoremas de Sylow, `Group.order`, y las nuevas
-  defs de enumeración de subgrupos de la Fase C.9).
+- ✅ **C.6 COMPLETADA (2026-07-14)**: `ConstructiveCheck.lean` extendido a **todo**
+  símbolo exportado de **todos** los 57 ficheros con `export` bajo `Peano/` (1421
+  `#assert_constructive` en total, 1300 nuevos sobre 53 módulos antes sin cubrir:
+  `Axioms`, `Arith`, `Fractions`, `Decidable`, `Group`/`GroupTheory/*`/`Sylow/*`
+  completo, `FSet`/`FSetFunction`/`List`/`EquivRel`, `Totient`/`Wilson`/`Fermat`,
+  `NumberSets`, `PeanoSystem`/`Initiality` (parcial), `Isomorph`, `Prelim`). **Dos
+  hallazgos nuevos** (ver PLANNING.md Fase C.6 para el detalle): (1) ✅ RESUELTO —
+  `String.drop`/`.extract`/`.toList` del núcleo de Lean 4.31 dependen de
+  `Classical.choice`; `Tuple.lean` los usaba en 3 instancias `Repr`
+  (`tupleRepr`/`natsTupleRepr`/`instHTupleReprCons`), arreglado construyendo el
+  contenido interno sin corchetes recursivamente en vez de recortar un string con
+  `.drop`. (2) ✅ RESUELTO (2026-07-14, thaw autorizado por el usuario) —
+  `Order.well_ordering_principle` usaba `by_cases` sobre un predicado `P` arbitrario
+  sin `[DecidablePred P]`; contaminaba a `WellFounded.well_ordering_principle` y a
+  `Mul.exists_unique_mul_le_and_lt_succ_mul`/`exists_factor_of_mul_le`. Se autorizó
+  `thaw --confirm` puntual de `Order.lean`/`WellFounded.lean`/`Mul.lean` (estaban en
+  `frozen_files.txt`), se añadió `[DecidablePred P]` a la firma de ambos
+  `well_ordering_principle` más una `instance decidableExistsLe` real en `Order.lean`
+  (envolviendo el `def` preexistente `decidableBExLe_of_bool`, que por sí solo no era
+  recogido por la búsqueda de instancias), y se volvió a congelar. `Mul.lean` no
+  necesitó cambios — el `by_cases` existente recogió la instancia automáticamente.
+  Los 4 símbolos verificados `[propext]` sin `Classical.choice`, con
+  `#assert_constructive` añadido en `ConstructiveCheck.lean`. Build 73 jobs, 0 sorry.
+- ✅ **ADR-017 CERRADO (2026-07-14)**: no queda ningún hallazgo pendiente de
+  `Classical.*` — la única excepción en todo el proyecto es la metateoría documentada
+  de C.5 (`Initiality.lean`/`PureAxioms.lean`, sin propagación al resto del árbol).
+  Siguiente: Fase D (retomar feature-freeze + handoff a AczelSetTheory), no iniciada,
+  requiere decisión explícita del usuario para empezar.
 
 ## Estado actual del build (2026-07-13)
 

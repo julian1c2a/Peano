@@ -18,14 +18,10 @@ Peano/PeanoNat/Div.lean
 Peano/PeanoNat/Isomorph.lean
 Peano/PeanoNat/Lattice.lean
 Peano/PeanoNat/Log.lean
-Peano/PeanoNat/Mul.lean
-Peano/PeanoNat/Order.lean
 Peano/PeanoNat/Pairing.lean
 Peano/PeanoNat/Sqrt.lean
 Peano/PeanoNat/StrictOrder.lean
 Peano/PeanoNat/Sub.lean
-Peano/PeanoNat/Tuple.lean
-Peano/PeanoNat/WellFounded.lean
 Peano/PeanoNat/Combinatorics/Binom.lean
 Peano/PeanoNat/Combinatorics/Counting.lean
 Peano/PeanoNat/Combinatorics/Factorial.lean
@@ -59,7 +55,6 @@ Peano/PeanoNat/Combinatorics/GroupTheory/SecondIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/ThirdIsomorphism.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Zassenhaus.lean
 Peano/PeanoNat/Combinatorics/Orbit.lean
-Peano/PeanoNat/ListsAndSets/List.lean
 Peano/PeanoNat/NumberSets.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/ListsAndSets/EquivRel.lean
@@ -67,3 +62,8 @@ Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
 Peano/PeanoNat/Foundation/GodelBeta.lean
 Peano/PeanoNat/ListsAndSets/FSetFunction.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
+Peano/PeanoNat/Tuple.lean
+Peano/PeanoNat/ListsAndSets/List.lean
+Peano/PeanoNat/Order.lean
+Peano/PeanoNat/WellFounded.lean
+Peano/PeanoNat/Mul.lean

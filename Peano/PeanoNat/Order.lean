@@ -1333,7 +1333,63 @@ namespace Peano
               exact (succ_le_succ_iff n' m').mpr h_le_n'_m'
 
 
-    theorem well_ordering_principle {P : ℕ₀ → Prop}
+    /-- Boolean bounded existential search: does `P k` hold for some `k ≤ n`? -/
+    def bexLe (P : ℕ₀ → Bool) : ℕ₀ → Bool
+      | .zero    => P 𝟘
+      | .succ n' => P (σ n') || bexLe P n'
+
+    /-- Helper: witness extraction from `bexLe`. -/
+    theorem bexLe_true_imp_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) :
+        (n : ℕ₀) → bexLe Pb n = true → ∃ k, le₀ k n ∧ P k
+      | .zero, h => ⟨𝟘, le_refl 𝟘, (h_iff 𝟘).mp h⟩
+      | .succ n', h => by
+        simp [bexLe, Bool.or_eq_true] at h
+        rcases h with hp | hr
+        · exact ⟨σ n', le_refl (σ n'), (h_iff (σ n')).mp hp⟩
+        · obtain ⟨k, hk, hpk⟩ := bexLe_true_imp_exists P Pb h_iff n' hr
+          exact ⟨k, le_k_n_then_le_k_sn_wp hk, hpk⟩
+
+    /-- Helper: negation from `bexLe = false`. -/
+    theorem bexLe_false_imp_not_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) :
+        (n : ℕ₀) → bexLe Pb n = false → ¬ ∃ k, le₀ k n ∧ P k
+      | .zero, h, ⟨k, hle, hpk⟩ => by
+        have hk0 := le_zero_eq_wp hle
+        rw [hk0] at hpk
+        exact Bool.false_ne_true (h ▸ (h_iff 𝟘).mpr hpk)
+      | .succ n', h, ⟨k, hle, hpk⟩ => by
+        have hbex : bexLe Pb (σ n') = false := h
+        simp [bexLe] at hbex
+        have ⟨h1, h2⟩ := hbex
+        exact hle.elim
+          (fun h_lt =>
+            bexLe_false_imp_not_exists P Pb h_iff n' h2
+              ⟨k, lt_then_le_succ_wp h_lt, hpk⟩)
+          (fun h_eq => Bool.false_ne_true (h1 ▸ (h_iff (σ n')).mpr (h_eq ▸ hpk)))
+
+    /-- Decidability of bounded existential: `∃ k, le₀ k n ∧ P k`,
+        given a boolean decision function for `P`. -/
+    def decidableBExLe_of_bool (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
+        (h_iff : ∀ k, Pb k = true ↔ P k) (n : ℕ₀) :
+        Decidable (∃ k, le₀ k n ∧ P k) :=
+      if h : bexLe Pb n = true then
+        isTrue (bexLe_true_imp_exists P Pb h_iff n h)
+      else
+        isFalse (bexLe_false_imp_not_exists P Pb h_iff n (Bool.eq_false_iff.mpr h))
+
+    /-- Instancia real de la decidibilidad anterior, derivada automáticamente de
+        `[DecidablePred P]` (ADR-017, hallazgo Fase C.6: `decidableBExLe_of_bool`
+        es un `def`, no una `instance`, así que por sí solo no lo recogía la
+        búsqueda de instancias — de ahí que `well_ordering_principle` cayera al
+        fallback clásico de `by_cases` pese a que `P` fuera decidible en la
+        práctica en todos sus usos reales). -/
+    instance decidableExistsLe {P : ℕ₀ → Prop} [DecidablePred P] (n : ℕ₀) :
+        Decidable (∃ k, le₀ k n ∧ P k) :=
+      decidableBExLe_of_bool P (fun k => decide (P k))
+        (fun _ => Iff.of_eq decide_eq_true_eq) n
+
+    theorem well_ordering_principle {P : ℕ₀ → Prop} [DecidablePred P]
       (h_nonempty : ∃ n, P n) :
         ∃ n, P n ∧ ∀ m, lt₀ m n → ¬ P m
           := by
@@ -1440,51 +1496,6 @@ namespace Peano
       · contradiction -- hlt contradicts h_not_lt
       · contradiction -- heq contradicts h_not_eq
       · exact hgt
-
-    /-- Boolean bounded existential search: does `P k` hold for some `k ≤ n`? -/
-    def bexLe (P : ℕ₀ → Bool) : ℕ₀ → Bool
-      | .zero    => P 𝟘
-      | .succ n' => P (σ n') || bexLe P n'
-
-    /-- Helper: witness extraction from `bexLe`. -/
-    theorem bexLe_true_imp_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
-        (h_iff : ∀ k, Pb k = true ↔ P k) :
-        (n : ℕ₀) → bexLe Pb n = true → ∃ k, le₀ k n ∧ P k
-      | .zero, h => ⟨𝟘, le_refl 𝟘, (h_iff 𝟘).mp h⟩
-      | .succ n', h => by
-        simp [bexLe, Bool.or_eq_true] at h
-        rcases h with hp | hr
-        · exact ⟨σ n', le_refl (σ n'), (h_iff (σ n')).mp hp⟩
-        · obtain ⟨k, hk, hpk⟩ := bexLe_true_imp_exists P Pb h_iff n' hr
-          exact ⟨k, le_k_n_then_le_k_sn_wp hk, hpk⟩
-
-    /-- Helper: negation from `bexLe = false`. -/
-    theorem bexLe_false_imp_not_exists (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
-        (h_iff : ∀ k, Pb k = true ↔ P k) :
-        (n : ℕ₀) → bexLe Pb n = false → ¬ ∃ k, le₀ k n ∧ P k
-      | .zero, h, ⟨k, hle, hpk⟩ => by
-        have hk0 := le_zero_eq_wp hle
-        rw [hk0] at hpk
-        exact Bool.false_ne_true (h ▸ (h_iff 𝟘).mpr hpk)
-      | .succ n', h, ⟨k, hle, hpk⟩ => by
-        have hbex : bexLe Pb (σ n') = false := h
-        simp [bexLe] at hbex
-        have ⟨h1, h2⟩ := hbex
-        exact hle.elim
-          (fun h_lt =>
-            bexLe_false_imp_not_exists P Pb h_iff n' h2
-              ⟨k, lt_then_le_succ_wp h_lt, hpk⟩)
-          (fun h_eq => Bool.false_ne_true (h1 ▸ (h_iff (σ n')).mpr (h_eq ▸ hpk)))
-
-    /-- Decidability of bounded existential: `∃ k, le₀ k n ∧ P k`,
-        given a boolean decision function for `P`. -/
-    def decidableBExLe_of_bool (P : ℕ₀ → Prop) (Pb : ℕ₀ → Bool)
-        (h_iff : ∀ k, Pb k = true ↔ P k) (n : ℕ₀) :
-        Decidable (∃ k, le₀ k n ∧ P k) :=
-      if h : bexLe Pb n = true then
-        isTrue (bexLe_true_imp_exists P Pb h_iff n h)
-      else
-        isFalse (bexLe_false_imp_not_exists P Pb h_iff n (Bool.eq_false_iff.mpr h))
 
 
     -- ══════════════════════════════════════════════════════════════════

@@ -524,6 +524,55 @@ arriba** (`Initiality.lean`/`PureAxioms.lean`) — todo lo demás, incluida ahor
 
 ---
 
+## ADR-018: Peano se declara `feature-frozen` — cierre definitivo, handoff a `AczelSetTheory`
+
+**Fecha**: 2026-07-14
+**Estado**: Aceptado
+
+**Contexto**: `NEXT-STEPS.md` Phase G (decisión adoptada 2026-05-02) definía el criterio
+de feature-freeze de Peano en §G.2: F.1–F.3 (`CantorPairing`/`GodelBeta`/`Foundation.lean`
+paraguas) y G.1 (documentación migrada a `/doc/`), todos ✅ desde 2026-05-10. El propio
+plan quedó pospuesto el 2026-07-13 al abrirse ADR-017 (re-desarrollo constructivista),
+que añadió una condición adicional implícita: "0 `Classical.*` en el árbol de
+producción". ADR-017 se cerró el 2026-07-14 (ver su entrada arriba, "Cierre" +
+"Fase C.6") — los 4+1 criterios de G.2 están satisfechos.
+
+**Decisión**: Peano se declara **`feature-frozen`, cierre definitivo**. A partir de
+ahora:
+
+- Solo se aceptan en este repositorio: corrección de errores, actualización de
+  `lean-toolchain`, mejoras de tooling/build, y lemas menores solicitados
+  explícitamente por `AczelSetTheory` como dependencia.
+- No se desarrollan nuevos módulos matemáticos en Peano. Todo desarrollo matemático
+  nuevo (conjuntos hereditariamente finitos, axiomas de Aczel, isomorfismo con `ω` de
+  ZFC) ocurre a partir de ahora en `AczelSetTheory`, siguiendo el protocolo de G.3
+  (`NEXT-STEPS.md`): `AczelSetTheory/lakefile.lean` añade `require Peano from git
+  ... @ <sha>`, y `AczelSetTheory/Foundation/ListFromPeano.lean` importa
+  `Peano.Foundation` para fundamentar `List ℕ₀ ≃ ℕ₀` vía `encode_decode`.
+- Estado final congelado: `lake build` 73 jobs, 0 errores, 0 sorry, 0 `Classical.choice`
+  fuera de la excepción documentada de ADR-017 (`Initiality.lean`/`PureAxioms.lean`),
+  1420 `#assert_constructive` activos en `ConstructiveCheck.lean`. Los tres teoremas de
+  Sylow, la aritmética completa, teoría de números (Fermat, Wilson, CRT, Euler), y toda
+  la teoría de grupos finitos hasta Sylow están demostrados sin `sorry`.
+
+**Justificación**: el criterio de feature-freeze (G.2) y el de constructividad
+(ADR-017) están ambos satisfechos simultáneamente por primera vez — no hay motivo para
+seguir posponiendo el handoff. Mantener Peano indefinidamente "abierto" a la vez que
+`AczelSetTheory` empieza a depender de él invita a que cambios en Peano rompan
+silenciosamente el sucesor; congelar la base antes del handoff es la práctica más
+segura (ya señalada como criterio original en la decisión de Phase G del 2026-05-02).
+
+**Consecuencias**:
+
+- El desarrollo activo se traslada a `AczelSetTheory` a partir de la próxima sesión.
+- Los ficheros de este repo permanecen bajo el sistema de lock/freeze existente
+  (`git-lock.bash`) — cualquier cambio futuro sigue requiriendo `unlock`/`thaw`
+  explícito, ahora con el motivo adicional "lo pide AczelSetTheory como dependencia".
+- `PLANNING.md` Fase D, `NEXT-STEPS.md` §G.2, `CURRENT-STATUS-PROJECT.md` y `README.md`
+  actualizados para reflejar el estado `feature-frozen` definitivo.
+
+---
+
 ## Plantilla para nuevas decisiones
 
 ## ADR-NNN: [Título]

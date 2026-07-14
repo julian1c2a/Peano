@@ -1,7 +1,20 @@
 # Estado Actual del Proyecto: Peano
 
-**Última actualización:** 2026-07-13
+**Última actualización:** 2026-07-14
 **Autor**: Julián Calderón Almendros
+
+---
+
+> ## 🧊 PROYECTO `FEATURE-FROZEN` — CIERRE DEFINITIVO (2026-07-14)
+>
+> Ver `DECISIONS.md` ADR-018. Peano cumple los criterios de feature-freeze (Phase G,
+> `NEXT-STEPS.md`) más la constructividad completa de ADR-017 (`Classical.choice`
+> eliminado salvo la excepción metateórica documentada). No se desarrollan nuevos
+> módulos matemáticos en este repositorio a partir de ahora. **El desarrollo activo
+> continúa en `AczelSetTheory`** (handoff vía `NEXT-STEPS.md` §G.3, SHA de cierre
+> `1e327533b6df7fbb02097ef99d605a865e601427`). Este repo queda en mantenimiento:
+> corrección de errores, actualización de toolchain, lemas menores pedidos por
+> `AczelSetTheory` como dependencia.
 
 ---
 
@@ -18,7 +31,7 @@ lean-toolchain  →  leanprover/lean4:v4.31.0
 lake build      →  Build completed successfully
                    full build: 73 jobs [2026-07-13]
 sorry count     →  0
-warnings        →  3 (SecondIsomorphism.lean:276,302,324 — simp arg `HNg` sin usar)
+warnings        →  3 (Div.lean:508, Combinatorics/Pow.lean:147, Combinatorics/Group.lean:316 — variables sin usar explícitamente)
 errors          →  0
 ```
 

@@ -5,6 +5,16 @@
 
 ---
 
+> ## 🧊 PEANO ES `FEATURE-FROZEN` (2026-07-14) — ver DECISIONS.md ADR-018
+>
+> Cierre definitivo. No se desarrollan nuevos módulos matemáticos en este repositorio.
+> El desarrollo activo continúa en **`AczelSetTheory`** (conjuntos hereditariamente
+> finitos, axiomas de Aczel) — ver §G.3 más abajo para el protocolo de handoff. Aquí
+> solo se aceptan correcciones de errores, actualizaciones de toolchain, y lemas
+> menores solicitados explícitamente por `AczelSetTheory` como dependencia.
+
+---
+
 ## Cambio de rumbo (2026-07-13) — ver DECISIONS.md ADR-017 y PLANNING.md
 
 El proyecto se re-desarrolla como intuicionista/constructivista puro.
@@ -350,14 +360,16 @@ Puede hacerse en cualquier momento; no bloquea ni es bloqueada por los Tracks.
 5. Reemplazar `REFERENCE.md` raíz por redirect/índice de una página.
 6. Actualizar referencias en `README.md`, `CURRENT-STATUS-PROJECT.md`, `AI-GUIDE.md`.
 
-### G.2 — Criterio de feature-freeze de Peano
+### G.2 — Criterio de feature-freeze de Peano ✅ DECLARADO (2026-07-14, ver DECISIONS.md ADR-018)
 
-Peano se declara **feature-frozen** cuando:
+Peano se declara **feature-frozen**:
 
 - [x] F.1 `CantorPairing.lean` ✅ (2026-05-02)
 - [x] F.2 `GodelBeta.lean` sin sorry ✅ (2026-05-02)
 - [x] F.3 `Foundation.lean` paraguas compilando ✅ (2026-05-02)
 - [x] G.1 Documentación migrada a `/doc/` ✅ (2026-05-10)
+- [x] Condición añadida por ADR-017: 0 `Classical.*` en el árbol de producción (salvo
+      excepción documentada `Initiality.lean`/`PureAxioms.lean`) ✅ (2026-07-14)
 
 A partir del feature-freeze:
 
@@ -365,7 +377,7 @@ A partir del feature-freeze:
   mejoras de build, lemas menores solicitados por AczelSetTheory.
 - No se desarrollan nuevos módulos matemáticos en Peano.
 
-### G.3 — Handoff a AczelSetTheory
+### G.3 — Handoff a AczelSetTheory (siguiente paso activo)
 
 Una vez feature-frozen Peano:
 
@@ -373,8 +385,12 @@ Una vez feature-frozen Peano:
 
    ```lean
    require Peano from git
-     "https://github.com/julian1c2a/Peano" @ "<sha-de-Foundation-sin-sorry>"
+     "https://github.com/julian1c2a/Peano" @ "1e327533b6df7fbb02097ef99d605a865e601427"
    ```
+
+   (SHA del commit de cierre `feature-frozen`, 2026-07-14 — **verificar que está
+   pusheado a `origin/master`** antes de usarlo desde `AczelSetTheory`; en el momento
+   de escribir esto el local iba 6 commits por delante del remoto.)
 
 2. Crear en AczelSetTheory:
 

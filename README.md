@@ -2,11 +2,16 @@
 
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
+> 🧊 **`FEATURE-FROZEN` (2026-07-14, DECISIONS.md ADR-018) — cierre definitivo.**
+> El desarrollo activo continúa en **AczelSetTheory**. Este repo queda en
+> mantenimiento (correcciones, toolchain, lemas menores pedidos como dependencia).
+
 Formalización de la aritmética de Peano en **Lean 4**, construida desde los axiomas inductivos de `ℕ₀` sin depender de Mathlib.
 
 > **Autor:** Julián Calderón Almendros
 > **Lean:** `leanprover/lean4:v4.31.0`
 > **Build:** 73 jobs · 0 errores · 0 sorry · 0 axiomas privados no intencionales
+> **Constructividad:** 0 `Classical.choice` fuera de la excepción metateórica documentada (ADR-017)
 > **Licencia:** MIT
 
 ---

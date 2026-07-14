@@ -5,6 +5,14 @@
 
 ---
 
+> ## 🧊 PEANO ES `FEATURE-FROZEN` (2026-07-14) — ver DECISIONS.md ADR-018
+>
+> Cierre definitivo. El desarrollo activo continúa en **`AczelSetTheory`** — ver
+> `NEXT-STEPS.md` §G.3 para el protocolo de handoff. Todo lo que sigue en este
+> documento es histórico.
+
+---
+
 ## Pivote arquitectónico (2026-07-13) — ver ADR-017 en DECISIONS.md
 
 El proyecto se re-desarrolla como **completamente intuicionista y constructivista**:
@@ -687,13 +695,19 @@ de esta lista por cerrada, repetir también el grep de la palabra suelta `classi
 (no solo `Classical\.`) — C.7 demostró que el patrón oculto puede reaparecer en
 cualquier fichero tocado por C.2–C.6.
 
-### Fase D — Retomar feature-freeze + handoff a AczelSetTheory (desbloqueada 2026-07-14)
+### Fase D — Retomar feature-freeze + handoff a AczelSetTheory ✅ DECLARADA (2026-07-14, ver DECISIONS.md ADR-018)
 
 Precondición: Fase C completa (0 usos de `Classical.*` fuera de, como mucho, un
 `Prelim/Classical.lean` ya retirado de la cadena de imports) — **cumplida** (con la
 excepción documentada y aceptada de C.5: `Prelim/Classical.lean` no se retiró, pero
-está confirmado sin propagación fuera de `Initiality.lean`/`PureAxioms.lean`). Pasos:
-los ya documentados en `NEXT-STEPS.md` §G.2–G.3, sin cambios — el criterio de
-feature-freeze gana ahora una condición adicional: "0 `Classical.*` en el árbol de
-producción", satisfecha. **No iniciada todavía** — requiere decisión explícita del
-usuario para empezar (es un cambio de fase de proyecto, no una tarea de sesión).
+está confirmado sin propagación fuera de `Initiality.lean`/`PureAxioms.lean`).
+
+**Decisión tomada por el usuario (2026-07-14)**: Peano se declara `feature-frozen`,
+cierre definitivo (ADR-018). `NEXT-STEPS.md` §G.2 marcado ✅ declarado, §G.3 (handoff)
+es ahora el "siguiente paso activo" del proyecto — pero se ejecuta desde
+`AczelSetTheory`, no desde este repo. El SHA de cierre para
+`AczelSetTheory/lakefile.lean`'s `require Peano from git ... @ <sha>` es
+`1e327533b6df7fbb02097ef99d605a865e601427` (verificar que está pusheado a
+`origin/master` antes de usarlo). **La próxima sesión de trabajo matemático se abre en
+`AczelSetTheory`, no en Peano** — este repo pasa a mantenimiento (correcciones,
+toolchain, lemas menores pedidos por `AczelSetTheory`).

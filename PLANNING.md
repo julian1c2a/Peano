@@ -382,56 +382,106 @@ CosetAction, Correspondence, etc. con muchísimos `cases`/`omega` no auditados).
   Esto propaga a `sylow_first` y `sylow_third` (ambos siguen `Classical.choice`).
   **NO localizado todavía** — ver plan de continuación abajo.
 
-### Plan exacto para continuar (sesión siguiente)
+### Fase C.9 — RESUELTA (2026-07-14): 4º y 5º hallazgo, `sylow_lift_from_cauchy`/`sylow_third` ya limpios
 
-1. `bash git-lock.bash unlock Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean`.
-2. Añadir temporalmente `#print axioms sylow_lift_from_cauchy` justo después de su
-   `exact key G.carrier.card G rfl hpow` (línea ~4338, verificar con
-   `grep -n "theorem sylow_lift_from_cauchy"`) y `lake env lean
-   Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean 2>&1 | grep -A3
-   sylow_lift_from_cauchy` para confirmar que sigue contaminado (debería, ya lo
-   estaba al cerrar la sesión).
-3. Candidatos SIN auditar todavía dentro de `sylow_lift_from_cauchy` (su `have step`
-   y `have key`): `sylow_center_step` (wrapper de una línea a
-   `sylow_center_step_wielandt` — debería ser trivialmente limpio si la llamada lo es,
-   pero no se ha comprobado con `#print axioms` directamente), `subgroupToFinGroup`,
-   `subgroupOfSubgroup` (defs estructurales puras en Sylow.lean ~L1648/1660, parecen
-   inocuas pero no verificadas individualmente), `improperSubgroup`, `mul_le_right`,
-   `lt_of_le_of_ne`, `card_pos_of_mem_aux`, `not_lt_zero`,
-   `strongInductionOn`/`strongRecOn` (de `WellFounded.lean` — casi seguro limpio, ya
-   que se usó para `Group.order`, pero tampoco comprobado con `#print axioms` directo
-   sobre el nombre, solo indirectamente).
-4. Metodología de bisección que ya funcionó 3 veces en esta sesión (documentar para no
-   repetir errores):
-   - **NUNCA** basta con renombrar un `have` a `_UNUSED` para "desactivarlo" — Lean
-     sigue elaborando su prueba y sus axiomas cuentan igual aunque no se use en el
-     resto del término. Hay que **borrar** el bloque de verdad (con `sed -i
-     'L1,L2d'` usando los números de línea de un `grep -n` fresco) y sustituir por
-     `:= sorry` en la línea del `have`/`theorem` para aislar.
-   - Guardar SIEMPRE una copia (`cp Sylow.lean Sylow.lean.bakN`) antes de cada
-     borrado experimental, y restaurar con `cp` (nunca `git checkout`, porque hay
-     cambios legítimos sin commitear encima del HEAD).
-   - Tras cada `sed` que borra líneas, los números de línea de TODO lo posterior
-     cambian — repetir `grep -n` antes de cada edición siguiente, no confiar en
-     números de líneas de pasos anteriores.
-   - Patrón de bisección: sorry la mitad final de un bloque grande primero (barato),
-     si se limpia el axioma la fuente está en esa mitad; si no, en la otra. Repetir
-     recursivamente hasta llegar a una única línea sospechosa.
-5. Una vez localizada la línea exacta, casi seguro será una de las dos trampas ya
-   conocidas (`.choose`/`.choose_spec` sin punto literal "Classical", o `omega`/
-   `decide` cerrando un objetivo no aritmético) — el arreglo debería ser mecánico
-   siguiendo los patrones de los Hallazgos 2 y 3 arriba.
-6. Tras arreglar, re-verificar con el mismo comando de `axcheck2.lean` (ver abajo) que
-   los 5 teoremas objetivo (`cauchy_minimal`, `sylow_lift_from_cauchy`, `sylow_first`,
-   `sylow_second`, `sylow_third`) estén todos en `[propext, Quot.sound]` sin
-   `Classical.choice`.
-7. `lake build` completo + `bash check-sorry.bash` (deben seguir en 0/0) antes de
-   comitear. Commit siguiendo el patrón de los commits `feat(ADR-017): Fase C.9 ...`
-   ya hechos hoy.
-8. Tras cerrar esto, quedan pendientes C.5 (retirar `Prelim/Classical.lean` — probable
-   que ya no tenga consumidores reales, verificar con
-   `grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\." Peano/`) y C.6
-   (`ConstructiveCheck.lean` exhaustivo).
+Siguiendo el "Plan exacto para continuar" de arriba: se comprobaron individualmente los
+8 candidatos sin auditar (`sylow_center_step`, `subgroupToFinGroup`, `subgroupOfSubgroup`,
+`improperSubgroup`, `mul_le_right`, `lt_of_le_of_ne`, `card_pos_of_mem_aux`,
+`not_lt_zero`, `strongInductionOn`/`strongRecOn`) — **todos limpios**. La contaminación
+de `sylow_lift_from_cauchy` no venía de ninguna pieza llamada, sino de su propio cuerpo
+táctico.
+
+**Hallazgo 4 — RESUELTO: `by_cases` sobre una existencial de `Subgroup` sin instancia
+`Decidable` cae al fallback clásico, igual de invisible a grep que el patrón `omega`/
+`decide` del Hallazgo 3 (misma familia de trampa, tácticas distintas).** En
+`sylow_lift_from_cauchy` (dentro de `have step`), línea:
+```lean
+by_cases h_ex : ∃ M : Subgroup G0,
+    M.carrier.card ≠ G0.carrier.card ∧ pow_dvd_card p (σ m) M.carrier
+```
+`Subgroup G0` no tiene manera automática de decidir esa existencial (no hay
+`Fintype`/enumeración de subgrupos en el proyecto), así que `by_cases` usa
+`Classical.propDecidable` en silencio. Confirmado en aislado: `by_cases h : P` sobre
+un `opaque P : Prop` sin instancia → `[propext, Classical.choice, Quot.sound]`; el
+resto de los `by_cases` del fichero (sobre igualdades de `ℕ₀`/listas, todas con
+`DecidableEq` real) no lo hacen.
+
+A diferencia de los Hallazgos 1–3 (sustitución mecánica de 1-2 líneas), este necesitaba
+una **enumeración constructiva real de los subgrupos candidatos** — el proyecto ya tenía
+la mitad de la infraestructura (`sublistsOfLength` sobre `G0.carrier.elems`, con
+`_complete`/`_mem_sorted`/`_mem_sub`/`_mem_len` ya demostrados para el argumento de
+Wielandt). Se añadió, en `Sylow.lean` justo después de `sublistsOfLength_card` (antes de
+`wielandt_omega_card`, para que la declaración preceda su primer uso):
+
+- `pow_dvd_card_iff_dvd` — reformula `pow_dvd_card` como `∣` ordinaria (incluso
+  testigo, solo cambia el lado de la ecuación) para reutilizar el
+  `Decidable (d ∣ n)` de `Primes.lean:396` (`decidableDvd`, ya existente).
+- `subgroup_card_le` — `M.carrier.card ≤ G0.carrier.card` para cualquier subgrupo, vía
+  `nodup_subset_length_le` (el mismo helper constructivo del Hallazgo 1) + conversión
+  `Λ`/`Ψ`.
+- `properSylowCandidateB` — predicado `Bool` decidible sobre `List ℕ₀`: ¿`G0.id ∈ l`,
+  longitud ≠ `|G0|`, `p^(m+1) ∣ |l|`, y cerrado bajo `a·b⁻¹`?
+- `allSublistsUpTo`/`allSublistsUpTo_sound`/`allSublistsUpTo_complete` — combina
+  `sublistsOfLength` sobre todas las longitudes `0..|G0|` (`List.flatMap` +
+  `List.range'`), con lema de completitud (cualquier sublista Sorted/subset/longitud
+  acotada aparece en la enumeración).
+- `findProperSylowCandidate` — `List.find?` sobre esa enumeración con el predicado Bool.
+  `_some_spec` reconstruye el `Subgroup` testigo (vía `subgroup_of_op_inv_closed`, ya
+  existente en `Group.lean:435`, criterio de un paso `a·b⁻¹ ∈ S`). `_none_spec` usa
+  `List.find?_eq_none` + completitud para producir directamente `h_no_proper`.
+
+En `sylow_lift_from_cauchy`, el `by_cases h_ex` se sustituyó por
+`match hfind : findProperSylowCandidate G0 p m with | some l => ... | none => ...`
+(un `match` sobre `Option`, siempre constructivo). Tras esto, `sylow_lift_from_cauchy` y
+`sylow_first` quedaron en `[propext, Quot.sound]` — pero **`sylow_third` seguía
+mostrando `Classical.choice`** (contaminación independiente, no heredada de
+`sylow_lift_from_cauchy`).
+
+**Hallazgo 5 — RESUELTO: `simp` genérico (sin lemas explícitos) sobre una hipótesis de
+longitud de lista puede tirar de `Classical.choice` aunque el objetivo real de la meta
+no tenga nada que ver.** Bisección (sorry sobre `have h_key` dentro de `sylow_third_mod`
+→ se limpiaba; sorry sobre la mitad de su `cases l with | cons K₀ rest_l => ...` →
+aislado a una única línea) localizó `Sylow.lean` (dentro de `h_orb_ne_one`, rama
+`cons a rest_orb` → `cons b _`):
+
+```lean
+rw [h_orb_list] at h_len1
+simp at h_len1   -- h_len1 : (a :: b :: _).length = 1, un absurdo aritmético
+```
+
+Confirmado en aislado (mínimo, sin imports del proyecto):
+
+```lean
+example (a b : Nat) (rest_orb : List Nat) (h_len1 : (a :: b :: rest_orb).length = 1) :
+    True := by simp at h_len1
+-- [propext, Classical.choice, Quot.sound] — el mismo objetivo con `omega` en vez de
+-- `simp` (tras `simp only [List.length_cons]`) da [propext, Quot.sound]: limpio.
+```
+
+Arreglo: `simp only [List.length_cons] at h_len1; exact absurd h_len1 (by omega)` — el
+mismo patrón del Hallazgo 3 (aislar la contradicción aritmética con `omega`/`absurd` en
+vez de dejar que una táctica genérica cierre un objetivo no aritmético directamente),
+aplicado esta vez a `simp` en vez de a `omega`/`decide` directo. **Trampa general
+actualizada para toda sesión futura: no es solo `omega`/`decide` sobre un objetivo no
+aritmético — `simp` sin argumentos también puede colarse por el mismo camino cuando
+normaliza una hipótesis puramente aritmética (aquí de longitud de listas) usando algún
+lema de su simp-set por defecto que internamente depende de choice. Mitigación: preferir
+siempre `simp only [lemas explícitos]` seguido de `omega`/`exact absurd _ (by omega)`
+frente a `simp`/`omega` a secas cuando se está cerrando una rama por contradicción
+aritmética.**
+
+**Estado final verificado (2026-07-14)**: `Group.order` (sin axiomas), `cauchy_minimal`,
+`sylow_lift_from_cauchy`, `sylow_first`, `sylow_second`, `sylow_third` — los 6 en
+`[propext, Quot.sound]` o menos, **cero `Classical.choice`**. `lake build` completo
+(73 jobs) + `check-sorry.bash` limpios. Commiteado siguiendo el patrón
+`feat(ADR-017): Fase C.9 ...`.
+
+**Pendiente para retomar**: C.5 (retirar `Prelim/Classical.lean` — probable que ya no
+tenga consumidores reales, verificar con
+`grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\." Peano/`) y C.6
+(`ConstructiveCheck.lean` exhaustivo, incluyendo añadir `#assert_constructive` para los
+6 teoremas de Sylow ahora limpios y para las nuevas defs `properSylowCandidateB`/
+`findProperSylowCandidate`/etc.).
 
 Comando de verificación rápida usado toda la sesión (guardado en el scratchpad de la
 sesión, recrear si hace falta):

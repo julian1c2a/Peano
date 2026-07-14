@@ -65,5 +65,5 @@ Peano/PeanoNat/Combinatorics/GroupTheory/Action.lean
 Peano/PeanoNat/ListsAndSets/EquivRel.lean
 Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/CosetAction.lean
 Peano/PeanoNat/Foundation/GodelBeta.lean
-Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean
 Peano/PeanoNat/ListsAndSets/FSetFunction.lean
+Peano/PeanoNat/Combinatorics/GroupTheory/Sylow/Sylow.lean

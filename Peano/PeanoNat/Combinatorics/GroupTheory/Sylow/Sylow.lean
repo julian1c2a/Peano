@@ -1945,6 +1945,112 @@ namespace Peano
             unfold lengthₚ; rw [List.length_map]
           rw [lengthₚ_append, h_len_map, ih n', ih (σ n'), lengthₚ_cons, ← binom_pascal]
 
+    -- ── Fase C.9, ADR-017, 4º hallazgo: enumeración constructiva de subgrupos ──
+    -- `by_cases h_ex : ∃ M : Subgroup G0, ...` (en `sylow_lift_from_cauchy`) no
+    -- tiene instancia `Decidable` para esa existencial y cae de forma invisible
+    -- al fallback clásico de `by_cases`. Se sustituye por una búsqueda acotada
+    -- sobre `sublistsOfLength G0.carrier.elems` (ya usada para Wielandt más abajo),
+    -- que decide de forma constructiva si existe un subgrupo propio con la propiedad.
+
+    /-- `pow_dvd_card` reformulado como divisibilidad ℕ₀ ordinaria (mismos testigos,
+        solo cambia el lado de la ecuación) — permite reutilizar `decidableDvd`. -/
+    private theorem pow_dvd_card_iff_dvd (p k : ℕ₀) (H : ℕ₀FSet) :
+        pow_dvd_card p k H ↔ (p ^ k) ∣ H.card :=
+      ⟨fun ⟨t, ht⟩ => ⟨t, ht.symm⟩, fun ⟨t, ht⟩ => ⟨t, ht.symm⟩⟩
+
+    /-- `M.carrier.card ≤ G0.carrier.card` para cualquier subgrupo (Lagrange débil,
+        vía `nodup_subset_length_le`, ya usado en el fichero para el Hallazgo 1). -/
+    private theorem subgroup_card_le {G0 : FinGroup ℕ₀} (M : Subgroup G0) :
+        le₀ M.carrier.card G0.carrier.card := by
+      have h_nd : M.carrier.elems.Nodup := sorted_nodup M.carrier.sorted
+      have h_len_le : M.carrier.elems.length ≤ G0.carrier.elems.length :=
+        nodup_subset_length_le h_nd M.subset
+      show le₀ (Λ M.carrier.elems.length) (Λ G0.carrier.elems.length)
+      apply (isomorph_Ψ_le (Λ M.carrier.elems.length) (Λ G0.carrier.elems.length)).mp
+      rw [ΨΛ, ΨΛ]
+      exact h_len_le
+
+    /-- Bool decidible: ¿es `l` un candidato válido a portador de subgrupo PROPIO
+        de `G0`, cerrado bajo `a·b⁻¹` (criterio de un paso), con `G0.id ∈ l`, de
+        longitud distinta de `|G0|`, y con `p^(m+1) ∣ |l|`? -/
+    private def properSylowCandidateB (G0 : FinGroup ℕ₀) (p m : ℕ₀) (l : List ℕ₀) : Bool :=
+      decide (G0.id ∈ l) &&
+      decide (lengthₚ l ≠ G0.carrier.card) &&
+      decide ((p ^ (σ m)) ∣ lengthₚ l) &&
+      l.all (fun a => l.all (fun b => decide (G0.op a (G0.inv b) ∈ l)))
+
+    /-- Todas las sublistas ordenadas de `elems` de longitud ≤ `bound`,
+        combinando `sublistsOfLength` sobre cada longitud posible. -/
+    private def allSublistsUpTo (elems : List ℕ₀) (bound : ℕ₀) : List (List ℕ₀) :=
+      List.flatMap (fun n => sublistsOfLength elems (Λ n)) (List.range' 0 (Ψ bound).succ)
+
+    private theorem allSublistsUpTo_sound (elems : List ℕ₀) (bound : ℕ₀) (l : List ℕ₀)
+        (hl : l ∈ allSublistsUpTo elems bound) :
+        ∃ n : ℕ₀, l ∈ sublistsOfLength elems n := by
+      unfold allSublistsUpTo at hl
+      obtain ⟨n, -, hl_mem⟩ := List.mem_flatMap.mp hl
+      exact ⟨Λ n, hl_mem⟩
+
+    private theorem allSublistsUpTo_complete (elems : List ℕ₀) (h_sorted : Sorted (· < ·) elems)
+        (bound : ℕ₀) (l : List ℕ₀)
+        (hl_sorted : Sorted (· < ·) l) (hl_sub : ∀ y ∈ l, y ∈ elems)
+        (hl_le : le₀ (lengthₚ l) bound) :
+        l ∈ allSublistsUpTo elems bound := by
+      unfold allSublistsUpTo
+      apply List.mem_flatMap.mpr
+      refine ⟨Ψ (lengthₚ l), ?_, ?_⟩
+      · apply List.mem_range'.mpr
+        refine ⟨Ψ (lengthₚ l), ?_, by omega⟩
+        have hle_nat := (isomorph_Ψ_le (lengthₚ l) bound).mpr hl_le
+        omega
+      · rw [ΛΨ]
+        exact sublistsOfLength_complete elems h_sorted (lengthₚ l) l hl_sorted hl_sub rfl
+
+    /-- Busca constructivamente un subgrupo propio de `G0` con `p^(m+1) ∣ |M|`,
+        mediante búsqueda acotada sobre todas las sublistas de `G0.carrier.elems`.
+        Sustituye la existencial `∃ M : Subgroup G0, ...` (sin `Decidable`) que
+        hacía caer `by_cases` al fallback clásico. -/
+    private def findProperSylowCandidate (G0 : FinGroup ℕ₀) (p m : ℕ₀) : Option (List ℕ₀) :=
+      (allSublistsUpTo G0.carrier.elems G0.carrier.card).find? (properSylowCandidateB G0 p m)
+
+    private theorem findProperSylowCandidate_some_spec (G0 : FinGroup ℕ₀) (p m : ℕ₀)
+        {l : List ℕ₀} (hl : findProperSylowCandidate G0 p m = some l) :
+        ∃ M : Subgroup G0, M.carrier.card ≠ G0.carrier.card ∧ pow_dvd_card p (σ m) M.carrier := by
+      unfold findProperSylowCandidate at hl
+      have hl_mem : l ∈ allSublistsUpTo G0.carrier.elems G0.carrier.card :=
+        List.mem_of_find?_eq_some hl
+      have hl_pred : properSylowCandidateB G0 p m l = true := List.find?_some hl
+      obtain ⟨n, hl_in_sub⟩ := allSublistsUpTo_sound G0.carrier.elems G0.carrier.card l hl_mem
+      have hl_sorted : Sorted (· < ·) l :=
+        sublistsOfLength_mem_sorted G0.carrier.elems G0.carrier.sorted n l hl_in_sub
+      have hl_sub : ∀ y, y ∈ l → y ∈ G0.carrier.elems :=
+        sublistsOfLength_mem_sub G0.carrier.elems n l hl_in_sub
+      unfold properSylowCandidateB at hl_pred
+      simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true] at hl_pred
+      obtain ⟨⟨⟨hid_mem, hlen_ne⟩, hdvd⟩, hcl⟩ := hl_pred
+      have hne : ∃ a, a ∈ l := ⟨G0.id, hid_mem⟩
+      have hcl' : ∀ a b, a ∈ l → b ∈ l → G0.op a (G0.inv b) ∈ l :=
+        fun a b ha hb => hcl a ha b hb
+      refine ⟨subgroup_of_op_inv_closed G0 ⟨l, hl_sorted⟩ hl_sub hne hcl', hlen_ne, ?_⟩
+      exact (pow_dvd_card_iff_dvd p (σ m)
+        (subgroup_of_op_inv_closed G0 ⟨l, hl_sorted⟩ hl_sub hne hcl').carrier).mpr hdvd
+
+    private theorem findProperSylowCandidate_none_spec (G0 : FinGroup ℕ₀) (p m : ℕ₀)
+        (hnone : findProperSylowCandidate G0 p m = none) :
+        ∀ M : Subgroup G0, M.carrier.card ≠ G0.carrier.card → ¬ pow_dvd_card p (σ m) M.carrier := by
+      intro M hM_ne hM_dvd
+      unfold findProperSylowCandidate at hnone
+      rw [List.find?_eq_none] at hnone
+      have hM_mem : M.carrier.elems ∈ allSublistsUpTo G0.carrier.elems G0.carrier.card :=
+        allSublistsUpTo_complete G0.carrier.elems G0.carrier.sorted G0.carrier.card
+          M.carrier.elems M.carrier.sorted M.subset (subgroup_card_le M)
+      apply hnone M.carrier.elems hM_mem
+      unfold properSylowCandidateB
+      simp only [Bool.and_eq_true, decide_eq_true_eq, List.all_eq_true]
+      refine ⟨⟨⟨M.id_in, hM_ne⟩, (pow_dvd_card_iff_dvd p (σ m) M.carrier).mp hM_dvd⟩, ?_⟩
+      intro a ha b hb
+      exact Subgroup.op_inv_closed G0 M a b ha hb
+
     /-- Argumento de Wielandt, pieza 1:
         Ω = sublistas ordenadas de G.carrier.elems de longitud N (representantes canónicos
         de N-subconjuntos de G). |Ω| = C(|G|, N). -/
@@ -4308,9 +4414,12 @@ namespace Peano
         by_cases h_eq : G0.carrier.card = p ^ (σ m)
         · exact ⟨improperSubgroup G0, h_eq⟩
         -- Caso 2: ∃ subgrupo propio M con p^(m+1) | |M|
-        · by_cases h_ex : ∃ M : Subgroup G0,
-              M.carrier.card ≠ G0.carrier.card ∧ pow_dvd_card p (σ m) M.carrier
-          · obtain ⟨M, hM_ne, hM_dvd⟩ := h_ex
+        -- (búsqueda constructiva acotada, no `by_cases` sobre la existencial: ver
+        -- Fase C.9, ADR-017, 4º hallazgo — esa existencial no tiene `Decidable` y
+        -- `by_cases` caía al fallback clásico de forma invisible a cualquier grep)
+        · match hfind : findProperSylowCandidate G0 p m with
+          | some l =>
+            obtain ⟨M, hM_ne, hM_dvd⟩ := findProperSylowCandidate_some_spec G0 p m hfind
             -- |M| < |G0| por Lagrange y properness
             have hM_lt : lt₀ M.carrier.card n' := by
               rw [← hn]
@@ -4328,8 +4437,9 @@ namespace Peano
             obtain ⟨K, hK⟩ := ih M.carrier.card hM_lt G_M rfl hM_dvd
             exact ⟨subgroupOfSubgroup G0 M K, hK⟩
           -- Caso 3: ningún subgrupo propio es divisible por p^(m+1) → axioma
-          · exact sylow_center_step hC G0 p m hp hpow0
-              (fun M hM_ne hM_dvd => h_ex ⟨M, hM_ne, hM_dvd⟩)
+          | none =>
+            exact sylow_center_step hC G0 p m hp hpow0
+              (findProperSylowCandidate_none_spec G0 p m hfind)
       -- Inducción fuerte sobre |G|, generalizada a todos los FinGroups del mismo cardinal
       have key : ∀ n : ℕ₀, ∀ G0 : FinGroup ℕ₀, G0.carrier.card = n →
           pow_dvd_card p (σ m) G0.carrier →
@@ -5075,7 +5185,13 @@ namespace Peano
               cases rest_orb with
               | cons b _ =>
                 rw [h_orb_list] at h_len1
-                simp at h_len1
+                -- (Fase C.9, ADR-017, 5º hallazgo): `simp` genérico sobre
+                -- `(a :: b :: _).length = 1` cae al fallback clásico vía algún lema
+                -- del simp-set por defecto — aislar la contradicción aritmética a
+                -- mano en vez de dejar que `simp` cierre el objetivo (no aritmético)
+                -- directamente.
+                simp only [List.length_cons] at h_len1
+                exact absurd h_len1 (by omega)
               | nil =>
                 have ha : (ψ₀.orb K₀).elems = [a] := h_orb_list
                 have hK₀_eq_a : K₀ = a := by

@@ -72,16 +72,23 @@ El proyecto se re-desarrolla como intuicionista/constructivista puro.
      — hay que aislar la contradicción con `exact absurd h (by omega)` en vez de
      llamar `omega` directo sobre el objetivo real. Puede haber más instancias de este
      patrón sin auditar en el resto de `Sylow.lean`.
-  - **PENDIENTE, sin resolver al cerrar la sesión**: `sylow_lift_from_cauchy` (y por
-    tanto `sylow_first`/`sylow_third`) SIGUE mostrando `Classical.choice` pese a que
-    `wielandt_p_ndvd_r`, `sylow_center_step_wielandt`, `cauchy_minimal` y `lagrange`
-    ya están todos limpios — la fuente está en alguna pieza de `sylow_lift_from_cauchy`
-    todavía no auditada individualmente (`sylow_center_step`, `subgroupToFinGroup`,
-    `subgroupOfSubgroup`, o algo dentro de su `have step`). Plan de bisección exacto
-    para continuar mañana: PLANNING.md Fase C.9, "Plan exacto para continuar".
-- **Siguiente paso concreto**: localizar y arreglar la fuente restante en
-  `sylow_lift_from_cauchy` (ver plan arriba), luego continuar con
-  C.5 (retirar `Prelim/Classical.lean`) y C.6 (`ConstructiveCheck.lean` exhaustivo).
+  - ✅ **RESUELTO (2026-07-14)**: dos fuentes independientes más de `Classical.choice`,
+    ambas invisibles a grep de `Classical\.`. **Hallazgo 4**: `by_cases` sobre la
+    existencial `∃ M : Subgroup G0, ...` en `sylow_lift_from_cauchy` caía al fallback
+    clásico (sin `Decidable` para esa existencial) — arreglado con una enumeración
+    constructiva nueva sobre `sublistsOfLength` (`properSylowCandidateB`,
+    `findProperSylowCandidate`, etc., en `Sylow.lean` tras `sublistsOfLength_card`) y
+    un `match` sobre `Option` en vez del `by_cases`. **Hallazgo 5**: `simp` genérico
+    (sin lemas) sobre `(a :: b :: _).length = 1` dentro de `sylow_third_mod` también
+    tiraba de `Classical.choice` — arreglado con `simp only [List.length_cons]` +
+    `exact absurd h_len1 (by omega)`. Ver PLANNING.md Fase C.9 para el detalle completo.
+    Los 6 teoremas objetivo (`Group.order`, `cauchy_minimal`, `sylow_lift_from_cauchy`,
+    `sylow_first`, `sylow_second`, `sylow_third`) están todos verificados sin
+    `Classical.choice`. Build 73 jobs, 0 sorry.
+- **Siguiente paso concreto**: C.5 (retirar `Prelim/Classical.lean` — verificar
+  consumidores con `grep -rl "Peano.Prelim.Classical\|choose_unique\|Classical\."
+  Peano/`) y C.6 (`ConstructiveCheck.lean` exhaustivo, incluyendo `#assert_constructive`
+  para los 6 teoremas de Sylow y las nuevas defs de enumeración de subgrupos).
 
 ## Estado actual del build (2026-07-13)
 

@@ -161,11 +161,36 @@ namespace Peano
     /-- `φ(0) = 0`. -/
     theorem totient_zero : totient 𝟘 = 𝟘 := by decide
 
-    /-- `φ(1) = 1`. -/
-    theorem totient_one : totient 𝟙 = 𝟙 := by native_decide
+    /-- `φ(1) = 1`. Constructivo (no `native_decide`): todo `k` es coprimo con `𝟙`
+        (`gcd_one_right`), luego el filtro es la identidad y `|range_from_one 𝟙| = 𝟙`. -/
+    theorem totient_one : totient 𝟙 = 𝟙 := by
+      unfold totient
+      have h_all : ∀ k, k ∈ range_from_one 𝟙 → decide (gcd k 𝟙 = 𝟙) = true := by
+        intro k _
+        simp only [decide_eq_true_eq]
+        exact gcd_one_right k
+      rw [filter_all_true _ _ h_all, lengthₚ_range_from_one]
 
-    /-- `φ(2) = 1`. -/
-    theorem totient_two : totient 𝟚 = 𝟙 := by native_decide
+    /-- `φ(2) = 1`. Constructivo (no `native_decide`): se descarta `𝟚` (pues
+        `gcd 𝟚 𝟚 = 𝟚 ≠ 𝟙`) y se conserva `range_from_one 𝟙 = [𝟙]` (coprimo con `𝟚`). -/
+    theorem totient_two : totient 𝟚 = 𝟙 := by
+      -- `𝟚` es defeq `σ 𝟙`; exponer el `σ` permite que `simp [range_from_one]` unfolde
+      -- (sobre un literal `𝟚` no lo ve como `σ _`). Mismo esquema que `totient_prime`.
+      show totient (σ 𝟙) = 𝟙
+      unfold totient
+      simp only [range_from_one]
+      rw [filter_append_singleton]
+      have h_gcd_self : decide (gcd (σ 𝟙) (σ 𝟙) = 𝟙) = false := by
+        rw [gcd_self]; decide
+      rw [h_gcd_self, if_neg (Bool.false_ne_true)]
+      have h_all : ∀ k, k ∈ range_from_one 𝟙 → decide (gcd k (σ 𝟙) = 𝟙) = true := by
+        intro k hk
+        simp only [decide_eq_true_eq]
+        have hk1 : k = 𝟙 :=
+          le_antisymm k 𝟙 (mem_range_from_one_le hk)
+            (lt_0n_then_le_1n_wp (pos_of_ne_zero k (mem_range_from_one_pos hk)))
+        rw [hk1]; exact gcd_one_left (σ 𝟙)
+      rw [filter_all_true _ _ h_all, lengthₚ_range_from_one]
 
 
     /-!

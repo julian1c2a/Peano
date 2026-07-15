@@ -172,13 +172,18 @@ set_option autoImplicit false
 section AssertConstructiveCmd
 open Lean Elab Command
 
-/-- Falla en tiempo de compilación si la declaración usa `Classical.choice`. -/
+/-- Falla en tiempo de compilación si la declaración usa `Classical.choice` o
+    `native_decide` (axioma `…._native.native_decide.ax_*`, que confía en el compilador
+    y por tanto NO es admisible en un footprint constructivo). -/
 elab "#assert_constructive " id:ident : command => do
   let name ← resolveGlobalConstNoOverload id
   -- API pública estable (Lean 4.30.0): `collectAxioms` devuelve `Array Name`.
   let axioms ← Lean.collectAxioms name
   if axioms.contains ``Classical.choice then
     throwError "'{name}' depende de Classical.choice — reescribir constructivamente"
+  if axioms.any (fun ax => decide (2 ≤ ((toString ax).splitOn "native_decide").length)) then
+    throwError "'{name}' usa `native_decide` (axioma que confía en el compilador) — \
+      reescribir con `decide` (kernel) o prueba explícita"
 
 end AssertConstructiveCmd
 
@@ -299,12 +304,10 @@ end AssertConstructiveCmd
 #assert_constructive Peano.ModEq.modEq_zero_iff_dvd
 
 -- ─────────────────────────────────────────────────────────────────
--- Wilson.lean — sin comprobación #assert_constructive todavía.
--- Nota (2026-07-13): la razón original documentada aquí (Wilson → Fermat →
--- Totient → FSet → Classical.byContradiction) era incorrecta — FSet.lean usa
--- `Decidable.byContradiction`, constructivo. Pendiente: añadir
--- #assert_constructive Peano.Wilson.wilson una vez confirmado que su cadena de
--- dependencias no toca ninguno de los puntos reales listados arriba.
+-- Wilson.lean — SANEADO y verificado constructivo el 2026-07-15.
+-- Su `#assert_constructive Peano.Wilson.wilson` está en la sección Wilson.lean
+-- de abajo. El `Classical.choice` provenía de tres lemas de `List.erase` del core
+-- de Lean 4.31 y el `native_decide` del caso p=3; ambos eliminados.
 -- ─────────────────────────────────────────────────────────────────
 
 -- ─────────────────────────────────────────────────────────────────
@@ -1431,6 +1434,11 @@ end AssertConstructiveCmd
 #assert_constructive Peano.Wilson.modInv_lt
 #assert_constructive Peano.Wilson.modInv_mul
 #assert_constructive Peano.Wilson.modInv_pos
+-- Teorema de Wilson (saneado 2026-07-15): el `Classical.choice` venía de tres lemas de
+-- `List.erase` del core de Lean 4.31 (`length_erase_of_mem`/`mem_erase_of_ne`/
+-- `Nodup.not_mem_erase`), reemplazados por versiones constructivas locales; y el
+-- `native_decide` del caso p=3 por reducción estructural + `modEq_refl`.
+#assert_constructive Peano.Wilson.wilson
 
 -- ───────────────────────────────────────────────────────────────────
 -- Comprobaciones: Fermat.lean

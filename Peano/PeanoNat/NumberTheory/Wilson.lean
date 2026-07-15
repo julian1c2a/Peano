@@ -582,6 +582,56 @@ namespace Peano
           -- mul a (mul b (listProd (rest.erase b))) = mul b (mul a (listProd (rest.erase b)))
           rw [← mul_assoc, mul_comm a b, mul_assoc]
 
+    -- Reemplazos CONSTRUCTIVOS de dos lemas de `List.erase` del core de Lean 4.31 que
+    -- dependen de `Classical.choice` (`mem_erase_of_ne`, `Nodup.not_mem_erase`). Sobre
+    -- `List ℕ₀` (con `DecidableEq`) son demostrables por inducción estructural + los
+    -- lemas de `erase` que SÍ son constructivos (`erase_cons_head`/`erase_cons_tail`).
+
+    /-- Constructivo: si `a ≠ b`, la pertenencia es invariante bajo `erase b`. -/
+    private theorem mem_erase_of_ne_c {a b : ℕ₀} :
+        ∀ {l : List ℕ₀}, a ≠ b → (a ∈ l.erase b ↔ a ∈ l) := by
+      intro l
+      induction l with
+      | nil => intro _; simp [List.erase_nil]
+      | cons c rest ih =>
+        intro hab
+        by_cases h : c = b
+        · subst h
+          rw [List.erase_cons_head]
+          exact ⟨fun hmem => List.mem_cons_of_mem c hmem,
+                 fun hmem => (List.mem_cons.mp hmem).resolve_left hab⟩
+        · have herase : (c :: rest).erase b = c :: rest.erase b := by
+            apply List.erase_cons_tail; simp [beq_iff_eq, h]
+          rw [herase]
+          constructor
+          · intro hmem
+            rcases List.mem_cons.mp hmem with h' | h'
+            · exact List.mem_cons.mpr (Or.inl h')
+            · exact List.mem_cons.mpr (Or.inr ((ih hab).mp h'))
+          · intro hmem
+            rcases List.mem_cons.mp hmem with h' | h'
+            · exact List.mem_cons.mpr (Or.inl h')
+            · exact List.mem_cons.mpr (Or.inr ((ih hab).mpr h'))
+
+    /-- Constructivo: en una lista sin duplicados, `b` no está en `l.erase b`. -/
+    private theorem not_mem_erase_c {b : ℕ₀} :
+        ∀ {l : List ℕ₀}, l.Nodup → b ∉ l.erase b := by
+      intro l
+      induction l with
+      | nil => intro _ hmem; simp [List.erase_nil] at hmem
+      | cons a rest ih =>
+        intro hnd hmem
+        by_cases h : a = b
+        · subst h
+          rw [List.erase_cons_head] at hmem
+          exact (List.nodup_cons.mp hnd).1 hmem
+        · have herase : (a :: rest).erase b = a :: rest.erase b := by
+            apply List.erase_cons_tail; simp [beq_iff_eq, h]
+          rw [herase] at hmem
+          rcases List.mem_cons.mp hmem with h' | h'
+          · exact h h'.symm
+          · exact ih (List.nodup_cons.mp hnd).2 h'
+
     /-- **Pairing lemma**: If every element of `L` pairs with a distinct partner
         under `modInv`, then `listProd L ≡ 𝟙 [MOD p]`. -/
     private theorem prod_pairs {p : ℕ₀} (hp : Prime p) (L : List ℕ₀)
@@ -625,9 +675,9 @@ namespace Peano
             Nat.le_of_succ_le_succ hlen
           have hrest'_len : rest'.length ≤ n' := by
             show (rest.erase b).length ≤ n'
-            have h1 : (rest.erase b).length = Nat.sub rest.length 1 :=
-              List.length_erase_of_mem hb_rest
-            exact Nat.le_trans (h1 ▸ Nat.sub_le rest.length 1) hrest_len
+            -- Constructivo: `erase` produce una sublista → longitud ≤ (sin usar el
+            -- clásico `List.length_erase_of_mem` del core de Lean 4.31).
+            exact Nat.le_trans List.erase_sublist.length_le hrest_len
           -- rest'.Nodup
           have hnd_rest : rest.Nodup := (List.nodup_cons.mp hnd_M).2
           have hnd_rest' : rest'.Nodup := hnd_rest.erase b
@@ -654,7 +704,7 @@ namespace Peano
             -- modInv p x ≠ a (using involution: if modInv x = a then x = modInv a = b, but x ≠ b)
             have hx_ne_b : x ≠ b := fun h => by
               rw [h] at hx
-              exact absurd hx (List.Nodup.not_mem_erase hnd_rest)
+              exact absurd hx (not_mem_erase_c hnd_rest)
             have hmodx_ne_a : modInv p x ≠ a := by
               intro h_eq
               -- modInv x = a → x = modInv a = b (by involution)
@@ -691,7 +741,7 @@ namespace Peano
               · exact absurd h hmodx_ne_a
               · exact h
             -- modInv p x ∈ rest and ≠ b → ∈ rest.erase b = rest'
-            rwa [List.mem_erase_of_ne hmodx_ne_b]
+            rwa [mem_erase_of_ne_c hmodx_ne_b]
           -- IH for rest'
           have ih_rest' : listProd rest' ≡ 𝟙 [MOD p] :=
             ih rest' hrest'_len hnd_rest' hrange_rest' hclosed_rest' hnf_rest'
@@ -775,8 +825,11 @@ namespace Peano
           | succ p''' =>
             cases p''' with
             | zero =>
-              -- p=3: range_from_one 1 = [1], listProd [1] = 1 ≡ 1 [MOD 3]
-              native_decide
+              -- p=3: range_from_one (σ 𝟘) = [𝟙], listProd [𝟙] = 𝟙 ≡ 𝟙 [MOD 3].
+              -- Constructivo (no `native_decide`): reducción estructural + `modEq_refl`,
+              -- como el caso p=2 (aquí el goal es `range_from_one (σ 𝟘)`, sí es `σ _`).
+              simp [range_from_one, listProd]
+              exact modEq_refl _ 𝟙
             | succ p'''' =>
               -- p ≥ 5 (since p = σ(σ(σ(σ p''''))); actually p'' = σ(σ p''''), p = σ(σ(σ(σ p''''))))
               -- σ(σ p'''') ≥ 2
